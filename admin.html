@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrativo - Chegou!</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* --- SEUS ESTILOS ORIGINAIS --- */
+        .hero-admin {
+            padding: 25px; 
+            margin-bottom: 20px; 
+            border-top: 5px solid var(--secondary);
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .tabela-container {
+            max-height: 420px; 
+            overflow-y: auto; 
+            margin-top: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        
+        table thead th {
+            position: sticky;
+            top: 0;
+            background: var(--white);
+            z-index: 2;
+            border-bottom: 2px solid var(--primary);
+            padding: 12px;
+        }
+
+        .btn-acao {
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+            padding: 5px;
+        }
+
+        .btn-acao:hover { transform: scale(1.2); }
+
+        tbody tr { border-bottom: 1px solid #eee; }
+        tbody tr:nth-child(even) { background-color: #fafafa; }
+        tbody tr:hover { background-color: #f0f4ff; }
+        
+        .ddi-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .ddi-wrapper::before {
+            content: "+";
+            position: absolute;
+            left: 10px;
+            color: var(--text);
+            font-weight: bold;
+        }
+        #ddiMorador {
+            padding-left: 25px !important;
+            width: 90px;
+        }
+
+        .badge-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            background: #e1f5fe;
+            color: #01579b;
+        }
+
+        /* --- NOVOS ESTILOS: SIDEBAR E BOTÃO HAMBÚRGUER --- */
+        .btn-open-sidebar {
+            position: fixed;
+            top: 85px;
+            left: 20px;
+            z-index: 1000;
+            background: #004aad; /* Azul Magalu/Luiza */
+            border: none;
+            width: 45px;
+            height: 40px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+        .btn-open-sidebar:hover { background: #003580; }
+        .btn-open-sidebar .bar {
+            width: 22px;
+            height: 3px;
+            background-color: white;
+            border-radius: 2px;
+        }
+
+        .sidebar {
+            position: fixed; top: 0; left: -280px; width: 260px; height: 100%;
+            background: #1a252f; color: white; transition: 0.3s ease-in-out;
+            z-index: 3000; padding: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+        }
+        .sidebar.active { left: 0; }
+        .sidebar-header { border-bottom: 1px solid #34495e; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-item {
+            width: 100%; padding: 12px; background: none; border: none;
+            color: #ecf0f1; text-align: left; cursor: pointer; border-radius: 5px;
+            margin-bottom: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px;
+        }
+        .sidebar-item:hover { background: #34495e; color: #f39c12; }
+        
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2500; }
+        .overlay.active { display: block; }
+
+        /* Ajuste para o conteúdo não ficar colado no topo fixo */
+        .main-content-area { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏢 Painel Administrativo</h1>
+        <p>Gestão de Moradores e Unidades</p>
+    </header>
+
+    <nav class="admin-nav" id="menu-navegacao-dinamico" style="display: none;">
+        <div class="nav-container">
+            <button id="btn-root" onclick="location.href='root.html'" class="nav-item">👑 Mestre</button>
+            <button onclick="location.href='admin.html'" class="nav-item active">🏢 Administrativo</button>
+            <button onclick="location.href='portaria.html'" class="nav-item">🛂 Portaria</button>
+            <button onclick="location.href='morador.html'" class="nav-item">🏠 Morador</button>
+            <button onclick="logout()" class="nav-item btn-sair-nav">🚪 Sair</button>
+        </div>
+    </nav>
+
+    <button class="btn-open-sidebar" onclick="toggleSidebar()" title="Menu Administrativo">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </button>
+
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3 style="margin:0">Menu Admin</h3>
+            <button onclick="toggleSidebar()" style="background:none; border:none; color:white; cursor:pointer; font-size:1.8rem">×</button>
+        </div>
+        <div class="sidebar-content">
+            <button onclick="alert('Relatórios em breve')" class="sidebar-item">📊 Relatórios</button>
+            <button onclick="alert('Encomendas em breve')" class="sidebar-item">📦 Encomendas</button>
+            <button onclick="alert('Configurações em breve')" class="sidebar-item">⚙️ Configurações</button>
+        </div>
+    </aside>
+
+    <main class="container main-content-area">
+        
+        <section class="hero-admin">
+            <h3 style="margin-top: 0; text-align: center; color: var(--primary);">➕ Novo Cadastro de Morador</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 20px; text-align: left;">
+                
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: bold;">Nome do Morador/Proprietário</label>
+                    <input type="text" id="nomeMorador" placeholder="Nome Completo do Morador" class="input-padrao">
+                </div>
+
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: bold;">Bloco/Torre</label>
+                    <select id="blocoMorador" class="input-padrao">
+                        <option value="">Selecione...</option>
+                        <option value="A">Torre A</option>
+                        <option value="B">Torre B</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: bold;">Apartamento</label>
+                    <input type="number" id="aptoMorador" placeholder="Nº" class="input-padrao">
+                </div>
+
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: bold;">Status da Unidade</label>
+                    <select id="vinculoMorador" class="input-padrao">
+                        <option value="proprietario">Proprietário Morador</option>
+                        <option value="inquilino">Inquilino</option>
+                        <option value="vazio">Unidade Vazia</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: bold;">WhatsApp</label>
+                    <div style="display: flex; gap: 5px;">
+                        <div class="ddi-wrapper">
+                            <input list="ddis" id="ddiMorador" value="55" class="input-padrao">
+                        </div>
+                        <datalist id="ddis">
+                            <option value="55">Brasil</option>
+                            <option value="1">EUA</option>
+                            <option value="351">Portugal</option>
+                        </datalist>
+                        <input type="text" id="whatsappMorador" placeholder="DDD + Número" class="input-padrao">
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button onclick="salvarMorador()" class="btn-login-main" style="padding: 12px 60px; font-size: 1rem;">Salvar Morador</button>
+            </div>
+        </section>
+
+        <div class="modal-grid">
+            <section class="card" style="width: 100%; height: auto; display: block; padding: 25px !important; cursor: default;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">👥 Gestão de Ocupação <span style="font-size: 0.9rem; font-weight: normal; color: #666;">(Ordem: Unidade)</span></h3>
+                    <input type="text" id="filtroGeral" onkeyup="filtrarTabela()" 
+                           placeholder="🔍 Buscar por nome, unidade ou status..." 
+                           style="padding: 12px; border-radius: 25px; border: 1px solid #ccc; width: 100%; max-width: 300px;">
+                </div>
+                
+                <div class="tabela-container">
+                    <table id="tabelaMoradores" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                        <thead>
+                            <tr>
+                                <th>Unidade</th>
+                                <th>Nome / Status</th>
+                                <th>Vínculo</th>
+                                <th>WhatsApp</th>
+                                <th style="text-align: center;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaMoradores">
+                             </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // SIDEBAR CONTROLS
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        // FILTER LOGIC
+        function filtrarTabela() {
+            const input = document.getElementById("filtroGeral");
+            const filter = input.value.toUpperCase();
+            const tr = document.getElementById("listaMoradores").getElementsByTagName("tr");
+            for (let i = 0; i < tr.length; i++) {
+                let txtValue = tr[i].textContent || tr[i].innerText;
+                tr[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            }
+        }
+    </script>
+
+    <div id="modalWhatsapp" class="overlay" style="display: none; align-items: center; justify-content: center; z-index: 4000;">
+    <div style="background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative;">
+        <h3 style="color: var(--primary); margin-top: 0;">📤 Enviar Link de Acesso</h3>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+        
+        <p style="font-size: 0.9rem; margin-bottom: 5px;"><strong>Morador:</strong> <span id="modalNome"></span></p>
+        <p style="font-size: 0.9rem; margin-bottom: 20px;"><strong>WhatsApp:</strong> <span id="modalZap"></span></p>
+        
+        <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Mensagem que será enviada:</label>
+        <div style="background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.85rem; color: #444; margin-top: 5px;">
+            Olá <span id="modalNomeMsg"></span>, seu cadastro no **Chegou!** está pronto. 
+            Acesse seu painel pelo link: <br>
+            <strong style="color: var(--primary);">https://chegou-app.com/acesso</strong>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button onclick="fecharModalZap()" style="flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; background: #eee;">Cancelar</button>
+            <button onclick="confirmarEnvioZap()" style="flex: 2; padding: 12px; border: none; border-radius: 8px; cursor: pointer; background: #25d366; color: white; font-weight: bold;">Confirmar e Enviar</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
