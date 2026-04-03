@@ -1,0 +1,499 @@
+/* -----------------------------------------------------------
+   css/dashboard.css - ESTRUTURA COMPLETA (PC + MOBILE)
+----------------------------------------------------------- */
+
+/* 1. CONFIGURAÇÕES GERAIS (O que vale para todos) */
+:root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --accent: #f97316;
+    --white: #ffffff;
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
+    --bg-master: #f1f5f9;
+    --divider: #e2e8f0;
+
+    --sidebar-width: 260px;
+    --transition-speed: 0.3s;
+    --divider: #e2e8f0;
+    --danger: #ef4444;
+}
+
+body.bg-sistema {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+    background-attachment: fixed !important;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* --- BOTÃO HAMBÚRGUER NA NAVBAR --- */
+.btn-menu {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-size: 1.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    transition: transform 0.2s;
+}
+
+.btn-menu:hover {
+    transform: scale(1.1);
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Espaço entre o botão e o logo */
+}
+
+/* --- ESTRUTURA DA SIDEBAR --- */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background-color: var(--white);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.05);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    transition: all var(--transition-speed) ease;
+}
+
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--divider);
+    height: 70px;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 20px 15px;
+    overflow-y: auto;
+}
+
+/* Itens do Menu */
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-radius: 12px;
+    margin-bottom: 5px;
+    transition: all 0.2s;
+    font-weight: 600;
+}
+
+.nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
+
+.nav-item:hover, .nav-item.active {
+    background-color: rgba(37, 99, 235, 0.08);
+    color: var(--primary);
+}
+
+.nav-item.logout {
+    color: var(--danger);
+    margin-top: 10px;
+}
+
+.nav-item.logout:hover {
+    background-color: rgba(239, 68, 68, 0.08);
+}
+
+.sidebar-divider {
+    height: 1px;
+    background-color: var(--divider);
+    margin: 15px 0;
+}
+
+/* Footer da Sidebar (Perfil do Paulo) */
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid var(--divider);
+    background-color: #f8fafc;
+}
+
+.user-info-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    background-color: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.user-name-mini { font-size: 0.9rem; font-weight: 700; margin: 0; }
+.user-role-mini { font-size: 0.75rem; color: var(--text-muted); margin: 0; }
+
+/* --- COMPORTAMENTO DESKTOP (PC) --- */
+@media (min-width: 769px) {
+    /* Empurra o conteúdo para a direita */
+    .main-layout {
+        margin-left: var(--sidebar-width) !important;
+        width: calc(100% - var(--sidebar-width)) !important;
+        transition: margin-left var(--transition-speed);
+    }
+    
+    .btn-close-mobile { display: none; }
+}
+
+/* ===========================================================
+   ADICIONADO: CORREÇÃO DE CENTRALIZAÇÃO DO CARD (PC)
+   =========================================================== */
+
+@media (min-width: 769px) {
+    /* 1. Ajuste do Container Principal */
+    .main-layout {
+        margin-left: var(--sidebar-width) !important; /* Respeita a largura da Sidebar */
+        margin-right: 0 !important;
+        width: calc(100% - var(--sidebar-width)) !important; /* Ocupa o resto da tela */
+        max-width: none !important; 
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important; /* CENTRALIZA TUDO NO ESPAÇO QUE SOBROU */
+        padding: 100px 20px 40px 20px !important; /* Respiro lateral interno */
+    }
+
+    /* 2. Alinhamento Vertical Perfeito (Saudação + Card) */
+    .welcome-section, 
+    .status-bar-container, 
+    .card-master {
+        width: 100% !important;
+        max-width: 1100px !important; /* Define uma largura máxima elegante para o Card */
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* 3. Ajuste da Barra de Status (Data e Clima) */
+    .status-bar-container {
+        display: flex !important;
+        justify-content: flex-end !important; 
+        align-items: center !important;
+        padding: 0 !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* Força o Clima a ficar alinhado com a borda direita do Card no PC */
+    #weather-container {
+        position: static !important; /* Tira do 'absolute' que usamos no mobile */
+        display: flex !important;
+        margin-left: auto !important;
+    }
+}
+
+/* Ajuste fino para evitar que o card 'dance' ao redimensionar */
+.card-master {
+    box-sizing: border-box !important;
+}
+
+/* Garante que o conteúdo dentro do card não quebre o centro */
+#conteudo-card {
+    width: 100% !important;
+}
+
+/* --- COMPORTAMENTO MOBILE (Celular) --- */
+@media (max-width: 768px) {
+    .sidebar {
+        left: calc(var(--sidebar-width) * -1); /* Esconde totalmente a barra */
+    }
+
+    .sidebar.active {
+        left: 0; /* Desliza para dentro */
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    .btn-close-mobile {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-muted);
+        cursor: pointer;
+    }
+
+    /* No Mobile, o conteúdo volta a ocupar 100% */
+    .main-layout {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}
+
+/* 2. ESTRUTURA DE LAYOUT (VISÃO DESKTOP/PC) */
+.main-layout {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 100px 50px 40px 50px; /* Alinhado com os 50px da sua Navbar */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Saudação Centralizada */
+.welcome-section {
+    text-align: center;
+    margin-bottom: 5px;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.welcome-text {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 10px 0;
+}
+
+/* Barra de Status (Data e Clima à Direita) */
+.status-bar-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 0;
+    margin-bottom: 20px;
+}
+
+#current-date {
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 3. O CARD MASTER (O CORAÇÃO DO SISTEMA) */
+.card-master {
+    background-color: var(--white);
+    border-radius: 20px; /* Arredondamento Senior */
+    padding: 40px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08); /* Sombra mais profunda e elegante */
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    position: relative;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+/* Header de Utilidades dentro do Card */
+.card-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.utility-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-utility {
+    background: #f8fafc;
+    border: 1px solid var(--divider);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 10px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-utility:hover {
+    background-color: var(--primary);
+    color: var(--white);
+    transform: translateY(-2px);
+    border-color: var(--primary);
+}
+
+/* A LINHA DE DEPRESSÃO (SULCO VISUAL) */
+.card-divider {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0,0,0,0), var(--divider), rgba(0,0,0,0));
+    margin-bottom: 35px;
+}
+
+/* 4. REGRAS DE TRANSIÇÃO PARA MOBILE (ADAPTAÇÃO CELULAR) */
+@media (max-width: 768px) {
+    .main-layout {
+        padding: 75px 12px 30px 12px !important;
+        position: relative;
+    }
+
+    /* Esconde a tag ACESSO MASTER no topo do celular */
+    .tag-master {
+        display: none !important;
+    }
+
+    /* Opcional: Centraliza o logo se quiser que ele ocupe o espaço vago */
+    .nav-center {
+        display: none; /* Remove o container central no mobile */
+    }
+
+    /* 1. Saudação centralizada e limpa */
+    .welcome-section {
+        margin-top: 5px;
+        margin-bottom: 0px;
+        padding-bottom: 0px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .welcome-text {
+        font-size: 1.3rem !important; /* Estava 1.6rem, baixamos para um tamanho mais discreto */
+        font-weight: 700 !important;   /* Deixa um pouco menos "pesado" que o 800 */
+        margin-bottom: -2px !important;
+        padding-bottom: 0px;
+    }
+
+    /* 2. Data Centralizada abaixo do nome (Sem horas) */
+    .status-bar-container {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        justify-content: center;
+        margin-bottom: 15px;
+        width: 100%;
+    }
+
+   #current-date {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        line-height: 1.2 !important;
+        font-size: 0.72rem !important;
+        color: var(--text-muted) !important;
+        letter-spacing: 0.3px;         /* Melhora a leitura em fontes pequenas */
+    }
+
+    /* 3. CLIMA NO CANTO SUPERIOR DIREITO (Flutuante) */
+    /* Posiciona o Clima no topo direito, sem fundo e sem cidade */
+    #weather-container {
+        position: absolute !important;
+        top: 82px !important; /* Ajustei um pouco para baixo para não bater na navbar */
+        right: 15px !important;
+        z-index: 9999 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        background: transparent !important;
+        border: none !important;
+        color: var(--text-dark) !important;
+        font-weight: 800 !important;
+        font-size: 1rem !important;
+        min-width: 50px !important; /* Garante espaço para o número */
+        min-height: 20px !important;
+    }
+    
+    #weather-container i {
+        color: var(--accent) !important; /* Laranja/Abóbora para o ícone brilhar no fundo cinza */
+        font-size: 1.1rem !important;
+        display: inline-block !important;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    #weather-container .clima-temp {
+        display: inline-block !important;
+        color: var(--text-dark) !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    /* Esconde Localização e qualquer texto extra no Mobile */
+    #weather-container span:not(.clima-temp),
+    #weather-container .city-name { 
+    display: none !important; 
+    }
+
+    /* A temperatura em si (o número) */
+    .clima-temp {
+        color: var(--text-dark) !important;
+        text-shadow: 0 0 10px rgba(255,255,255,0.8); /* Brilho branco atrás do número */
+    }
+
+    /* ESCONDE O NOME DA CIDADE NO CELULAR */
+    .clima-cidade {
+        display: none !important;
+    }
+
+    /* 4. Ajustes do Card */
+    .card-master {
+        padding: 20px 15px; 
+        border-radius: 18px; 
+        margin-top: 5px;
+    }
+
+    .card-title {
+        font-size: 0.95rem !important   ;
+    }
+}
+
+/* --- AJUSTE DE CAMADAS (Z-INDEX) PARA MOBILE --- */
+
+@media (max-width: 768px) {
+    /* 1. Garante que a Navbar (Header) esteja sempre no topo de tudo */
+    .navbar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 10001 !important; /* Valor maior que o clima */
+        background-color: var(--white); /* Garante que o fundo não seja transparente ao rolar */
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    /* 2. Ajusta o Clima para ficar em uma camada abaixo da Navbar ao rolar */
+    #weather-container {
+        z-index: 9998 !important; /* Menor que a navbar (10001) e que o overlay (9999) */
+    }
+
+    /* 3. Garante que o Overlay (fundo escuro) fique entre a Sidebar e a Navbar */
+    .sidebar-overlay {
+        z-index: 9999 !important;
+    }
+
+    /* 4. A Sidebar em si precisa estar acima da Navbar para cobri-la quando abrir */
+    .sidebar {
+        z-index: 10002 !important;
+    }
+}
+
+
+/* Animação Suave (Mantida conforme seu código) */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
