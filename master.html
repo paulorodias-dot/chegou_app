@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Root | Chegou!</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/landing.css"> <link rel="stylesheet" href="css/dashboard.css"> 
+</head>
+<body class="bg-sistema">
+
+    <header class="navbar">
+        <div class="nav-left">
+            <button id="sidebar-toggle" class="btn-menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="logo">Chegou<span>!</span></div>
+        </div>
+        <div class="nav-center">
+             <span class="tag-master">ACESSO MASTER</span>
+        </div>
+        <div class="nav-right">
+            <button class="btn-restrito" onclick="logout()">Sair</button>
+        </div>
+    </header>
+
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">Chegou<span>!</span></div>
+            <button id="close-sidebar" class="btn-close-mobile">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="master.html" class="nav-item active">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Dashboard Master</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fa-solid fa-building-shield"></i>
+                <span>Condomínios</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fa-solid fa-users-gears"></i>
+                <span>Usuários</span>
+            </a>
+            
+            <div class="sidebar-divider"></div>
+            
+            <a href="javascript:void(0)" onclick="logout()" class="nav-item logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Sair do Sistema</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info-mini">
+                <div class="user-avatar">P</div>
+                <div class="user-details">
+                    <p class="user-name-mini">Paulo Rodias</p>
+                    <p class="user-role-mini">Administrador</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <main class="main-layout">
+        
+        <div class="welcome-section">
+            <h1 class="welcome-text">Olá, <span id="nome-usuario-topo">Paulo</span></h1>
+        </div>
+
+        <div class="status-bar-container">
+            <div id="current-date">
+                <span id="datetime">Carregando data...</span>
+                <span id="weather-container"></span>
+            </div>
+        </div>
+
+        <section class="card-master">
+            
+            <div class="card-header-actions">
+                <span class="card-title">Painel de Gerenciamento</span>
+                <div class="utility-buttons">
+                    <button class="btn-utility" onclick="abrirPesquisa()" title="Pesquisa Inteligente">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    <button class="btn-utility" title="Notificações">
+                        <i class="fa-solid fa-bell"></i>
+                    </button>
+                </div>
+            </div>
+
+            <hr class="card-divider">
+
+            <div id="conteudo-card">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;">
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                    </div>
+                    <h2 style="margin-bottom: 10px; font-weight: 800;">Configurações Master</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                        Pronto para gerenciar o ecossistema Magalu e Cartão Luiza. Escolha uma ação no menu lateral ou pesquise acima.
+                    </p>
+                    
+                    <div style="border: 2px dashed #e2e8f0; padding: 40px; border-radius: 20px; background-color: #f8fafc;">
+                        <p style="color: var(--text-muted); font-size: 0.95rem; font-weight: 600;">
+                            Nenhum condomínio selecionado para edição.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/master.js"></script>
+    <script>
+        function logout() {
+            window.location.href = 'index.html';
+        }
+        function abrirPesquisa() {
+            alert('A Pesquisa Inteligente (Fuzzy Search) será implementada a seguir!');
+        }
+
+        /* Lógica da Sidebar (Pode mover para o master.js se preferir) */
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const btnOpen = document.getElementById('sidebar-toggle');
+            const btnClose = document.getElementById('close-sidebar');
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+
+            if(btnOpen) btnOpen.addEventListener('click', toggleSidebar);
+            if(btnClose) btnClose.addEventListener('click', toggleSidebar);
+            if(overlay) overlay.addEventListener('click', toggleSidebar);
+        });
+    </script>
+</body>
+</html>

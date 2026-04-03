@@ -3,43 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Chegou!</title>
+    <title>Login | Chegou!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <header>
-        <h1>Chegou!</h1>
-        <p>Identifique-se para acessar o portal</p>
-    </header>
+    <link rel="stylesheet" href="css/login-extra.css"> </head>
+<body class="login-body">
 
-    <main class="container">
-        <section class="hero" style="padding: 40px 20px;">
-            <h2 id="titulo-login" style="margin-bottom: 20px;">Acesso ao Portal</h2>
-            
-            <div style="max-width: 350px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px;">
-                <input type="email" id="email" placeholder="E-mail ou Usuário" 
-                       style="padding: 15px; border-radius: 10px; border: 1px solid #ddd; outline: none;">
-                
-                <input type="password" id="senha" placeholder="Sua Senha" 
-                       style="padding: 15px; border-radius: 10px; border: 1px solid #ddd; outline: none;">
-                
-                <button class="btn-login-main" onclick="handleLogin()">Entrar</button>
-                
-                <a href="index.html" style="color: var(--primary); font-weight: bold; text-decoration: none; font-size: 0.9rem;">Voltar ao início</a>
+    <div class="login-card">
+        <button class="btn-close-login" onclick="window.location.href='index.html'" title="Fechar (Esc)">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="back-to-home">
+            <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
+        </div>
+
+        <script>
+    // FUNÇÃO PARA FECHAR AO APERTAR "ESC"
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            window.location.href = 'index.html';
+        }
+    });
+
+    // ... lógica do olho da senha que já tínhamos ...
+</script>
+        
+        <header class="login-header">
+            <h1 class="brand">Chegou<span class="orange-highlight">!</span></h1>
+            <p>Acesse seu painel de encomendas</p>
+        </header>
+
+        <form id="form-login" class="auth-form">
+            <div class="input-group">
+                <label for="user-id">E-mail ou CPF</label>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-user"></i>
+                    <input type="text" id="user-id" placeholder="Digite seu acesso" required>
+                </div>
             </div>
 
-            <div id="msg-erro" style="color: #e74c3c; margin-top: 15px; font-weight: bold; display: none;"></div>
-        </section>
-    </main>
+            <div class="input-group">
+                <label for="login-password">Sua Senha</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="••••••••" required>
+                    <button type="button" id="toggle-password" class="btn-eye">
+                        <i class="fa-regular fa-eye" id="eye-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="login-options">
+                <a href="#" class="forgot-link" onclick="recuperarSenha()">Esqueceu a senha?</a>
+            </div>
+
+            <button type="submit" class="btn-primary-login">Entrar no Sistema</button>
+        </form>
+
+        <footer class="login-footer">
+            <p>Não tem acesso? <a href="index.html" class="orange-highlight">Fale com seu síndico</a></p>
+        </footer>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const perfil = params.get('perfil');
-        if(perfil) {
-            const nomes = { 'admin': 'Administrativo', 'portaria': 'Portaria', 'morador': 'Morador' };
-            document.getElementById('titulo-login').innerText = 'Acesso ' + nomes[perfil];
+        // Lógica visual do olho da senha
+        const togglePassword = document.querySelector('#toggle-password');
+        const password = document.querySelector('#login-password');
+        const eyeIcon = document.querySelector('#eye-icon');
+
+        togglePassword.addEventListener('click', function (e) {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            
+            // Alterna o ícone
+            eyeIcon.classList.toggle('fa-eye');
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+
+        function recuperarSenha() {
+            const email = prompt("Digite seu e-mail cadastrado para redefinir a senha:");
+            if (email) {
+                alert("Se o e-mail estiver cadastrado, você receberá um link em instantes!");
+                // Aqui depois conectaremos a função do Supabase: resetPasswordForEmail
+            }
         }
     </script>
 </body>
