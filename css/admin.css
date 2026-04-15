@@ -1,0 +1,9 @@
+/* admin.css */
+#main-content {
+    padding: 20px;
+    margin-left: 250px; /* Espaço da sidebar */
+}
+
+.form-group {
+    margin-bottom: 15px;
+}

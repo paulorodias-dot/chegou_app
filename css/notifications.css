@@ -1,0 +1,44 @@
+/* Container que segura as notificações */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Estilo base da notificação */
+.toast {
+    min-width: 280px;
+    max-width: 350px;
+    background: var(--white, #ffffff);
+    color: #1e293b;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-left: 6px solid #cbd5e1;
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+/* Tipos de Notificação (Cores baseadas no seu padrão) */
+.toast.success { border-left-color: #22c55e; } /* Verde */
+.toast.error { border-left-color: #ef4444; }   /* Vermelho */
+.toast.warning { border-left-color: #f97316; } /* O seu Laranja Oficial */
+.toast.info { border-left-color: #2563eb; }    /* O seu Azul Primário */
+
+/* Ícone */
+.toast i {
+    font-size: 1.2rem;
+}

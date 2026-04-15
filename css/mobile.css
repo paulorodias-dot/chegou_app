@@ -1,0 +1,98 @@
+/* mobile.css - Ajustes para telas pequenas (máx 768px) */
+@media (max-width: 768px) {
+    /* 1. SIDEBAR E OVERLAY */
+    .sidebar {
+        position: fixed;
+        left: -250px;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        transition: left 0.3s ease;
+    }
+    .sidebar.active { left: 0; }
+    
+    .overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+    }
+    .sidebar.active + .overlay, .overlay.active { display: block; }
+    .sidebar-footer { padding: 10px 0; font-size: 10px; margin-top: 5px; }
+    .submenu { padding-left: 20px; background: #202e3b; }
+
+    /* 2. TOPBAR, CABEÇALHOS E BUSCA */
+    .topbar { grid-template-columns: auto 1fr auto; gap: 10px; }
+    .topbar-left { display: flex; align-items: center; gap: 15px; }
+    .topbar h1 { text-align: left !important; font-size: 1rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .module-title, .search-box { display: none !important; }
+    
+    .topbar-logo-mobile { display: block !important; height: 30px; width: auto; }
+
+    .search-box-mobile {
+        display: block !important;
+        width: 100%;
+        padding: 10px 20px;
+        background-color: #2c3e50;
+    }
+    .search-box-mobile input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 20px;
+        border: 1px solid #34495e;
+        background: #ffffff11;
+        color: white;
+        outline: none;
+    }
+
+    /* 3. DASHBOARD E CONTEÚDO */
+    .main-wrapper { width: 100%; }
+    .welcome-header { margin: 10px 2.5%; text-align: left; }
+    .welcome-title { font-size: 1.2rem; }
+    .dashboard-container { padding: 0 2.5%; }
+    .dashboard-card { width: 100%; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    
+    .card-header {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+    .city-name { display: none !important; }
+
+    /* 4. RODAPÉ E NAVEGAÇÃO MOBILE */
+    .page-footer { display: none !important; }
+
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background: #202e3b;
+        justify-content: space-around;
+        align-items: center;
+        border-top: 2px solid #f39c12;
+        z-index: 999;
+    }
+    .mobile-bottom-nav a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.7rem;
+    }
+    .mobile-bottom-nav .material-symbols-outlined { font-size: 24px; margin-bottom: 2px; }
+}
+
+/* Regras específicas para DESKTOP (acima de 768px) */
+@media (min-width: 769px) {
+    .mobile-bottom-nav, 
+    .topbar-logo-mobile, 
+    .search-box-mobile { 
+        display: none !important; 
+    }
+}
