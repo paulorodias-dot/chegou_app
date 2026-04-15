@@ -1,142 +1,465 @@
+/* -----------------------------------------------------------
+   1. CONFIGURAÇÕES GERAIS E VARIÁVEIS (A BASE DE TUDO)
+----------------------------------------------------------- */
 :root {
-    --primary-blue: #0056b3; /* Azul do Mascote */
-    --accent-orange: #ff6600; /* Laranja de Destaque */
-    --dark-text: #1a1a1a;
-    --light-bg: #f8f9fa;
+    --primary: #2563eb;       
+    --accent: #f97316;        /* Laranja Vibrante Oficial */
+    --accent-hover: #ea580c;  /* Laranja um pouco mais escuro para o hover */
+    --white: #ffffff;
+    --bg-light: #f8fafc;
+    /* ADICIONE ESTA VARIÁVEL ABAIXO */
+    --bg-master: #f1f5f9;    /* O cinza-azulado clarinho da imagem */
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* ... resto das configurações gerais ... */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif; /* A fonte moderna que escolhemos */
+    scroll-behavior: smooth;          /* Efeito de rolagem suave ao clicar em 'Saiba mais' */
+}
 
 body {
-    font-family: 'Poppins', sans-serif;
-    background-color: white;
-    color: var(--dark-text);
-    overflow-x: hidden;
+    background-color: var(--white);
+    color: var(--text-dark);
+    line-height: 1.6;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    width: 100%;
 }
 
-/* NAVBAR */
+/* -----------------------------------------------------------
+   2. NAVBAR (BARRA DE TOPO)
+----------------------------------------------------------- */
 .navbar {
-    padding: 20px 5%;
+    background-color: var(--white);
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* Distribui os 3 blocos */
     align-items: center;
-    background: white;
+    padding: 15px 50px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
 }
 
-.logo { font-size: 2rem; font-weight: 800; color: var(--primary-blue); }
-.logo span { color: var(--accent-orange); }
+/* Garante que os blocos laterais tenham o mesmo peso para não empurrar o centro */
+.nav-left, .nav-right {
+    flex: 1; 
+    display: flex;
+}
+
+.nav-right {
+    justify-content: flex-end; /* Garante que o botão Sair encoste na direita */
+}
+
+.nav-center {
+    flex: 2; /* Dá mais espaço para o centro se necessário */
+    display: flex;
+    justify-content: center;
+}
+
+/* Estilo da Tag (ajuste se necessário) */
+.tag-master {
+    background-color: #fee2e2;
+    color: #ef4444;
+    padding: 6px 20px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap; /* Impede que o texto quebre linha */
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+    transition: transform 0.3s ease;
+}
+.tag-master:hover {
+    transform: scale(1.05); /* Cresce levemente ao passar o mouse */
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -1px;
+}
+
+.logo span {
+    color: var(--accent); /* Agora puxa o laranja automaticamente */
+    filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.3)); /* Um brilho sutil no "!" */
+}
 
 .btn-restrito {
+    background: none;
+    border: 2px solid var(--primary);
+    color: var(--primary);
     padding: 10px 20px;
-    border: 2px solid var(--primary-blue);
-    background: transparent;
-    color: var(--primary-blue);
-    border-radius: 50px;
-    cursor: pointer;
+    border-radius: 50px; /* Botão arredondado (pílula) */
     font-weight: 600;
-    transition: 0.3s;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
 }
 
-.btn-restrito:hover { background: var(--primary-blue); color: white; }
+.btn-restrito:hover {
+    background-color: var(--primary);
+    color: var(--white);
+    transform: translateY(-2px); /* Efeito de flutuar levemente */
+}
 
-/* HERO SECTION */
-.hero { padding: 80px 0; background: linear-gradient(135deg, #fff 60%, #eef6ff 100%); }
+/* -----------------------------------------------------------
+   3. HERO SECTION (A PARTE PRINCIPAL COM O MASCOTE)
+----------------------------------------------------------- */
+.hero {
+    background-color: var(--bg-light);
+    padding: 150px 0 100px 0; /* Espaço para não ficar embaixo da navbar fixa */
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+}
+
+/* Grid para alinhar texto de um lado e mascote do outro */
+.hero .container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: center;
+}
+
+.hero-content {
+    text-align: left;
+}
 
 .tag {
-    color: var(--accent-orange);
-    font-weight: 800;
-    letter-spacing: 2px;
-    font-size: 0.8rem;
+    display: inline-block;
+    background-color: rgba(37, 99, 235, 0.1); /* Azul primário super transparente */
+    color: var(--primary);
+    padding: 6px 15px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
 }
-
-.hero-content { flex: 1; padding-right: 50px; }
 
 .hero-content h1 {
-    font-size: 3.5rem;
-    line-height: 1.1;
-    margin: 20px 0;
-    color: var(--primary-blue);
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 25px;
+    letter-spacing: -1.5px;
 }
 
-.hero-content h1 span { color: var(--accent-orange); }
+.hero-content h1 span {
+    position: relative;
+    display: inline-block;
+    color: #f97316; /* Laranja vibrante para o texto das palavras-chave */
+}
 
-.hero-content p { font-size: 1.2rem; color: #555; margin-bottom: 30px; }
+/* Destaque amarelo embaixo das palavras registros/avisa/protege */
+.hero-content h1 span::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 4px; /* Ajustado para não cobrir a letra */
+    width: 100%;
+    height: 10px; /* Um pouco mais grosso para dar destaque */
+    background-color: rgba(249, 115, 22, 0.2); /* Laranja suave com transparência */
+    z-index: -1;
+    border-radius: 4px;
+}
 
-.cta-group { display: flex; gap: 20px; }
+.hero-content p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+    max-width: 550px;
+}
+
+/* Grupo de Botões (CTA) */
+.cta-group {
+    display: flex;
+    gap: 20px;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 16px 30px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-decoration: none; /* Remove sublinhado de link */
+    transition: all 0.3s;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
 
 .btn-primary {
-    background: var(--accent-orange);
-    color: white;
-    padding: 18px 35px;
-    border-radius: 50px;
-    text-decoration: none;
-    font-weight: 600;
-    box-shadow: 0 10px 20px rgba(255, 102, 0, 0.2);
+    background-color: var(--accent);
+    color: var(--text-dark);
+    box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3); /* Sombra amarela suave */
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 25px rgba(251, 191, 36, 0.4);
 }
 
 .btn-secondary {
-    padding: 18px 35px;
-    color: var(--primary-blue);
-    text-decoration: none;
-    font-weight: 600;
+    background-color: var(--white);
+    color: var(--text-dark);
+    border: 1px solid #e2e8f0;
 }
 
-/* MASCOTE */
-.hero-image { flex: 1; text-align: center; }
-.hero-image img { width: 100%; max-width: 450px; }
+.btn-secondary:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+}
 
+/* Estilo da Imagem e Animação */
+.hero-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-image img {
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.1)); /* Sombra suave na imagem png */
+}
+
+/* Animação de flutuar no mascote (floating class) */
 .floating {
     animation: float 4s ease-in-out infinite;
 }
 
 @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-    100% { transform: translateY(0px); }
+    0% { transform: translatey(0px); }
+    50% { transform: translatey(-20px); }
+    100% { transform: translatey(0px); }
 }
 
-/* FEATURES */
+/* -----------------------------------------------------------
+   4. FEATURES (FUNCIONALIDADES)
+----------------------------------------------------------- */
 .features {
+    padding: 100px 50px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr); /* 3 colunas de tamanho igual */
     gap: 30px;
-    padding: 80px 5%;
-    background: #fdfdfd;
+    background-color: var(--white);
 }
 
 .feature-card {
+    background-color: var(--white);
     padding: 40px;
     border-radius: 20px;
-    background: white;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    text-align: center;
-    transition: 0.3s;
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s;
+    text-align: left;
 }
 
-.feature-card:hover { transform: translateY(-10px); }
-.feature-card .icon { font-size: 3rem; margin-bottom: 20px; }
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--white);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+}
 
+.feature-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 25px;
+    display: inline-block;
+}
+
+.feature-card h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--text-dark);
+}
+
+.feature-card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+/* -----------------------------------------------------------
+   5. FOOTER (RODAPÉ)
+----------------------------------------------------------- */
 .footer {
-    text-align: center;
+    background-color: var(--bg-light);
     padding: 40px;
-    background: #f4f4f4;
-    font-size: 0.9rem;
-    color: #888;
+    text-align: center;
+    border-top: 1px solid #e2e8f0;
 }
 
-/* RESPONSIVIDADE */
-@media (max-width: 900px) {
-    .container { flex-direction: column; text-align: center; }
-    .hero-content { padding-right: 0; margin-bottom: 50px; }
+.footer p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* -----------------------------------------------------------
+   6. RESPONSIVIDADE (AJUSTES PARA CELULAR E TABLET)
+----------------------------------------------------------- */
+
+/* Para Tablets (até 992px) */
+@media (max-width: 992px) {
+    .navbar { padding: 15px 25px; }
     .hero-content h1 { font-size: 2.5rem; }
-    .cta-group { justify-content: center; }
+    .features { grid-template-columns: 1fr; padding: 70px 20px; } /* Empilha as features */
+}
+
+/* Para Celulares (até 768px) */
+@media (max-width: 768px) {
+    .navbar .logo { font-size: 1.5rem; }
+    
+    /* Hero muda de grid para flexcol (imagem vai pra baixo do texto) */
+    .hero .container {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 40px;
+    }
+    
+    .hero-content {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hero-content p { margin: 0 auto 40px auto; }
+    
+    .hero-content h1 { font-size: 2.2rem; }
+    
+    .cta-group {
+        flex-direction: column; /* Botões um embaixo do outro no celular */
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .hero-image { order: -1; } /* Coloca a imagem antes do texto no mobile */
+}
+/* 7. CLASSES UTILITÁRIAS PARA O SISTEMA (Adicione ao final do arquivo) */
+
+.bg-sistema {
+    background-color: var(--bg-master);
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+/* O Card branco que "flutua" sobre o fundo azulado */
+.card-painel {
+    background-color: var(--white);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    text-align: center;
+    width: 100%;
+}
+
+.tag-master {
+    background-color: #fee2e2;
+    color: #ef4444;
+    padding: 6px 15px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Container Principal: agora ele apenas empilha os itens */
+.main-content {
+    padding-top: 80px; /* Espaço para a navbar fixa */
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.status-header {
+    animation: fadeInDown 0.8s ease-out;
+}
+
+/* Pequena animação para a data "surgir" suavemente */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Container da Data: Força a ida para a extrema direita */
+.full-width-status {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end; /* Alinha a data à direita */
+    padding: 20px 50px;       /* O mesmo padding lateral da sua navbar (50px) */
+    box-sizing: border-box;
+}
+
+#weather-container {
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(100, 116, 139, 0.3); /* Linha divisória sutil */
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.5s ease;
+}
+
+.clima-temp {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.clima-cidade {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* Animação para alerta de chuva */
+.alerta-chuva {
+    color: #3b82f6 !important;
+    animation: pulse-blue 2s infinite;
+}
+
+@keyframes pulse-blue {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Novo container para o Card: Garante que ele fique no centro real da tela */
+.container-central {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;           /* Centraliza o card horizontalmente */
+    padding: 0 20px;
+}
+
+#current-date {
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 600;
+}
+#datetime {
+    text-transform: capitalize; /* Este é o comando mágico */
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 600;
 }
