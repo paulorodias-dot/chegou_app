@@ -3,151 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Root | Chegou!</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <link rel="stylesheet" href="css/landing.css"> <link rel="stylesheet" href="css/dashboard.css"> 
+    <title>Chegou! | Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/mobile.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
-<body class="bg-sistema">
+<body>
+    <div class="overlay" id="overlay"></div>
 
-    <header class="navbar">
-        <div class="nav-left">
-            <button id="sidebar-toggle" class="btn-menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <div class="logo">Chegou<span>!</span></div>
-        </div>
-        <div class="nav-center">
-             <span class="tag-master">ACESSO MASTER</span>
-        </div>
-        <div class="nav-right">
-            <button class="btn-restrito" onclick="logout()">Sair</button>
-        </div>
-    </header>
-
-    <aside id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">Chegou<span>!</span></div>
-            <button id="close-sidebar" class="btn-close-mobile">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <a href="master.html" class="nav-item active">
-                <i class="fa-solid fa-chart-line"></i>
-                <span>Dashboard Master</span>
-            </a>
-            <a href="#" class="nav-item">
-                <i class="fa-solid fa-building-shield"></i>
-                <span>Condomínios</span>
-            </a>
-            <a href="#" class="nav-item">
-                <i class="fa-solid fa-users-gears"></i>
-                <span>Usuários</span>
-            </a>
+    <div class="layout-container">
+        <nav class="sidebar">
+            <img src="img/logo.png" alt="Logo" class="logo-img">
             
-            <div class="sidebar-divider"></div>
+            <div class="search-box-mobile">
+                <input type="text" id="search-input-mobile" placeholder="Buscar..." onkeyup="filterSearch(true)">
+                <div id="search-results-mobile" class="search-results-dropdown"></div>
+            </div>
+
+            <div class="separator"></div>
             
-            <a href="javascript:void(0)" onclick="logout()" class="nav-item logout">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Sair do Sistema</span>
-            </a>
+            <div class="menu-container">
+                <a href="master.html"><span class="material-symbols-outlined">dashboard</span> Dashboard</a>
+                
+                <div class="menu-item-with-submenu">
+                    <div class="menu-link" onclick="toggleSubmenu(this)">
+                        <span class="material-symbols-outlined">apartment</span> Cadastros
+                        <span class="material-symbols-outlined arrow">expand_more</span>
+                    </div>
+                    <div class="submenu">
+                        <a href="admin.html">Condominio</a>
+                        <a href="unidades.html">Funcionários</a>
+                        <a href="unidades.html">Morador</a>
+                        <a href="unidades.html">Transportadora</a>
+                    </div>
+                </div>
+
+                <a href="usuarios.html"><span class="material-symbols-outlined">group</span> Usuários</a>
+
+                <div class="menu-item-with-submenu">
+                    <div class="menu-link" onclick="toggleSubmenu(this)">
+                        <span class="material-symbols-outlined">admin_panel_settings</span> Módulos
+                        <span class="material-symbols-outlined arrow">expand_more</span>
+                    </div>
+                    <div class="submenu">
+                        <a href="master.html">Master</a>
+                        <a href="admin.html">Admin</a>
+                        <a href="morador.html">Morador</a>
+                        <a href="Portaria.html">Portaria</a>
+                    </div>
+                </div>
+
+                <div class="separator"></div>
+                <a href="#" onclick="logout(); return false;" class="logout-btn">
+                    <span class="material-symbols-outlined">power_settings_new</span> Sair do Sistema
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="separator"></div>
+                <p>Chegou! © 2026</p>
+                <p>Versão 01.01.01</p>
+            </div>
         </nav>
 
-        <div class="sidebar-footer">
-            <div class="user-info-mini">
-                <div class="user-avatar">P</div>
-                <div class="user-details">
-                    <p class="user-name-mini">Paulo Rodias</p>
-                    <p class="user-role-mini">Administrador</p>
+        <div class="main-wrapper">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <span class="material-symbols-outlined hamburger-icon" id="hamburger-btn">menu</span>
                 </div>
-            </div>
-        </div>
-    </aside>
-
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
-
-    <main class="main-layout">
-        
-        <div class="welcome-section">
-            <h1 class="welcome-text">Olá, <span id="nome-usuario-topo">Paulo</span></h1>
-        </div>
-
-        <div class="status-bar-container">
-            <div id="current-date">
-                <span id="datetime">Carregando data...</span>
-                <span id="weather-container"></span>
-            </div>
-        </div>
-
-        <section class="card-master">
-            
-            <div class="card-header-actions">
-                <span class="card-title">Painel de Gerenciamento</span>
-                <div class="utility-buttons">
-                    <button class="btn-utility" onclick="abrirPesquisa()" title="Pesquisa Inteligente">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-                    <button class="btn-utility" title="Notificações">
-                        <i class="fa-solid fa-bell"></i>
-                    </button>
-                </div>
-            </div>
-
-            <hr class="card-divider">
-
-            <div id="conteudo-card">
-                <div style="text-align: center; padding: 20px;">
-                    <div style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;">
-                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                
+                <img src="img/logo.png" alt="Logo" class="topbar-logo-mobile">
+                
+                <h1 class="module-title" style="color: white; font-size: 1.2rem;">Gestão Master</h1>
+                
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <span class="material-symbols-outlined">search</span>
+                        <input type="text" id="search-input" placeholder="Buscar..." onkeyup="filterSearch(false)">
+                        <div id="search-results" class="search-results-dropdown"></div>
                     </div>
-                    <h2 style="margin-bottom: 10px; font-weight: 800;">Configurações Master</h2>
-                    <p style="color: var(--text-muted); margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
-                        Pronto para gerenciar o ecossistema Magalu e Cartão Luiza. Escolha uma ação no menu lateral ou pesquise acima.
-                    </p>
-                    
-                    <div style="border: 2px dashed #e2e8f0; padding: 40px; border-radius: 20px; background-color: #f8fafc;">
-                        <p style="color: var(--text-muted); font-size: 0.95rem; font-weight: 600;">
-                            Nenhum condomínio selecionado para edição.
-                        </p>
+                    <span class="material-symbols-outlined">notifications</span>
+                    <div class="profile-container">
+                        <span class="material-symbols-outlined" style="font-size: 28px;">account_circle</span>
                     </div>
                 </div>
-            </div>
+            </header>
 
-        </section>
-    </main>
+            <main class="content-area">
+                <div id="conteudo-principal">
+                    <div class="welcome-header">
+                        <h1 class="welcome-title" id="welcome-msg">Olá, Paulo</h1>
+                        <p class="module-subtitle">Visão geral de todo o ecossistema Chegou!</p>
+                    </div>
+
+                    <div class="info-bar">
+                        <span id="current-date">15 de Abril de 2026</span> 
+                        <span>|</span>
+                        <span id="local-temp">
+                            <span class="material-symbols-outlined" id="weather-icon" style="color: #f39c12; vertical-align: middle;"></span>
+                            <span id="temp-value">16°C</span>
+                            <span class="city-name"> - São Paulo</span>
+                        </span>
+                    </div>
+
+                    <div class="dashboard-container">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <span>Painel de Controle Estratégico</span>
+                            </div>
+                            <div class="card-body">
+                                <p>Informações administrativas serão exibidas aqui.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="page-footer">
+                        <div class="footer-content">
+                            <p class="impact-text">
+                                <strong>Chegou<span style="color: #f39c12;">!</span></strong> 
+                                Gestão inteligente de encomendas.
+                            </p>
+                        </div>
+                    </footer>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <nav class="mobile-bottom-nav">
+        <a href="master.html"><span class="material-symbols-outlined">home</span><span>Início</span></a>
+        <a href="admin.html"><span class="material-symbols-outlined">apartment</span><span>Condos</span></a>
+        <a href="usuarios.html"><span class="material-symbols-outlined">group</span><span>Usuários</span></a>
+        <a href="notificacoes.html"><span class="material-symbols-outlined">notifications</span><span>Alertas</span></a>
+        <a href="configuracoes.html"><span class="material-symbols-outlined">settings</span><span>Ajustes</span></a>
+    </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/master.js"></script>
-    <script>
-        function logout() {
-            window.location.href = 'index.html';
-        }
-        function abrirPesquisa() {
-            alert('A Pesquisa Inteligente (Fuzzy Search) será implementada a seguir!');
-        }
-
-        /* Lógica da Sidebar (Pode mover para o master.js se preferir) */
-        document.addEventListener('DOMContentLoaded', () => {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const btnOpen = document.getElementById('sidebar-toggle');
-            const btnClose = document.getElementById('close-sidebar');
-
-            function toggleSidebar() {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-            }
-
-            if(btnOpen) btnOpen.addEventListener('click', toggleSidebar);
-            if(btnClose) btnClose.addEventListener('click', toggleSidebar);
-            if(overlay) overlay.addEventListener('click', toggleSidebar);
-        });
-    </script>
+    <script src="js/config.js"></script>
+    <script src="js/global.js"></script>
+    <script src="js/mobile.js"></script>
+    <script src="js/search.js"></script>
 </body>
 </html>
