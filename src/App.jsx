@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -9,19 +9,29 @@ import MasterLayout from "./layouts/MasterLayout";
 
 import DashboardMaster from "./pages/master/DashboardMaster";
 import CadastroCondominio from "./pages/master/CadastroCondominio";
+import AuditoriaCondominios from "./pages/master/AuditoriaCondominios";
 import PaginaPreparando from "./pages/PaginaPreparando";
 import WizardCondominio from "./pages/wizardCondominio";
 
 import "./App.css";
 
 function App() {
+  const navigate = useNavigate();
+
   const [perfil, setPerfil] = useState(null);
   const [paginaAtual, setPaginaAtual] = useState("dashboard");
+
+  function handleLogin(perfilUsuario) {
+    setPerfil(perfilUsuario);
+    setPaginaAtual("dashboard");
+    navigate("/sistema");
+  }
 
   async function handleLogout() {
     await logout();
     setPerfil(null);
     setPaginaAtual("dashboard");
+    navigate("/login");
   }
 
   function renderizarPagina() {
@@ -34,13 +44,17 @@ function App() {
     }
 
     if (paginaAtual === "validacao-primeiro-acesso-condominio") {
-      return <WizardCondominio />;
+      return <WizardCondominio modoTeste />;
+    }
+
+    if (paginaAtual === "condominios-auditoria") {
+      return <AuditoriaCondominios />;
     }
 
     return <PaginaPreparando titulo="Módulo" />;
   }
 
-  const SistemaProtegido = () => {
+  function renderizarSistemaProtegido() {
     if (!perfil) {
       return <Navigate to="/login" replace />;
     }
@@ -55,26 +69,23 @@ function App() {
         {renderizarPagina()}
       </MasterLayout>
     );
-  };
+  }
 
   return (
     <Routes>
-      {/* LANDING PÚBLICA */}
       <Route path="/" element={<Landing />} />
 
-      {/* LOGIN */}
-      <Route path="/login" element={<Login onLogin={setPerfil} />} />
+      <Route path="/login" element={<Login onLogin={handleLogin} />} />
 
-      {/* WIZARD PÚBLICO PELO CONVITE */}
       <Route path="/primeiro-acesso" element={<WizardCondominio />} />
 
-      {/* COMPATIBILIDADE COM ROTA ANTIGA */}
-      <Route path="/primeiro-acesso-condominio" element={<WizardCondominio />} />
+      <Route
+        path="/primeiro-acesso-condominio"
+        element={<WizardCondominio />}
+      />
 
-      {/* SISTEMA INTERNO */}
-      <Route path="/sistema" element={SistemaProtegido()} />
+      <Route path="/sistema" element={renderizarSistemaProtegido()} />
 
-      {/* FALLBACK */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

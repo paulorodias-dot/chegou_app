@@ -4,6 +4,7 @@ import {
   Building2,
   ChevronDown,
   ChevronRight,
+  ClipboardCheck,
   ClipboardList,
   FlaskConical,
   KeyRound,
@@ -56,8 +57,14 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
         label: 'Cadastro',
         icon: ClipboardList,
       },
+      {
+        id: 'condominios-auditoria',
+        label: 'Auditoria',
+        icon: ClipboardCheck,
+      },
     ],
   },
+  
   {
     id: 'ambiente-validacao',
     label: 'Ambiente de Validação',
