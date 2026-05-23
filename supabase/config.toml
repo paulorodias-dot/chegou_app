@@ -426,3 +426,153 @@ entrypoint = "./functions/consultar-cnpj/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/consultar-cnpj/*.html" ]
+
+[functions.registrar-evento-sistema]
+enabled = true
+verify_jwt = true
+import_map = "./functions/registrar-evento-sistema/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/registrar-evento-sistema/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/registrar-evento-sistema/*.html" ]
+
+[functions.invalidar-convite-condominio]
+enabled = true
+verify_jwt = true
+import_map = "./functions/invalidar-convite-condominio/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/invalidar-convite-condominio/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/invalidar-convite-condominio/*.html" ]
+
+[functions.enviar-convite-morador]
+enabled = true
+verify_jwt = true
+import_map = "./functions/enviar-convite-morador/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/enviar-convite-morador/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/enviar-convite-morador/*.html" ]
+
+[functions.processar-fila-emails]
+enabled = true
+verify_jwt = true
+import_map = "./functions/processar-fila-emails/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/processar-fila-emails/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/processar-fila-emails/*.html" ]
+
+[functions.validar-token-morador]
+enabled = true
+verify_jwt = true
+import_map = "./functions/validar-token-morador/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/validar-token-morador/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/validar-token-morador/*.html" ]
+
+[functions.finalizar-wizard-morador]
+enabled = true
+verify_jwt = true
+import_map = "./functions/finalizar-wizard-morador/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/finalizar-wizard-morador/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/finalizar-wizard-morador/*.html" ]
+
+[functions.aprovar-morador]
+enabled = true
+verify_jwt = true
+import_map = "./functions/aprovar-morador/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/aprovar-morador/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/aprovar-morador/*.html" ]
+
+[functions.wizard-morador-carregar]
+enabled = true
+verify_jwt = true
+import_map = "./functions/wizard-morador-carregar/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/wizard-morador-carregar/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/wizard-morador-carregar/*.html" ]
+
+[functions.wizard-morador-autosave]
+enabled = true
+verify_jwt = true
+import_map = "./functions/wizard-morador-autosave/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/wizard-morador-autosave/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/wizard-morador-autosave/*.html" ]
+
+[functions.wizard-morador-enviar-auditoria]
+enabled = true
+verify_jwt = true
+import_map = "./functions/wizard-morador-enviar-auditoria/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/wizard-morador-enviar-auditoria/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/wizard-morador-enviar-auditoria/*.html" ]
+
+[functions.wizard-morador-salvar-etapa]
+enabled = true
+verify_jwt = true
+import_map = "./functions/wizard-morador-salvar-etapa/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/wizard-morador-salvar-etapa/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/wizard-morador-salvar-etapa/*.html" ]
+
+[functions.wizard-morador-solicitar-reenvio]
+enabled = true
+verify_jwt = true
+import_map = "./functions/wizard-morador-solicitar-reenvio/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/wizard-morador-solicitar-reenvio/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/wizard-morador-solicitar-reenvio/*.html" ]
+
+[functions.wizard-morador-preparar-senha]
+enabled = true
+verify_jwt = false
+import_map = "./functions/wizard-morador-preparar-senha/deno.json"
+entrypoint = "./functions/wizard-morador-preparar-senha/index.ts"
+
+[functions.wizard-morador-salvar-pesquisa]
+enabled = true
+verify_jwt = false
+import_map = "./functions/wizard-morador-salvar-pesquisa/deno.json"
+entrypoint = "./functions/wizard-morador-salvar-pesquisa/index.ts"
+
+[functions.wizard-morador-status]
+enabled = true
+verify_jwt = false
+import_map = "./functions/wizard-morador-status/deno.json"
+entrypoint = "./functions/wizard-morador-status/index.ts"

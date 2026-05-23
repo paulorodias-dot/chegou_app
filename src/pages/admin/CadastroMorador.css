@@ -1,0 +1,736 @@
+.moradores-page {
+  min-height: 100%;
+  background: #f5f7fb;
+  padding: 18px 20px;
+  color: #0f172a;
+}
+
+.moradores-page,
+.moradores-page button,
+.moradores-page input,
+.moradores-page select {
+  font-family: Inter, "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.moradores-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 16px;
+  align-items: start;
+}
+
+.moradores-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #64748b;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+.moradores-breadcrumb strong {
+  color: #0f172a;
+}
+
+.moradores-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.moradores-header h1 {
+  font-size: 26px;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.moradores-header p {
+  color: #64748b;
+  margin: 5px 0 0;
+  font-size: 13px;
+}
+
+.moradores-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.moradores-actions small {
+  width: 100%;
+  text-align: right;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.btn-primary,
+.btn-secondary {
+  height: 40px;
+  border-radius: 10px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.btn-primary {
+  border: none;
+  background: #0648d8;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(6, 72, 216, 0.22);
+}
+
+.btn-primary:hover {
+  background: #053bb3;
+}
+
+.btn-secondary {
+  border: 1px solid #dbe3f0;
+  background: #fff;
+  color: #0648d8;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.moradores-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.morador-kpi {
+  background: #fff;
+  border: 1px solid #e5eaf3;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  min-height: 126px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.03);
+}
+
+.morador-kpi svg {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.morador-kpi.warning {
+  background: #fffaf2;
+  border-color: #ffe0b8;
+  color: #d97706;
+}
+
+.morador-kpi.blue {
+  color: #0648d8;
+}
+
+.morador-kpi.green {
+  color: #059669;
+}
+
+.morador-kpi.purple {
+  color: #7c3aed;
+}
+
+.morador-kpi span {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.morador-kpi strong {
+  display: block;
+  color: #0f172a;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.morador-kpi small {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 7px;
+  line-height: 1.4;
+}
+.moradores-card,
+.aside-card {
+  background: #fff;
+  border: 1px solid #e5eaf3;
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+}
+
+.moradores-card {
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.section-title-row h2,
+.aside-card h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.section-title-row p,
+.aside-card p {
+  color: #64748b;
+  font-size: 12px;
+  margin: 5px 0 0;
+  line-height: 1.55;
+}
+
+.btn-resolver {
+  min-width: 150px;
+  height: 38px;
+  border: 1px solid #bfd0ee;
+  background: #fff;
+  color: #0648d8;
+  border-radius: 10px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+}
+
+.moradores-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.search-field {
+  height: 38px;
+  border: 1px solid #dbe3f0;
+  border-radius: 10px;
+  padding: 0 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  flex: 1;
+}
+
+.search-field input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 12px;
+  color: #0f172a;
+  background: transparent;
+}
+
+.search-field input::placeholder {
+  color: #94a3b8;
+}
+
+.btn-limpar {
+  height: 38px;
+  border: 1px solid #dbe3f0;
+  background: #fff;
+  border-radius: 10px;
+  padding: 0 11px;
+  color: #64748b;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.desktop-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.desktop-table th {
+  background: #f8fafc;
+  color: #334155;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 10px;
+  border-bottom: 1px solid #e5eaf3;
+}
+
+.desktop-table td {
+  padding: 10px;
+  border-bottom: 1px solid #edf1f7;
+  font-size: 12px;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.desktop-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.table-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.table-actions button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #dbe3f0;
+  background: #fff;
+  color: #0648d8;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.table-actions button:hover {
+  background: #eff6ff;
+}
+
+.moradores-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.aside-card {
+  padding: 16px;
+}
+
+.atalhos button {
+  width: 100%;
+  min-height: 34px;
+  border: none;
+  background: transparent;
+  color: #0648d8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+  cursor: pointer;
+  text-align: left;
+  padding: 6px 0;
+}
+
+.atalhos button:hover {
+  color: #053bb3;
+}
+/* MODAL NOVO MORADOR */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.58);
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  backdrop-filter: blur(5px);
+}
+
+.modal-card {
+  width: min(560px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #e5eaf3;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+  overscroll-behavior: contain;
+}
+
+.modal-morador-premium {
+  width: min(610px, 100%);
+  padding: 0;
+  border-radius: 21px;
+  overflow: hidden;
+}
+
+.modal-header-premium {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 24px 27px 14px;
+  border-bottom: 1px solid #edf1f7;
+}
+
+.modal-header-premium h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #0f172a;
+}
+
+.modal-header-premium p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.modal-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.modal-grid-premium {
+  padding: 19px 27px 6px;
+  gap: 14px 16px;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+.modal-card label,
+.telefone-grid label {
+  display: block;
+  color: #1e293b;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.modal-card input,
+.telefone-grid input {
+  width: 100%;
+  height: 42px;
+  margin-top: 6px;
+  border: 1px solid #dfe7f2;
+  border-radius: 12px;
+  padding: 0 13px;
+  outline: none;
+  background: #fff;
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.modal-card input::placeholder,
+.telefone-grid input::placeholder {
+  color: #94a3b8;
+}
+
+.modal-card input:focus,
+.telefone-grid input:focus,
+.search-field:focus-within {
+  border-color: #0648d8;
+  box-shadow: 0 0 0 3px rgba(6, 72, 216, 0.1);
+}
+
+.telefone-grid {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 11px;
+}
+
+.telefone-grid .span-2 {
+  grid-column: auto;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.modal-morador-premium .modal-actions {
+  padding: 18px 27px 24px;
+  margin-top: 0;
+}
+
+.modal-morador-premium .modal-actions .btn-secondary,
+.modal-morador-premium .modal-actions .btn-primary {
+  height: 42px;
+  border-radius: 12px;
+  font-size: 12px;
+  min-width: 120px;
+}
+
+.modal-morador-premium .btn-primary {
+  background: linear-gradient(135deg, #0648d8, #003fbd);
+  box-shadow: 0 11px 22px rgba(6, 72, 216, 0.24);
+}
+
+.modal-card select {
+  width: 100%;
+  height: 42px;
+  margin-top: 6px;
+  border: 1px solid #dfe7f2;
+  border-radius: 12px;
+  padding: 0 13px;
+  outline: none;
+  background: #fff;
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.modal-card select:focus {
+  border-color: #0648d8;
+  box-shadow: 0 0 0 3px rgba(6, 72, 216, 0.1);
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 1180px) {
+  .moradores-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .moradores-aside {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .moradores-page {
+    padding: 14px;
+  }
+
+  .moradores-header {
+    display: block;
+  }
+
+  .moradores-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 16px;
+  }
+
+  .moradores-actions small {
+    display: none;
+  }
+
+  .moradores-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .desktop-table {
+    overflow-x: auto;
+  }
+
+  .moradores-aside {
+    display: block;
+  }
+
+  .aside-card {
+    margin-bottom: 12px;
+  }
+
+  .modal-morador-premium {
+    width: 100%;
+    max-height: 94vh;
+    border-radius: 18px;
+  }
+
+  .modal-header-premium {
+    padding: 19px 16px 13px;
+  }
+
+  .modal-header-premium h2 {
+    font-size: 20px;
+  }
+
+  .modal-grid-premium {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .span-2 {
+    grid-column: auto;
+  }
+
+  .telefone-grid {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .modal-morador-premium .modal-actions {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .modal-morador-premium .modal-actions .btn-secondary,
+  .modal-morador-premium .modal-actions .btn-primary {
+    width: 100%;
+  }
+}
+
+/* MODO ESCURO */
+
+:root.dark .moradores-page,
+.dark .moradores-page,
+[data-theme="dark"] .moradores-page {
+  background: #020617;
+  color: #e5e7eb;
+}
+
+:root.dark .moradores-card,
+.dark .moradores-card,
+[data-theme="dark"] .moradores-card,
+:root.dark .aside-card,
+.dark .aside-card,
+[data-theme="dark"] .aside-card,
+:root.dark .modal-card,
+.dark .modal-card,
+[data-theme="dark"] .modal-card,
+:root.dark .modal-morador-premium,
+.dark .modal-morador-premium,
+[data-theme="dark"] .modal-morador-premium {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+:root.dark .modal-header-premium,
+.dark .modal-header-premium,
+[data-theme="dark"] .modal-header-premium {
+  border-color: #1e293b;
+}
+
+:root.dark .modal-header-premium h2,
+.dark .modal-header-premium h2,
+[data-theme="dark"] .modal-header-premium h2,
+:root.dark .moradores-header h1,
+.dark .moradores-header h1,
+[data-theme="dark"] .moradores-header h1,
+:root.dark .section-title-row h2,
+.dark .section-title-row h2,
+[data-theme="dark"] .section-title-row h2,
+:root.dark .aside-card h2,
+.dark .aside-card h2,
+[data-theme="dark"] .aside-card h2 {
+  color: #f8fafc;
+}
+
+:root.dark .modal-header-premium p,
+.dark .modal-header-premium p,
+[data-theme="dark"] .modal-header-premium p,
+:root.dark .moradores-header p,
+.dark .moradores-header p,
+[data-theme="dark"] .moradores-header p,
+:root.dark .section-title-row p,
+.dark .section-title-row p,
+[data-theme="dark"] .section-title-row p,
+:root.dark .aside-card p,
+.dark .aside-card p,
+[data-theme="dark"] .aside-card p {
+  color: #94a3b8;
+}
+
+:root.dark .modal-card input,
+.dark .modal-card input,
+[data-theme="dark"] .modal-card input,
+:root.dark .telefone-grid input,
+.dark .telefone-grid input,
+[data-theme="dark"] .telefone-grid input,
+:root.dark .search-field,
+.dark .search-field,
+[data-theme="dark"] .search-field,
+:root.dark .table-actions button,
+.dark .table-actions button,
+[data-theme="dark"] .table-actions button,
+:root.dark .btn-secondary,
+.dark .btn-secondary,
+[data-theme="dark"] .btn-secondary,
+:root.dark .btn-limpar,
+.dark .btn-limpar,
+[data-theme="dark"] .btn-limpar,
+:root.dark .btn-resolver,
+.dark .btn-resolver,
+[data-theme="dark"] .btn-resolver {
+  background: #020617;
+  border-color: #1e293b;
+  color: #60a5fa;
+}
+
+:root.dark .modal-card label,
+.dark .modal-card label,
+[data-theme="dark"] .modal-card label,
+:root.dark .telefone-grid label,
+.dark .telefone-grid label,
+[data-theme="dark"] .telefone-grid label,
+:root.dark .desktop-table td,
+.dark .desktop-table td,
+[data-theme="dark"] .desktop-table td {
+  color: #e5e7eb;
+}
+
+:root.dark .desktop-table th,
+.dark .desktop-table th,
+[data-theme="dark"] .desktop-table th {
+  background: #111827;
+  color: #cbd5e1;
+  border-color: #1e293b;
+}
+
+:root.dark .desktop-table td,
+.dark .desktop-table td,
+[data-theme="dark"] .desktop-table td {
+  border-color: #1e293b;
+}
+
+:root.dark .desktop-table tbody tr:hover,
+.dark .desktop-table tbody tr:hover,
+[data-theme="dark"] .desktop-table tbody tr:hover {
+  background: #111827;
+}
+
+:root.dark .modal-close,
+.dark .modal-close,
+[data-theme="dark"] .modal-close {
+  background: #020617;
+  border-color: #1e293b;
+  color: #94a3b8;
+}

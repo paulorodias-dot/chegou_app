@@ -11,7 +11,7 @@ import {
   Clock,
   Download,
   Eye,
-  FileCheck2,
+  Edit3,
   FileText,
   ListChecks,
   RefreshCcw,
@@ -39,7 +39,7 @@ const tipoLabel = {
   misto: "Misto",
 };
 
-export default function AuditoriaCondominios() {
+export default function AuditoriaCondominios({ perfil }) {
   const [loading, setLoading] = useState(true);
   const [condominios, setCondominios] = useState([]);
   const [busca, setBusca] = useState("");
@@ -49,10 +49,13 @@ export default function AuditoriaCondominios() {
   const [dataFim, setDataFim] = useState("");
   const [pagina, setPagina] = useState(1);
   const [modalDetalhes, setModalDetalhes] = useState(null);
-  const [modalAcao, setModalAcao] = useState(null);
   const [modalRejeicao, setModalRejeicao] = useState(null);
   const [motivoRejeicao, setMotivoRejeicao] = useState("");
   const [processando, setProcessando] = useState(false);
+  const [modalPreviewEmail, setModalPreviewEmail] = useState(null);
+  const [emailAssunto, setEmailAssunto] = useState("");
+  const [emailHtml, setEmailHtml] = useState("");
+  const [modoEdicaoEmail, setModoEdicaoEmail] = useState(false);
 
   useEffect(() => {
     carregarCondominios();
@@ -199,15 +202,128 @@ export default function AuditoriaCondominios() {
     return item.aceites_termos?.[0] || null;
   }
 
-  function abrirAcao(item, acao) {
-    if (acao === "rejeitar") {
-      setMotivoRejeicao(item.motivo_rejeicao || "");
-      setModalRejeicao(item);
-      return;
-    }
+  function montarHtmlPreviewAprovacao(item) {
+  const responsavel = responsavelPrincipal(item);
 
-    setModalAcao({ item, acao });
+  const nome = responsavel?.nome || "Responsável do Condomínio";
+  const nomeCondominio = item.nome_fantasia || item.razao_social || "Condomínio";
+  const codigoCondominio = item.codigo_condominio || "Não informado";
+
+  const linkAcesso = "LINK_SEGURO_GERADO_PELO_SUPABASE_APOS_APROVACAO";
+  const empresaEndereco =
+    "[Endereço físico da empresa — definir no módulo institucional]";
+
+  return `
+<div style="background:#0b0f17;padding:20px;font-family:Arial,Helvetica,sans-serif;color:#e5e7eb">
+  <div style="max-width:520px;margin:0 auto;background:#0f172a;border-radius:12px;overflow:hidden;border:1px solid #1e293b">
+
+    <div style="background:#0f3f8f;padding:20px;text-align:center">
+      <h1 style="margin:0;color:#fff;font-size:22px">
+        Chegou<span style="color:#ff7900">!</span>
+      </h1>
+      <p style="margin:5px 0 0;color:#cbd5e1;font-size:13px">
+        Gestão Inteligente de Condomínios
+      </p>
+    </div>
+
+    <div style="padding:22px">
+      <p>Olá <strong>${nome}</strong>,</p>
+
+      <p>
+        Que alegria informar que o cadastro do condomínio
+        <strong>${nomeCondominio}</strong> foi
+        <strong style="color:#22c55e">aprovado com sucesso</strong>.
+      </p>
+
+      <p>
+        Antes de acessar o sistema, você será direcionado para criar sua senha de acesso com segurança. Após concluir essa etapa, o acesso ao módulo administrativo do condomínio será liberado.
+      </p>
+
+      <div style="background:#111827;border:1px solid #1f2937;border-radius:10px;padding:14px;margin:18px 0">
+        <p style="margin:0 0 8px"><strong>Dados de acesso:</strong></p>
+        <p style="margin:0 0 6px"><strong>Login:</strong> ${nome}</p>
+        <p style="margin:0"><strong>Código do Condomínio:</strong> ${codigoCondominio}</p>
+      </div>
+
+      <p>
+        Esses dados são pessoais e de uso exclusivo do responsável autorizado.
+        Não compartilhe seu login, código de acesso ou credenciais com terceiros.
+      </p>
+
+      <p>
+        Conforme os Termos de Uso e Política de Privacidade aceitos no cadastro,
+        cada usuário deverá utilizar seu próprio acesso, garantindo segurança,
+        rastreabilidade e responsabilidade individual nas ações realizadas dentro
+        do sistema.
+      </p>
+
+      <p>
+        Para segurança da sua conta, acesse o sistema e crie sua senha no primeiro acesso.
+      </p>
+
+      <div style="text-align:center;margin:26px 0">
+        <a href="${linkAcesso}"
+          style="background:#2563eb;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">
+          Acessar sistema
+        </a>
+      </div>
+
+      <p style="font-size:13px;color:#94a3b8;margin-top:20px">
+        Caso o botão acima não funcione, copie e cole o link abaixo no navegador:
+      </p>
+
+      <p style="word-break:break-all;color:#60a5fa;font-size:12px">
+        ${linkAcesso}
+      </p>
+
+      <hr style="border:none;border-top:1px solid #1e293b;margin:20px 0">
+
+      <p style="font-size:12px;color:#94a3b8">
+        Próximos passos recomendados: cadastrar ou validar funcionários autorizados,
+        organizar perfis de acesso, iniciar o cadastro dos moradores e orientar a equipe
+        sobre o uso correto do sistema.
+      </p>
+
+      <p style="margin-top:18px">
+        <strong>Equipe Chegou<span style="color:#ff7900">!</span></strong>
+      </p>
+    </div>
+
+    <div style="background:#020617;padding:16px;text-align:center;font-size:11px;color:#64748b">
+      <p style="margin:0">
+        Este é um e-mail automático. Não responda esta mensagem.
+      </p>
+
+      <p style="margin:6px 0">
+        ${empresaEndereco}
+      </p>
+
+      <p style="margin:6px 0">
+        © 2026 Chegou<span style="color:#ff7900">!</span> Todos os direitos reservados.
+      </p>
+    </div>
+  </div>
+</div>
+`;
+}
+
+  function abrirAcao(item, acao) {
+  if (acao === "rejeitar") {
+    setMotivoRejeicao(item.motivo_rejeicao || "");
+    setModalRejeicao(item);
+    return;
   }
+
+  if (acao === "aprovar") {
+    const assunto = "Cadastro aprovado no Chegou! Acesse sua conta agora";
+    const html = montarHtmlPreviewAprovacao(item);
+
+    setEmailAssunto(assunto);
+    setEmailHtml(html);
+    setModoEdicaoEmail(false);
+    setModalPreviewEmail(item);
+  }
+}
 
   function exportarCSV() {
     if (!listaFiltrada.length) {
@@ -250,17 +366,20 @@ export default function AuditoriaCondominios() {
   }
 
 async function confirmarAcao() {
-  if (!modalAcao?.item) return;
+  const itemAprovacao = modalPreviewEmail;
+
+  if (!itemAprovacao) return;
 
   const isLocalhost =
     window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname.startsWith("192.168.");
 
-  const cnpjLimpo = String(modalAcao.item.cnpj || "").replace(/\D/g, "");
+  const cnpjLimpo = String(itemAprovacao.cnpj || "").replace(/\D/g, "");
 
   if (isLocalhost && cnpjLimpo !== "123456") {
     toast.error("No localhost, somente o CNPJ de teste 123456 pode ser aprovado.");
-    setModalAcao(null);
+    setModalPreviewEmail(null);
     return;
   }
 
@@ -269,8 +388,17 @@ async function confirmarAcao() {
 
     const { data, error } = await supabase.functions.invoke("aprovar-condominio", {
       body: {
-        condominio_id: modalAcao.item.id,
-      },
+      condominio_id: itemAprovacao.id,
+      aprovado_por_usuario_id: perfil?.id || null,
+      aprovado_por_nome: perfil?.nome || "Master",
+      aprovado_por_email: perfil?.email || null,
+
+      site_url: window.location.origin,
+
+      email_assunto: emailAssunto,
+      email_html_preview: emailHtml,
+    },
+    
     });
 
     if (error) throw error;
@@ -278,7 +406,9 @@ async function confirmarAcao() {
 
     toast.success("Condomínio aprovado e acesso do responsável liberado.");
 
-    setModalAcao(null);
+    setModalPreviewEmail(null);
+    setModoEdicaoEmail(false);
+
     await carregarCondominios();
   } catch (error) {
     console.error("Erro ao aprovar condomínio:", error);
@@ -752,18 +882,6 @@ async function confirmarAcao() {
       </ModalChegou>
 
       <ModalChegou
-        open={Boolean(modalAcao)}
-        type="success"
-        title="Aprovar condomínio?"
-        description="Após aprovar, o condomínio ficará ativo para sequência de liberação operacional."
-        confirmText="Aprovar"
-        cancelText="Cancelar"
-        loading={processando}
-        onCancel={() => setModalAcao(null)}
-        onConfirm={confirmarAcao}
-      />
-
-      <ModalChegou
         open={Boolean(modalRejeicao)}
         type="danger"
         title="Enviar cadastro para correção?"
@@ -789,6 +907,76 @@ async function confirmarAcao() {
           </label>
         </div>
       </ModalChegou>
+    <ModalChegou
+  open={Boolean(modalPreviewEmail)}
+  type="success"
+  title="Pré-visualizar e-mail de aprovação"
+  description="Revise o conteúdo que será enviado ao responsável antes de confirmar a aprovação."
+  confirmText="Confirmar aprovação e enviar"
+  cancelText="Cancelar"
+  loading={processando}
+  onCancel={() => {
+    setModalPreviewEmail(null);
+    setModoEdicaoEmail(false);
+    setEmailAssunto("");
+    setEmailHtml("");
+  }}
+  onConfirm={confirmarAcao}
+>
+  {modalPreviewEmail && (
+    <div className="email-preview-box">
+      <label>
+        Assunto do e-mail
+        <input
+          value={emailAssunto}
+          onChange={(e) => setEmailAssunto(e.target.value)}
+          placeholder="Assunto do e-mail"
+        />
+      </label>
+
+      <div className="email-preview-actions">
+        <button
+          type="button"
+          className={!modoEdicaoEmail ? "active" : ""}
+          onClick={() => setModoEdicaoEmail(false)}
+        >
+          Visualizar
+        </button>
+
+        <button
+          type="button"
+          className={modoEdicaoEmail ? "active" : ""}
+          onClick={() => setModoEdicaoEmail(true)}
+        >
+          <Edit3 size={14} />
+          Editar HTML
+        </button>
+      </div>
+
+      {modoEdicaoEmail ? (
+        <textarea
+          className="email-preview-editor"
+          value={emailHtml}
+          onChange={(e) => setEmailHtml(e.target.value)}
+          rows={18}
+        />
+      ) : (
+        <iframe
+          className="email-preview-frame"
+          title="Preview do e-mail de aprovação"
+          srcDoc={emailHtml}
+          sandbox=""
+        />
+      )}
+
+      <p className="email-preview-warning">
+        O link exibido no preview é apenas demonstrativo. O link real será gerado com
+        segurança pelo Supabase no momento da aprovação.
+      </p>
+    </div>
+  )}
+</ModalChegou>
+    
     </div>
   );
 }

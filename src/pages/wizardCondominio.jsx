@@ -1,7 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Building2, HelpCircle, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  Building2,
+  CheckCircle,
+  ClipboardList,
+  HelpCircle,
+  Lock,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  Star,
+} from "lucide-react";
 import { supabase } from "../services/supabase";
 import ModalChegou from "../components/common/ModalChegou";
 import logo from "../assets/logo.png";
@@ -93,6 +103,47 @@ const formInicial = {
   quantidade_unidades: "",
 };
 
+const pesquisaInicial = {
+  facilidade_preenchimento: "",
+  clareza_orientacoes: "",
+  tempo_conclusao: "",
+  nota_nps: "",
+  comentario: "",
+};
+
+const opcoesFacilidade = ["Muito difícil", "Difícil", "Neutro", "Fácil", "Muito fácil"];
+
+const opcoesClareza = [
+  "Discordo totalmente",
+  "Discordo",
+  "Neutro",
+  "Concordo",
+  "Concordo totalmente",
+];
+
+const opcoesTempo = ["Muito longo", "Longo", "Adequado", "Curto", "Muito curto"];
+
+function onlyNumbers(value = "") {
+  return String(value).replace(/\D/g, "");
+}
+
+function maskCNPJ(value = "") {
+  return onlyNumbers(value)
+    .slice(0, 14)
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+function normalizarCodigo(value = "") {
+  return String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase();
+}
+
 export default function WizardCondominio({ modoTeste = false }) {
   const [searchParams] = useSearchParams();
 
@@ -103,11 +154,14 @@ export default function WizardCondominio({ modoTeste = false }) {
   const [etapa, setEtapa] = useState(1);
   const [loading, setLoading] = useState(true);
   const [salvando, setSalvando] = useState(false);
+  const [enviandoPesquisa, setEnviandoPesquisa] = useState(false);
+  const [pesquisaEnviada, setPesquisaEnviada] = useState(false);
   const [erro, setErro] = useState("");
   const [modalTorres, setModalTorres] = useState(false);
   const [modalAceite, setModalAceite] = useState(false);
   const [condominioId, setCondominioId] = useState(null);
   const [conviteId, setConviteId] = useState(null);
+  const [camposInvalidos, setCamposInvalidos] = useState([]);
 
   const [aceite, setAceite] = useState({
     termos: false,
@@ -119,6 +173,9 @@ export default function WizardCondominio({ modoTeste = false }) {
   const [form, setForm] = useState(formInicial);
   const [qtdTorresModal, setQtdTorresModal] = useState("");
   const [torres, setTorres] = useState([]);
+  const [pesquisa, setPesquisa] = useState(pesquisaInicial);
+
+  const isCnpjTeste = onlyNumbers(form.cnpj) === "123456";
 
   useEffect(() => {
     async function carregarConvite() {
@@ -130,11 +187,17 @@ export default function WizardCondominio({ modoTeste = false }) {
           .from("convites_condominio")
           .select("*")
           .eq("token", token)
-          .eq("status", "pendente")
           .maybeSingle();
 
         if (conviteError || !convite) {
-          setErro("Convite inválido, expirado ou já utilizado.");
+          setErro("Convite inválido ou não encontrado.");
+          return;
+        }
+
+        const statusConvite = String(convite.status || "").trim().toLowerCase();
+
+        if (!["pendente", "enviado"].includes(statusConvite)) {
+          setErro("Convite indisponível. Este link já foi utilizado ou cancelado.");
           return;
         }
 
@@ -254,6 +317,27 @@ export default function WizardCondominio({ modoTeste = false }) {
 
   function atualizarCampo(campo, valor) {
     setForm((prev) => ({ ...prev, [campo]: valor }));
+    setCamposInvalidos((prev) => prev.filter((item) => item !== campo));
+  }
+
+  function campoInvalido(campo) {
+    return camposInvalidos.includes(campo) ? "campo-invalido" : "";
+  }
+
+  function validarCampos(campos) {
+    const faltantes = campos.filter((campo) => {
+      const valor = form[campo];
+      return valor === null || valor === undefined || String(valor).trim() === "";
+    });
+
+    setCamposInvalidos(faltantes);
+
+    if (faltantes.length > 0) {
+      toast.error(`Preencha os campos obrigatórios: ${faltantes.join(", ")}`);
+      return false;
+    }
+
+    return true;
   }
 
   function gerarUsernameAutomatico() {
@@ -319,27 +403,44 @@ export default function WizardCondominio({ modoTeste = false }) {
     }
 
     setForm((prev) => ({ ...prev, quantidade_torres: torres.length }));
+    setCamposInvalidos((prev) => prev.filter((item) => item !== "quantidade_torres"));
     setModalTorres(false);
     toast.success("Torres/blocos salvos no cadastro.");
   }
 
   function avancarEtapa() {
-    if (
-      etapa === 1 &&
-      (!form.nome_condominio || !form.cnpj || !form.codigo_condominio)
-    ) {
-      toast.error("Confirme nome do condomínio, CNPJ e código do condomínio.");
-      return;
+    if (etapa === 1) {
+      const valido = validarCampos([
+        "nome_condominio",
+        "cnpj",
+        "codigo_condominio",
+        "email_condominio",
+        "cep",
+        "endereco",
+        "numero",
+        "bairro",
+        "cidade",
+        "uf",
+      ]);
+
+      if (!valido) return;
     }
 
-    if (
-      etapa === 2 &&
-      (!form.quantidade_unidades || Number(form.quantidade_torres) <= 0)
-    ) {
-      toast.error("Cadastre as torres/blocos e informe a quantidade de unidades.");
-      return;
+    if (etapa === 2) {
+      const faltantes = [];
+
+      if (!form.quantidade_unidades) faltantes.push("quantidade_unidades");
+      if (Number(form.quantidade_torres) <= 0) faltantes.push("quantidade_torres");
+
+      setCamposInvalidos(faltantes);
+
+      if (faltantes.length > 0) {
+        toast.error("Cadastre as torres/blocos e informe a quantidade de unidades.");
+        return;
+      }
     }
 
+    setCamposInvalidos([]);
     setEtapa((atual) => atual + 1);
   }
 
@@ -359,7 +460,9 @@ export default function WizardCondominio({ modoTeste = false }) {
   function abrirModalAceite(e) {
     e.preventDefault();
 
-    if (!podeSalvar) {
+    const valido = validarCampos(["nome_responsavel", "email_responsavel", "username"]);
+
+    if (!valido || !podeSalvar) {
       toast.error("Preencha os campos obrigatórios antes de finalizar.");
       return;
     }
@@ -367,7 +470,66 @@ export default function WizardCondominio({ modoTeste = false }) {
     setModalAceite(true);
   }
 
+  async function registrarEventoFinalizacaoWizard() {
+    if (isModoValidacao) return;
+
+    const businessId = `${normalizarCodigo(form.codigo_condominio || "COND")}-SIND-001`;
+
+    const { data, error } = await supabase.functions.invoke("registrar-evento-sistema", {
+      body: {
+        tipo_evento: "CADASTRO_CONDOMINIO_PENDENTE",
+        origem: "wizard_condominio",
+        origem_tipo: "convite_condominio",
+        origem_id: conviteId,
+        modulo: "WIZARD_CONDOMINIO",
+
+        titulo: "Novo condomínio aguardando aprovação",
+        mensagem: `O condomínio ${form.nome_condominio} finalizou o cadastro e está aguardando auditoria.`,
+
+        tipo: "aprovacao",
+        prioridade: "alta",
+        icone: "building-2",
+        destino_tipo: "MASTER",
+
+        condominio_id: condominioId,
+        business_id: businessId,
+        acao_url: "condominios-auditoria",
+
+        enviada_in_app: true,
+        enviada_email: false,
+        enviada_push: false,
+
+        metadata: {
+          nome_condominio: form.nome_condominio,
+          razao_social: form.razao_social,
+          cnpj: onlyNumbers(form.cnpj),
+          codigo_condominio: form.codigo_condominio,
+          nome_responsavel: form.nome_responsavel,
+          email_responsavel: form.email_responsavel,
+          quantidade_torres: Number(form.quantidade_torres),
+          quantidade_unidades: Number(form.quantidade_unidades),
+          convite_id: conviteId,
+          status_cadastro: "em_validacao",
+          push_preparado: true,
+        },
+      },
+    });
+
+    console.log("registrar-evento-sistema data:", data);
+    console.log("registrar-evento-sistema error:", error);
+
+    if (error) throw error;
+
+    if (!data?.success) {
+      throw new Error(
+        data?.error || "A function registrar-evento-sistema não confirmou sucesso."
+      );
+    }
+  }
+
   async function confirmarFinalizacao() {
+    if (salvando) return;
+
     if (!aceite.termos || !aceite.lgpd) {
       toast.error("É necessário aceitar os Termos e a Política de Privacidade.");
       return;
@@ -376,6 +538,7 @@ export default function WizardCondominio({ modoTeste = false }) {
     if (isModoValidacao) {
       toast.success("Modo validação: fluxo testado com sucesso. Nenhum dado foi salvo.");
       setModalAceite(false);
+      setEtapa(4);
       return;
     }
 
@@ -383,6 +546,24 @@ export default function WizardCondominio({ modoTeste = false }) {
       setSalvando(true);
 
       const agora = new Date().toISOString();
+
+      const { data: conviteAtual, error: conviteAtualError } = await supabase
+        .from("convites_condominio")
+        .select("id, status")
+        .eq("id", conviteId)
+        .maybeSingle();
+
+      const statusConviteAtual = String(conviteAtual?.status || "")
+        .trim()
+        .toLowerCase();
+
+      if (
+        conviteAtualError ||
+        !conviteAtual ||
+        !["pendente", "enviado"].includes(statusConviteAtual)
+      ) {
+        throw new Error("Convite indisponível ou já utilizado.");
+      }
 
       const { error: condominioError } = await supabase
         .from("condominios")
@@ -431,26 +612,16 @@ export default function WizardCondominio({ modoTeste = false }) {
         if (error) throw error;
       }
 
-      // Remove torres existentes
-      await supabase
-        .from("torres")
-        .delete()
-        .eq("condominio_id", condominioId);
+      await supabase.from("torres").delete().eq("condominio_id", condominioId);
 
-      // Monta payload correto
       const torresPayload = torres.map((torre, index) => ({
         condominio_id: condominioId,
         nome: torre.nome,
         identificador: torre.identificador,
-        business_id: `${form.codigo_condominio}-TORRE-${index + 1}`,
+        business_id: `${normalizarCodigo(form.codigo_condominio)}-TORRE-${index + 1}`,
       }));
 
-      // Insere novas torres
-      const { error: torresError } = await supabase
-        .from("torres")
-        .insert(torresPayload);
-
-
+      const { error: torresError } = await supabase.from("torres").insert(torresPayload);
       if (torresError) throw torresError;
 
       const { error: aceiteError } = await supabase.from("aceites_termos").insert({
@@ -469,28 +640,81 @@ export default function WizardCondominio({ modoTeste = false }) {
 
       if (aceiteError) throw aceiteError;
 
-      await supabase
-        .from("convites_condominio")
-        .update({
-          status: "aceito",
-          aceito_em: agora,
-        })
-        .eq("token", token);
+      const { data: conviteInvalidado, error: conviteFunctionError } =
+        await supabase.functions.invoke("invalidar-convite-condominio", {
+          body: {
+            convite_id: conviteId,
+          },
+        });
+
+      console.log("invalidar-convite-condominio data:", conviteInvalidado);
+      console.log("invalidar-convite-condominio error:", conviteFunctionError);
+
+      if (conviteFunctionError) throw conviteFunctionError;
+
+      if (!conviteInvalidado?.success) {
+        throw new Error(
+          conviteInvalidado?.error || "Não foi possível invalidar o convite."
+        );
+      }
+
+      await registrarEventoFinalizacaoWizard();
 
       toast.success("Cadastro enviado para validação com sucesso!");
       setModalAceite(false);
+      setEtapa(4);
     } catch (error) {
       console.error(error);
-      toast.error("Não foi possível finalizar o cadastro.");
+      toast.error(error.message || "Não foi possível finalizar o cadastro.");
     } finally {
       setSalvando(false);
     }
+  }
+
+  async function enviarPesquisa() {
+    if (isModoValidacao || isCnpjTeste) {
+      toast.success("Pesquisa registrada apenas para validação visual.");
+      setPesquisaEnviada(true);
+      return;
+    }
+
+    try {
+      setEnviandoPesquisa(true);
+
+      const { error } = await supabase.from("pesquisa_wizard_condominio").insert({
+        condominio_id: condominioId,
+        convite_id: conviteId,
+        facilidade_preenchimento: pesquisa.facilidade_preenchimento || null,
+        clareza_orientacoes: pesquisa.clareza_orientacoes || null,
+        tempo_conclusao: pesquisa.tempo_conclusao || null,
+        nota_nps: pesquisa.nota_nps ? Number(pesquisa.nota_nps) : null,
+        comentario: pesquisa.comentario || null,
+        respondido_por_nome: form.nome_responsavel,
+        respondido_por_email: form.email_responsavel,
+        user_agent: navigator.userAgent,
+      });
+
+      if (error) throw error;
+
+      toast.success("Obrigado! Sua opinião foi registrada.");
+      setPesquisaEnviada(true);
+    } catch (error) {
+      console.error(error);
+      toast.error("Não foi possível enviar a pesquisa.");
+    } finally {
+      setEnviandoPesquisa(false);
+    }
+  }
+
+  function selecionarPesquisa(campo, valor) {
+    setPesquisa((prev) => ({ ...prev, [campo]: valor }));
   }
 
   const steps = [
     { id: 1, label: "Identificação" },
     { id: 2, label: "Estrutura" },
     { id: 3, label: "Responsável" },
+    { id: 4, label: "Finalização" },
   ];
 
   if (loading) return <div className="wizard-loading">Carregando convite...</div>;
@@ -531,10 +755,10 @@ export default function WizardCondominio({ modoTeste = false }) {
 
           <div className="aceite-text-box">
             <strong>Privacidade e LGPD</strong>
-              <p>
-                Estou ciente de que os dados informados serão tratados para operação,
-                segurança, auditoria e validação do cadastro.
-              </p>
+            <p>
+              Estou ciente de que os dados informados serão tratados para operação,
+              segurança, auditoria e validação do cadastro.
+            </p>
           </div>
 
           <button
@@ -601,332 +825,544 @@ export default function WizardCondominio({ modoTeste = false }) {
           ))}
         </div>
 
-        <form onSubmit={abrirModalAceite} className="wizard-form">
-          {etapa === 1 && (
-            <section className="wizard-content-grid">
-              <div className="wizard-main-content">
-                <div className="wizard-section-title">
-                  <h2>1. Identificação do Condomínio</h2>
-                  <p>Informe os dados básicos para validar o condomínio convidado.</p>
-                </div>
-
-                <div className="wizard-grid">
-                  <label>
-                    Nome do Condomínio *
-                    <input
-                      value={form.nome_condominio}
-                      onChange={(e) => atualizarCampo("nome_condominio", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    Razão Social
-                    <input
-                      value={form.razao_social}
-                      onChange={(e) => atualizarCampo("razao_social", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    CNPJ *
-                    <input
-                      value={form.cnpj}
-                      onChange={(e) => atualizarCampo("cnpj", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    Código do Condomínio *
-                    <input value={form.codigo_condominio} readOnly />
-                    <small>Este código será usado para acesso de funcionários autorizados.</small>
-                  </label>
-
-                  <label>
-                    E-mail do Condomínio *
-                    <input
-                      value={form.email_condominio}
-                      onChange={(e) => atualizarCampo("email_condominio", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    Telefone / WhatsApp
-                    <input
-                      value={form.telefone_condominio}
-                      onChange={(e) => atualizarCampo("telefone_condominio", e.target.value)}
-                    />
-                  </label>
-                </div>
-
-                <div className="wizard-section-title second">
-                  <h2>Endereço</h2>
-                  <p>Esses dados ajudam a organizar portaria, moradores e unidades.</p>
-                </div>
-
-                <div className="wizard-grid address-grid">
-                  <label>
-                    CEP *
-                    <input
-                      value={form.cep}
-                      onChange={(e) => atualizarCampo("cep", e.target.value)}
-                    />
-                  </label>
-
-                  <label className="wide">
-                    Endereço *
-                    <input
-                      value={form.endereco}
-                      onChange={(e) => atualizarCampo("endereco", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    Número *
-                    <input
-                      value={form.numero}
-                      onChange={(e) => atualizarCampo("numero", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    Complemento
-                    <input
-                      value={form.complemento}
-                      onChange={(e) => atualizarCampo("complemento", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    Bairro *
-                    <input
-                      value={form.bairro}
-                      onChange={(e) => atualizarCampo("bairro", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    Cidade *
-                    <input
-                      value={form.cidade}
-                      onChange={(e) => atualizarCampo("cidade", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    UF *
-                    <input
-                      value={form.uf}
-                      onChange={(e) => atualizarCampo("uf", e.target.value.toUpperCase())}
-                      maxLength={2}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <aside className="wizard-side-tip">
-                <div>
-                  <HelpCircle size={22} />
-                  <strong>Dicas</strong>
-                </div>
-
-                <ul>
-                  <li>Confira CNPJ, e-mail e telefone antes de avançar.</li>
-                  <li>O código do condomínio será importante para funcionários.</li>
-                  <li>Somente o complemento pode ficar em branco.</li>
-                </ul>
-              </aside>
-            </section>
-          )}
-
-          {etapa === 2 && (
-            <section className="wizard-content-grid">
-              <div className="wizard-main-content">
-                <div className="wizard-section-title">
-                  <h2>2. Estrutura do Condomínio</h2>
-                  <p>Informe a estrutura de torres/blocos e a quantidade total de unidades.</p>
-                </div>
-
-                <div className="wizard-grid structure-grid">
-                  <label>
-                    Torres / Blocos cadastrados *
-                    <input value={form.quantidade_torres} readOnly />
-                  </label>
-
-                  <label>
-                    Quantidade de Unidades *
-                    <input
-                      type="number"
-                      min="1"
-                      value={form.quantidade_unidades}
-                      onChange={(e) => atualizarCampo("quantidade_unidades", e.target.value)}
-                    />
-                  </label>
-                </div>
-
-                <div className="wizard-action-card big">
-                  <Building2 size={38} />
-                  <div>
-                    <strong>Cadastre suas torres ou blocos</strong>
-                    <p>Informe a quantidade de torres/blocos e identifique cada uma delas.</p>
-                    <button type="button" onClick={() => setModalTorres(true)}>
-                      Cadastrar Torres / Blocos
-                    </button>
+        {etapa < 4 && (
+          <form onSubmit={abrirModalAceite} className="wizard-form">
+            {etapa === 1 && (
+              <section className="wizard-content-grid">
+                <div className="wizard-main-content">
+                  <div className="wizard-section-title">
+                    <h2>1. Identificação do Condomínio</h2>
+                    <p>Informe os dados básicos para validar o condomínio convidado.</p>
                   </div>
-                </div>
 
-                {torres.length > 0 && (
-                  <div className="wizard-preview">
-                    <strong>Torres cadastradas:</strong>
-                    <div>
-                      {torres.map((torre) => (
-                        <span key={torre.ordem}>
-                          {torre.nome} - {torre.identificador}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <aside className="wizard-side-tip">
-                <div>
-                  <HelpCircle size={22} />
-                  <strong>Dicas</strong>
-                </div>
-
-                <ul>
-                  <li>Cadastre todas as torres ou blocos do condomínio.</li>
-                  <li>Depois será possível vincular unidades e moradores.</li>
-                  <li>A quantidade total de unidades deve ser real.</li>
-                </ul>
-              </aside>
-            </section>
-          )}
-
-          {etapa === 3 && (
-            <section className="wizard-content-grid">
-              <div className="wizard-main-content">
-                <div className="wizard-section-title">
-                  <h2>3. Responsável pela Logística</h2>
-                  <p>Informe quem será o responsável inicial pela gestão das encomendas.</p>
-                </div>
-
-                <div className="wizard-grid">
-                  <label>
-                    Nome do Responsável *
-                    <input
-                      value={form.nome_responsavel}
-                      onChange={(e) => atualizarCampo("nome_responsavel", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    E-mail do Responsável *
-                    <input
-                      value={form.email_responsavel}
-                      onChange={(e) => atualizarCampo("email_responsavel", e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    Telefone / WhatsApp
-                    <input
-                      value={form.telefone_responsavel}
-                      onChange={(e) => atualizarCampo("telefone_responsavel", e.target.value)}
-                    />
-                  </label>
-
-                  <label className="wide">
-                    Username de acesso *
-                    <div className="username-row">
+                  <div className="wizard-grid">
+                    <label>
+                      Nome do Condomínio *
                       <input
-                        value={form.username}
+                        className={campoInvalido("nome_condominio")}
+                        value={form.nome_condominio}
                         onChange={(e) =>
-                          atualizarCampo("username", e.target.value.toLowerCase().trim())
+                          atualizarCampo("nome_condominio", e.target.value)
                         }
-                        placeholder="ex: paulo.dias"
                       />
+                    </label>
 
-                      <button type="button" onClick={gerarUsernameAutomatico}>
-                        <Sparkles size={15} />
-                        Gerar sugestão
-                      </button>
-                    </div>
-                  </label>
-                </div>
+                    <label>
+                      Razão Social
+                      <input
+                        value={form.razao_social}
+                        onChange={(e) => atualizarCampo("razao_social", e.target.value)}
+                      />
+                    </label>
 
-                <div className="wizard-info-box">
-                  <ShieldCheck size={24} />
-                  <div>
-                    <strong>O username será usado para acesso após aprovação.</strong>
-                    <p>
-                      O cadastro será analisado pela equipe Chegou! antes da liberação final.
-                    </p>
+                    <label>
+                      CNPJ *
+                      <div className="locked-input">
+                        <Lock size={14} />
+                        <input
+                          className={campoInvalido("cnpj")}
+                          value={maskCNPJ(form.cnpj)}
+                          readOnly
+                        />
+                      </div>
+                    </label>
+
+                    <label>
+                      Código do Condomínio *
+                      <input
+                        className={campoInvalido("codigo_condominio")}
+                        value={form.codigo_condominio}
+                        onChange={(e) =>
+                          atualizarCampo(
+                            "codigo_condominio",
+                            normalizarCodigo(e.target.value)
+                          )
+                        }
+                      />
+                      <small>
+                        Este código será usado para acesso de funcionários autorizados.
+                      </small>
+                    </label>
+
+                    <label>
+                      E-mail do Condomínio *
+                      <input
+                        className={campoInvalido("email_condominio")}
+                        value={form.email_condominio}
+                        onChange={(e) =>
+                          atualizarCampo("email_condominio", e.target.value)
+                        }
+                      />
+                    </label>
+
+                    <label>
+                      Telefone / WhatsApp
+                      <input
+                        value={form.telefone_condominio}
+                        onChange={(e) =>
+                          atualizarCampo("telefone_condominio", e.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  <div className="wizard-section-title second">
+                    <h2>Endereço</h2>
+                    <p>Esses dados ajudam a organizar portaria, moradores e unidades.</p>
+                  </div>
+
+                  <div className="wizard-grid address-grid">
+                    <label>
+                      CEP *
+                      <input
+                        className={campoInvalido("cep")}
+                        value={form.cep}
+                        onChange={(e) => atualizarCampo("cep", e.target.value)}
+                      />
+                    </label>
+
+                    <label className="wide">
+                      Endereço *
+                      <input
+                        className={campoInvalido("endereco")}
+                        value={form.endereco}
+                        onChange={(e) => atualizarCampo("endereco", e.target.value)}
+                      />
+                    </label>
+
+                    <label>
+                      Número *
+                      <input
+                        className={campoInvalido("numero")}
+                        value={form.numero}
+                        onChange={(e) => atualizarCampo("numero", e.target.value)}
+                      />
+                    </label>
+
+                    <label className="complemento-field">
+                      Complemento
+                      <input
+                        value={form.complemento}
+                        onChange={(e) => atualizarCampo("complemento", e.target.value)}
+                      />
+                    </label>
+
+                    <label className="bairro-field">
+                      Bairro *
+                      <input
+                        className={campoInvalido("bairro")}
+                        value={form.bairro}
+                        onChange={(e) => atualizarCampo("bairro", e.target.value)}
+                      />
+                    </label>
+
+                    <label className="cidade-field">
+                      Cidade *
+                      <input
+                        className={campoInvalido("cidade")}
+                        value={form.cidade}
+                        onChange={(e) => atualizarCampo("cidade", e.target.value)}
+                      />
+                    </label>
+
+                    <label className="uf-field">
+                      UF *
+                      <input
+                        className={campoInvalido("uf")}
+                        value={form.uf}
+                        onChange={(e) =>
+                          atualizarCampo("uf", e.target.value.toUpperCase())
+                        }
+                        maxLength={2}
+                      />
+                    </label>
                   </div>
                 </div>
 
-                <div className="wizard-info-box">
-                  <Building2 size={24} />
+                <aside className="wizard-side-tip">
                   <div>
-                    <strong>
-                      Código do Condomínio: {form.codigo_condominio || "não informado"}
-                    </strong>
-                    <p>
-                      Guarde este código. Ele será usado para orientar funcionários vinculados
-                      ao condomínio.
-                    </p>
+                    <HelpCircle size={22} />
+                    <strong>Dicas</strong>
                   </div>
-                </div>
-              </div>
 
-              <aside className="wizard-side-tip">
-                <div>
-                  <HelpCircle size={22} />
-                  <strong>Dicas</strong>
-                </div>
-
-                <ul>
-                  <li>Este usuário será o responsável inicial pelas operações.</li>
-                  <li>O username deve ser simples e fácil de lembrar.</li>
-                  <li>A liberação ocorre somente após auditoria do Master.</li>
-                </ul>
-              </aside>
-            </section>
-          )}
-
-          <div className="wizard-footer">
-            {etapa > 1 && (
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={() => setEtapa((atual) => atual - 1)}
-              >
-                Voltar
-              </button>
+                  <ul>
+                    <li>Confira CNPJ, e-mail e telefone antes de avançar.</li>
+                    <li>O código do condomínio será importante para funcionários.</li>
+                    <li>Somente o complemento pode ficar em branco.</li>
+                  </ul>
+                </aside>
+              </section>
             )}
 
-            {etapa < 3 && (
-              <button type="button" className="btn primary" onClick={avancarEtapa}>
-                Próximo
-              </button>
+            {etapa === 2 && (
+              <section className="wizard-content-grid">
+                <div className="wizard-main-content">
+                  <div className="wizard-section-title">
+                    <h2>2. Estrutura do Condomínio</h2>
+                    <p>
+                      Informe a estrutura de torres/blocos e a quantidade total de
+                      unidades.
+                    </p>
+                  </div>
+
+                  <div className="wizard-grid structure-grid">
+                    <label>
+                      Torres / Blocos cadastrados *
+                      <input
+                        className={campoInvalido("quantidade_torres")}
+                        value={form.quantidade_torres}
+                        readOnly
+                      />
+                    </label>
+
+                    <label>
+                      Quantidade de Unidades *
+                      <input
+                        className={campoInvalido("quantidade_unidades")}
+                        type="number"
+                        min="1"
+                        value={form.quantidade_unidades}
+                        onChange={(e) =>
+                          atualizarCampo("quantidade_unidades", e.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  <div className="wizard-action-card big">
+                    <Building2 size={38} />
+                    <div>
+                      <strong>Cadastre suas torres ou blocos</strong>
+                      <p>Informe a quantidade de torres/blocos e identifique cada uma delas.</p>
+                      <button type="button" onClick={() => setModalTorres(true)}>
+                        Cadastrar Torres / Blocos
+                      </button>
+                    </div>
+                  </div>
+
+                  {torres.length > 0 && (
+                    <div className="wizard-preview">
+                      <strong>Torres cadastradas:</strong>
+                      <div>
+                        {torres.map((torre) => (
+                          <span key={torre.ordem}>
+                            {torre.nome} - {torre.identificador}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <aside className="wizard-side-tip">
+                  <div>
+                    <HelpCircle size={22} />
+                    <strong>Dicas</strong>
+                  </div>
+
+                  <ul>
+                    <li>Cadastre todas as torres ou blocos do condomínio.</li>
+                    <li>Depois será possível vincular unidades e moradores.</li>
+                    <li>A quantidade total de unidades deve ser real.</li>
+                  </ul>
+                </aside>
+              </section>
             )}
 
             {etapa === 3 && (
-              <button
-                type="submit"
-                className="btn primary"
-                disabled={!isModoValidacao && (!podeSalvar || salvando)}
-              >
-                {salvando ? "Salvando..." : "Finalizar cadastro"}
-              </button>
+              <section className="wizard-content-grid">
+                <div className="wizard-main-content">
+                  <div className="wizard-section-title">
+                    <h2>3. Responsável pela Logística</h2>
+                    <p>Informe quem será o responsável inicial pela gestão das encomendas.</p>
+                  </div>
+
+                  <div className="wizard-grid">
+                    <label>
+                      Nome do Responsável *
+                      <input
+                        className={campoInvalido("nome_responsavel")}
+                        value={form.nome_responsavel}
+                        onChange={(e) =>
+                          atualizarCampo("nome_responsavel", e.target.value)
+                        }
+                      />
+                    </label>
+
+                    <label>
+                      E-mail do Responsável *
+                      <input
+                        className={campoInvalido("email_responsavel")}
+                        value={form.email_responsavel}
+                        onChange={(e) =>
+                          atualizarCampo("email_responsavel", e.target.value)
+                        }
+                      />
+                    </label>
+
+                    <label>
+                      Telefone / WhatsApp
+                      <input
+                        value={form.telefone_responsavel}
+                        onChange={(e) =>
+                          atualizarCampo("telefone_responsavel", e.target.value)
+                        }
+                      />
+                    </label>
+
+                    <label className="wide">
+                      Username de acesso *
+                      <div className="username-row">
+                        <input
+                          className={campoInvalido("username")}
+                          value={form.username}
+                          onChange={(e) =>
+                            atualizarCampo("username", e.target.value.toLowerCase().trim())
+                          }
+                          placeholder="ex: paulo.dias"
+                        />
+
+                        <button type="button" onClick={gerarUsernameAutomatico}>
+                          <Sparkles size={15} />
+                          Gerar sugestão
+                        </button>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="wizard-info-box">
+                    <ShieldCheck size={24} />
+                    <div>
+                      <strong>O username será usado para acesso após aprovação.</strong>
+                      <p>
+                        O cadastro será analisado pela equipe Chegou! antes da liberação
+                        final.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="wizard-info-box">
+                    <Building2 size={24} />
+                    <div>
+                      <strong>
+                        Código do Condomínio: {form.codigo_condominio || "não informado"}
+                      </strong>
+                      <p>
+                        Guarde este código. Ele será usado para orientar funcionários
+                        vinculados ao condomínio.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <aside className="wizard-side-tip">
+                  <div>
+                    <HelpCircle size={22} />
+                    <strong>Dicas</strong>
+                  </div>
+
+                  <ul>
+                    <li>Este usuário será o responsável inicial pelas operações.</li>
+                    <li>O username deve ser simples e fácil de lembrar.</li>
+                    <li>A liberação ocorre somente após auditoria do Master.</li>
+                  </ul>
+                </aside>
+              </section>
             )}
-          </div>
-        </form>
+
+            <div className="wizard-footer">
+              {etapa > 1 && (
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => setEtapa((atual) => atual - 1)}
+                >
+                  Voltar
+                </button>
+              )}
+
+              {etapa < 3 && (
+                <button type="button" className="btn primary" onClick={avancarEtapa}>
+                  Próximo
+                </button>
+              )}
+
+              {etapa === 3 && (
+                <button
+                  type="submit"
+                  className="btn primary"
+                  disabled={!isModoValidacao && (!podeSalvar || salvando)}
+                >
+                  {salvando ? "Salvando..." : "Finalizar cadastro"}
+                </button>
+              )}
+            </div>
+          </form>
+        )}
+
+        {etapa === 4 && (
+          <section className="wizard-finalizacao">
+            <div className="final-success-card">
+              <CheckCircle size={58} />
+              <div>
+                <h2>Cadastro finalizado com sucesso!</h2>
+                <p>
+                  Recebemos seus dados com sucesso. Nossa equipe irá analisar as
+                  informações e em breve você receberá um retorno por e-mail.
+                </p>
+              </div>
+            </div>
+
+            <div className="nps-layout">
+              <main className="nps-main">
+                <div className="nps-title">
+                  <ClipboardList size={24} />
+                  <div>
+                    <h2>Sua opinião é muito importante para nós!</h2>
+                    <p>
+                      Responder é opcional, leva menos de 1 minuto e nos ajuda muito a
+                      melhorar cada vez mais o sistema Chegou!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="nps-question">
+                  <strong>
+                    1. Como você avalia a facilidade de preencher as informações no
+                    assistente?
+                  </strong>
+                  <div className="nps-options">
+                    {opcoesFacilidade.map((opcao) => (
+                      <button
+                        type="button"
+                        key={opcao}
+                        className={
+                          pesquisa.facilidade_preenchimento === opcao ? "selected" : ""
+                        }
+                        onClick={() =>
+                          selecionarPesquisa("facilidade_preenchimento", opcao)
+                        }
+                      >
+                        {opcao}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="nps-question">
+                  <strong>
+                    2. As informações e orientações apresentadas durante o cadastro foram
+                    claras e úteis?
+                  </strong>
+                  <div className="nps-options nps-options-wide">
+                    {opcoesClareza.map((opcao) => (
+                      <button
+                        type="button"
+                        key={opcao}
+                        className={pesquisa.clareza_orientacoes === opcao ? "selected" : ""}
+                        onClick={() => selecionarPesquisa("clareza_orientacoes", opcao)}
+                      >
+                        {opcao}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="nps-question">
+                  <strong>
+                    3. Como você avalia o tempo necessário para concluir o cadastro?
+                  </strong>
+                  <div className="nps-options">
+                    {opcoesTempo.map((opcao) => (
+                      <button
+                        type="button"
+                        key={opcao}
+                        className={pesquisa.tempo_conclusao === opcao ? "selected" : ""}
+                        onClick={() => selecionarPesquisa("tempo_conclusao", opcao)}
+                      >
+                        {opcao}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="nps-question">
+                  <strong>4. Qual a sua satisfação geral com o assistente de cadastro?</strong>
+                  <small>Dê uma nota de 1 a 5 (NPS)</small>
+                  <div className="nps-stars">
+                    {[1, 2, 3, 4, 5].map((nota) => (
+                      <button
+                        type="button"
+                        key={nota}
+                        className={Number(pesquisa.nota_nps) === nota ? "selected" : ""}
+                        onClick={() => selecionarPesquisa("nota_nps", nota)}
+                      >
+                        <Star size={22} />
+                        {nota}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="nps-question">
+                  <strong>5. Deixe sua sugestão ou comentário (opcional)</strong>
+                  <textarea
+                    value={pesquisa.comentario}
+                    maxLength={500}
+                    onChange={(e) => selecionarPesquisa("comentario", e.target.value)}
+                    placeholder="Escreva aqui sua sugestão, crítica ou elogio..."
+                  />
+                  <span className="nps-counter">{pesquisa.comentario.length}/500</span>
+                </div>
+
+                <div className="nps-actions">
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    onClick={() => {
+                      toast("Você já pode fechar esta página.", { icon: "✅" });
+                    }}
+                  >
+                    Fechar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn primary orange"
+                    onClick={enviarPesquisa}
+                    disabled={enviandoPesquisa || pesquisaEnviada}
+                  >
+                    {pesquisaEnviada ? "Pesquisa enviada" : "Enviar pesquisa"}
+                    <Send size={16} />
+                  </button>
+                </div>
+
+                <p className="nps-confidencial">
+                  Suas respostas são confidenciais e serão usadas apenas para melhorias no
+                  sistema.
+                </p>
+              </main>
+
+              <aside className="nps-side-card">
+                <HelpCircle size={28} />
+                <h3>Por que estamos perguntando?</h3>
+                <p>Sua opinião nos ajuda a:</p>
+                <ul>
+                  <li>Melhorar a experiência de uso</li>
+                  <li>Tornar o cadastro mais rápido e intuitivo</li>
+                  <li>Entender suas necessidades reais</li>
+                  <li>Evoluir o sistema Chegou!</li>
+                </ul>
+                <strong>Agradecemos sua colaboração!</strong>
+              </aside>
+            </div>
+          </section>
+        )}
       </div>
 
       {modalTorres && (
         <div className="wizard-modal-overlay">
-          <div className="wizard-modal">
+          <div className="wizard-modal wizard-modal-torres">
             <div className="wizard-modal-header">
               <div>
                 <h2>Cadastro de Torres / Blocos</h2>
@@ -937,43 +1373,54 @@ export default function WizardCondominio({ modoTeste = false }) {
               </button>
             </div>
 
-            <div className="wizard-modal-content">
-              <label>
-                Quantidade de Torres / Blocos
-                <div className="wizard-inline">
-                  <input
-                    type="number"
-                    min="1"
-                    value={qtdTorresModal}
-                    onChange={(e) => setQtdTorresModal(e.target.value)}
-                  />
-                  <button type="button" onClick={gerarCamposTorres}>
-                    Gerar campos
-                  </button>
-                </div>
-              </label>
+            <div className="wizard-modal-content modal-torres-content">
+              <div className="modal-torres-main">
+                <label>
+                  Quantidade de Torres / Blocos
+                  <div className="wizard-inline">
+                    <input
+                      type="number"
+                      min="1"
+                      value={qtdTorresModal}
+                      onChange={(e) => setQtdTorresModal(e.target.value)}
+                    />
+                    <button type="button" onClick={gerarCamposTorres}>
+                      Gerar campos
+                    </button>
+                  </div>
+                </label>
 
-              {torres.length > 0 && (
-                <div className="wizard-torres-list">
-                  {torres.map((torre, index) => (
-                    <div className="wizard-torre-item" key={torre.ordem}>
-                      <strong>{torre.ordem}</strong>
-                      <input
-                        placeholder="Nome. Ex: Torre A"
-                        value={torre.nome}
-                        onChange={(e) => atualizarTorre(index, "nome", e.target.value)}
-                      />
-                      <input
-                        placeholder="Número ou letra. Ex: A, B, 1"
-                        value={torre.identificador}
-                        onChange={(e) =>
-                          atualizarTorre(index, "identificador", e.target.value)
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+                {torres.length > 0 && (
+                  <div className="wizard-torres-list">
+                    {torres.map((torre, index) => (
+                      <div className="wizard-torre-item" key={torre.ordem}>
+                        <strong>{torre.ordem}</strong>
+                        <input
+                          placeholder="Nome. Ex: Torre A"
+                          value={torre.nome}
+                          onChange={(e) => atualizarTorre(index, "nome", e.target.value)}
+                        />
+                        <input
+                          placeholder="Número ou letra. Ex: A, B, 1"
+                          value={torre.identificador}
+                          onChange={(e) =>
+                            atualizarTorre(index, "identificador", e.target.value)
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <aside className="modal-torres-tip">
+                <HelpCircle size={22} />
+                <strong>Orientação</strong>
+                <p>
+                  Use nomes simples e claros, como Torre A, Bloco 1 ou Torre Única. O
+                  identificador será usado depois para vincular unidades e moradores.
+                </p>
+              </aside>
             </div>
 
             <div className="wizard-modal-actions">

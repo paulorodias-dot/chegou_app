@@ -1,0 +1,6066 @@
+/* =========================================================
+   1. ROOT / RESET GLOBAL
+   ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --chegou-blue: #0d47b8;
+  --chegou-blue-dark: #08368d;
+  --chegou-blue-soft: #eef5ff;
+
+  --chegou-orange: #ff8a00;
+  --chegou-orange-dark: #f57c00;
+  --chegou-orange-soft: #fff3e3;
+
+  --wm-page: #f5f7fb;
+  --wm-card: #ffffff;
+  --wm-border: #e2e8f2;
+  --wm-border-strong: #d5deec;
+
+  --wm-text: #162033;
+  --wm-muted: #6f7d92;
+  --wm-muted-2: #98a2b3;
+
+  --wm-shadow: 0 14px 34px rgba(16, 33, 67, 0.08);
+  --wm-shadow-soft: 0 8px 22px rgba(16, 33, 67, 0.06);
+
+  --wm-radius-xl: 28px;
+  --wm-radius-lg: 22px;
+  --wm-radius-md: 16px;
+
+  --wm-max-width: 1440px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--wm-page);
+  color: var(--wm-text);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Marca Chegou! com exclamação laranja */
+.wm-brand-text-inline {
+  font-weight: 800;
+  color: var(--chegou-blue);
+}
+
+.wm-brand-text-inline span,
+.wm-orange {
+  color: var(--chegou-orange);
+}
+
+
+/* =========================================================
+   2. LAYOUT BASE — PAGE / HEADER / MAIN / FOOTER
+   ========================================================= */
+
+.wm-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 138, 0, 0.08), transparent 28%),
+    linear-gradient(180deg, #f8faff 0%, #f3f6fb 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.wm-header {
+  height: 86px;
+  background: linear-gradient(135deg, var(--chegou-blue), var(--chegou-blue-dark));
+  box-shadow: 0 10px 26px rgba(10, 36, 92, 0.18);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.wm-header-inner {
+  max-width: var(--wm-max-width);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wm-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.wm-header-logo {
+  width: 146px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.wm-header-title {
+  padding-left: 18px;
+  border-left: 1px solid rgba(255, 255, 255, 0.22);
+  min-width: 0;
+}
+
+.wm-header-title h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.wm-header-title p {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  line-height: 1.25;
+  font-weight: 500;
+}
+
+.wm-help-top {
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: 0.18s ease;
+  white-space: nowrap;
+}
+
+.wm-help-top:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Main */
+.wm-main {
+  flex: 1;
+  padding: 24px 26px 18px;
+}
+
+.wm-shell {
+  max-width: var(--wm-max-width);
+  margin: 0 auto;
+}
+
+/* Footer */
+.wm-footer {
+  padding: 0 26px 22px;
+}
+
+.wm-footer-inner {
+  max-width: var(--wm-max-width);
+  min-height: 72px;
+  margin: 0 auto;
+  padding: 13px 22px;
+  border: 1px solid var(--wm-border);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: var(--wm-shadow-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.wm-footer-safe,
+.wm-footer-help {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wm-footer-safe > span {
+  width: 40px;
+  height: 40px;
+  border-radius: 15px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-footer-safe strong,
+.wm-footer-help strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 13.5px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-footer-safe p,
+.wm-footer-help p {
+  margin: 3px 0 0;
+  color: var(--wm-muted);
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 500;
+}
+
+.wm-footer-logo {
+  width: 106px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.wm-mobile-safe-footer {
+  display: none;
+}
+
+
+/* =========================================================
+   3. STEPPER TOPO — 7 ETAPAS
+   ========================================================= */
+
+.wm-stepper {
+  min-height: 88px;
+  padding: 16px 22px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  box-shadow: var(--wm-shadow-soft);
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.wm-stepper-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  text-align: center;
+  padding-top: 2px;
+}
+
+.wm-stepper-line {
+  position: absolute;
+  left: 50%;
+  width: calc(100% - 18px);
+  top: 22px;
+  transform: translateX(18px);
+  height: 2px;
+  background: #d7dfeb;
+  z-index: 0;
+}
+
+.wm-stepper-item:last-child .wm-stepper-line {
+  display: none;
+}
+
+.wm-stepper-circle {
+  position: relative;
+  z-index: 1;
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  border: 1px solid #d7dfeb;
+  background: #ffffff;
+  color: #6f7d92;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+
+.wm-stepper-label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-stepper-label strong {
+  color: #172033;
+  font-size: 13.2px;
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.wm-stepper-label small {
+  margin-top: 3px;
+  color: var(--wm-muted);
+  font-size: 11.5px;
+  line-height: 1.12;
+  font-weight: 600;
+}
+
+.wm-stepper-item.active .wm-stepper-circle {
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  border-color: var(--chegou-orange);
+  color: #ffffff;
+  box-shadow: 0 12px 22px rgba(255, 138, 0, 0.25);
+}
+
+.wm-stepper-item.active .wm-stepper-label strong {
+  color: var(--chegou-blue);
+}
+
+.wm-stepper-item.done .wm-stepper-circle {
+  background: var(--chegou-blue);
+  border-color: var(--chegou-blue);
+  color: #ffffff;
+}
+
+.wm-stepper-item.done .wm-stepper-line {
+  background: linear-gradient(90deg, var(--chegou-blue), #c7d5ea);
+}
+
+.wm-inline-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wm-inline-title small {
+  white-space: nowrap;
+}
+
+/* =========================================================
+   4. TELA 1 — ESTRUTURA PRINCIPAL
+   ========================================================= */
+
+.wm-t1-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: 22px;
+  align-items: start;
+}
+
+.wm-t1-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 26px;
+}
+
+.wm-t1-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.wm-t1-title-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t1-title h1 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 25px;
+  line-height: 1.14;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.wm-t1-title p {
+  margin: 6px 0 0;
+  color: var(--wm-muted);
+  font-size: 14.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t1-divider {
+  height: 1px;
+  background: var(--wm-border);
+  margin: 22px 0;
+}
+
+.wm-t1-section + .wm-t1-section {
+  margin-top: 24px;
+}
+
+.wm-t1-section.profile {
+  margin-top: 26px;
+}
+
+.wm-t1-section-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.wm-t1-section-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 17px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t1-section-head h2 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 20px;
+  line-height: 1.18;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.wm-t1-section-head h2 small {
+  color: var(--wm-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.wm-t1-section-head p {
+  margin: 4px 0 0;
+  color: var(--wm-muted);
+  font-size: 13.5px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   5. TELA 1 — DADOS DO CONVITE
+   ========================================================= */
+
+.wm-t1-readonly-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.wm-t1-readonly-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.wm-t1-readonly-field span {
+  color: #344054;
+  font-size: 12.5px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t1-readonly-field input {
+  width: 100%;
+  height: 48px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 15px;
+  background: #f8fbff;
+  padding: 0 14px;
+  color: #172033;
+  font-size: 14.5px;
+  font-weight: 650;
+  outline: none;
+  cursor: default;
+}
+
+.wm-t1-readonly-field input:focus {
+  outline: none;
+}
+
+.wm-t1-info-note {
+  margin-top: 14px;
+  min-height: 44px;
+  border-radius: 15px;
+  background: rgba(13, 71, 184, 0.07);
+  color: var(--chegou-blue);
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.8px;
+  line-height: 1.4;
+  font-weight: 650;
+}
+
+.wm-t1-info-note svg {
+  flex: 0 0 auto;
+}
+/* =========================================================
+   6. TELA 1 — PERFIS DA UNIDADE
+   ========================================================= */
+
+.wm-t1-section.profile .wm-t1-section-head {
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.wm-t1-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.wm-t1-profile-grid.invalid {
+  animation: wmInvalidPulse 0.55s ease 0s 2;
+}
+
+.wm-t1-profile-card {
+  position: relative;
+  min-height: 184px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 20px 14px 18px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.18s ease;
+  box-shadow: 0 7px 18px rgba(16, 33, 67, 0.04);
+}
+
+.wm-t1-profile-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(13, 71, 184, 0.28);
+  box-shadow: 0 10px 24px rgba(16, 33, 67, 0.08);
+}
+
+.wm-t1-profile-card.active {
+  border-color: var(--chegou-orange);
+  background: linear-gradient(180deg, rgba(255, 138, 0, 0.1) 0%, #ffffff 58%);
+  box-shadow: 0 12px 26px rgba(255, 138, 0, 0.12);
+}
+
+.wm-t1-profile-radio {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #9aa8bd;
+  border-radius: 50%;
+  color: var(--chegou-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t1-profile-card.active .wm-t1-profile-radio {
+  border-color: var(--chegou-orange);
+}
+
+.wm-t1-profile-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t1-profile-card.active .wm-t1-profile-icon {
+  color: var(--chegou-orange);
+  background: rgba(255, 138, 0, 0.13);
+}
+
+.wm-t1-profile-card strong {
+  display: block;
+  min-height: 42px;
+  margin-bottom: 10px;
+  color: var(--wm-text);
+  font-size: 15px;
+  line-height: 1.22;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.wm-t1-profile-card p {
+  max-width: 150px;
+  margin: 0 auto;
+  color: var(--wm-muted);
+  font-size: 13px;
+  line-height: 1.42;
+  font-weight: 500;
+}
+
+/* Ajuste final: título do perfil em cima dos cards */
+.wm-profile-full {
+  display: block;
+}
+
+.wm-profile-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  width: 100%;
+}
+
+.wm-profile-head .wm-t1-section-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 20px;
+  flex: 0 0 auto;
+}
+
+.wm-profile-head h2 {
+  font-size: 20px;
+  line-height: 1.18;
+  margin: 0;
+}
+
+.wm-profile-head p {
+  margin-top: 4px;
+}
+
+/* Cards abaixo do título */
+.wm-profile-full .wm-t1-profile-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* Ícones coloridos por perfil */
+.wm-t1-profile-card:nth-child(1) .wm-t1-profile-icon {
+  background: #eaf3ff;
+  color: #1f75ff;
+}
+
+.wm-t1-profile-card:nth-child(2) .wm-t1-profile-icon {
+  background: #fff0df;
+  color: #f47b00;
+}
+
+.wm-t1-profile-card:nth-child(3) .wm-t1-profile-icon {
+  background: #e9fff4;
+  color: #16b36a;
+}
+
+.wm-t1-profile-card:nth-child(4) .wm-t1-profile-icon {
+  background: #f3eaff;
+  color: #8b3dff;
+}
+
+.wm-t1-profile-card:nth-child(5) .wm-t1-profile-icon {
+  background: #eef2f7;
+  color: #18345f;
+}
+
+/* =========================================================
+   7. TELA 1 — SIDEBAR DIREITA
+   ========================================================= */
+
+.wm-t1-right {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.wm-t1-side-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 23px;
+  box-shadow: var(--wm-shadow-soft);
+  padding: 20px;
+}
+
+.wm-t1-side-card.highlight {
+  display: flex;
+  gap: 13px;
+}
+
+.wm-t1-side-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 17px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t1-side-icon.orange {
+  background: rgba(255, 138, 0, 0.13);
+  color: var(--chegou-orange);
+}
+
+.wm-t1-side-card h3 {
+  margin: 0 0 9px;
+  color: var(--wm-text);
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.wm-t1-side-card p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 13px;
+  line-height: 1.48;
+  font-weight: 500;
+}
+
+.wm-t1-check-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wm-t1-check-list li {
+  position: relative;
+  padding-left: 21px;
+  color: #475467;
+  font-size: 13px;
+  line-height: 1.42;
+  font-weight: 600;
+}
+
+.wm-t1-check-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--chegou-orange);
+  box-shadow: 0 0 0 4px rgba(255, 138, 0, 0.12);
+}
+
+
+/* =========================================================
+   8. FAQ — ACORDEÃO
+   ========================================================= */
+
+.wm-t1-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wm-t1-faq-item {
+  width: 100%;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 15px;
+  background: #ffffff;
+  padding: 12px 13px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t1-faq-item:hover {
+  border-color: rgba(13, 71, 184, 0.25);
+}
+
+.wm-t1-faq-item.active {
+  background: rgba(255, 138, 0, 0.04);
+  border-color: rgba(255, 138, 0, 0.32);
+}
+
+.wm-t1-faq-item strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 12.6px;
+  line-height: 1.33;
+  font-weight: 800;
+}
+
+.wm-t1-faq-item p {
+  margin: 8px 0 0;
+  color: var(--wm-muted);
+  font-size: 11.9px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t1-faq-item svg {
+  color: #7b8798;
+  flex: 0 0 auto;
+  transition: 0.18s ease;
+}
+
+.wm-t1-faq-item.active svg {
+  transform: rotate(180deg);
+  color: var(--chegou-orange);
+}
+
+.wm-t1-important {
+  margin-top: 14px;
+  border-radius: 17px;
+  background: rgba(13, 71, 184, 0.07);
+  padding: 13px;
+  display: flex;
+  gap: 11px;
+  color: var(--chegou-blue);
+}
+
+.wm-t1-important svg {
+  flex: 0 0 auto;
+}
+
+.wm-t1-important strong {
+  display: block;
+  font-size: 12.8px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t1-important p {
+  margin: 4px 0 0;
+  color: #415a88;
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+
+/* =========================================================
+   9. BOTÕES — TELA 1
+   ========================================================= */
+
+.wm-t1-actions {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.wm-t1-btn {
+  height: 50px;
+  border: 0;
+  border-radius: 16px;
+  padding: 0 21px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  font-size: 14.5px;
+  font-weight: 800;
+  transition: 0.18s ease;
+}
+
+.wm-t1-btn.secondary {
+  background: #eef2f8;
+  color: #344054;
+}
+
+.wm-t1-btn.secondary:hover {
+  background: #e4eaf4;
+}
+
+.wm-t1-btn.primary {
+  min-width: 166px;
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  color: #ffffff;
+  box-shadow: 0 13px 24px rgba(255, 138, 0, 0.25);
+}
+
+.wm-t1-btn.primary:hover {
+  transform: translateY(-1px);
+}
+/* =========================================================
+   10. MODAL AJUDA
+   ========================================================= */
+
+.wm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 25, 45, 0.56);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.wm-modal-card {
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  border-radius: 26px;
+  padding: 28px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.18);
+  position: relative;
+}
+
+.wm-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 13px;
+  background: #eef2f8;
+  color: #344054;
+  cursor: pointer;
+}
+
+.wm-modal-card h2 {
+  margin: 0 0 12px;
+  color: var(--wm-text);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.wm-modal-card p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 14px;
+  line-height: 1.58;
+}
+
+.wm-modal-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.wm-modal-primary {
+  height: 48px;
+  border: 0;
+  border-radius: 15px;
+  padding: 0 22px;
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   11. LOADING / ERRO
+   ========================================================= */
+
+.wm-loading {
+  min-height: 100vh;
+  background: #f5f7fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.wm-loading-card {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 26px;
+  box-shadow: var(--wm-shadow);
+  padding: 34px;
+  text-align: center;
+}
+
+.wm-loading-card h2 {
+  margin: 0 0 10px;
+  color: var(--wm-text);
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.wm-loading-card p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   12. ANIMAÇÕES
+   ========================================================= */
+
+@keyframes wmInvalidPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.008);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+/* =========================================================
+   13. RESPONSIVO TABLET
+   ========================================================= */
+
+@media (max-width: 1240px) {
+  .wm-t1-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t1-right {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wm-t1-side-card:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .wm-t1-profile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wm-stepper-label strong {
+    font-size: 12.5px;
+  }
+
+  .wm-stepper-label small {
+    font-size: 11px;
+  }
+}
+
+/* =========================================================
+   14. RESPONSIVO MOBILE / ANDROID / IOS / WINDOWS TOUCH
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .wm-header {
+    height: auto;
+  }
+
+  .wm-header-inner {
+    min-height: 84px;
+    padding: 14px 18px;
+  }
+
+  .wm-header-logo {
+    width: 126px;
+  }
+
+  .wm-header-title {
+    display: none;
+  }
+
+  .wm-help-top {
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .wm-help-top span {
+    display: none;
+  }
+
+  .wm-main {
+    padding: 18px 14px calc(82px + env(safe-area-inset-bottom));
+  }
+
+  .wm-stepper {
+    min-height: auto;
+    padding: 12px;
+    border-radius: 21px;
+    grid-template-columns: repeat(7, 42px);
+    overflow-x: auto;
+    gap: 8px;
+    justify-content: flex-start;
+    margin-bottom: 16px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .wm-stepper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .wm-stepper-label {
+    display: none;
+  }
+
+  .wm-stepper-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    font-size: 14px;
+  }
+
+  .wm-stepper-line {
+    left: 38px;
+    right: -12px;
+    top: 20px;
+  }
+
+  .wm-t1-card {
+    border-radius: 24px;
+    padding: 20px;
+  }
+
+  .wm-t1-title {
+    align-items: flex-start;
+  }
+
+  .wm-t1-title-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+  }
+
+  .wm-t1-title h1 {
+    font-size: 22px;
+  }
+
+  .wm-t1-title p {
+    font-size: 14px;
+  }
+
+  .wm-t1-divider {
+    margin: 20px 0;
+  }
+
+  .wm-t1-section-head {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .wm-t1-section.profile .wm-t1-section-head {
+    flex-direction: row;
+    align-items: flex-start;
+    margin-bottom: 18px;
+  }
+
+  .wm-t1-section-head h2 {
+    font-size: 18px;
+  }
+
+  .wm-inline-title {
+    flex-wrap: wrap;
+    gap: 4px 7px;
+  }
+
+  .wm-inline-title small {
+    white-space: normal;
+  }
+
+  .wm-t1-readonly-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t1-readonly-field input {
+    height: 50px;
+    font-size: 16px;
+  }
+
+  .wm-profile-head {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .wm-profile-head .wm-t1-section-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+  }
+
+  .wm-profile-head h2 {
+    font-size: 18px;
+  }
+
+  .wm-profile-head p {
+    font-size: 13.5px;
+  }
+
+  .wm-profile-full .wm-t1-profile-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .wm-t1-profile-card {
+    min-height: auto;
+    padding: 16px 18px;
+    display: grid;
+    grid-template-columns: 54px 1fr 24px;
+    align-items: center;
+    column-gap: 14px;
+    text-align: left;
+  }
+
+  .wm-t1-profile-icon {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 50px;
+    height: 50px;
+    margin: 0;
+  }
+
+  .wm-t1-profile-card strong {
+    grid-column: 2;
+    min-height: auto;
+    margin: 0 0 4px;
+    font-size: 15px;
+  }
+
+  .wm-t1-profile-card p {
+    grid-column: 2;
+    max-width: none;
+    margin: 0;
+    font-size: 13px;
+  }
+
+  .wm-t1-profile-radio {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    position: static;
+    justify-self: end;
+    align-self: center;
+  }
+
+  .wm-t1-right {
+    display: flex;
+  }
+
+  .wm-t1-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .wm-t1-btn {
+    width: 100%;
+    height: 52px;
+    font-size: 15px;
+  }
+
+  .wm-footer {
+    display: none;
+  }
+
+  .wm-mobile-safe-footer {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    height: 50px;
+    border-radius: 17px;
+    background: rgba(13, 71, 184, 0.97);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 800;
+    box-shadow: 0 16px 34px rgba(13, 71, 184, 0.24);
+    z-index: 80;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+
+  .wm-modal-card {
+    max-width: 100%;
+    border-radius: 24px;
+    padding: 24px;
+  }
+
+  .wm-modal-card h2 {
+    font-size: 22px;
+  }
+}
+
+/* Android / Chrome touch: remove hover exagerado em toque */
+@media (hover: none) and (pointer: coarse) {
+  .wm-t1-profile-card:hover,
+  .wm-t1-btn.primary:hover,
+  .wm-help-top:hover {
+    transform: none;
+  }
+}
+
+/* iOS Safari: ajuda contra zoom automático e melhora rolagem */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  .wm-page {
+    min-height: -webkit-fill-available;
+  }
+}
+/* =========================================================
+   15. TELA 2 — ESTRUTURA PRINCIPAL
+   ========================================================= */
+
+.wm-t2-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: 22px;
+  align-items: start;
+}
+
+.wm-t2-main {
+  min-width: 0;
+}
+
+.wm-t2-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 26px;
+}
+
+.wm-t2-card + .wm-t2-card {
+  margin-top: 22px;
+}
+
+.wm-t2-card-head {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.wm-t2-card-head.simple {
+  grid-template-columns: 58px minmax(0, 1fr);
+}
+
+.wm-t2-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t2-card-head h1 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 25px;
+  line-height: 1.14;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.wm-t2-card-head p {
+  margin: 6px 0 0;
+  color: var(--wm-muted);
+  font-size: 14.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t2-token {
+  min-width: 220px;
+  min-height: 58px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 18px;
+  background: #f8fbff;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 8px;
+}
+
+.wm-t2-token small {
+  grid-column: 1 / 2;
+  color: var(--wm-muted);
+  font-size: 11.5px;
+  font-weight: 750;
+}
+
+.wm-t2-token strong {
+  grid-column: 1 / 2;
+  color: var(--chegou-blue);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 800;
+  word-break: break-all;
+}
+
+.wm-t2-token button {
+  grid-column: 2 / 3;
+  grid-row: 1 / span 2;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.wm-t2-cond-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.wm-t2-info-line {
+  min-height: 64px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 17px;
+  background: #f8fbff;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.wm-t2-info-line svg {
+  color: var(--chegou-blue);
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.wm-t2-info-line span {
+  display: block;
+  color: var(--wm-muted);
+  font-size: 12px;
+  font-weight: 750;
+  margin-bottom: 4px;
+}
+
+.wm-t2-info-line strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 13.5px;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.wm-t2-blue-note {
+  margin-top: 15px;
+  min-height: 46px;
+  border-radius: 16px;
+  background: rgba(13, 71, 184, 0.07);
+  color: var(--chegou-blue);
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12.8px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+.wm-t2-blue-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+/* =========================================================
+   16. TELA 2 — FORMULÁRIO
+   ========================================================= */
+
+.wm-t2-form-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.wm-t2-photo-card {
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 22px;
+  background: #f9fbff;
+  padding: 20px;
+  text-align: center;
+}
+
+.wm-t2-photo-card > span {
+  display: block;
+  color: var(--wm-text);
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.wm-t2-photo-preview {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #eef5ff 0%, #f7fbff 100%);
+  border: 2px dashed rgba(13, 71, 184, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--chegou-blue);
+}
+
+.wm-t2-photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wm-t2-upload-btn {
+  height: 46px;
+  border-radius: 15px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  position: relative;
+  overflow: hidden;
+}
+
+.wm-t2-upload-btn input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.wm-t2-photo-card p {
+  margin: 14px 0 0;
+  color: var(--wm-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.wm-t2-remove-photo {
+  margin-top: 14px;
+  width: 100%;
+  height: 42px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(220, 38, 38, 0.08);
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.wm-t2-fields {
+  min-width: 0;
+}
+
+.wm-t2-two-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.wm-t2-phone-row {
+  display: grid;
+  grid-template-columns: 110px 110px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.wm-t2-field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.wm-t2-field > span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--wm-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.wm-t2-input {
+  min-height: 56px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: 0.18s ease;
+}
+
+.wm-t2-input:focus-within {
+  border-color: rgba(13, 71, 184, 0.42);
+  box-shadow: 0 0 0 4px rgba(13, 71, 184, 0.08);
+}
+
+.wm-t2-input.invalid {
+  border-color: rgba(220, 38, 38, 0.42);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.08);
+}
+
+.wm-t2-input svg {
+  color: var(--chegou-blue);
+  flex: 0 0 auto;
+}
+
+.wm-t2-input input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--wm-text);
+  font-size: 14px;
+  font-weight: 650;
+  font-family: inherit;
+}
+
+.wm-t2-input em {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.wm-t2-field small {
+  display: block;
+  margin-top: 7px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wm-t2-field small.ok {
+  color: #067647;
+}
+
+.wm-t2-field small.warning {
+  color: #b54708;
+}
+
+.wm-t2-warning {
+  min-height: 48px;
+  border-radius: 16px;
+  background: rgba(255, 138, 0, 0.08);
+  color: #9a3412;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12.8px;
+  line-height: 1.45;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+.wm-t2-warning svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.wm-orange {
+  color: var(--chegou-orange);
+}
+/* =========================================================
+   17. TELA 2 — SIDEBAR / AÇÕES / RESPONSIVO
+   ========================================================= */
+
+.wm-t2-side {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.wm-t2-side-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 23px;
+  box-shadow: var(--wm-shadow-soft);
+  padding: 20px;
+}
+
+.wm-t2-side-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 17px;
+  background: rgba(255, 138, 0, 0.13);
+  color: var(--chegou-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 13px;
+}
+
+.wm-t2-side-card h3 {
+  margin: 0 0 10px;
+  color: var(--wm-text);
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t2-side-card p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 13px;
+  line-height: 1.48;
+  font-weight: 500;
+}
+
+.wm-t2-side-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wm-t2-side-card li {
+  color: #475467;
+  font-size: 13px;
+  line-height: 1.42;
+  font-weight: 600;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.wm-t2-side-card li svg {
+  color: #067647;
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.wm-t2-actions {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wm-t2-btn {
+  height: 50px;
+  border: 0;
+  border-radius: 16px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  transition: 0.18s ease;
+  white-space: nowrap;
+}
+
+.wm-t2-btn.secondary {
+  background: #eef2f8;
+  color: #344054;
+}
+
+.wm-t2-btn.danger {
+  background: rgba(220, 38, 38, 0.08);
+  color: #b42318;
+}
+
+.wm-t2-btn.outline {
+  background: #ffffff;
+  color: var(--chegou-blue);
+  border: 1px solid var(--wm-border-strong);
+}
+
+.wm-t2-btn.primary {
+  margin-left: auto;
+  min-width: 150px;
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  color: #ffffff;
+  box-shadow: 0 13px 24px rgba(255, 138, 0, 0.25);
+}
+
+.wm-t2-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Tablet */
+@media (max-width: 1240px) {
+  .wm-t2-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-side {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wm-t2-form-layout {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+}
+
+/* Mobile / Android / iOS / Windows touch */
+@media (max-width: 900px) {
+  .wm-t2-card {
+    border-radius: 24px;
+    padding: 20px;
+  }
+
+  .wm-t2-card-head,
+  .wm-t2-card-head.simple {
+    grid-template-columns: 52px minmax(0, 1fr);
+    align-items: flex-start;
+  }
+
+  .wm-t2-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+  }
+
+  .wm-t2-card-head h1 {
+    font-size: 22px;
+  }
+
+  .wm-t2-card-head p {
+    font-size: 14px;
+  }
+
+  .wm-t2-token {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+    margin-top: 4px;
+  }
+
+  .wm-t2-cond-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-photo-card {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 14px;
+    text-align: left;
+    align-items: center;
+  }
+
+  .wm-t2-photo-card > span {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+
+  .wm-t2-photo-preview {
+    width: 92px;
+    height: 92px;
+    margin: 0;
+  }
+
+  .wm-t2-upload-btn,
+  .wm-t2-remove-photo,
+  .wm-t2-photo-card p {
+    width: 100%;
+    margin: 0;
+  }
+
+  .wm-t2-two-cols,
+  .wm-t2-phone-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .wm-t2-input {
+    min-height: 54px;
+  }
+
+  .wm-t2-input input {
+    font-size: 16px;
+  }
+
+  .wm-t2-side {
+    display: flex;
+  }
+
+  .wm-t2-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .wm-t2-btn {
+    width: 100%;
+    height: 52px;
+    font-size: 15px;
+  }
+
+  .wm-t2-btn.primary {
+    margin-left: 0;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .wm-t2-btn:hover {
+    transform: none;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .wm-t2-input input {
+    font-size: 16px !important;
+  }
+}
+/* Ajuste sidebar Tela 2 — manter cards laterais no desktop */
+.wm-t2-grid {
+  align-items: start;
+}
+
+.wm-t2-side {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: sticky;
+  top: 110px;
+}
+
+.wm-t2-side-card {
+  width: 100%;
+}
+
+@media (max-width: 1240px) {
+  .wm-t2-side {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .wm-t2-side {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* Ajuste Tela 2 — alertas de contato ao lado */
+.wm-t2-contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 16px;
+  align-items: start;
+}
+
+.wm-t2-contact-fields {
+  min-width: 0;
+}
+
+.wm-t2-contact-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 28px;
+}
+
+.wm-t2-contact-alerts .wm-t2-warning {
+  margin-bottom: 0;
+  min-height: 70px;
+}
+
+/* mobile/tablet: alertas voltam para baixo */
+@media (max-width: 900px) {
+  .wm-t2-contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-contact-alerts {
+    padding-top: 0;
+  }
+}
+
+/* =========================================================
+   18. TELA 3 — BASE / LAYOUT GERAL
+   ========================================================= */
+
+.wm-t3-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 22px;
+  align-items: start;
+}
+
+.wm-t3-main {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.wm-t3-side {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: sticky;
+  top: 110px;
+}
+
+.wm-t3-side-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 23px;
+  box-shadow: var(--wm-shadow-soft);
+  padding: 20px;
+}
+
+.wm-t3-side-card > span {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.wm-t3-side-card.orange > span {
+  background: rgba(255, 138, 0, 0.13);
+  color: var(--chegou-orange);
+}
+
+.wm-t3-side-card.green > span {
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+}
+
+.wm-t3-side-card h3 {
+  margin: 0 0 8px;
+  color: var(--wm-text);
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t3-side-card p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 12.8px;
+  line-height: 1.48;
+  font-weight: 500;
+}
+
+/* =========================================================
+   19. TELA 3 — HERO
+   ========================================================= */
+
+.wm-t3-hero {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.wm-t3-hero-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t3-hero h1 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 25px;
+  line-height: 1.14;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.wm-t3-hero p {
+  margin: 6px 0 0;
+  color: var(--wm-muted);
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+/* =========================================================
+   20. TELA 3 — CARDS RESUMO TOPO
+   ========================================================= */
+
+.wm-t3-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.wm-t3-summary > div {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 23px;
+  box-shadow: var(--wm-shadow-soft);
+  padding: 19px;
+  min-width: 0;
+}
+
+.wm-t3-summary span {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--wm-muted);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.wm-t3-summary strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--wm-text);
+  font-size: 16px;
+  line-height: 1.26;
+  font-weight: 800;
+}
+
+.wm-t3-summary p {
+  margin: 0 0 7px;
+  color: var(--wm-muted);
+  font-size: 12.7px;
+  line-height: 1.42;
+  font-weight: 500;
+}
+
+.wm-t3-summary em {
+  display: inline-flex;
+  margin-top: 2px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  font-size: 11.5px;
+  line-height: 1;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.wm-t3-summary button {
+  margin-top: 8px;
+  min-height: 38px;
+  max-width: 100%;
+  border: 0;
+  border-radius: 13px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  line-height: 1.2;
+  font-weight: 800;
+  cursor: pointer;
+}
+/* =========================================================
+   21. TELA 3 — CARD PRINCIPAL / ESCOLHA
+   ========================================================= */
+
+.wm-t3-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 24px;
+}
+
+.wm-t3-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.wm-t3-card-head h2 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 21px;
+  line-height: 1.18;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.wm-t3-card-head p {
+  margin: 6px 0 0;
+  color: var(--wm-muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t3-choice {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.wm-t3-choice button {
+  min-height: 44px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 15px;
+  background: #ffffff;
+  color: #344054;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.8px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t3-choice button.active {
+  background: var(--chegou-blue);
+  border-color: var(--chegou-blue);
+  color: #ffffff;
+}
+
+.wm-t3-choice button.light.active {
+  background: #eef2f8;
+  border-color: #d8e2f0;
+  color: #344054;
+}
+
+/* =========================================================
+   22. TELA 3 — LISTA / TABELA DESKTOP
+   ========================================================= */
+
+.wm-t3-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 20px 0 14px;
+}
+
+.wm-t3-list-head h3 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t3-list-head button {
+  height: 44px;
+  border: 0;
+  border-radius: 15px;
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  color: #ffffff;
+  padding: 0 17px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(255, 138, 0, 0.22);
+}
+
+.wm-t3-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--wm-border);
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.wm-t3-table {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+}
+
+.wm-t3-table th {
+  background: #f8fbff;
+  color: var(--wm-muted);
+  font-size: 11.5px;
+  line-height: 1.2;
+  font-weight: 800;
+  text-align: left;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--wm-border);
+}
+
+.wm-t3-table td {
+  color: #263754;
+  font-size: 12.8px;
+  line-height: 1.3;
+  font-weight: 650;
+  padding: 13px 14px;
+  border-bottom: 1px solid #edf2f8;
+}
+
+.wm-t3-table tr:last-child td {
+  border-bottom: none;
+}
+
+.wm-t3-person-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wm-t3-person-mini strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t3-person-mini small {
+  display: inline-flex;
+  margin-top: 4px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #f2e9ff;
+  color: #7433d6;
+  font-size: 10.5px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.wm-t3-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef5ff;
+  color: var(--chegou-blue);
+  font-size: 13px;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+
+.wm-t3-avatar.fallback {
+  border: 1px solid #d9e7ff;
+  background: linear-gradient(135deg, #eef5ff, #f7fbff);
+}
+
+.wm-t3-bool {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t3-bool.ok {
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+}
+
+.wm-t3-bool.no {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.wm-t3-status {
+  display: inline-flex;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(255, 138, 0, 0.11);
+  color: #b54708;
+  font-size: 11.5px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.wm-t3-actions-mini {
+  display: flex;
+  gap: 7px;
+}
+
+.wm-t3-actions-mini button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 11px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.wm-t3-actions-mini button:last-child {
+  background: rgba(220, 38, 38, 0.08);
+  color: #b42318;
+}
+
+/* =========================================================
+   23. TELA 3 — MOBILE AVATARS / EMPTY / NOTE
+   ========================================================= */
+
+.wm-t3-mobile-avatars {
+  display: none;
+}
+
+.wm-t3-empty {
+  border: 1px dashed #cbd8eb;
+  border-radius: 22px;
+  background: #fbfdff;
+  padding: 30px 18px;
+  text-align: center;
+}
+
+.wm-t3-empty svg {
+  color: var(--chegou-blue);
+  margin-bottom: 10px;
+}
+
+.wm-t3-empty strong {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--wm-text);
+  font-size: 15px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.wm-t3-empty p {
+  max-width: 480px;
+  margin: 0 auto;
+  color: var(--wm-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.wm-t3-note {
+  margin-top: 16px;
+  border-radius: 16px;
+  background: rgba(13, 71, 184, 0.07);
+  color: var(--chegou-blue);
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.8px;
+  line-height: 1.42;
+  font-weight: 650;
+}
+
+.wm-t3-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+/* =========================================================
+   24. TELA 3 — AÇÕES PRINCIPAIS
+   ========================================================= */
+
+.wm-t3-actions {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.wm-t3-actions button {
+  height: 48px;
+  border-radius: 15px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t3-actions .secondary,
+.wm-t3-actions .outline {
+  border: 1px solid var(--wm-border-strong);
+  background: #ffffff;
+  color: var(--chegou-blue);
+}
+
+.wm-t3-actions .primary {
+  margin-left: auto;
+  border: 0;
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(255, 138, 0, 0.22);
+}
+/* =========================================================
+   25. TELA 3 — MODAL CADASTRO PESSOA
+   ========================================================= */
+
+.wm-t3-modal {
+  width: min(1120px, 96vw);
+  max-height: 94vh;
+  overflow: auto;
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 30px 90px rgba(5, 20, 50, 0.28);
+}
+
+.wm-t3-modal-head {
+  padding: 23px 26px;
+  border-bottom: 1px solid #edf2f8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.wm-t3-modal-head h2 {
+  margin: 0 0 5px;
+  color: var(--wm-text);
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.wm-t3-modal-head p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t3-modal-head button {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 13px;
+  background: #eef2f8;
+  color: #344054;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.wm-t3-modal-body {
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wm-t3-modal-section {
+  border: 1px solid var(--wm-border);
+  border-radius: 23px;
+  background: #ffffff;
+  padding: 21px;
+}
+
+.wm-t3-modal-section h3 {
+  margin: 0 0 16px;
+  color: var(--wm-text);
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t3-modal-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.wm-t3-modal-grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wm-t3-modal-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wm-t3-modal-grid.compact {
+  margin-top: 14px;
+}
+
+.wm-t3-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.wm-t3-field > span {
+  color: var(--wm-text);
+  font-size: 12.5px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t3-input {
+  min-height: 50px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 15px;
+  background: #ffffff;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: 0.18s ease;
+}
+
+.wm-t3-input:focus-within {
+  border-color: rgba(13, 71, 184, 0.42);
+  box-shadow: 0 0 0 4px rgba(13, 71, 184, 0.08);
+}
+
+.wm-t3-input.invalid,
+.wm-t3-field select.invalid {
+  border-color: rgba(255, 138, 0, 0.58);
+  box-shadow: 0 0 0 4px rgba(255, 138, 0, 0.12);
+}
+
+.wm-t3-input.disabled {
+  background: #f8fbff;
+}
+
+.wm-t3-input.valid {
+  border-color: rgba(22, 179, 106, 0.42);
+}
+
+.wm-t3-input svg {
+  color: var(--chegou-blue);
+  flex: 0 0 auto;
+}
+
+.wm-t3-input input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--wm-text);
+  font-size: 13.5px;
+  font-weight: 650;
+}
+
+.wm-t3-input-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t3-field select {
+  min-height: 50px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 15px;
+  background: #ffffff;
+  color: var(--wm-text);
+  padding: 0 13px;
+  font-size: 13.5px;
+  font-weight: 650;
+  outline: none;
+}
+
+.wm-t3-cpf-audit {
+  margin-top: 12px;
+  border-radius: 15px;
+  background: rgba(255, 138, 0, 0.09);
+  color: #b54708;
+  padding: 11px 13px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-weight: 750;
+}
+
+/* =========================================================
+   26. TELA 3 — FOTO DO MODAL
+   ========================================================= */
+
+.wm-t3-photo-line {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.wm-t3-photo-upload {
+  width: 124px;
+  height: 124px;
+  border-radius: 22px;
+  border: 2px dashed #d8e3f3;
+  background: #fbfdff;
+  color: var(--chegou-blue);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.wm-t3-photo-upload img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wm-t3-photo-upload input {
+  display: none;
+}
+
+.wm-t3-photo-tip {
+  min-height: 58px;
+  border-radius: 17px;
+  background: rgba(13, 71, 184, 0.07);
+  color: var(--chegou-blue);
+  padding: 13px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+.wm-t3-photo-tip svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+/* =========================================================
+   27. TELA 3 — PERMISSÕES / ACESSO
+   ========================================================= */
+
+.wm-t3-permission {
+  width: 100%;
+  margin-bottom: 12px;
+  border: 1px solid var(--wm-border);
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t3-permission > span {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 2px solid #c8d5e7;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t3-permission strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--wm-text);
+  font-size: 13.5px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.wm-t3-permission p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t3-permission.active {
+  border-color: rgba(13, 71, 184, 0.36);
+  background: #f8fbff;
+}
+
+.wm-t3-permission.green.active {
+  border-color: rgba(22, 179, 106, 0.38);
+  background: #f4fbf7;
+}
+
+.wm-t3-permission.purple.active {
+  border-color: rgba(116, 51, 214, 0.34);
+  background: #faf6ff;
+}
+
+.wm-t3-permission.active > span {
+  background: var(--chegou-blue);
+  border-color: var(--chegou-blue);
+}
+
+.wm-t3-permission.green.active > span {
+  background: #067647;
+  border-color: #067647;
+}
+
+.wm-t3-permission.purple.active > span {
+  background: #7433d6;
+  border-color: #7433d6;
+}
+
+.wm-t3-access-fields {
+  margin-top: 15px;
+  border: 1px solid var(--wm-border);
+  border-radius: 20px;
+  background: #f8fbff;
+  padding: 17px;
+}
+
+.wm-t3-access-note {
+  margin-top: 14px;
+  border-radius: 15px;
+  background: rgba(116, 51, 214, 0.07);
+  color: #7433d6;
+  padding: 11px 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.4px;
+  line-height: 1.42;
+  font-weight: 650;
+}
+/* =========================================================
+   28. TELA 3 — MENOR DE 16 ANOS
+   ========================================================= */
+
+.wm-t3-minor-alert {
+  border: 1px solid rgba(255, 138, 0, 0.32);
+  background: rgba(255, 138, 0, 0.07);
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.wm-t3-minor-alert h3 {
+  color: #b54708;
+}
+
+.wm-t3-minor-alert p {
+  margin: 0 0 13px;
+  color: #9a3412;
+  font-size: 12.8px;
+  font-weight: 700;
+}
+
+.wm-t3-minor-alert > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #9a3412;
+  font-size: 12.8px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+.wm-t3-check {
+  margin-top: 15px;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #8a3f00;
+  font-size: 12.8px;
+  line-height: 1.45;
+  font-weight: 750;
+}
+
+.wm-t3-check input {
+  margin-top: 2px;
+}
+
+.wm-t3-check.invalid {
+  box-shadow: 0 0 0 4px rgba(255, 138, 0, 0.14);
+}
+
+/* =========================================================
+   29. TELA 3 — MODAL FOOTER
+   ========================================================= */
+
+.wm-t3-modal-actions {
+  padding: 0 26px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 11px;
+}
+
+.wm-t3-modal-actions button {
+  height: 48px;
+  border-radius: 15px;
+  padding: 0 20px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wm-t3-modal-actions .secondary {
+  border: 1px solid var(--wm-border-strong);
+  background: #ffffff;
+  color: var(--chegou-blue);
+}
+
+.wm-t3-modal-actions .primary {
+  border: 0;
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(255, 138, 0, 0.22);
+}
+
+/* =========================================================
+   30. TELA 3 — MODAL DETALHE PESSOA
+   ========================================================= */
+
+.wm-t3-detail-sheet {
+  width: 100%;
+  max-width: 410px;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 26px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(5, 20, 50, 0.25);
+}
+
+.wm-t3-detail-sheet .close {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 13px;
+  background: #eef2f8;
+  color: #344054;
+  cursor: pointer;
+}
+
+.wm-t3-detail-sheet .wm-t3-avatar {
+  width: 112px;
+  height: 112px;
+  margin: 8px auto 14px;
+  font-size: 32px;
+}
+
+.wm-t3-detail-sheet h2 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t3-detail-sheet > strong {
+  display: inline-flex;
+  margin: 9px 0 20px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #f2e9ff;
+  color: #7433d6;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.wm-t3-detail-perms {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+.wm-t3-detail-perms p {
+  margin: 0;
+  border: 1px solid var(--wm-border);
+  border-radius: 15px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 20px 1fr 26px;
+  align-items: center;
+  gap: 9px;
+  color: var(--wm-text);
+  font-size: 12.8px;
+  line-height: 1.35;
+  font-weight: 750;
+}
+
+.wm-t3-detail-sheet > button:not(.close) {
+  width: 100%;
+  height: 46px;
+  border-radius: 15px;
+  border: 1px solid var(--wm-border-strong);
+  background: #ffffff;
+  color: var(--chegou-blue);
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 9px;
+  cursor: pointer;
+}
+
+.wm-t3-detail-sheet > button.danger {
+  color: #b42318;
+  border-color: rgba(220, 38, 38, 0.2);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+/* =========================================================
+   31. TELA 3 — RESPONSIVO TABLET
+   ========================================================= */
+
+@media (max-width: 1240px) {
+  .wm-t3-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t3-side {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wm-t3-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   32. TELA 3 — RESPONSIVO MOBILE / ANDROID / IOS
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .wm-t3-side {
+    display: none;
+  }
+
+  .wm-t3-hero {
+    padding: 18px;
+    border-radius: 24px;
+    align-items: flex-start;
+  }
+
+  .wm-t3-hero-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 18px;
+  }
+
+  .wm-t3-hero h1 {
+    font-size: 21px;
+  }
+
+  .wm-t3-hero p {
+    font-size: 13.2px;
+  }
+
+  .wm-t3-summary {
+    grid-template-columns: 1fr;
+    gap: 11px;
+  }
+
+  .wm-t3-summary > div {
+    border-radius: 20px;
+    padding: 15px;
+  }
+
+  .wm-t3-summary span {
+    font-size: 10.5px;
+    margin-bottom: 7px;
+  }
+
+  .wm-t3-summary strong {
+    font-size: 14.5px;
+    margin-bottom: 6px;
+  }
+
+  .wm-t3-summary p {
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
+
+  .wm-t3-card {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .wm-t3-card-head {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .wm-t3-card-head h2 {
+    font-size: 18px;
+  }
+
+  .wm-t3-card-head p {
+    font-size: 12.8px;
+  }
+
+  .wm-t3-choice {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .wm-t3-choice button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wm-t3-table-wrap {
+    display: none;
+  }
+
+  .wm-t3-mobile-avatars {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .wm-t3-mobile-avatars button {
+    border: 1px solid var(--wm-border);
+    border-radius: 22px;
+    background: #ffffff;
+    padding: 14px 10px;
+    min-height: 148px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .wm-t3-mobile-avatars .wm-t3-avatar {
+    width: 68px;
+    height: 68px;
+    font-size: 19px;
+  }
+
+  .wm-t3-mobile-avatars button strong {
+    color: var(--wm-text);
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .wm-t3-mobile-avatars button span {
+    color: var(--wm-muted);
+    font-size: 11.5px;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  .wm-t3-mobile-avatars .add {
+    border-style: dashed;
+    background: #fbfdff;
+  }
+
+  .wm-t3-mobile-avatars .add i {
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
+    background: var(--chegou-blue);
+    color: #ffffff;
+    font-size: 28px;
+    font-style: normal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .wm-t3-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .wm-t3-actions button {
+    width: 100%;
+    justify-content: center;
+    height: 52px;
+    font-size: 14px;
+  }
+
+  .wm-t3-actions .primary {
+    margin-left: 0;
+  }
+
+  .wm-t3-modal {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .wm-t3-modal-head,
+  .wm-t3-modal-body,
+  .wm-t3-modal-actions {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .wm-t3-modal-head h2 {
+    font-size: 21px;
+  }
+
+  .wm-t3-modal-grid.two,
+  .wm-t3-modal-grid.three {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t3-photo-line {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t3-photo-upload {
+    width: 100%;
+    height: 120px;
+  }
+
+  .wm-t3-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .wm-t3-modal-actions button {
+    width: 100%;
+    height: 52px;
+    justify-content: center;
+  }
+
+  .wm-t3-detail-sheet {
+    width: 94vw;
+    padding: 22px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+}
+
+/* =========================================================
+   33. TELA 3 — TOUCH / IOS SAFE
+   ========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+  .wm-t3-actions button,
+  .wm-t3-choice button,
+  .wm-t3-list-head button,
+  .wm-t3-modal-actions button {
+    min-height: 52px;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .wm-t3-input input,
+  .wm-t3-field select {
+    font-size: 16px !important;
+  }
+}
+/* =========================================================
+   34. TELA 4 — BASE / LAYOUT GERAL
+   ========================================================= */
+
+.wm-t4-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 22px;
+  align-items: start;
+}
+
+.wm-t4-main {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.wm-t4-side {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: sticky;
+  top: 110px;
+}
+
+.wm-t4-side-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 23px;
+  box-shadow: var(--wm-shadow-soft);
+  padding: 20px;
+}
+
+.wm-t4-side-card > span {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.wm-t4-side-card.orange > span {
+  background: rgba(255, 138, 0, 0.13);
+  color: var(--chegou-orange);
+}
+
+.wm-t4-side-card.green > span {
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+}
+
+.wm-t4-side-card h3 {
+  margin: 0 0 8px;
+  color: var(--wm-text);
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t4-side-card p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 12.8px;
+  line-height: 1.48;
+  font-weight: 500;
+}
+
+/* =========================================================
+   35. TELA 4 — HERO / NOTA DE PERFIL
+   ========================================================= */
+
+.wm-t4-hero {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.wm-t4-hero-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t4-hero h1 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 25px;
+  line-height: 1.14;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.wm-t4-hero p {
+  margin: 6px 0 0;
+  color: var(--wm-muted);
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t4-profile-note {
+  border: 1px solid var(--wm-border);
+  border-radius: 22px;
+  background: rgba(13, 71, 184, 0.06);
+  color: var(--chegou-blue);
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.wm-t4-profile-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.wm-t4-profile-note strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.wm-t4-profile-note p {
+  margin: 0;
+  color: #415a88;
+  font-size: 12.8px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+/* =========================================================
+   36. TELA 4 — REVIEW ACCORDION
+   ========================================================= */
+
+.wm-t4-review-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wm-t4-accordion {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 24px;
+  box-shadow: var(--wm-shadow-soft);
+  overflow: hidden;
+}
+
+.wm-t4-accordion.active {
+  border-color: rgba(13, 71, 184, 0.16);
+}
+
+.wm-t4-accordion-head {
+  width: 100%;
+  border: 0;
+  background: #ffffff;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wm-t4-accordion-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t4-accordion-head strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t4-accordion-head p {
+  margin: 5px 0 0;
+  color: var(--wm-muted);
+  font-size: 12.8px;
+  line-height: 1.42;
+  font-weight: 600;
+}
+
+.wm-t4-accordion-head i {
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+}
+
+.wm-t4-accordion-body {
+  padding: 0 20px 20px;
+  border-top: 1px solid #edf2f8;
+}
+
+.wm-t4-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding-top: 18px;
+}
+
+.wm-t4-info-item {
+  border: 1px solid var(--wm-border);
+  border-radius: 16px;
+  background: #fbfdff;
+  padding: 14px;
+}
+
+.wm-t4-info-item span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--wm-muted);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.wm-t4-info-item strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 13.2px;
+  line-height: 1.38;
+  font-weight: 750;
+}
+
+.wm-t4-edit-btn {
+  margin-top: 18px;
+  height: 42px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--chegou-blue);
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* =========================================================
+   37. TELA 4 — PESSOAS VINCULADAS REVIEW
+   ========================================================= */
+
+.wm-t4-linked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 18px;
+}
+
+.wm-t4-linked-item {
+  border: 1px solid var(--wm-border);
+  border-radius: 16px;
+  background: #fbfdff;
+  padding: 14px;
+}
+
+.wm-t4-linked-item strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 13.5px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t4-linked-item span {
+  display: inline-flex;
+  margin-top: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(116, 51, 214, 0.08);
+  color: #7433d6;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.wm-t4-linked-item small {
+  display: block;
+  margin-top: 10px;
+  color: var(--wm-muted);
+  font-size: 12.3px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.wm-t4-empty-review {
+  padding-top: 18px;
+  color: var(--wm-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+/* =========================================================
+   38. TELA 4 — TERMOS JURÍDICOS
+   ========================================================= */
+
+.wm-t4-terms-card,
+.wm-t4-checklist-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 24px;
+}
+
+.wm-t4-section-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.wm-t4-section-title > span {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t4-section-title h2 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 21px;
+  line-height: 1.18;
+  font-weight: 800;
+}
+
+.wm-t4-section-title p {
+  margin: 6px 0 0;
+  color: var(--wm-muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t4-terms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.wm-t4-term-item {
+  border: 1px solid var(--wm-border);
+  border-radius: 18px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.wm-t4-term-item.active {
+  border-color: rgba(13, 71, 184, 0.22);
+}
+
+.wm-t4-term-head {
+  width: 100%;
+  border: 0;
+  background: #ffffff;
+  padding: 15px 17px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wm-t4-term-head strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 13.8px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.wm-t4-term-head p {
+  margin: 5px 0 0;
+  color: var(--wm-muted);
+  font-size: 12.2px;
+  line-height: 1.42;
+  font-weight: 600;
+}
+
+.wm-t4-term-head svg {
+  color: #64748b;
+}
+
+.wm-t4-term-body {
+  max-height: 330px;
+  overflow: auto;
+  padding: 16px 18px;
+  border-top: 1px solid #edf2f8;
+  background: #fbfdff;
+}
+
+.wm-t4-term-body p {
+  margin: 0 0 13px;
+  color: #475467;
+  font-size: 12.7px;
+  line-height: 1.65;
+  font-weight: 500;
+}
+
+.wm-t4-term-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* =========================================================
+   39. TELA 4 — CHECKLIST FINAL
+   ========================================================= */
+
+.wm-t4-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.wm-t4-check-item {
+  border: 1px solid var(--wm-border);
+  border-radius: 17px;
+  background: #ffffff;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1px 26px minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t4-check-item input {
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.wm-t4-check-item > span {
+  width: 26px;
+  height: 26px;
+  border: 2px solid #c8d5e7;
+  border-radius: 999px;
+  color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t4-check-item p {
+  margin: 0;
+  color: #475467;
+  font-size: 12.8px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+.wm-t4-check-item.active {
+  border-color: rgba(22, 179, 106, 0.28);
+  background: #f7fffb;
+}
+
+.wm-t4-check-item.active > span {
+  background: #067647;
+  border-color: #067647;
+  color: #ffffff;
+}
+
+/* =========================================================
+   40. TELA 4 — AÇÕES
+   ========================================================= */
+
+.wm-t4-actions {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.wm-t4-actions button {
+  height: 48px;
+  border-radius: 15px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t4-actions .secondary,
+.wm-t4-actions .outline {
+  border: 1px solid var(--wm-border-strong);
+  background: #ffffff;
+  color: var(--chegou-blue);
+}
+
+.wm-t4-actions .primary {
+  margin-left: auto;
+  border: 0;
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(255, 138, 0, 0.22);
+}
+/* =========================================================
+   41. TELA 4 — RESPONSIVO TABLET
+   ========================================================= */
+
+@media (max-width: 1240px) {
+  .wm-t4-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t4-side {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   42. TELA 4 — RESPONSIVO MOBILE / ANDROID / IOS
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .wm-t4-side {
+    display: none;
+  }
+
+  .wm-t4-hero {
+    padding: 18px;
+    border-radius: 24px;
+    align-items: flex-start;
+  }
+
+  .wm-t4-hero-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 18px;
+  }
+
+  .wm-t4-hero h1 {
+    font-size: 21px;
+  }
+
+  .wm-t4-hero p,
+  .wm-t4-profile-note p {
+    font-size: 12.8px;
+  }
+
+  .wm-t4-profile-note {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .wm-t4-accordion-head {
+    grid-template-columns: 44px minmax(0, 1fr) 24px;
+    padding: 15px;
+  }
+
+  .wm-t4-accordion-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .wm-t4-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t4-terms-card,
+  .wm-t4-checklist-card {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .wm-t4-section-title h2 {
+    font-size: 18px;
+  }
+
+  .wm-t4-term-body {
+    max-height: 360px;
+  }
+
+  .wm-t4-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .wm-t4-actions button {
+    width: 100%;
+    height: 52px;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .wm-t4-actions .primary {
+    margin-left: 0;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+}
+
+/* =========================================================
+   43. TELA 4 — TOUCH / IOS SAFE
+   ========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+  .wm-t4-actions button,
+  .wm-t4-term-head,
+  .wm-t4-accordion-head {
+    min-height: 52px;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .wm-t4-term-body {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+/* =========================================================
+   44. TELA 5 — BASE / LAYOUT GERAL
+   ========================================================= */
+
+.wm-t5-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 22px;
+  align-items: start;
+}
+
+.wm-t5-main {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.wm-t5-side {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: sticky;
+  top: 110px;
+}
+
+.wm-t5-side-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 23px;
+  box-shadow: var(--wm-shadow-soft);
+  padding: 20px;
+}
+
+.wm-t5-side-card > span {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.wm-t5-side-card.orange > span {
+  background: rgba(255, 138, 0, 0.13);
+  color: var(--chegou-orange);
+}
+
+.wm-t5-side-card.green > span {
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+}
+
+.wm-t5-side-card h3 {
+  margin: 0 0 8px;
+  color: var(--wm-text);
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t5-side-card p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 12.8px;
+  line-height: 1.48;
+  font-weight: 500;
+}
+
+/* =========================================================
+   45. TELA 5 — HERO
+   ========================================================= */
+
+.wm-t5-hero {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.wm-t5-hero-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t5-hero h1 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 25px;
+  line-height: 1.14;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.wm-t5-hero p {
+  margin: 6px 0 0;
+  color: var(--wm-muted);
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t5-hero em {
+  border-radius: 999px;
+  background: rgba(255, 138, 0, 0.11);
+  color: #b54708;
+  padding: 9px 13px;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   46. TELA 5 — TIMELINE
+   ========================================================= */
+
+.wm-t5-timeline {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 24px;
+  box-shadow: var(--wm-shadow-soft);
+  padding: 18px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.wm-t5-timeline-item {
+  position: relative;
+  min-height: 82px;
+  border: 1px solid var(--wm-border);
+  border-radius: 18px;
+  background: #fbfdff;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.wm-t5-timeline-item span {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 2px solid #c8d5e7;
+  color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t5-timeline-item strong {
+  color: var(--wm-muted);
+  font-size: 11.8px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.wm-t5-timeline-item.done {
+  background: #f7fffb;
+  border-color: rgba(22, 179, 106, 0.24);
+}
+
+.wm-t5-timeline-item.done span {
+  background: #067647;
+  border-color: #067647;
+  color: #ffffff;
+}
+
+.wm-t5-timeline-item.done strong {
+  color: #067647;
+}
+
+.wm-t5-timeline-item.active {
+  background: rgba(255, 138, 0, 0.07);
+  border-color: rgba(255, 138, 0, 0.34);
+}
+
+.wm-t5-timeline-item.active span {
+  background: var(--chegou-orange);
+  border-color: var(--chegou-orange);
+}
+
+.wm-t5-timeline-item.active strong {
+  color: #b54708;
+}
+
+/* =========================================================
+   47. TELA 5 — CARDS PRINCIPAIS
+   ========================================================= */
+
+.wm-t5-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 24px;
+}
+
+.wm-t5-section-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.wm-t5-section-title > span {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t5-section-title h2 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 21px;
+  line-height: 1.18;
+  font-weight: 800;
+}
+
+.wm-t5-section-title p {
+  margin: 6px 0 0;
+  color: var(--wm-muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t5-login-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.wm-t5-login-badges span {
+  min-height: 38px;
+  border-radius: 999px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.wm-t5-login-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.wm-t5-readonly {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.wm-t5-readonly > span {
+  color: var(--wm-text);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.wm-t5-readonly > div {
+  min-height: 52px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 16px;
+  background: #f8fbff;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wm-t5-readonly svg {
+  color: var(--chegou-blue);
+  flex: 0 0 auto;
+}
+
+.wm-t5-readonly strong {
+  color: var(--wm-text);
+  font-size: 13.5px;
+  font-weight: 750;
+}
+
+.wm-t5-info-note {
+  margin-top: 15px;
+  border-radius: 16px;
+  background: rgba(13, 71, 184, 0.07);
+  color: var(--chegou-blue);
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.8px;
+  line-height: 1.42;
+  font-weight: 650;
+}
+
+/* =========================================================
+   48. TELA 5 — SENHA / VALIDAÇÃO
+   ========================================================= */
+
+.wm-t5-password-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  align-items: start;
+}
+
+.wm-t5-password-fields {
+  min-width: 0;
+}
+
+.wm-t5-password-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 15px;
+}
+
+.wm-t5-password-field > span {
+  color: var(--wm-text);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.wm-t5-password-field > div {
+  min-height: 52px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.wm-t5-password-field svg {
+  color: var(--chegou-blue);
+  flex: 0 0 auto;
+}
+
+.wm-t5-password-field input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--wm-text);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.wm-t5-password-field button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.wm-t5-security-note {
+  border-radius: 16px;
+  background: rgba(255, 138, 0, 0.08);
+  color: #9a3412;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.8px;
+  line-height: 1.42;
+  font-weight: 650;
+}
+
+.wm-t5-rules-card {
+  border: 1px solid var(--wm-border);
+  border-radius: 22px;
+  background: #fbfdff;
+  padding: 18px;
+}
+
+.wm-t5-rules-card h3 {
+  margin: 0 0 13px;
+  color: var(--wm-text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.wm-t5-rule {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 10px;
+}
+
+.wm-t5-rule:last-child {
+  margin-bottom: 0;
+}
+
+.wm-t5-rule span {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.08);
+  color: #b42318;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t5-rule.ok span {
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+}
+
+.wm-t5-rule p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 12.5px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+
+.wm-t5-rule.ok p {
+  color: #067647;
+}
+
+/* =========================================================
+   49. TELA 5 — SIDEBAR
+   ========================================================= */
+
+.wm-t5-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wm-t5-summary-list p,
+.wm-t5-status-list p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 12.8px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t5-summary-list strong,
+.wm-t5-status-list strong {
+  color: var(--wm-text);
+  font-weight: 800;
+}
+
+.wm-t5-protocol {
+  color: var(--chegou-blue) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  word-break: break-word;
+}
+
+.wm-t5-copy-btn {
+  margin-top: 12px;
+  height: 40px;
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  font-size: 12.8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.wm-t5-faq-item {
+  width: 100%;
+  border: 1px solid var(--wm-border);
+  border-radius: 15px;
+  background: #ffffff;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  margin-top: 9px;
+}
+
+.wm-t5-faq-item strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 12.8px;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.wm-t5-faq-item p {
+  margin: 8px 0 0;
+  color: var(--wm-muted);
+  font-size: 12.2px;
+  line-height: 1.45;
+}
+
+/* =========================================================
+   50. TELA 5 — AÇÕES
+   ========================================================= */
+
+.wm-t5-actions {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.wm-t5-actions button {
+  height: 48px;
+  border-radius: 15px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t5-actions .secondary,
+.wm-t5-actions .outline {
+  border: 1px solid var(--wm-border-strong);
+  background: #ffffff;
+  color: var(--chegou-blue);
+}
+
+.wm-t5-actions .primary {
+  margin-left: auto;
+  border: 0;
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(255, 138, 0, 0.22);
+}
+
+.wm-t5-actions .primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* =========================================================
+   51. TELA 5 — RESPONSIVO TABLET
+   ========================================================= */
+
+@media (max-width: 1240px) {
+  .wm-t5-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t5-side {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wm-t5-timeline {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   52. TELA 5 — RESPONSIVO MOBILE / ANDROID / IOS
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .wm-t5-side {
+    display: none;
+  }
+
+  .wm-t5-hero {
+    grid-template-columns: 50px minmax(0, 1fr);
+    padding: 18px;
+    border-radius: 24px;
+    align-items: flex-start;
+  }
+
+  .wm-t5-hero-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 18px;
+  }
+
+  .wm-t5-hero h1 {
+    font-size: 21px;
+  }
+
+  .wm-t5-hero p {
+    font-size: 12.8px;
+  }
+
+  .wm-t5-hero em {
+    grid-column: 1 / -1;
+    width: fit-content;
+    margin-top: 4px;
+  }
+
+  .wm-t5-timeline {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .wm-t5-timeline-item {
+    min-height: auto;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .wm-t5-card {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .wm-t5-section-title h2 {
+    font-size: 18px;
+  }
+
+  .wm-t5-login-grid,
+  .wm-t5-password-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t5-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .wm-t5-actions button {
+    width: 100%;
+    height: 52px;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .wm-t5-actions .primary {
+    margin-left: 0;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+}
+
+/* =========================================================
+   53. TELA 5 — TOUCH / IOS SAFE
+   ========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+  .wm-t5-actions button,
+  .wm-t5-copy-btn,
+  .wm-t5-faq-item {
+    min-height: 52px;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .wm-t5-password-field input {
+    font-size: 16px !important;
+  }
+}
+
+/* =========================================================
+   54. TELA 6 — BASE / LAYOUT
+   ========================================================= */
+
+.wm-t6-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 22px;
+  align-items: start;
+}
+
+.wm-t6-main {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.wm-t6-side {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: sticky;
+  top: 110px;
+}
+
+/* =========================================================
+   55. HERO
+   ========================================================= */
+
+.wm-t6-hero {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+}
+
+.wm-t6-hero-image {
+  width: 100%;
+  height: 170px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #edf6ff, #f8fbff);
+  border: 1px solid #dce9f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.wm-t6-hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.wm-t6-hero span {
+  display: inline-flex;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.wm-t6-hero h1 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.wm-t6-hero p {
+  margin: 10px 0 0;
+  color: var(--wm-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.wm-t6-hero strong {
+  display: block;
+  margin-top: 14px;
+  color: var(--wm-text);
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+/* =========================================================
+   56. CARD BASE
+   ========================================================= */
+
+.wm-t6-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 24px;
+}
+
+/* =========================================================
+   57. QUESTIONS / NPS
+   ========================================================= */
+
+.wm-t6-question {
+  margin-bottom: 26px;
+}
+
+.wm-t6-question:last-child {
+  margin-bottom: 0;
+}
+
+.wm-t6-question-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.wm-t6-question-title span {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+
+.wm-t6-question-title h2 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 18px;
+  line-height: 1.28;
+  font-weight: 800;
+}
+
+.wm-t6-nps-scale {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.wm-t6-nps-scale button {
+  height: 48px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--wm-text);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t6-nps-scale button:hover {
+  transform: translateY(-2px);
+}
+
+.wm-t6-nps-scale button.active {
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(255, 138, 0, 0.22);
+}
+
+.wm-t6-nps-labels {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.wm-t6-nps-labels small {
+  color: var(--wm-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.wm-t6-experience-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.wm-t6-experience-grid button {
+  min-height: 96px;
+  border: 1px solid var(--wm-border);
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t6-experience-grid button.active {
+  border-color: rgba(13, 71, 184, 0.28);
+  background: rgba(13, 71, 184, 0.05);
+}
+
+.wm-t6-experience-grid button strong {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.wm-t6-experience-grid button span {
+  color: var(--wm-text);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.wm-t6-divider {
+  height: 1px;
+  background: #edf2f8;
+  margin: 22px 0;
+}
+
+/* =========================================================
+   58. CHIPS / CHECKBOXES / TEXTAREA / CONTATO
+   ========================================================= */
+
+.wm-t6-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.wm-t6-chip-grid button {
+  min-height: 42px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #344054;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.wm-t6-chip-grid button.active {
+  background: rgba(13, 71, 184, 0.08);
+  border-color: rgba(13, 71, 184, 0.24);
+  color: var(--chegou-blue);
+}
+
+.wm-t6-check-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.wm-t6-check-grid label {
+  min-height: 46px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 15px;
+  background: #ffffff;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #344054;
+  font-size: 12.8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.wm-t6-check-grid input {
+  display: none;
+}
+
+.wm-t6-check-grid label span {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 2px solid #c8d5e7;
+  color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t6-check-grid label.active {
+  background: #f7fffb;
+  border-color: rgba(22, 179, 106, 0.28);
+  color: #067647;
+}
+
+.wm-t6-check-grid label.active span {
+  background: #067647;
+  border-color: #067647;
+  color: #ffffff;
+}
+
+.wm-t6-textarea {
+  width: 100%;
+  min-height: 130px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 14px 16px;
+  color: var(--wm-text);
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  resize: vertical;
+  outline: none;
+}
+
+.wm-t6-textarea:focus {
+  border-color: rgba(13, 71, 184, 0.42);
+  box-shadow: 0 0 0 4px rgba(13, 71, 184, 0.08);
+}
+
+.wm-t6-char-counter {
+  display: block;
+  margin-top: 7px;
+  color: var(--wm-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.wm-t6-contact-choice,
+.wm-t6-contact-channels {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wm-t6-contact-choice button,
+.wm-t6-contact-channels button {
+  min-height: 42px;
+  border: 1px solid var(--wm-border-strong);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #344054;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.wm-t6-contact-choice button.active,
+.wm-t6-contact-channels button.active {
+  background: rgba(13, 71, 184, 0.08);
+  border-color: rgba(13, 71, 184, 0.24);
+  color: var(--chegou-blue);
+}
+
+.wm-t6-contact-channels {
+  margin-top: 12px;
+}
+
+/* =========================================================
+   59. AÇÕES
+   ========================================================= */
+
+.wm-t6-actions {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.wm-t6-actions button {
+  height: 48px;
+  border-radius: 15px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t6-actions .secondary,
+.wm-t6-actions .outline {
+  border: 1px solid var(--wm-border-strong);
+  background: #ffffff;
+  color: var(--chegou-blue);
+}
+
+.wm-t6-actions .primary {
+  margin-left: auto;
+  border: 0;
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(255, 138, 0, 0.22);
+}
+
+/* =========================================================
+   60. SIDEBAR / MASCOTE
+   ========================================================= */
+
+.wm-t6-mascot-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 22px 20px 0;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.wm-t6-mascot-card span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+  padding: 7px 12px;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.wm-t6-mascot-card h3 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 20px;
+  line-height: 1.18;
+  font-weight: 800;
+}
+
+.wm-t6-mascot-card p {
+  margin: 8px 0 0;
+  color: var(--wm-muted);
+  font-size: 12.8px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t6-mascot-card img {
+  width: 100%;
+  max-height: 210px;
+  object-fit: contain;
+  object-position: bottom center;
+  margin-top: 8px;
+}
+
+.wm-t6-side-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 23px;
+  box-shadow: var(--wm-shadow-soft);
+  padding: 20px;
+}
+
+.wm-t6-side-card > span {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.wm-t6-side-card.orange > span {
+  background: rgba(255, 138, 0, 0.13);
+  color: var(--chegou-orange);
+}
+
+.wm-t6-side-card.green > span {
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+}
+
+.wm-t6-side-card h3 {
+  margin: 0 0 8px;
+  color: var(--wm-text);
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t6-side-card p {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 12.8px;
+  line-height: 1.48;
+  font-weight: 500;
+}
+
+.wm-t6-protocol {
+  color: var(--chegou-blue) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  word-break: break-word;
+}
+
+.wm-t6-side-card button {
+  margin-top: 12px;
+  height: 40px;
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  font-size: 12.8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.wm-t6-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wm-t6-summary-list p {
+  margin: 0;
+}
+
+.wm-t6-summary-list strong {
+  color: var(--wm-text);
+  font-weight: 800;
+}
+
+/* =========================================================
+   61. RESPONSIVO TABLET
+   ========================================================= */
+
+@media (max-width: 1240px) {
+  .wm-t6-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t6-side {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wm-t6-mascot-card {
+    grid-row: span 2;
+  }
+}
+
+/* =========================================================
+   62. RESPONSIVO MOBILE / ANDROID / IOS
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .wm-t6-side {
+    display: none;
+  }
+
+  .wm-t6-hero {
+    grid-template-columns: 1fr;
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .wm-t6-hero-image {
+    height: 140px;
+  }
+
+  .wm-t6-hero h1 {
+    font-size: 22px;
+  }
+
+  .wm-t6-hero p {
+    font-size: 12.8px;
+  }
+
+  .wm-t6-card {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .wm-t6-question-title h2 {
+    font-size: 16px;
+  }
+
+  .wm-t6-nps-scale {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .wm-t6-experience-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wm-t6-check-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t6-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .wm-t6-actions button {
+    width: 100%;
+    height: 52px;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .wm-t6-actions .primary {
+    margin-left: 0;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+}
+
+/* =========================================================
+   63. TOUCH / IOS SAFE
+   ========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+  .wm-t6-actions button,
+  .wm-t6-nps-scale button,
+  .wm-t6-chip-grid button,
+  .wm-t6-contact-choice button,
+  .wm-t6-contact-channels button {
+    min-height: 48px;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .wm-t6-textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* =========================================================
+   64. TELA 7 — BASE / LAYOUT
+   ========================================================= */
+
+.wm-t7-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 22px;
+  align-items: start;
+}
+
+.wm-t7-main {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.wm-t7-side {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: sticky;
+  top: 110px;
+}
+
+/* =========================================================
+   65. TELA 7 — HERO
+   ========================================================= */
+
+.wm-t7-hero {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+
+.wm-t7-hero-visual {
+  width: 82px;
+  height: 82px;
+  border-radius: 26px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t7-hero span {
+  display: inline-flex;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.wm-t7-hero h1 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.wm-t7-hero p {
+  margin: 10px 0 0;
+  color: var(--wm-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* =========================================================
+   66. TELA 7 — STATUS PRINCIPAL
+   ========================================================= */
+
+.wm-t7-status-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr) 240px;
+  gap: 18px;
+  align-items: center;
+}
+
+.wm-t7-status-icon {
+  width: 74px;
+  height: 74px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t7-status-card.orange .wm-t7-status-icon {
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+}
+
+.wm-t7-status-card.blue .wm-t7-status-icon {
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+}
+
+.wm-t7-status-card.green .wm-t7-status-icon {
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+}
+
+.wm-t7-status-card.red .wm-t7-status-icon {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b42318;
+}
+
+.wm-t7-status-info span {
+  display: inline-flex;
+  margin-bottom: 7px;
+  color: var(--wm-muted);
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.wm-t7-status-info h2 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 23px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.wm-t7-status-info p {
+  margin: 7px 0 0;
+  color: var(--wm-muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t7-status-actions {
+  border: 1px solid var(--wm-border);
+  border-radius: 20px;
+  background: #fbfdff;
+  padding: 16px;
+}
+
+.wm-t7-status-actions strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.wm-t7-status-actions p {
+  margin: 5px 0 13px;
+  color: var(--wm-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.wm-t7-status-actions button {
+  width: 100%;
+  height: 42px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12.8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* =========================================================
+   67. TELA 7 — TIMELINE
+   ========================================================= */
+
+.wm-t7-timeline {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 24px;
+  box-shadow: var(--wm-shadow-soft);
+  padding: 18px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.wm-t7-timeline-step {
+  min-height: 84px;
+  border: 1px solid var(--wm-border);
+  border-radius: 18px;
+  background: #fbfdff;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.wm-t7-timeline-step span {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 2px solid #c8d5e7;
+  color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t7-timeline-step strong {
+  color: var(--wm-muted);
+  font-size: 11.2px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.wm-t7-timeline-step.done {
+  background: #f7fffb;
+  border-color: rgba(22, 179, 106, 0.24);
+}
+
+.wm-t7-timeline-step.done span {
+  background: #067647;
+  border-color: #067647;
+  color: #ffffff;
+}
+
+.wm-t7-timeline-step.done strong {
+  color: #067647;
+}
+
+.wm-t7-timeline-step.active {
+  background: rgba(255, 138, 0, 0.07);
+  border-color: rgba(255, 138, 0, 0.34);
+}
+
+.wm-t7-timeline-step.active span {
+  background: var(--chegou-orange);
+  border-color: var(--chegou-orange);
+}
+
+.wm-t7-timeline-step.active strong {
+  color: #b54708;
+}
+
+/* =========================================================
+   68. TELA 7 — GRID INFERIOR
+   ========================================================= */
+
+.wm-t7-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 20px;
+}
+
+.wm-t7-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 26px;
+  box-shadow: var(--wm-shadow);
+  padding: 22px;
+}
+
+.wm-t7-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  color: var(--chegou-blue);
+}
+
+.wm-t7-card-title h3 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   69. EVENTOS
+   ========================================================= */
+
+.wm-t7-events {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wm-t7-event {
+  border: 1px solid var(--wm-border);
+  border-radius: 18px;
+  background: #fbfdff;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.wm-t7-event span {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.wm-t7-event.done span {
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+}
+
+.wm-t7-event.current span {
+  background: rgba(255, 138, 0, 0.12);
+  color: var(--chegou-orange);
+}
+
+.wm-t7-event.pending span {
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+}
+
+.wm-t7-event.error span {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b42318;
+}
+
+.wm-t7-event strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 13.4px;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.wm-t7-event p {
+  margin: 5px 0 0;
+  color: var(--wm-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t7-event small {
+  display: block;
+  margin-top: 7px;
+  color: #98a2b3;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   70. FAQ
+   ========================================================= */
+
+.wm-t7-faq-item {
+  width: 100%;
+  border: 1px solid var(--wm-border);
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: 0.18s ease;
+}
+
+.wm-t7-faq-item:last-child {
+  margin-bottom: 0;
+}
+
+.wm-t7-faq-item.active {
+  border-color: rgba(13, 71, 184, 0.22);
+  background: #fbfdff;
+}
+
+.wm-t7-faq-item strong {
+  display: block;
+  color: var(--wm-text);
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.wm-t7-faq-item p {
+  margin: 8px 0 0;
+  color: var(--wm-muted);
+  font-size: 12.5px;
+  line-height: 1.48;
+  font-weight: 500;
+}
+
+.wm-t7-faq-item svg {
+  color: #98a2b3;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+/* =========================================================
+   71. FOOTER NOTE
+   ========================================================= */
+
+.wm-t7-footer-note {
+  border-radius: 20px;
+  background: rgba(13, 71, 184, 0.06);
+  border: 1px solid rgba(13, 71, 184, 0.12);
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--chegou-blue);
+}
+
+.wm-t7-footer-note p {
+  margin: 0;
+  color: var(--chegou-blue);
+  font-size: 12.8px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+/* =========================================================
+   72. SIDEBAR
+   ========================================================= */
+
+.wm-t7-mascot-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 28px;
+  box-shadow: var(--wm-shadow);
+  padding: 22px 20px 0;
+  min-height: 310px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.wm-t7-mascot-card span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  padding: 7px 12px;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.wm-t7-mascot-card h3 {
+  margin: 0;
+  color: var(--wm-text);
+  font-size: 20px;
+  line-height: 1.18;
+  font-weight: 800;
+}
+
+.wm-t7-mascot-card p {
+  margin: 8px 0 0;
+  color: var(--wm-muted);
+  font-size: 12.8px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.wm-t7-mascot-card img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  object-position: bottom center;
+  margin-top: 10px;
+}
+
+.wm-t7-side-card {
+  background: #ffffff;
+  border: 1px solid var(--wm-border);
+  border-radius: 23px;
+  box-shadow: var(--wm-shadow-soft);
+  padding: 20px;
+}
+
+.wm-t7-side-card > span {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.wm-t7-side-card.green > span {
+  background: rgba(22, 179, 106, 0.12);
+  color: #067647;
+}
+
+.wm-t7-side-card h3 {
+  margin: 0 0 8px;
+  color: var(--wm-text);
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.wm-t7-side-card p,
+.wm-t7-side-card small {
+  margin: 0;
+  color: var(--wm-muted);
+  font-size: 12.8px;
+  line-height: 1.48;
+  font-weight: 500;
+}
+
+.wm-t7-protocol,
+.wm-t7-token {
+  color: var(--chegou-blue) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  word-break: break-word;
+}
+
+.wm-t7-side-card button,
+.wm-t7-main-action {
+  margin-top: 12px;
+  height: 42px;
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(13, 71, 184, 0.08);
+  color: var(--chegou-blue);
+  font-size: 12.8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.wm-t7-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wm-t7-summary-list p {
+  margin: 0;
+}
+
+.wm-t7-summary-list strong {
+  color: var(--wm-text);
+  font-weight: 800;
+}
+
+.wm-t7-main-action {
+  background: linear-gradient(135deg, var(--chegou-orange), var(--chegou-orange-dark));
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(255, 138, 0, 0.22);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.wm-t7-main-action.danger {
+  background: #b42318;
+  box-shadow: 0 12px 24px rgba(180, 35, 24, 0.18);
+}
+
+/* Tablet */
+@media (max-width: 1240px) {
+  .wm-t7-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t7-side {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wm-t7-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t7-timeline {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Mobile / Android / iOS */
+@media (max-width: 900px) {
+  .wm-t7-side {
+    display: none;
+  }
+
+  .wm-t7-hero {
+    grid-template-columns: 1fr;
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .wm-t7-hero-visual {
+    width: 58px;
+    height: 58px;
+    border-radius: 19px;
+  }
+
+  .wm-t7-hero h1 {
+    font-size: 22px;
+  }
+
+  .wm-t7-hero p {
+    font-size: 12.8px;
+  }
+
+  .wm-t7-status-card {
+    grid-template-columns: 1fr;
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .wm-t7-status-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 20px;
+  }
+
+  .wm-t7-status-info h2 {
+    font-size: 20px;
+  }
+
+  .wm-t7-timeline {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .wm-t7-timeline-step {
+    min-height: auto;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .wm-t7-card {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+}
+
+/* Touch / iOS safe */
+@media (hover: none) and (pointer: coarse) {
+  .wm-t7-status-actions button,
+  .wm-t7-side-card button,
+  .wm-t7-main-action,
+  .wm-t7-faq-item {
+    min-height: 48px;
+  }
+}
