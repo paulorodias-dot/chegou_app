@@ -1,55 +1,81 @@
 import { useMemo, useState } from "react";
-import toast from "react-hot-toast";
-import { salvarPesquisaWizardMorador } from "../../../services/wizardMoradorService";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  Building2,
+  Car,
   CheckCircle2,
-  ClipboardCopy,
-  HeartHandshake,
+  ChevronDown,
+  ClipboardCheck,
+  Edit3,
+  HelpCircle,
+  Home,
   Info,
   Mail,
-  MessageCircle,
+  PackageCheck,
+  PawPrint,
+  Save,
   ShieldCheck,
-  Star,
   UserRound,
-  Building2,
-  Home,
-  Users,
+  UsersRound,
 } from "lucide-react";
 
-import mascoteNps from "../../../assets/mascote_nps.png";
-import coracaoNps from "../../../assets/coracao_nps.png";
+import "../../../styles/wizardMorador/WizardMoradorTela6.css";
 
-function somenteNumeros(valor = "") {
-  return String(valor).replace(/\D/g, "");
+const ETAPAS_REVISAO = [
+  {
+    numero: 1,
+    titulo: "Identificação da unidade",
+    icone: Building2,
+  },
+  {
+    numero: 2,
+    titulo: "Dados pessoais",
+    icone: UserRound,
+  },
+  {
+    numero: 3,
+    titulo: "Dependentes",
+    icone: UsersRound,
+  },
+  {
+    numero: 4,
+    titulo: "Funcionários do lar e pets",
+    icone: PawPrint,
+  },
+  {
+    numero: 5,
+    titulo: "Veículos e garagem",
+    icone: Car,
+  },
+];
+
+function valorOuPadrao(valor, padrao = "Não informado") {
+  return valor || padrao;
 }
 
-function traduzirPerfil(perfil = "") {
-  const mapa = {
-    proprietario_morador: "Proprietário Morador",
-    proprietario_residente: "Proprietário Morador",
-    inquilino: "Morador Inquilino",
-    proprietario_nao_residente: "Proprietário Não Residente",
-    proprietario_unidade_alugada: "Proprietário Não Residente",
-    unidade_vazia: "Unidade Vazia",
-    unidade_corporativa: "Unidade Corporativa",
-    responsavel_unidade_corporativa: "Unidade Corporativa",
-  };
-
-  return mapa[perfil] || "Perfil não identificado";
+function contar(lista) {
+  return Array.isArray(lista) ? lista.length : 0;
 }
 
-function obterResumo(dadosWizard, formTela1, formMorador, dependentes = []) {
-  const pre = dadosWizard?.pre_cadastro || {};
+function simNao(valor) {
+  return valor ? "Sim" : "Não";
+}
+
+function normalizarTexto(valor = "") {
+  return String(valor || "")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letra) => letra.toUpperCase());
+}
+
+function obterPreCadastro(dadosWizard = {}) {
+  return dadosWizard?.preCadastro || dadosWizard?.pre_cadastro || {};
+}
+
+function obterResumoUnidade(dadosWizard, formTela1) {
+  const pre = obterPreCadastro(dadosWizard);
   const condominio = dadosWizard?.condominio || {};
-
-  const perfil =
-    formTela1?.perfilUnidade ||
-    formTela1?.relacaoUnidade ||
-    pre.relacao_unidade ||
-    dadosWizard?.perfil_unidade ||
-    "";
 
   return {
     condominio:
@@ -57,483 +83,821 @@ function obterResumo(dadosWizard, formTela1, formMorador, dependentes = []) {
       condominio.nome ||
       dadosWizard?.nome_condominio ||
       "Condomínio",
-    torre: pre.torre_nome || pre.torre || "Torre",
-    unidade: pre.unidade_nome || pre.unidade || "Unidade",
-    perfilTexto: traduzirPerfil(perfil),
-    responsavel: formMorador?.nomeCompleto || pre.nome || "Não informado",
-    dependentes: dependentes?.length || 0,
-    protocolo:
-      dadosWizard?.protocolo ||
-      dadosWizard?.codigo_protocolo ||
-      `CHG-${new Date().getFullYear()}-${String(
-        dadosWizard?.pre_cadastro_id || "000245"
-      )
-        .replace(/\D/g, "")
-        .slice(-6)
-        .padStart(6, "0")}`,
+    torre:
+      pre.torre_nome ||
+      pre.torre ||
+      pre.bloco_nome ||
+      pre.bloco ||
+      dadosWizard?.torre ||
+      "Não informado",
+    unidade:
+      pre.unidade_nome ||
+      pre.unidade ||
+      dadosWizard?.unidade ||
+      "Não informado",
+    perfil: normalizarTexto(
+      formTela1?.perfilUnidade ||
+        formTela1?.relacaoUnidade ||
+        formTela1?.perfil_unidade ||
+        formTela1?.relacao_unidade ||
+        pre.perfil_unidade ||
+        pre.relacao_unidade ||
+        dadosWizard?.perfil_unidade ||
+        dadosWizard?.relacao_unidade ||
+        dadosWizard?.dados_complementares?.tela1?.perfilUnidade ||
+        dadosWizard?.dados_complementares?.tela1?.relacaoUnidade ||
+        "Não informado"
+    ),
+    confirmouConvite: Boolean(formTela1?.confirmouDadosConvite),
   };
 }
 
-function montarPayloadNps({
-  dadosWizard,
-  resumo,
-  notaNps,
-  experienciaCadastro,
-  dificuldades,
-  problemasTecnicos,
-  comentario,
-  permiteContato,
-  canaisContato,
-}) {
+function obterResumoMorador(formMorador = {}) {
+  const nomeExibicao =
+    formMorador.nomeSocial ||
+    formMorador.nome_exibicao ||
+    formMorador.nomeCompleto ||
+    "";
+
   return {
-    business_id: dadosWizard?.business_id || null,
-    condominio_id: dadosWizard?.condominio_id || null,
-    pre_cadastro_id: dadosWizard?.pre_cadastro_id || null,
-    etapa_atual: 6,
-    protocolo: resumo.protocolo,
-
-    feedback_nps: {
-      nota_nps: notaNps,
-      experiencia_cadastro: experienciaCadastro,
-      dificuldades,
-      problemas_tecnicos: problemasTecnicos,
-      comentario: comentario?.trim() || null,
-      permite_contato: permiteContato,
-      canais_contato: canaisContato,
-      enviado_em: new Date().toISOString(),
-    },
+    nomeCompleto: formMorador.nomeCompleto || "",
+    nomeSocial: formMorador.nomeSocial || "",
+    nomeExibicao,
+    cpf: formMorador.cpf || "",
+    dataNascimento: formMorador.dataNascimento || "",
+    email: formMorador.emailPrincipal || "",
+    ddi: formMorador.ddi || "+55",
+    whatsapp: formMorador.whatsapp || "",
+    notificacaoPush: formMorador.notificacaoPush,
+    notificacaoWhatsapp: formMorador.notificacaoWhatsapp,
+    notificacaoEmail: formMorador.notificacaoEmail,
+    foto: formMorador.fotoPerfilBase64 || formMorador.fotoPerfilUrl || "",
   };
 }
+
+function obterStatusEtapa({
+  etapa,
+  formTela1,
+  formMorador,
+  dependentes,
+  funcionarios,
+  pets,
+  estruturaGaragem,
+}) {
+  switch (etapa) {
+    case 1:
+      if (
+        formTela1?.perfilUnidade ||
+        formTela1?.relacaoUnidade
+      ) {
+        return "completo";
+      }
+      return "pendente";
+
+    case 2:
+      if (
+        formMorador?.nomeCompleto &&
+        formMorador?.cpf &&
+        formMorador?.emailPrincipal
+      ) {
+        return "completo";
+      }
+      return "atencao";
+
+    case 3:
+      return "completo";
+
+    case 4:
+      return "completo";
+
+    case 5:
+      if (
+        estruturaGaragem?.garagemSituacao ===
+        "possui_vaga"
+      ) {
+        return contar(estruturaGaragem?.vagas) > 0
+          ? "completo"
+          : "atencao";
+      }
+
+      return "completo";
+
+    default:
+      return "completo";
+  }
+}
+
+function obterCorStatus(status) {
+  switch (status) {
+    case "completo":
+      return {
+        texto: "Completo",
+        classe: "success",
+        icone: CheckCircle2,
+      };
+
+    case "atencao":
+      return {
+        texto: "Atenção",
+        classe: "warning",
+        icone: AlertTriangle,
+      };
+
+    default:
+      return {
+        texto: "Pendente",
+        classe: "danger",
+        icone: AlertTriangle,
+      };
+  }
+}
+
 export default function WizardMoradorTela6({
   dadosWizard,
   formTela1,
   formMorador,
   dependentes = [],
-  onBack,
-  onNext,
+  funcionarios = [],
+  pets = [],
+  estruturaGaragem = {},
+  onVoltar,
+  onSalvarRascunho,
+  onContinuar,
+  onIrParaEtapa,
+  irParaEtapa,
 }) {
-  const resumo = useMemo(
-    () => obterResumo(dadosWizard, formTela1, formMorador, dependentes),
-    [dadosWizard, formTela1, formMorador, dependentes]
+  const [abertos, setAbertos] = useState([1]);
+
+  const resumoUnidade = useMemo(
+    () => obterResumoUnidade(dadosWizard, formTela1),
+    [dadosWizard, formTela1]
   );
 
-  const [notaNps, setNotaNps] = useState(null);
-  const [experienciaCadastro, setExperienciaCadastro] = useState("muito_facil");
-  const [dificuldades, setDificuldades] = useState([]);
-  const [problemasTecnicos, setProblemasTecnicos] = useState([]);
-  const [comentario, setComentario] = useState("");
-  const [permiteContato, setPermiteContato] = useState(true);
-  const [canaisContato, setCanaisContato] = useState(["email"]);
+  const resumoMorador = useMemo(
+    () => obterResumoMorador(formMorador),
+    [formMorador]
+  );
 
-  const opcoesDificuldade = [
-    { id: "identificacao", label: "Identificação", icon: <UserRound size={15} /> },
-    { id: "dados_pessoais", label: "Dados pessoais", icon: <UserRound size={15} /> },
-    { id: "dependentes", label: "Dependentes", icon: <Users size={15} /> },
-    { id: "termos", label: "Termos", icon: <ShieldCheck size={15} /> },
-    { id: "criacao_senha", label: "Criação da senha", icon: <CheckCircle2 size={15} /> },
-    { id: "nenhuma", label: "Nenhuma", icon: <CheckCircle2 size={15} /> },
-  ];
-
-  const opcoesProblema = [
-    { id: "lentidao", label: "Lentidão" },
-    { id: "layout", label: "Layout" },
-    { id: "mobile", label: "Mobile" },
-    { id: "validacao", label: "Validação" },
-    { id: "outro", label: "Outro" },
-  ];
-
-  const experiencias = [
-    { id: "muito_facil", emoji: "😄", label: "Muito fácil" },
-    { id: "facil", emoji: "🙂", label: "Fácil" },
-    { id: "regular", emoji: "😐", label: "Regular" },
-    { id: "dificil", emoji: "🙁", label: "Difícil" },
-    { id: "muito_dificil", emoji: "😣", label: "Muito difícil" },
-  ];
-
-  function alternarLista(valor, lista, setLista) {
-    if (valor === "nenhuma") {
-      setLista((old) => (old.includes("nenhuma") ? [] : ["nenhuma"]));
-      return;
-    }
-
-    setLista((old) => {
-      const semNenhuma = old.filter((item) => item !== "nenhuma");
-
-      if (semNenhuma.includes(valor)) {
-        return semNenhuma.filter((item) => item !== valor);
+  function toggleEtapa(numero) {
+    setAbertos((anterior) => {
+      if (anterior.includes(numero)) {
+        return anterior.filter((item) => item !== numero);
       }
 
-      return [...semNenhuma, valor];
+      return [...anterior, numero];
     });
   }
 
-  function alternarCanal(canal) {
-    setCanaisContato((old) =>
-      old.includes(canal)
-        ? old.filter((item) => item !== canal)
-        : [...old, canal]
-    );
-  }
-
-  async function enviarFeedback() {
-    if (notaNps === null) {
-      toast.error("Selecione uma nota de 0 a 10 para continuar.");
-      return;
-    }
-
-    try {
-      const payloadPesquisa = {
-        nota_nps: notaNps,
-        facilidade_preenchimento: experienciaCadastro,
-        etapas_dificeis: dificuldades,
-        problemas_encontrados: problemasTecnicos,
-        sugestao: comentario?.trim() || null,
-        permite_contato: permiteContato,
-        canal_contato: permiteContato ? canaisContato.join(",") : null,
-        horario_preferencial: null,
-      };
-
-      await salvarPesquisaWizardMorador({
-        token: dadosWizard?.token || dadosWizard?.token_convite || null,
-        protocolo: resumo.protocolo,
-        pesquisa: payloadPesquisa,
-      });
-
-      toast.success("Pesquisa registrada com sucesso.");
-
-      await onNext({
-        business_id: dadosWizard?.business_id || null,
-        condominio_id: dadosWizard?.condominio_id || null,
-        pre_cadastro_id: dadosWizard?.pre_cadastro_id || null,
-        etapa_atual: 6,
-        feedback_nps: {
-          ...payloadPesquisa,
-          enviado_em: new Date().toISOString(),
-        },
-      });
-    } catch (error) {
-      toast.error(error.message || "Erro ao salvar pesquisa.");
-    }
-  }
-
-  async function pularPesquisa() {
-    toast("Pesquisa pulada. Você será direcionado para o acompanhamento.");
-    await onNext({
-      business_id: dadosWizard?.business_id || null,
-      condominio_id: dadosWizard?.condominio_id || null,
-      pre_cadastro_id: dadosWizard?.pre_cadastro_id || null,
-      etapa_atual: 6,
-      feedback_nps: {
-        pulado: true,
-        enviado_em: new Date().toISOString(),
-      },
-    });
-  }
-
-  function copiarProtocolo() {
-    navigator.clipboard?.writeText(resumo.protocolo);
-    toast.success("Protocolo copiado.");
-  }
+  const totalDependentes = contar(dependentes);
+  const totalFuncionarios = contar(funcionarios);
+  const totalPets = contar(pets);
+  const totalVeiculos = contar(
+    estruturaGaragem?.veiculos
+  );
+  const totalVagas = contar(
+    estruturaGaragem?.vagas
+  );
 
   return (
-    <div className="wm-t6-grid">
-      <section className="wm-t6-main">
-        <header className="wm-t6-hero">
-          <div className="wm-t6-hero-image">
-            <img src={coracaoNps} alt="Sua opinião importa" />
+    <div className="wm-t6-page">
+      <section className="wm-t6-card">
+        <header className="wm-t6-header">
+          <div className="wm-t6-title">
+            <span className="wm-t6-step">6</span>
+
+            <div>
+              <h1>Revisão e conferência dos dados</h1>
+
+              <p>
+                Revise cuidadosamente todas as
+                informações antes de finalizar
+                o cadastro.
+              </p>
+            </div>
           </div>
 
-          <div>
-            <span>Tela 6 de 7</span>
-            <h1>Sua opinião importa</h1>
-            <p>
-              Antes de finalizar, conte rapidamente como foi sua experiência no cadastro.
-            </p>
-            <strong>
-              Sua opinião ajuda a tornar o Sistema Chegou<span className="wm-orange">!</span>{" "}
-              ainda melhor para todos.
-            </strong>
+          <div className="wm-t6-security">
+            <ShieldCheck size={34} />
+
+            <div>
+              <strong>
+                Segurança e Auditoria
+              </strong>
+
+              <p>
+                Todas as alterações realizadas
+                ficam registradas para
+                rastreabilidade e segurança.
+              </p>
+            </div>
           </div>
         </header>
-        <section className="wm-t6-card">
-          <div className="wm-t6-question nps">
-            <div className="wm-t6-question-title">
-              <span>1</span>
-              <h2>
-                De 0 a 10, quanto você recomendaria o Sistema Chegou
-                <span className="wm-orange">!</span>?
-              </h2>
-            </div>
+        <div className="wm-t6-divider" />
 
-            <div className="wm-t6-nps-scale">
-              {Array.from({ length: 11 }, (_, numero) => (
-                <button
-                  key={numero}
-                  type="button"
-                  className={notaNps === numero ? "active" : ""}
-                  onClick={() => setNotaNps(numero)}
-                >
-                  {numero}
-                </button>
-              ))}
-            </div>
-
-            <div className="wm-t6-nps-labels">
-              <small>Nada provável</small>
-              <small>Extremamente provável</small>
-            </div>
-          </div>
-
-          <div className="wm-t6-question experience">
-            <div className="wm-t6-question-title">
-              <span>2</span>
-              <h2>Como foi a experiência de cadastro?</h2>
-            </div>
-
-            <div className="wm-t6-experience-grid">
-              {experiencias.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={experienciaCadastro === item.id ? "active" : ""}
-                  onClick={() => setExperienciaCadastro(item.id)}
-                >
-                  <strong>{item.emoji}</strong>
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="wm-t6-divider" />
-
-          <div className="wm-t6-question">
-            <div className="wm-t6-question-title">
-              <span>3</span>
-              <h2>Onde você teve mais dificuldade?</h2>
-            </div>
-
-            <div className="wm-t6-chip-grid">
-              {opcoesDificuldade.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={dificuldades.includes(item.id) ? "active" : ""}
-                  onClick={() =>
-                    alternarLista(item.id, dificuldades, setDificuldades)
-                  }
-                >
-                  {item.icon}
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="wm-t6-question">
-            <div className="wm-t6-question-title">
-              <span>4</span>
-              <h2>Encontrou algum problema técnico?</h2>
-            </div>
-
-            <div className="wm-t6-check-grid">
-              {opcoesProblema.map((item) => (
-                <label
-                  key={item.id}
-                  className={problemasTecnicos.includes(item.id) ? "active" : ""}
-                >
-                  <input
-                    type="checkbox"
-                    checked={problemasTecnicos.includes(item.id)}
-                    onChange={() =>
-                      alternarLista(
-                        item.id,
-                        problemasTecnicos,
-                        setProblemasTecnicos
-                      )
-                    }
-                  />
-                  <span>
-                    <CheckCircle2 size={13} />
-                  </span>
-                  {item.label}
-                </label>
-              ))}
-            </div>
-          </div>
-          <div className="wm-t6-question">
-            <div className="wm-t6-question-title">
-              <span>5</span>
-              <h2>Comentário adicional (opcional)</h2>
-            </div>
-
-            <textarea
-              className="wm-t6-textarea"
-              placeholder="Se quiser, compartilhe sugestões, elogios ou pontos de melhoria..."
-              value={comentario}
-              onChange={(event) => setComentario(event.target.value)}
-              maxLength={1200}
-            />
-
-            <small className="wm-t6-char-counter">
-              {comentario.length}/1200 caracteres
-            </small>
-          </div>
-
-          <div className="wm-t6-question">
-            <div className="wm-t6-question-title">
-              <span>6</span>
-              <h2>Podemos entrar em contato sobre seu feedback?</h2>
-            </div>
-
-            <div className="wm-t6-contact-choice">
-              <button
-                type="button"
-                className={permiteContato ? "active" : ""}
-                onClick={() => setPermiteContato(true)}
-              >
-                Sim
-              </button>
-
-              <button
-                type="button"
-                className={!permiteContato ? "active" : ""}
-                onClick={() => setPermiteContato(false)}
-              >
-                Não
-              </button>
-            </div>
-
-            {permiteContato ? (
-              <div className="wm-t6-contact-channels">
-                <button
-                  type="button"
-                  className={canaisContato.includes("email") ? "active" : ""}
-                  onClick={() => alternarCanal("email")}
-                >
-                  <Mail size={16} />
-                  E-mail
-                </button>
-
-                <button
-                  type="button"
-                  className={canaisContato.includes("whatsapp") ? "active" : ""}
-                  onClick={() => alternarCanal("whatsapp")}
-                >
-                  <MessageCircle size={16} />
-                  WhatsApp
-                </button>
-              </div>
-            ) : null}
-          </div>
+        <section className="wm-t6-executive-summary">
+          <ResumoItem label="Condomínio" value={resumoUnidade.condominio} />
+          <ResumoItem label="Torre / Bloco" value={resumoUnidade.torre} />
+          <ResumoItem label="Unidade" value={resumoUnidade.unidade} />
+          <ResumoItem label="Perfil" value={resumoUnidade.perfil} />
+          <ResumoItem label="Responsável" value={resumoMorador.nomeExibicao} />
+          <ResumoItem label="Dependentes" value={totalDependentes} />
+          <ResumoItem label="Funcionários" value={totalFuncionarios} />
+          <ResumoItem label="Pets" value={totalPets} />
+          <ResumoItem label="Veículos" value={totalVeiculos} />
+          <ResumoItem label="Vagas" value={totalVagas} />
         </section>
 
+        <div className="wm-t6-main-grid">
+          <section className="wm-t6-left">
+            {ETAPAS_REVISAO.map((etapa) => {
+              const status = obterStatusEtapa({
+                etapa: etapa.numero,
+                formTela1,
+                formMorador,
+                dependentes,
+                funcionarios,
+                pets,
+                estruturaGaragem,
+              });
+
+              const statusInfo = obterCorStatus(status);
+              const StatusIcon = statusInfo.icone;
+              const Icon = etapa.icone;
+              const aberto = abertos.includes(etapa.numero);
+
+              return (
+                <article
+                  key={etapa.numero}
+                  className={`wm-t6-review-card ${aberto ? "open" : ""}`}
+                >
+                  <button
+                    type="button"
+                    className="wm-t6-review-head"
+                    onClick={() => toggleEtapa(etapa.numero)}
+                  >
+                    <span className="wm-t6-review-icon">
+                      <Icon size={22} />
+                    </span>
+
+                    <div>
+                      <h2>{etapa.titulo}</h2>
+                      <p>{obterSubtituloEtapa(etapa.numero, {
+                        resumoUnidade,
+                        resumoMorador,
+                        dependentes,
+                        funcionarios,
+                        pets,
+                        estruturaGaragem,
+                      })}</p>
+                    </div>
+
+                    <span className={`wm-t6-status ${statusInfo.classe}`}>
+                      <StatusIcon size={14} />
+                      {statusInfo.texto}
+                    </span>
+
+                    <ChevronDown size={18} className="wm-t6-chevron" />
+                  </button>
+
+                  {aberto ? (
+                    <div className="wm-t6-review-body">
+                      {renderizarConteudoEtapa(etapa.numero, {
+                        resumoUnidade,
+                        resumoMorador,
+                        formTela1,
+                        formMorador,
+                        dependentes,
+                        funcionarios,
+                        pets,
+                        estruturaGaragem,
+                      })}
+
+                      <footer className="wm-t6-review-footer">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (typeof onIrParaEtapa === "function") {
+                              onIrParaEtapa(etapa.numero);
+                              return;
+                            }
+
+                            if (typeof irParaEtapa === "function") {
+                              irParaEtapa(etapa.numero);
+                            }
+                          }}
+                        >
+                          <Edit3 size={15} />
+                          Editar dados
+                        </button>
+                      </footer>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
+          </section>
+          <aside className="wm-t6-right">
+            <section className="wm-t6-side-card wm-t6-highlight">
+              <span className="wm-t6-side-icon">
+                <ClipboardCheck size={22} />
+              </span>
+
+              <h3>Conferência Final</h3>
+
+              <ul>
+                <li>Identificação da unidade</li>
+                <li>Dados pessoais</li>
+                <li>Dependentes</li>
+                <li>Funcionários e Pets</li>
+                <li>Veículos e Garagem</li>
+              </ul>
+            </section>
+
+            <section className="wm-t6-side-card">
+              <span className="wm-t6-side-icon orange">
+                <Info size={22} />
+              </span>
+
+              <h3>Antes de continuar</h3>
+
+              <p>
+                Revise cuidadosamente os dados.
+                Após a aprovação do cadastro,
+                algumas informações poderão exigir
+                auditoria para alteração.
+              </p>
+            </section>
+
+            <section className="wm-t6-side-card">
+              <span className="wm-t6-side-icon">
+                <HelpCircle size={22} />
+              </span>
+
+              <h3>Dúvidas Frequentes</h3>
+
+              <div className="wm-t6-faq">
+                <details>
+                  <summary>Posso alterar dados depois?</summary>
+                  <p>
+                    Sim. Informações poderão ser
+                    atualizadas posteriormente através
+                    do Portal do Morador.
+                  </p>
+                </details>
+
+                <details>
+                  <summary>Os dados são auditados?</summary>
+                  <p>
+                    Sim. Alterações relevantes ficam
+                    registradas para segurança e
+                    rastreabilidade.
+                  </p>
+                </details>
+
+                <details>
+                  <summary>
+                    Preciso cadastrar dependentes?
+                  </summary>
+                  <p>
+                    Não. O cadastro de dependentes é
+                    opcional e pode ser realizado depois.
+                  </p>
+                </details>
+              </div>
+            </section>
+          </aside>
+        </div>
+
         <footer className="wm-t6-actions">
-          <button type="button" className="secondary" onClick={onBack}>
-            <ArrowLeft size={17} />
+          <button
+            type="button"
+            className="secondary"
+            onClick={onVoltar}
+          >
+            <ArrowLeft size={16} />
             Voltar
           </button>
 
-          <button type="button" className="outline" onClick={pularPesquisa}>
-            Pular pesquisa
+          <button
+            type="button"
+            className="outline"
+            onClick={onSalvarRascunho}
+          >
+            <Save size={16} />
+            Salvar e continuar depois
           </button>
 
-          <button type="button" className="primary" onClick={enviarFeedback}>
-            Enviar feedback e continuar
-            <ArrowRight size={18} />
+          <button
+            type="button"
+            className="primary"
+            onClick={onContinuar}
+          >
+            Confirmar revisão e continuar
+            <ArrowRight size={16} />
           </button>
         </footer>
       </section>
-      <aside className="wm-t6-side">
-        <section className="wm-t6-mascot-card">
-          <div>
-            <span>Feedback rápido</span>
-            <h3>
-              Ajude o Chegou<span className="wm-orange">!</span> a melhorar
-            </h3>
-            <p>
-              Sua resposta ajuda a deixar o cadastro mais simples, seguro e rápido.
-            </p>
-          </div>
-
-          <img src={mascoteNps} alt="Mascote Chegou!" />
-        </section>
-
-        <section className="wm-t6-side-card">
-          <span>
-            <ClipboardCopy size={22} />
-          </span>
-
-          <h3>Protocolo</h3>
-          <p className="wm-t6-protocol">{resumo.protocolo}</p>
-
-          <button type="button" onClick={copiarProtocolo}>
-            Copiar protocolo
-          </button>
-        </section>
-
-        <section className="wm-t6-side-card">
-          <span>
-            <Building2 size={22} />
-          </span>
-
-          <h3>Resumo do cadastro</h3>
-
-          <div className="wm-t6-summary-list">
-            <p>
-              <strong>Condomínio:</strong> {resumo.condominio}
-            </p>
-            <p>
-              <strong>Unidade:</strong> {resumo.torre} • {resumo.unidade}
-            </p>
-            <p>
-              <strong>Perfil:</strong> {resumo.perfilTexto}
-            </p>
-            <p>
-              <strong>Responsável:</strong> {resumo.responsavel}
-            </p>
-            <p>
-              <strong>Pessoas vinculadas:</strong> {resumo.dependentes}
-            </p>
-          </div>
-        </section>
-
-        <section className="wm-t6-side-card orange">
-          <span>
-            <Info size={22} />
-          </span>
-
-          <h3>Próximo passo</h3>
-          <p>
-            Após esta pesquisa, você será direcionado para a tela de acompanhamento
-            da auditoria administrativa.
-          </p>
-        </section>
-
-        <section className="wm-t6-side-card green">
-          <span>
-            <ShieldCheck size={22} />
-          </span>
-
-          <h3>Privacidade</h3>
-          <p>
-            Seu feedback será usado para melhoria do Sistema Chegou
-            <span className="wm-orange">!</span> e poderá ser analisado junto ao
-            protocolo do cadastro.
-          </p>
-        </section>
-      </aside>
     </div>
   );
 }
-function NpsButton({ numero, ativo, onClick }) {
+
+function ResumoItem({ label, value }) {
   return (
-    <button
-      type="button"
-      className={ativo ? "active" : ""}
-      onClick={onClick}
-    >
-      {numero}
-    </button>
+    <article className="wm-t6-summary-item">
+      <span>{label}</span>
+      <strong>{valorOuPadrao(value)}</strong>
+    </article>
   );
+}
+
+function obterSubtituloEtapa(
+  numero,
+  {
+    resumoUnidade,
+    resumoMorador,
+    dependentes,
+    funcionarios,
+    pets,
+    estruturaGaragem,
+  }
+) {
+  switch (numero) {
+    case 1:
+      return `${resumoUnidade.torre} • ${resumoUnidade.unidade} • ${resumoUnidade.perfil}`;
+
+    case 2:
+      return `${valorOuPadrao(resumoMorador.nomeExibicao)} • ${valorOuPadrao(
+        resumoMorador.email
+      )}`;
+
+    case 3:
+      return `${contar(dependentes)} dependente(s) cadastrado(s)`;
+
+    case 4:
+      return `${contar(funcionarios)} funcionário(s) • ${contar(pets)} pet(s)`;
+
+    case 5:
+      return `${contar(estruturaGaragem?.veiculos)} veículo(s) • ${contar(
+        estruturaGaragem?.vagas
+      )} vaga(s)`;
+
+    default:
+      return "";
+  }
+}
+
+function LinhaRevisao({ label, value }) {
+  return (
+    <div className="wm-t6-line">
+      <span>{label}</span>
+      <strong>{valorOuPadrao(value)}</strong>
+    </div>
+  );
+}
+
+function BadgeBool({ ativo, textoSim = "Sim", textoNao = "Não" }) {
+  return (
+    <span className={`wm-t6-badge ${ativo ? "success" : "muted"}`}>
+      {ativo ? textoSim : textoNao}
+    </span>
+  );
+}
+
+function EmptyState({ icon: Icon = Info, title, text }) {
+  return (
+    <div className="wm-t6-empty">
+      <Icon size={28} />
+      <strong>{title}</strong>
+      <p>{text}</p>
+    </div>
+  );
+}
+
+function renderizarConteudoEtapa(
+  numero,
+  {
+    resumoUnidade,
+    resumoMorador,
+    formMorador,
+    dependentes,
+    funcionarios,
+    pets,
+    estruturaGaragem,
+  }
+) {
+  switch (numero) {
+    case 1:
+      return (
+        <div className="wm-t6-grid">
+          <LinhaRevisao
+            label="Condomínio"
+            value={resumoUnidade.condominio}
+          />
+
+          <LinhaRevisao
+            label="Torre / Bloco"
+            value={resumoUnidade.torre}
+          />
+
+          <LinhaRevisao
+            label="Unidade"
+            value={resumoUnidade.unidade}
+          />
+
+          <LinhaRevisao
+            label="Perfil"
+            value={resumoUnidade.perfil}
+          />
+        </div>
+      );
+
+    case 2:
+      return (
+        <>
+          <div className="wm-t6-grid">
+            <LinhaRevisao
+              label="Nome Completo"
+              value={formMorador?.nomeCompleto}
+            />
+
+            <LinhaRevisao
+              label="Nome Social"
+              value={formMorador?.nomeSocial}
+            />
+
+            <LinhaRevisao
+              label="CPF"
+              value={formMorador?.cpf}
+            />
+
+            <LinhaRevisao
+              label="Data de nascimento"
+              value={formMorador?.dataNascimento}
+            />
+
+            <LinhaRevisao
+              label="E-mail"
+              value={formMorador?.emailPrincipal}
+            />
+
+            <LinhaRevisao
+              label="WhatsApp"
+              value={formMorador?.whatsapp}
+            />
+          </div>
+
+          <div className="wm-t6-badges-row">
+            <BadgeBool
+              ativo={formMorador?.notificacaoPush}
+              textoSim="Push ativo"
+              textoNao="Push inativo"
+            />
+
+            <BadgeBool
+              ativo={formMorador?.notificacaoWhatsapp}
+              textoSim="WhatsApp ativo"
+              textoNao="WhatsApp inativo"
+            />
+
+            <BadgeBool
+              ativo={formMorador?.notificacaoEmail}
+              textoSim="E-mail ativo"
+              textoNao="E-mail inativo"
+            />
+          </div>
+        </>
+      );
+
+    case 3:
+      if (!dependentes?.length) {
+        return (
+          <EmptyState
+            icon={UsersRound}
+            title="Nenhum dependente cadastrado"
+            text="O cadastro de dependentes é opcional e poderá ser realizado posteriormente."
+          />
+        );
+      }
+
+      return (
+        <div className="wm-t6-list">
+          {dependentes.map((dependente, index) => {
+  const parentesco =
+    dependente.parentesco ||
+    dependente.tipoVinculo ||
+    dependente.tipo_vinculo ||
+    dependente.relacao ||
+    dependente.vinculo ||
+    "Parentesco não informado";
+
+  const retiradaAutorizada =
+    dependente.retira_portaria ??
+    dependente.autorizadoRetirada ??
+    dependente.autorizado_retirada ??
+    dependente.podeRetirarEncomendas ??
+    dependente.pode_retirar_encomendas ??
+    dependente.retiraNaPortaria ??
+    dependente.retira_na_portaria ??
+    false;
+
+  const recebeEncomendas =
+    dependente.recebeEncomendas ??
+    dependente.recebe_encomendas ??
+    dependente.podeReceberEncomendas ??
+    dependente.pode_receber_encomendas ??
+    false;
+
+  const acessoProprio =
+    dependente.acesso_proprio_futuro ??
+    dependente.possuiAcesso ??
+    dependente.possui_acesso ??
+    dependente.acessoProprio ??
+    dependente.acesso_proprio ??
+    dependente.teraAcessoProprio ??
+    dependente.tera_acesso_proprio ??
+    false;
+
+  return (
+    <article
+      key={dependente.id || index}
+      className="wm-t6-mini-card"
+    >
+      <strong>
+        {dependente.nomeCompleto ||
+          dependente.nome_completo ||
+          dependente.nome ||
+          "Dependente"}
+      </strong>
+
+      <span>{parentesco}</span>
+
+      <div className="wm-t6-mini-badges">
+        <BadgeBool
+          ativo={recebeEncomendas}
+          textoSim="Recebe encomendas"
+          textoNao="Não recebe encomendas"
+        />
+
+        <BadgeBool
+          ativo={retiradaAutorizada}
+          textoSim="Retirada autorizada"
+          textoNao="Retirada não autorizada"
+        />
+
+        <BadgeBool
+          ativo={acessoProprio}
+          textoSim="Acesso próprio"
+          textoNao="Sem acesso próprio"
+        />
+      </div>
+    </article>
+  );
+})}
+        </div>
+      );
+
+    case 4:
+      return (
+        <>
+          {funcionarios?.length ? (
+            <div className="wm-t6-group">
+              <h4>Funcionários do Lar</h4>
+
+              <div className="wm-t6-list">
+                {funcionarios.map((item, index) => (
+                  <article
+                    key={item.id || index}
+                    className="wm-t6-mini-card"
+                  >
+                    <strong>
+                      {item.nomeCompleto ||
+                        item.nome ||
+                        "Funcionário"}
+                    </strong>
+
+                    <span>
+                      {item.funcao ||
+                        item.categoria ||
+                        "Função não informada"}
+                    </span>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {pets?.length ? (
+            <div className="wm-t6-group">
+              <h4>Pets</h4>
+
+              <div className="wm-t6-list">
+                {pets.map((pet, index) => (
+                  <article
+                    key={pet.id || index}
+                    className="wm-t6-mini-card"
+                  >
+                    <strong>
+                      {pet.nome || "Pet"}
+                    </strong>
+
+                    <span>
+                      {[
+                        pet.especie,
+                        pet.raca,
+                        pet.porte,
+                      ]
+                        .filter(Boolean)
+                        .join(" • ")}
+                    </span>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {!funcionarios?.length && !pets?.length ? (
+            <EmptyState
+              icon={PawPrint}
+              title="Nenhum cadastro realizado"
+              text="Funcionários do lar e pets poderão ser cadastrados posteriormente."
+            />
+          ) : null}
+        </>
+      );
+
+    case 5:
+      return (
+        <>
+          {estruturaGaragem?.veiculos?.length ? (
+            <div className="wm-t6-group">
+              <h4>Veículos</h4>
+
+              <div className="wm-t6-list">
+                {estruturaGaragem.veiculos.map(
+                  (veiculo, index) => (
+                    <article
+                      key={veiculo.id || index}
+                      className="wm-t6-mini-card"
+                    >
+                      <strong>
+                        {veiculo.placa}
+                      </strong>
+
+                      <span>
+                        {[
+                          veiculo.marca,
+                          veiculo.modelo,
+                          veiculo.cor,
+                        ]
+                          .filter(Boolean)
+                          .join(" • ")}
+                      </span>
+                    </article>
+                  )
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          {estruturaGaragem?.vagas?.length ? (
+            <div className="wm-t6-group">
+              <h4>Vagas</h4>
+
+              <div className="wm-t6-list">
+                {estruturaGaragem.vagas.map(
+                  (vaga, index) => (
+                    <article
+                      key={vaga.id || index}
+                      className="wm-t6-mini-card"
+                    >
+                      <strong>
+                        {vaga.identificacao}
+                      </strong>
+
+                      <span>
+                        {[vaga.local, vaga.situacao]
+                          .filter(Boolean)
+                          .join(" • ")}
+                      </span>
+                    </article>
+                  )
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          {!estruturaGaragem?.veiculos?.length &&
+          !estruturaGaragem?.vagas?.length ? (
+            <EmptyState
+              icon={Car}
+              title="Nenhum veículo ou vaga cadastrada"
+              text="As informações de garagem poderão ser cadastradas posteriormente."
+            />
+          ) : null}
+        </>
+      );
+
+    default:
+      return null;
+  }
 }

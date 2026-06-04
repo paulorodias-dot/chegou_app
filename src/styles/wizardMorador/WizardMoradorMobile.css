@@ -1,0 +1,176 @@
+@media (max-width: 900px) {
+  .wm-shell {
+    min-height: 100dvh;
+    background: #f4f7fb;
+  }
+
+  .wm-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    min-height: 62px;
+    padding: 10px 14px;
+    border-radius: 0 0 18px 18px;
+  }
+
+  .wm-topbar-left {
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .wm-logo img {
+    height: 34px;
+  }
+
+  .wm-topbar h1 {
+    font-size: 16px;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .wm-topbar p {
+    display: none;
+  }
+
+  .wm-topbar-actions {
+    display: none;
+  }
+
+  .wm-stepper-shell {
+    padding: 12px 12px 0;
+  }
+
+  .wm-stepper {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 12px;
+    border-radius: 18px;
+    scrollbar-width: none;
+  }
+
+  .wm-stepper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .wm-stepper::before {
+    display: none;
+  }
+
+  .wm-step {
+    min-width: 36px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    cursor: default;
+  }
+
+  .wm-step-circle {
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    font-size: 12px;
+  }
+
+  .wm-step-label {
+    display: none;
+  }
+
+  .wm-step.clickable {
+    cursor: pointer;
+  }
+
+  .wm-step.locked {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .wm-layout-grid {
+    display: block;
+    padding: 12px;
+  }
+
+  .wm-main {
+    width: 100%;
+  }
+
+  .wm-content {
+    width: 100%;
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .wm-sidebar {
+    display: none;
+  }
+
+  .wm-footer {
+    width: calc(100% - 24px);
+    margin: 14px auto 18px;
+    padding: 16px;
+    border-radius: 20px;
+    display: grid;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .wm-footer-left,
+  .wm-footer-center,
+  .wm-footer-right {
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .wm-footer-brand img {
+    height: 30px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wm-topbar {
+    min-height: 58px;
+    padding: 9px 12px;
+  }
+
+  .wm-logo img {
+    height: 30px;
+  }
+
+  .wm-topbar h1 {
+    font-size: 15px;
+  }
+
+  .wm-stepper {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .wm-step {
+    min-width: 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .wm-step-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .wm-content {
+    padding: 12px;
+  }
+}

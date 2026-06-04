@@ -1,17 +1,14 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   ArrowLeft,
   ArrowRight,
   Building2,
   CalendarDays,
-  Camera,
   Check,
-  Copy,
   IdCard,
   Info,
   Mail,
-  MapPin,
   Phone,
   Save,
   ShieldCheck,
@@ -20,10 +17,59 @@ import {
   X,
 } from "lucide-react";
 
+import "../../../styles/wizardMorador/WizardMoradorTela2.css";
+
+const LIMITE_UPLOAD_FOTO_MB = 5;
+const LIMITE_UPLOAD_FOTO_BYTES = LIMITE_UPLOAD_FOTO_MB * 1024 * 1024;
+
 function somenteNumeros(valor = "") {
   return String(valor).replace(/\D/g, "");
 }
 
+function normalizarDDI(valor = "") {
+  const limpo = somenteNumeros(valor).slice(0, 4);
+  return limpo ? `+${limpo}` : "+55";
+}
+
+function obterDDINumerico(valor = "") {
+  return somenteNumeros(valor || "+55") || "55";
+}
+
+function formatarTelefoneBrasil(valor = "") {
+  const numeros = somenteNumeros(valor).slice(0, 11);
+
+  if (!numeros) return "";
+  if (numeros.length <= 2) return `(${numeros}`;
+  if (numeros.length <= 6) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+
+  if (numeros.length <= 10) {
+    return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
+  }
+
+  return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
+}
+
+function formatarTelefoneInternacional({ ddi = "+55", numero = "" }) {
+  const ddiNumerico = obterDDINumerico(ddi);
+  const numeroLimpo = somenteNumeros(numero);
+
+  if (!numeroLimpo) return "";
+
+  if (ddiNumerico === "55") {
+    return formatarTelefoneBrasil(numeroLimpo);
+  }
+
+  return numeroLimpo.replace(/(\d{3})(?=\d)/g, "$1 ").trim();
+}
+
+function montarTelefoneE164({ ddi = "+55", numero = "" }) {
+  const ddiNumerico = obterDDINumerico(ddi);
+  const telefoneNumerico = somenteNumeros(numero);
+
+  if (!telefoneNumerico) return "";
+
+  return `+${ddiNumerico}${telefoneNumerico}`;
+}
 
 function capitalizarNome(valor = "") {
   return valor
@@ -79,64 +125,231 @@ function formatarData(valor = "") {
     .replace(/^(\d{2})\/(\d{2})(\d)/, "$1/$2/$3");
 }
 
-function validarEmail(email = "") {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+function dataBrParaISO(valor = "") {
+  const numeros = somenteNumeros(valor);
+
+  if (numeros.length !== 8) return null;
+
+  const dia = numeros.slice(0, 2);
+  const mes = numeros.slice(2, 4);
+  const ano = numeros.slice(4, 8);
+
+  return `${ano}-${mes}-${dia}`;
 }
 
-function obterDadosCondominio(dadosWizard) {
-  const pre = dadosWizard?.pre_cadastro || {};
+function dataISOParaBR(valor = "") {
+  if (!valor || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) return "";
+
+  const [ano, mes, dia] = valor.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
+
+function validarEmail(email = "") {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+}
+function calcularIdade(dataBr = "") {
+  const iso = dataBrParaISO(dataBr);
+  if (!iso) return null;
+
+  const nascimento = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(nascimento.getTime())) return null;
+
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - nascimento.getFullYear();
+  const mes = hoje.getMonth() - nascimento.getMonth();
+
+  if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+    idade -= 1;
+  }
+
+  return idade;
+}
+
+function validarDataNascimento(valor = "") {
+  const iso = dataBrParaISO(valor);
+  if (!iso) return false;
+
+  const data = new Date(`${iso}T00:00:00`);
+  const hoje = new Date();
+
+  if (Number.isNaN(data.getTime())) return false;
+  if (data > hoje) return false;
+
+  return data.getFullYear() >= 1900;
+}
+
+function mascararToken(token = "") {
+  const limpo = String(token).replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+  if (!limpo) return "Não informado";
+
+  if (limpo.length <= 9) {
+    return `${limpo.slice(0, 3)}-${limpo.slice(3, 6)}-${limpo.slice(6, 9)}`;
+  }
+
+  return `${limpo.slice(0, 4)}-${limpo.slice(4, 8)}-${limpo.slice(8, 12)}`;
+}
+
+function obterTokenAuditoria(dadosWizard) {
+  return (
+    dadosWizard?.token_publico ||
+    dadosWizard?.codigo_convite ||
+    dadosWizard?.token ||
+    dadosWizard?.token_convite ||
+    ""
+  );
+}
+
+function obterDadosUnidade(dadosWizard, formTela1) {
+  const pre = dadosWizard?.preCadastro || dadosWizard?.pre_cadastro || {};
   const condominio = dadosWizard?.condominio || {};
 
+  const perfil =
+    formTela1?.perfilUnidade ||
+    pre.relacao_unidade ||
+    dadosWizard?.relacao_unidade ||
+    "Não informado";
+
+  const perfilFormatado = String(perfil)
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letra) => letra.toUpperCase());
+
+  const tokenAuditoria = obterTokenAuditoria(dadosWizard);
+
   return {
-    nome:
+    condominio:
       condominio.nome_fantasia ||
       condominio.nome ||
       dadosWizard?.nome_condominio ||
       "Não informado",
-    cnpj: condominio.cnpj || dadosWizard?.cnpj || "Não informado",
-    endereco:
-      condominio.endereco ||
-      dadosWizard?.endereco ||
-      "Endereço não informado",
-    torre: pre.torre_nome || pre.torre || dadosWizard?.torre || "Não informado",
+    torre:
+      pre.torre_nome ||
+      pre.torre ||
+      pre.bloco_nome ||
+      pre.bloco ||
+      dadosWizard?.torre ||
+      "Não informado",
     unidade:
-      pre.unidade_nome || pre.unidade || dadosWizard?.unidade || "Não informado",
-    token:
-      dadosWizard?.token_publico ||
-      dadosWizard?.codigo_convite ||
-      dadosWizard?.token ||
-      "Token não informado",
+      pre.unidade_nome ||
+      pre.unidade ||
+      dadosWizard?.unidade ||
+      "Não informado",
+    perfil: perfilFormatado,
+    businessId: dadosWizard?.business_id || "Não informado",
+    condominioId: dadosWizard?.condominio_id || "Não informado",
+    token: mascararToken(tokenAuditoria),
+    tokenReal: tokenAuditoria,
   };
 }
 
 function montarPayloadTela2({ dadosWizard, formMorador, cpfPendenteValidacao }) {
+  const telefoneE164 = montarTelefoneE164({
+    ddi: formMorador.ddi || "+55",
+    numero: formMorador.whatsapp,
+  });
+
+  const nomeCompleto = formMorador.nomeCompleto?.trim() || "";
+  const nomeSocial = formMorador.nomeSocial?.trim() || "";
+
   return {
     pre_cadastro_id: dadosWizard?.pre_cadastro_id || null,
     business_id: dadosWizard?.business_id || null,
     condominio_id: dadosWizard?.condominio_id || null,
 
-    nome: formMorador.nomeCompleto?.trim(),
+    nome: nomeCompleto,
+    nome_social: nomeSocial || null,
+    nome_exibicao: nomeSocial || nomeCompleto,
+
     cpf: somenteNumeros(formMorador.cpf),
     cpf_formatado: formMorador.cpf,
     cpf_pendente_validacao: cpfPendenteValidacao,
 
     data_nascimento: formMorador.dataNascimento,
+    data_nascimento_iso: dataBrParaISO(formMorador.dataNascimento),
+    idade: calcularIdade(formMorador.dataNascimento),
+
     email: formMorador.emailPrincipal?.trim().toLowerCase(),
 
-    ddi: somenteNumeros(formMorador.ddi || "55"),
-    ddd: somenteNumeros(formMorador.ddd),
+    ddi: obterDDINumerico(formMorador.ddi || "+55"),
     whatsapp: somenteNumeros(formMorador.whatsapp),
+    telefone: telefoneE164,
+    whatsapp_e164: telefoneE164,
 
-    foto_perfil_base64: formMorador.fotoPerfilBase64 || null,
+    notificacao_push: Boolean(formMorador.notificacaoPush),
+    notificacao_whatsapp: Boolean(formMorador.notificacaoWhatsapp),
+    notificacao_email: Boolean(formMorador.notificacaoEmail),
+
+    foto_perfil_url: formMorador.fotoPerfilUrl || null,
+    foto_perfil_path: formMorador.fotoPerfilPath || null,
     foto_perfil_nome: formMorador.fotoPerfilNome || null,
+    foto_perfil_preview_base64: formMorador.fotoPerfilBase64 || null,
 
     etapa_atual: 2,
     atualizado_em: new Date().toISOString(),
   };
 }
+async function processarImagemLocal(file) {
+  const tiposPermitidos = [
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+  ];
+
+  if (!tiposPermitidos.includes(file.type)) {
+    throw new Error("Envie uma imagem PNG, JPG, HEIC ou WebP.");
+  }
+
+  if (file.size > LIMITE_UPLOAD_FOTO_BYTES) {
+    throw new Error(`A imagem deve ter no máximo ${LIMITE_UPLOAD_FOTO_MB}MB.`);
+  }
+
+  const dataUrlOriginal = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Não foi possível carregar a foto."));
+
+    reader.readAsDataURL(file);
+  });
+
+  const imagem = await new Promise((resolve, reject) => {
+    const img = new Image();
+
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Não foi possível processar a imagem."));
+
+    img.src = dataUrlOriginal;
+  });
+
+  const maxLado = 1024;
+  const proporcao = Math.min(maxLado / imagem.width, maxLado / imagem.height, 1);
+  const largura = Math.round(imagem.width * proporcao);
+  const altura = Math.round(imagem.height * proporcao);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = largura;
+  canvas.height = altura;
+
+  const ctx = canvas.getContext("2d", { alpha: false });
+  ctx.drawImage(imagem, 0, 0, largura, altura);
+
+  const webpBase64 = canvas.toDataURL("image/webp", 0.86);
+  const nomeBase = file.name.replace(/\.[^/.]+$/, "") || "foto-perfil";
+
+  return {
+    previewBase64: webpBase64,
+    nome: `${nomeBase}.webp`,
+    mime: "image/webp",
+    tamanhoEstimado: Math.round((webpBase64.length * 3) / 4),
+  };
+}
 
 export default function WizardMoradorTela2({
   dadosWizard,
+  formTela1,
   formMorador,
   setFormMorador,
   onBack,
@@ -144,16 +357,39 @@ export default function WizardMoradorTela2({
   onSaveDraft,
   onCancel,
 }) {
+
+  const inputFotoGaleriaRef = useRef(null);
+  const inputFotoCameraRef = useRef(null);
+  const inputDataRef = useRef(null);
+
+  const ehMobile =
+    /Android|iPhone|iPad|iPod|Mobile/i.test(
+      navigator.userAgent
+    );
+
   const [camposInvalidos, setCamposInvalidos] = useState({});
   const [tentativasCpfInvalidas, setTentativasCpfInvalidas] = useState(0);
   const [cpfPendenteValidacao, setCpfPendenteValidacao] = useState(false);
+  const [processandoFoto, setProcessandoFoto] = useState(false);
 
-  const condominio = useMemo(
-    () => obterDadosCondominio(dadosWizard),
-    [dadosWizard]
+  const unidade = useMemo(
+    () => obterDadosUnidade(dadosWizard, formTela1),
+    [dadosWizard, formTela1]
   );
 
   function atualizarCampo(campo, valor) {
+    setFormMorador((old) => ({
+      ...old,
+      [campo]: valor,
+    }));
+
+    setCamposInvalidos((old) => ({
+      ...old,
+      [campo]: false,
+    }));
+  }
+
+  function atualizarNotificacao(campo, valor) {
     setFormMorador((old) => ({
       ...old,
       [campo]: valor,
@@ -164,33 +400,59 @@ export default function WizardMoradorTela2({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const tiposPermitidos = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    try {
+      setProcessandoFoto(true);
 
-    if (!tiposPermitidos.includes(file.type)) {
-      toast.error("Envie uma imagem PNG, JPG ou WebP.");
-      return;
+      const foto = await processarImagemLocal(file);
+
+      atualizarCampo("fotoPerfilBase64", foto.previewBase64);
+      atualizarCampo("fotoPerfilNome", foto.nome);
+      atualizarCampo("fotoPerfilMime", foto.mime);
+      atualizarCampo("fotoPerfilTamanho", foto.tamanhoEstimado);
+
+      toast.success("Foto otimizada com sucesso.");
+    } catch (error) {
+      toast.error(error.message || "Não foi possível processar a foto.");
+    } finally {
+      setProcessandoFoto(false);
+      if (event.target) event.target.value = "";
     }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("A imagem deve ter no máximo 5MB.");
-      return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      atualizarCampo("fotoPerfilBase64", reader.result);
-      atualizarCampo("fotoPerfilNome", file.name);
-    };
-
-    reader.onerror = () => {
-      toast.error("Não foi possível carregar a foto.");
-    };
-
-    reader.readAsDataURL(file);
   }
 
-  function validarTela2() {
+  function salvarEtapaLocalAntesFoto() {
+    try {
+      sessionStorage.setItem(
+        "wizard_morador_etapa_atual",
+        "2"
+      );
+    } catch (error) {
+      console.warn(error);
+    }
+  }
+
+  function removerFoto() {
+    atualizarCampo("fotoPerfilBase64", "");
+    atualizarCampo("fotoPerfilNome", "");
+    atualizarCampo("fotoPerfilMime", "");
+    atualizarCampo("fotoPerfilTamanho", "");
+    atualizarCampo("fotoPerfilUrl", "");
+    atualizarCampo("fotoPerfilPath", "");
+  }
+
+  function abrirCalendario() {
+    const input = inputDataRef.current;
+
+    if (!input) return;
+
+    if (typeof input.showPicker === "function") {
+      input.showPicker();
+      return;
+    }
+
+    input.focus();
+    input.click();
+  }
+    function validarTela2() {
     const invalidos = {};
 
     if (!formMorador.nomeCompleto?.trim()) {
@@ -219,29 +481,41 @@ export default function WizardMoradorTela2({
     if (!formMorador.dataNascimento?.trim()) {
       invalidos.dataNascimento = true;
       toast.error("Informe sua data de nascimento.");
+    } else if (!validarDataNascimento(formMorador.dataNascimento)) {
+      invalidos.dataNascimento = true;
+      toast.error("Informe uma data de nascimento válida.");
+    } else if ((calcularIdade(formMorador.dataNascimento) || 0) < 18) {
+      invalidos.dataNascimento = true;
+      toast.error(
+        "O cadastro principal do morador responsável exige idade mínima de 18 anos. Dependentes devem ser cadastrados na etapa de dependentes."
+      );
     }
 
     if (!formMorador.emailPrincipal?.trim()) {
       invalidos.emailPrincipal = true;
-      toast.error("Informe seu e-mail.");
+      toast.error("Informe seu e-mail principal.");
     } else if (!validarEmail(formMorador.emailPrincipal)) {
       invalidos.emailPrincipal = true;
       toast.error("Informe um e-mail válido.");
     }
 
-    if (!somenteNumeros(formMorador.ddi || "55")) {
+    const ddi = obterDDINumerico(formMorador.ddi || "+55");
+    const whatsapp = somenteNumeros(formMorador.whatsapp);
+
+    if (!ddi) {
       invalidos.ddi = true;
       toast.error("Informe o DDI.");
     }
 
-    if (!somenteNumeros(formMorador.ddd)) {
-      invalidos.ddd = true;
-      toast.error("Informe o DDD.");
-    }
-
-    if (!somenteNumeros(formMorador.whatsapp)) {
+    if (!whatsapp) {
       invalidos.whatsapp = true;
-      toast.error("Informe o número do WhatsApp.");
+      toast.error("Informe seu WhatsApp principal.");
+    } else if (ddi === "55" && whatsapp.length < 10) {
+      invalidos.whatsapp = true;
+      toast.error("Informe um WhatsApp válido com DDD.");
+    } else if (ddi !== "55" && whatsapp.length < 6) {
+      invalidos.whatsapp = true;
+      toast.error("Informe um telefone internacional válido.");
     }
 
     setCamposInvalidos(invalidos);
@@ -274,280 +548,307 @@ export default function WizardMoradorTela2({
     }
   }
 
-  function copiarToken() {
-    navigator.clipboard?.writeText(condominio.token);
-    toast.success("Token do convite copiado.");
-  }
-
   return (
-    <>
-      <div className="wm-t2-grid">
-        <section className="wm-t2-main">
-          <section className="wm-t2-card wm-t2-condominio">
-            <div className="wm-t2-card-head">
-              <span className="wm-t2-icon">
-                <Building2 size={26} />
-              </span>
+    <div className="wm-t2-page">
+      <section className="wm-t2-card">
+        <header className="wm-t2-title">
+          <span className="wm-t2-title-icon">
+            <UserRound size={23} />
+          </span>
 
-              <div>
-                <h1>Dados do Condomínio</h1>
-                <p>Confira os dados da sua unidade.</p>
-              </div>
+          <div>
+            <h1>2. Dados Pessoais do Morador Responsável</h1>
+            <p>
+              Informe seus dados principais. Eles serão usados para identificação,
+              acesso e comunicação dentro do Sistema Chegou<span className="wm-orange">!</span>.
+            </p>
+          </div>
+        </header>
 
-              <div className="wm-t2-token">
-                <small>Token do Convite</small>
-                <strong>{condominio.token}</strong>
-                <button type="button" onClick={copiarToken} aria-label="Copiar token">
-                  <Copy size={16} />
-                </button>
-              </div>
-            </div>
+        <div className="wm-t2-divider" />
 
-            <div className="wm-t2-cond-grid">
-              <InfoLine icon={<Building2 />} label="Condomínio" value={condominio.nome} />
-              <InfoLine icon={<IdCard />} label="CNPJ" value={condominio.cnpj} />
-              <InfoLine icon={<MapPin />} label="Endereço" value={condominio.endereco} />
-              <InfoLine icon={<Building2 />} label="Torre / Bloco" value={condominio.torre} />
-              <InfoLine icon={<Phone />} label="Unidade" value={condominio.unidade} />
-            </div>
-
-            <div className="wm-t2-blue-note">
-              <Info size={18} />
-              <span>
-                Este cadastro ativa seu acesso ao Sistema Chegou<span className="wm-orange">!</span> para receber notificações,
-                acompanhar encomendas e autorizar retiradas com segurança.
-              </span>
-            </div>
-          </section>
-
-          <section className="wm-t2-card">
-            <div className="wm-t2-card-head simple">
-              <span className="wm-t2-icon">
-                <UserRound size={26} />
-              </span>
-
-              <div>
-                <h1>Seus dados pessoais</h1>
-                <p>Revise e mantenha seus dados sempre atualizados.</p>
-              </div>
-            </div>
-
-            <div className="wm-t2-form-layout">
-              <aside className="wm-t2-photo-card">
-                <span>Foto de perfil (opcional)</span>
-
-                <div className="wm-t2-photo-preview">
-                  {formMorador.fotoPerfilBase64 ? (
-                    <img src={formMorador.fotoPerfilBase64} alt="Foto do perfil" />
-                  ) : (
-                    <UserRound size={58} />
-                  )}
-                </div>
-
-                <label className="wm-t2-upload-btn">
-                  <Upload size={17} />
-                  Escolher foto
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    onChange={selecionarFoto}
-                  />
-                </label>
-
-                <p>Formatos: JPG, PNG ou WebP<br />Tamanho máx.: 5MB</p>
-
-                {formMorador.fotoPerfilBase64 ? (
-                  <button
-                    type="button"
-                    className="wm-t2-remove-photo"
-                    onClick={() => {
-                      atualizarCampo("fotoPerfilBase64", "");
-                      atualizarCampo("fotoPerfilNome", "");
-                    }}
-                  >
-                    Remover foto
-                  </button>
-                ) : null}
-              </aside>
-
-              <div className="wm-t2-fields">
-                <FieldText
-                  label="Nome completo *"
-                  value={formMorador.nomeCompleto}
-                  onChange={(v) => atualizarCampo("nomeCompleto", capitalizarNome(v))}
-                  invalid={camposInvalidos.nomeCompleto}
-                  icon={<UserRound size={17} />}
-                />
-
-                <div className="wm-t2-two-cols">
-                  <FieldText
-                    label="CPF *"
-                    value={formMorador.cpf}
-                    onChange={(v) => atualizarCampo("cpf", formatarCpf(v))}
-                    invalid={camposInvalidos.cpf}
-                    icon={<IdCard size={17} />}
-                    inputMode="numeric"
-                    helper={
-                      cpfPendenteValidacao
-                        ? "CPF pendente de auditoria administrativa."
-                        : validarCpf(formMorador.cpf)
-                          ? "CPF válido"
-                          : ""
-                    }
-                  />
-
-                  <FieldText
-                    label="Data de nascimento *"
-                    value={formMorador.dataNascimento}
-                    onChange={(v) => atualizarCampo("dataNascimento", formatarData(v))}
-                    invalid={camposInvalidos.dataNascimento}
-                    icon={<CalendarDays size={17} />}
-                    inputMode="numeric"
-                  />
-                </div>
-
-                <div className="wm-t2-contact-grid">
-                  <div className="wm-t2-contact-fields">
-                    <FieldText
-                      label="E-mail *"
-                      value={formMorador.emailPrincipal}
-                      onChange={(v) => atualizarCampo("emailPrincipal", v.toLowerCase())}
-                      invalid={camposInvalidos.emailPrincipal}
-                      icon={<Mail size={17} />}
-                      badge={validarEmail(formMorador.emailPrincipal) ? "Contato validado" : ""}
-                    />
-
-                    <div className="wm-t2-phone-row">
-                      <FieldText
-                        label="DDI"
-                        value={formMorador.ddi || "55"}
-                        onChange={(v) => atualizarCampo("ddi", somenteNumeros(v).slice(0, 3))}
-                        invalid={camposInvalidos.ddi}
-                        inputMode="numeric"
-                      />
-
-                      <FieldText
-                        label="DDD"
-                        value={formMorador.ddd}
-                        onChange={(v) => atualizarCampo("ddd", somenteNumeros(v).slice(0, 2))}
-                        invalid={camposInvalidos.ddd}
-                        inputMode="numeric"
-                      />
-
-                      <FieldText
-                        label="Número"
-                        value={formMorador.whatsapp}
-                        onChange={(v) => atualizarCampo("whatsapp", somenteNumeros(v).slice(0, 9))}
-                        invalid={camposInvalidos.whatsapp}
-                        icon={<Phone size={17} />}
-                        inputMode="numeric"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="wm-t2-contact-alerts">
-                    <div className="wm-t2-warning">
-                      <Info size={17} />
-                      <span>
-                        <strong>Atenção:</strong> o e-mail informado será utilizado para comunicações importantes
-                        e recuperação de acesso.
-                      </span>
-                    </div>
-
-                    <div className="wm-t2-warning">
-                      <Info size={17} />
-                      <span>
-                        <strong>Atenção:</strong> o WhatsApp será usado para notificações de encomendas quando habilitado.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="wm-t2-blue-note">
-              <ShieldCheck size={18} />
-              <span>
-                Seu CPF poderá ser utilizado como forma alternativa de acesso seguro em caso de esquecimento
-                do e-mail cadastrado, conforme as políticas de autenticação do condomínio e do Sistema
-                Chegou<span className="wm-orange">!</span>.
-              </span>
-            </div>
-          </section>
-
-          <footer className="wm-t2-actions">
-            <button type="button" className="wm-t2-btn secondary" onClick={onBack}>
-              <ArrowLeft size={18} />
-              Voltar
-            </button>
-
-            <button type="button" className="wm-t2-btn danger" onClick={onCancel}>
-              <X size={18} />
-              Sair do cadastro
-            </button>
-
-            <button type="button" className="wm-t2-btn outline" onClick={salvarRascunho}>
-              <Save size={18} />
-              Salvar e continuar depois
-            </button>
-
-            <button type="button" className="wm-t2-btn primary" onClick={avancar}>
-              Continuar
-              <ArrowRight size={20} />
-            </button>
-          </footer>
-        </section>
-
-        <aside className="wm-t2-side">
-          <SideCard
-            icon={<ShieldCheck />}
-            title="Validação e Segurança"
-            items={[
-              "CPF validado",
-              "Formato de e-mail verificado",
-              "Contato em análise pelo sistema",
-              "Dados sujeitos à auditoria administrativa",
-            ]}
+        <section className="wm-t2-unit-card">
+          <InfoCard
+            icon={<Building2 size={21} />}
+            title="Unidade selecionada"
+            lines={[`${unidade.torre} • ${unidade.unidade}`, `Perfil: ${unidade.perfil}`]}
           />
 
-          <section className="wm-t2-side-card">
-            <span className="wm-t2-side-icon">
-              <ShieldCheck size={23} />
-            </span>
+          <InfoCard icon={<Building2 size={21} />} title="Condomínio" lines={[unidade.condominio]} />
 
-            <h3>Importante</h3>
-            <p>
-              Seu CPF poderá ser utilizado como forma alternativa de login seguro em caso
-              de esquecimento do e-mail cadastrado.
-            </p>
-          </section>
+          <InfoCard icon={<ShieldCheck size={21} />} title="ID Business" lines={[unidade.businessId]} />
 
-          <section className="wm-t2-side-card">
-            <span className="wm-t2-side-icon">
-              <Camera size={23} />
-            </span>
+          <InfoCard icon={<IdCard size={21} />} title="Token" lines={[unidade.token]} />
+        </section>
 
-            <h3>Boas práticas</h3>
-            <ul>
-              <li>Use dados reais e atualizados.</li>
-              <li>Mantenha seu e-mail e WhatsApp sempre válidos.</li>
-              <li>A foto de perfil ajuda na identificação administrativa.</li>
-              <li>Alterações poderão passar por auditoria.</li>
-            </ul>
-          </section>
-        </aside>
-      </div>
-    </>
+        <section className="wm-t2-section">
+          <div className="wm-t2-section-head">
+            <h2>Dados pessoais</h2>
+            <p>Use informações reais, atualizadas e de uso frequente.</p>
+          </div>
+
+          <div className="wm-t2-form-grid">
+            <FieldText
+              label="Nome Completo *"
+              value={formMorador.nomeCompleto}
+              onChange={(v) => atualizarCampo("nomeCompleto", capitalizarNome(v))}
+              invalid={camposInvalidos.nomeCompleto}
+              icon={<UserRound size={16} />}
+              placeholder="Digite seu nome completo"
+            />
+
+            <FieldText
+              label="Nome Social (opcional)"
+              value={formMorador.nomeSocial}
+              onChange={(v) => atualizarCampo("nomeSocial", capitalizarNome(v))}
+              icon={<UserRound size={16} />}
+              placeholder="Como deseja ser chamado(a)"
+              helper="Se preenchido, será priorizado na experiência do sistema."
+            />
+
+            <FieldText
+              label="CPF *"
+              value={formMorador.cpf}
+              onChange={(v) => atualizarCampo("cpf", formatarCpf(v))}
+              invalid={camposInvalidos.cpf}
+              icon={<IdCard size={16} />}
+              inputMode="numeric"
+              placeholder="000.000.000-00"
+              helper={
+                cpfPendenteValidacao
+                  ? "CPF pendente de auditoria administrativa."
+                  : validarCpf(formMorador.cpf)
+                    ? "CPF válido"
+                    : "Validação matemática obrigatória."
+              }
+            />
+
+            <FieldDate
+              label="Data de Nascimento *"
+              value={formMorador.dataNascimento}
+              onChange={(v) => atualizarCampo("dataNascimento", v)}
+              invalid={camposInvalidos.dataNascimento}
+              inputRef={inputDataRef}
+              onOpenCalendar={abrirCalendario}
+            />
+          </div>
+        </section>
+
+        <section className="wm-t2-section wm-t2-contact-photo-section">
+          <div className="wm-t2-contact-photo-grid">
+            <div>
+              <div className="wm-t2-section-head">
+                <h2>Contatos e notificações</h2>
+                <p>
+                  Informe e-mail e WhatsApp que você utiliza no dia a dia. Esses contatos serão usados
+                  para avisos importantes do condomínio e notificações do Sistema Chegou<span className="wm-orange">!</span>.
+                </p>
+              </div>
+
+              <div className="wm-t2-contact-grid">
+                <FieldText
+                  label="E-mail principal *"
+                  value={formMorador.emailPrincipal}
+                  onChange={(v) => atualizarCampo("emailPrincipal", v.toLowerCase())}
+                  invalid={camposInvalidos.emailPrincipal}
+                  icon={<Mail size={16} />}
+                  inputMode="email"
+                  placeholder="seuemail@email.com"
+                  helper={validarEmail(formMorador.emailPrincipal) ? "E-mail em formato válido." : ""}
+                />
+
+                <div className="wm-t2-phone-group">
+                  <FieldText
+                    label="DDI *"
+                    value={formMorador.ddi || "+55"}
+                    onChange={(v) => {
+                      const novoDDI = normalizarDDI(v);
+                      atualizarCampo("ddi", novoDDI);
+                      atualizarCampo(
+                        "whatsapp",
+                        formatarTelefoneInternacional({
+                          ddi: novoDDI,
+                          numero: formMorador.whatsapp,
+                        })
+                      );
+                    }}
+                    invalid={camposInvalidos.ddi}
+                    inputMode="tel"
+                    placeholder="+55"
+                  />
+
+                  <FieldText
+                    label="WhatsApp principal *"
+                    value={formMorador.whatsapp}
+                    onChange={(v) =>
+                      atualizarCampo(
+                        "whatsapp",
+                        formatarTelefoneInternacional({
+                          ddi: formMorador.ddi || "+55",
+                          numero: v,
+                        })
+                      )
+                    }
+                    invalid={camposInvalidos.whatsapp}
+                    icon={<Phone size={16} />}
+                    inputMode="tel"
+                    placeholder="(11) 99999-9999"
+                  />
+                </div>
+              </div>
+
+              <div className="wm-t2-notification-card">
+                <strong>Receber notificações via:</strong>
+
+                <div className="wm-t2-checks">
+                  <CheckOption
+                    label="Push"
+                    checked={formMorador.notificacaoPush}
+                    onChange={(v) => atualizarNotificacao("notificacaoPush", v)}
+                  />
+
+                  <CheckOption
+                    label="WhatsApp"
+                    checked={formMorador.notificacaoWhatsapp}
+                    onChange={(v) => atualizarNotificacao("notificacaoWhatsapp", v)}
+                  />
+
+                  <CheckOption
+                    label="E-mail"
+                    checked={formMorador.notificacaoEmail}
+                    onChange={(v) => atualizarNotificacao("notificacaoEmail", v)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <section className="wm-t2-photo-card">
+              <div className="wm-t2-photo-preview">
+                {formMorador.fotoPerfilBase64 ? (
+                  <img src={formMorador.fotoPerfilBase64} alt="Foto do perfil" />
+                ) : (
+                  <UserRound size={38} />
+                )}
+              </div>
+
+              <div className="wm-t2-photo-info">
+                <strong>Foto de perfil (opcional)</strong>
+                <span>Ajuda na identificação administrativa e em validações operacionais futuras.</span>
+                <span>JPG, PNG, HEIC ou WebP até 5MB. Otimização automática para WebP.</span>
+
+                <div className="wm-t2-photo-actions">
+                  <button
+                    type="button"
+                    className="wm-t2-btn outline small"
+                    onClick={() => {
+                      salvarEtapaLocalAntesFoto();
+                      inputFotoGaleriaRef.current?.click();
+                    }}
+                    disabled={processandoFoto}
+                  >
+                    <Upload size={15} />
+                    {processandoFoto ? "Processando..." : "Galeria"}
+                  </button>
+
+                  {ehMobile && (
+                    <button
+                      type="button"
+                      className="wm-t2-btn outline small"
+                      onClick={() => {
+                        salvarEtapaLocalAntesFoto();
+                        inputFotoCameraRef.current?.click();
+                      }}
+                      disabled={processandoFoto}
+                    >
+                      <UserRound size={15} />
+                      Câmera
+                    </button>
+                  )}
+
+                  {formMorador.fotoPerfilBase64 ? (
+                    <button type="button" className="wm-t2-btn secondary small" onClick={removerFoto}>
+                      Remover
+                    </button>
+                  ) : null}
+
+                  <input
+                    ref={inputFotoGaleriaRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/heic,image/heif"
+                    onChange={selecionarFoto}
+                    hidden
+                  />
+
+                  <input
+                    ref={inputFotoCameraRef}
+                    type="file"
+                    accept="image/*"
+                    capture="user"
+                    onChange={selecionarFoto}
+                    hidden
+                  />
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section className="wm-t2-good-practices">
+          <PracticeCard
+            icon={<ShieldCheck size={20} />}
+            title="Validação e auditoria"
+            text="CPF, e-mail e WhatsApp ajudam na validação do cadastro e na segurança do acesso."
+          />
+
+          <PracticeCard
+            icon={<Mail size={20} />}
+            title="Contato principal"
+            text="Use contatos acessados com frequência para receber avisos importantes sem atrasos."
+          />
+
+          <PracticeCard
+            icon={<Info size={20} />}
+            title="Privacidade"
+            text="Os dados serão usados para gestão condominial, segurança e comunicação operacional."
+          />
+        </section>
+
+        <footer className="wm-t2-actions">
+          <button type="button" className="wm-t2-btn secondary" onClick={onBack}>
+            <ArrowLeft size={16} />
+            Voltar
+          </button>
+
+          <button type="button" className="wm-t2-btn danger" onClick={onCancel}>
+            <X size={16} />
+            Sair do cadastro
+          </button>
+
+          <button type="button" className="wm-t2-btn outline" onClick={salvarRascunho}>
+            <Save size={16} />
+            Salvar e continuar depois
+          </button>
+
+          <button type="button" className="wm-t2-btn primary" onClick={avancar}>
+            Continuar
+            <ArrowRight size={18} />
+          </button>
+        </footer>
+      </section>
+    </div>
   );
 }
 
-function InfoLine({ icon, label, value }) {
+function InfoCard({ icon, title, lines = [] }) {
   return (
-    <div className="wm-t2-info-line">
-      {icon}
+    <div className="wm-t2-info-card">
+      <span>{icon}</span>
+
       <div>
-        <span>{label}</span>
-        <strong>{value || "Não informado"}</strong>
+        <strong>{title}</strong>
+        {lines.map((line) => (
+          <small key={line}>{line || "Não informado"}</small>
+        ))}
       </div>
     </div>
   );
@@ -561,30 +862,27 @@ function FieldText({
   icon,
   inputMode,
   helper,
-  badge,
+  placeholder,
 }) {
-  const autocompleteHint = "new-password";
-
   return (
     <label className="wm-t2-field">
       <span>{label}</span>
 
       <div className={`wm-t2-input ${invalid ? "invalid" : ""}`}>
-        {icon}
+        {icon ? <i>{icon}</i> : null}
 
         <input
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           inputMode={inputMode}
-          autoComplete={autocompleteHint}
+          placeholder={placeholder}
+          autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
           data-lpignore="true"
           data-form-type="other"
         />
-
-        {badge ? <em>{badge}</em> : null}
       </div>
 
       {helper ? (
@@ -596,21 +894,69 @@ function FieldText({
   );
 }
 
-function SideCard({ icon, title, items }) {
+function FieldDate({ label, value, onChange, invalid, inputRef, onOpenCalendar }) {
+  const iso = dataBrParaISO(value) || "";
+
   return (
-    <section className="wm-t2-side-card">
-      <span className="wm-t2-side-icon">{icon}</span>
+    <label className="wm-t2-field">
+      <span>{label}</span>
 
-      <h3>{title}</h3>
+      <div className={`wm-t2-input ${invalid ? "invalid" : ""}`}>
+        <i>
+          <CalendarDays size={16} />
+        </i>
 
-      <ul>
-        {items.map((item) => (
-          <li key={item}>
-            <Check size={15} />
-            {item}
-          </li>
-        ))}
-      </ul>
-    </section>
+        <input
+          value={value || ""}
+          onChange={(e) => onChange(formatarData(e.target.value))}
+          inputMode="numeric"
+          placeholder="DD/MM/AAAA"
+          autoComplete="off"
+        />
+
+        <button
+          type="button"
+          className="wm-t2-calendar-btn"
+          onClick={onOpenCalendar}
+          aria-label="Abrir calendário"
+        >
+          <CalendarDays size={16} />
+        </button>
+
+        <input
+          ref={inputRef}
+          type="date"
+          className="wm-t2-date-native"
+          value={iso}
+          onChange={(e) => onChange(dataISOParaBR(e.target.value))}
+          aria-label="Selecionar data"
+        />
+      </div>
+    </label>
+  );
+}
+
+function CheckOption({ label, checked, onChange }) {
+  return (
+    <label className="wm-t2-check-option">
+      <input
+        type="checkbox"
+        checked={Boolean(checked)}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+function PracticeCard({ icon, title, text }) {
+  return (
+    <article className="wm-t2-practice-card">
+      <span>{icon}</span>
+      <div>
+        <strong>{title}</strong>
+        <p>{text}</p>
+      </div>
+    </article>
   );
 }

@@ -1,0 +1,908 @@
+/* =========================================================
+   WIZARD MORADOR - TELA 2
+   DADOS PESSOAIS PREMIUM
+========================================================= */
+
+.wm-t2-page {
+  width: 100%;
+}
+
+.wm-t2-card {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 22px;
+}
+
+.wm-t2-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.wm-t2-title-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+  background: #fff3e8;
+  color: #ff7900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wm-t2-title h1 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.12;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #0f172a;
+}
+
+.wm-t2-title p {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #64748b;
+  max-width: 780px;
+}
+
+.wm-orange {
+  color: #ff7900;
+}
+
+.wm-t2-divider {
+  height: 1px;
+  background: #e5eaf3;
+  margin: 0 0 20px;
+}
+
+/* =========================
+   CARD SUPERIOR
+========================= */
+
+.wm-t2-unit-card {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.wm-t2-info-card {
+  min-height: 92px;
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid #dbe5f0;
+  background: linear-gradient(180deg, #fbfdff 0%, #f4f8ff 100%);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.wm-t2-info-card > span {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: #eaf2ff;
+  color: #0648d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wm-t2-info-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.wm-t2-info-card strong {
+  font-size: 12px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t2-info-card small {
+  font-size: 10px;
+  line-height: 1.45;
+  color: #64748b;
+  font-weight: 700;
+}
+
+/* =========================
+   SEÇÕES
+========================= */
+
+.wm-t2-section {
+  margin-bottom: 26px;
+}
+
+.wm-t2-section-head {
+  margin-bottom: 14px;
+}
+
+.wm-t2-section-head h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.wm-t2-section-head p {
+  margin: 7px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #64748b;
+  max-width: 760px;
+}
+/* =========================
+   FORMULÁRIO
+========================= */
+
+.wm-t2-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.wm-t2-contact-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+}
+
+.wm-t2-phone-group {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+}
+
+.wm-t2-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wm-t2-field > span {
+  font-size: 10px;
+  font-weight: 800;
+  color: #475569;
+}
+
+.wm-t2-input {
+  position: relative;
+  min-height: 52px;
+  border-radius: 16px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  transition: 0.18s ease;
+}
+
+.wm-t2-input:hover {
+  border-color: #cbd5e1;
+}
+
+.wm-t2-input:focus-within {
+  border-color: #0648d8;
+  box-shadow: 0 0 0 4px rgba(6, 72, 216, 0.08);
+}
+
+.wm-t2-input.invalid {
+  border-color: rgba(255, 121, 0, 0.6);
+  box-shadow: 0 0 0 4px rgba(255, 121, 0, 0.08);
+}
+
+.wm-t2-input i {
+  color: #0648d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wm-t2-input input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.wm-t2-input input::placeholder {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.wm-t2-field small {
+  font-size: 10px;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+.wm-t2-field small.ok {
+  color: #16a34a;
+}
+
+.wm-t2-field small.warning {
+  color: #f59e0b;
+}
+
+/* =========================
+   DATE PICKER PREMIUM
+========================= */
+
+.wm-t2-date-native {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.wm-t2-input input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+/* =========================
+   NOTIFICAÇÕES
+========================= */
+
+.wm-t2-notification-card {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fbfdff 0%, #f5f9ff 100%);
+  border: 1px solid #dbe5f0;
+}
+
+.wm-t2-notification-card strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.wm-t2-checks {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.wm-t2-check-option {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.wm-t2-check-option input {
+  accent-color: #ff7900;
+}
+
+.wm-t2-check-option span {
+  font-size: 11px;
+  font-weight: 800;
+  color: #334155;
+}
+/* =========================
+   FOTO DE PERFIL
+========================= */
+
+.wm-t2-photo-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid #dbe5f0;
+  background: linear-gradient(180deg, #fbfdff 0%, #f5f9ff 100%);
+}
+
+.wm-t2-photo-preview {
+  width: 108px;
+  height: 108px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #eef4ff 0%, #e6efff 100%);
+  border: 1px solid #d6e3fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0648d8;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.wm-t2-photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wm-t2-photo-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.wm-t2-photo-info strong {
+  font-size: 13px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t2-photo-info span {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wm-t2-photo-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+/* =========================
+   BOAS PRÁTICAS
+========================= */
+
+.wm-t2-good-practices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.wm-t2-practice-card {
+  border-radius: 20px;
+  padding: 18px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.wm-t2-practice-card > span {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: #fff3e8;
+  color: #ff7900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wm-t2-practice-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wm-t2-practice-card strong {
+  font-size: 12px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t2-practice-card p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.55;
+  color: #64748b;
+  font-weight: 700;
+}
+
+/* =========================
+   BOTÕES
+========================= */
+
+.wm-t2-actions {
+  margin-top: 26px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.wm-t2-btn {
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 18px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t2-btn.small {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 11px;
+}
+
+.wm-t2-btn.primary {
+  background: linear-gradient(135deg, #ff9a00 0%, #ff7900 100%);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(255, 121, 0, 0.26);
+}
+
+.wm-t2-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(255, 121, 0, 0.34);
+}
+
+.wm-t2-btn.secondary {
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  color: #475569;
+}
+
+.wm-t2-btn.outline {
+  background: #eef4ff;
+  border: 1px solid #d6e3fb;
+  color: #0648d8;
+}
+
+.wm-t2-btn.danger {
+  background: #ffffff;
+  border: 1px solid #ffd8cc;
+  color: #ea580c;
+}
+/* =========================
+   RESPONSIVO PREMIUM
+========================= */
+
+@media (max-width: 1280px) {
+  .wm-t2-unit-card {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-good-practices {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .wm-t2-title h1 {
+    font-size: 18px;
+  }
+
+  .wm-t2-title p {
+    font-size: 11px;
+  }
+
+  .wm-t2-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-phone-group {
+    grid-template-columns: 110px 1fr;
+  }
+
+  .wm-t2-photo-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .wm-t2-photo-preview {
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+  }
+
+  .wm-t2-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .wm-t2-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .wm-t2-title {
+    gap: 11px;
+  }
+
+  .wm-t2-title-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+  }
+
+  .wm-t2-title h1 {
+    font-size: 17px;
+  }
+
+  .wm-t2-unit-card {
+    gap: 10px;
+  }
+
+  .wm-t2-info-card {
+    min-height: auto;
+    padding: 14px;
+  }
+
+  .wm-t2-info-card strong {
+    font-size: 12px;
+  }
+
+  .wm-t2-info-card small {
+    font-size: 10px;
+  }
+
+  .wm-t2-phone-group {
+    grid-template-columns: 92px 1fr;
+    gap: 10px;
+  }
+
+  .wm-t2-input {
+    min-height: 50px;
+    border-radius: 15px;
+  }
+
+  .wm-t2-input input {
+    font-size: 16px; /* evita zoom iOS */
+  }
+
+  .wm-t2-checks {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wm-t2-check-option {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .wm-t2-photo-row {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .wm-t2-photo-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .wm-t2-btn.small {
+    width: 100%;
+  }
+
+  .wm-t2-practice-card {
+    padding: 14px;
+    border-radius: 18px;
+  }
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (min-width: 561px) and (max-width: 1024px) {
+  .wm-t2-good-practices {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* =========================
+   DARK MODE
+========================= */
+
+[data-theme="dark"] .wm-t2-card {
+  background: #0f172a;
+}
+
+[data-theme="dark"] .wm-t2-title h1,
+[data-theme="dark"] .wm-t2-section-head h2,
+[data-theme="dark"] .wm-t2-info-card strong,
+[data-theme="dark"] .wm-t2-practice-card strong,
+[data-theme="dark"] .wm-t2-field > span,
+[data-theme="dark"] .wm-t2-notification-card strong {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .wm-t2-title p,
+[data-theme="dark"] .wm-t2-section-head p,
+[data-theme="dark"] .wm-t2-info-card small,
+[data-theme="dark"] .wm-t2-photo-info span,
+[data-theme="dark"] .wm-t2-practice-card p {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .wm-t2-divider {
+  background: #1e293b;
+}
+
+[data-theme="dark"] .wm-t2-info-card,
+[data-theme="dark"] .wm-t2-notification-card,
+[data-theme="dark"] .wm-t2-photo-row,
+[data-theme="dark"] .wm-t2-practice-card {
+  background: #111827;
+  border-color: #1e293b;
+}
+
+[data-theme="dark"] .wm-t2-input {
+  background: #111827;
+  border-color: #1e293b;
+}
+
+[data-theme="dark"] .wm-t2-input input {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .wm-t2-check-option {
+  background: #111827;
+  border-color: #1e293b;
+}
+
+[data-theme="dark"] .wm-t2-check-option span {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .wm-t2-btn.secondary {
+  background: #111827;
+  border-color: #1e293b;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .wm-t2-btn.danger {
+  background: #111827;
+}
+/* =========================================================
+   PATCH FINAL - TELA 2
+   Contato + notificações + foto + date picker
+========================================================= */
+
+.wm-t2-unit-card {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.wm-t2-contact-photo-section {
+  margin-bottom: 24px;
+}
+
+.wm-t2-contact-photo-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.wm-t2-photo-card {
+  border-radius: 20px;
+  border: 1px solid #dbe5f0;
+  background: linear-gradient(180deg, #fbfdff 0%, #f5f9ff 100%);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.wm-t2-photo-card .wm-t2-photo-preview {
+  margin-bottom: 14px;
+}
+
+.wm-t2-photo-card .wm-t2-photo-info {
+  align-items: center;
+}
+
+.wm-t2-photo-card .wm-t2-photo-actions {
+  justify-content: center;
+}
+
+.wm-t2-notification-card {
+  margin-top: 16px;
+}
+
+.wm-t2-checks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wm-t2-check-option {
+  justify-content: center;
+  min-width: 0;
+}
+
+.wm-t2-calendar-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 12px;
+  background: #eef4ff;
+  color: #0648d8;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.wm-t2-date-native {
+  position: absolute;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Desktop/tablet médio */
+@media (max-width: 1280px) {
+  .wm-t2-unit-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wm-t2-contact-photo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-photo-card {
+    flex-direction: row;
+    text-align: left;
+    align-items: center;
+  }
+
+  .wm-t2-photo-card .wm-t2-photo-preview {
+    margin-bottom: 0;
+  }
+
+  .wm-t2-photo-card .wm-t2-photo-info {
+    align-items: flex-start;
+  }
+
+  .wm-t2-photo-card .wm-t2-photo-actions {
+    justify-content: flex-start;
+  }
+}
+
+/* Mobile */
+@media (max-width: 560px) {
+  .wm-t2-unit-card {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-contact-photo-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .wm-t2-photo-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .wm-t2-photo-card .wm-t2-photo-info {
+    align-items: center;
+  }
+
+  .wm-t2-photo-card .wm-t2-photo-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wm-t2-checks {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .wm-t2-check-option {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 8px;
+    justify-content: center;
+  }
+
+  .wm-t2-check-option span {
+    font-size: 10px;
+  }
+
+  .wm-t2-calendar-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .wm-t2-date-native {
+    right: 10px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Dark mode */
+[data-theme="dark"] .wm-t2-photo-card {
+  background: #111827;
+  border-color: #1e293b;
+}
+
+[data-theme="dark"] .wm-t2-calendar-btn {
+  background: rgba(6, 72, 216, 0.16);
+  color: #93c5fd;
+}
+/* PATCH - organizar contatos/notificações Tela 2 */
+
+.wm-t2-contact-photo-grid {
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.wm-t2-contact-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.wm-t2-phone-group {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.wm-t2-check-option input {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.wm-t2-check-option {
+  justify-content: center;
+  gap: 8px;
+}
+
+@media (max-width: 1280px) {
+  .wm-t2-contact-photo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .wm-t2-phone-group {
+    grid-template-columns: 86px minmax(0, 1fr);
+  }
+
+  .wm-t2-checks {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t2-check-option {
+    justify-content: flex-start;
+  }
+}

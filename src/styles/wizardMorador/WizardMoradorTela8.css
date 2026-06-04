@@ -1,0 +1,646 @@
+/* =========================================================
+   WIZARD MORADOR - TELA 8
+   NPS OPCIONAL
+========================================================= */
+
+.wm-t8-page {
+  width: 100%;
+}
+
+.wm-t8-card {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 22px;
+}
+
+.wm-t8-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 20px;
+  align-items: start;
+}
+
+.wm-t8-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wm-t8-side {
+  width: 310px;
+  min-width: 310px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* HERO */
+
+.wm-t8-hero {
+  border-radius: 24px;
+  border: 1px solid #dbe5f0;
+  background: linear-gradient(135deg, #f8fbff 0%, #fff7ef 100%);
+  padding: 22px;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+
+.wm-t8-hero-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 28px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.wm-t8-hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.wm-t8-hero span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 900;
+  color: #ff7900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.wm-t8-hero h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.04em;
+}
+
+.wm-t8-hero p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wm-t8-hero strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #0648d8;
+  font-weight: 900;
+}
+
+.wm-t8-hero em {
+  display: inline-flex;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: #fff7e6;
+  color: #d97706;
+  padding: 8px 12px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.wm-orange {
+  color: #ff7900;
+}
+
+/* =========================================================
+   CARD PRINCIPAL
+========================================================= */
+
+.wm-t8-section-card {
+  border-radius: 22px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  padding: 20px;
+}
+
+.wm-t8-question {
+  margin-top: 24px;
+}
+
+.wm-t8-question:first-child {
+  margin-top: 0;
+}
+
+.wm-t8-question-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.wm-t8-question-title > span {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: #fff3e8;
+  color: #ff7900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.wm-t8-question-title h2 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t8-divider {
+  height: 1px;
+  background: #e5eaf3;
+  margin: 24px 0;
+}
+
+/* NPS */
+
+.wm-t8-nps-scale {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.wm-t8-nps-scale button {
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.wm-t8-nps-scale button.active {
+  border-color: #ff7900;
+  background: linear-gradient(135deg, #ff9a00 0%, #ff7900 100%);
+  color: #ffffff;
+}
+
+.wm-t8-nps-labels {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.wm-t8-nps-labels small {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 800;
+}
+
+/* =========================================================
+   EXPERIÊNCIA / CHIPS / CHECKBOXES
+========================================================= */
+
+.wm-t8-experience-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.wm-t8-experience-grid button {
+  min-height: 92px;
+  border-radius: 18px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  transition: all 0.2s ease;
+}
+
+.wm-t8-experience-grid button strong {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.wm-t8-experience-grid button span {
+  font-size: 11px;
+  font-weight: 800;
+  color: #475569;
+}
+
+.wm-t8-experience-grid button.active {
+  border-color: #ff7900;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 154, 0, 0.08) 0%,
+    rgba(255, 121, 0, 0.12) 100%
+  );
+  transform: translateY(-2px);
+}
+
+/* CHIPS */
+
+.wm-t8-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.wm-t8-chip-grid button {
+  min-height: 42px;
+  border-radius: 999px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 0 16px;
+
+  cursor: pointer;
+
+  font-size: 11px;
+  font-weight: 800;
+  color: #475569;
+
+  transition: all 0.2s ease;
+}
+
+.wm-t8-chip-grid button.active {
+  border-color: #0648d8;
+  background: #0648d8;
+  color: #ffffff;
+}
+
+/* CHECKS */
+
+.wm-t8-check-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.wm-t8-check-grid label {
+  min-height: 44px;
+
+  border: 1px solid #dbe5f0;
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  padding: 0 14px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  cursor: pointer;
+
+  font-size: 11px;
+  font-weight: 800;
+  color: #475569;
+}
+
+.wm-t8-check-grid label.active {
+  border-color: #16a34a;
+  background: rgba(22, 163, 74, 0.08);
+}
+
+.wm-t8-check-grid input {
+  display: none;
+}
+
+.wm-t8-check-grid span {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+
+  border: 2px solid #dbe5f0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+}
+
+.wm-t8-check-grid label.active span {
+  border-color: #16a34a;
+  background: #16a34a;
+  color: #ffffff;
+}
+
+/* =========================================================
+   TEXTO / CONTATO
+========================================================= */
+
+.wm-t8-textarea {
+  width: 100%;
+  min-height: 140px;
+  border-radius: 18px;
+  border: 1px solid #dbe5f0;
+  background: #fbfdff;
+  padding: 16px;
+  resize: vertical;
+  outline: none;
+
+  font-size: 12px;
+  line-height: 1.6;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.wm-t8-textarea:focus {
+  border-color: #0648d8;
+  background: #ffffff;
+}
+
+.wm-t8-char-counter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 800;
+}
+
+.wm-t8-contact-choice,
+.wm-t8-contact-channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.wm-t8-contact-choice button,
+.wm-t8-contact-channels button {
+  min-height: 42px;
+  border-radius: 999px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  color: #475569;
+
+  padding: 0 18px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.wm-t8-contact-choice button.active,
+.wm-t8-contact-channels button.active {
+  border-color: #0648d8;
+  background: #0648d8;
+  color: #ffffff;
+}
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.wm-t8-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.wm-t8-actions button {
+  min-height: 46px;
+  border-radius: 16px;
+  border: none;
+  padding: 0 18px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.wm-t8-actions .secondary {
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  color: #475569;
+}
+
+.wm-t8-actions .outline {
+  background: #eef4ff;
+  color: #0648d8;
+}
+
+.wm-t8-actions .primary {
+  background: linear-gradient(135deg, #ff9a00 0%, #ff7900 100%);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(255, 121, 0, 0.22);
+}
+
+.wm-brand-inline {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.wm-brand-inline .wm-orange {
+  color: #ff6b00;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.wm-t8-mascot-card,
+.wm-t8-side-card {
+  border-radius: 20px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+}
+
+.wm-t8-mascot-card {
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.wm-t8-mascot-card span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 900;
+  color: #ff7900;
+  text-transform: uppercase;
+}
+
+.wm-t8-mascot-card h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.2;
+  color: #0f172a;
+  font-weight: 900;
+}
+
+.wm-t8-mascot-card p {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wm-t8-mascot-card img {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.wm-t8-side-card {
+  padding: 18px;
+}
+
+.wm-t8-side-card > span:first-child {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+
+  background: #eef4ff;
+  color: #0648d8;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 12px;
+}
+
+.wm-t8-side-card.orange > span:first-child {
+  background: #fff3e8;
+  color: #ff7900;
+}
+
+.wm-t8-side-card.green > span:first-child {
+  background: #ecfdf3;
+  color: #16a34a;
+}
+
+.wm-t8-side-card h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 900;
+}
+
+.wm-t8-side-card p {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wm-t8-protocol {
+  word-break: break-word;
+  font-weight: 900 !important;
+  color: #0648d8 !important;
+}
+
+.wm-t8-side-card button {
+  width: 100%;
+  margin-top: 12px;
+
+  min-height: 42px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: #eef4ff;
+  color: #0648d8;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.wm-t8-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wm-t8-summary-list p {
+  margin: 0;
+}
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media (max-width: 1200px) {
+  .wm-t8-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t8-side {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+@media (max-width: 768px) {
+  .wm-t8-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .wm-t8-hero-image {
+    margin: 0 auto;
+  }
+
+  .wm-t8-experience-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .wm-t8-nps-scale {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .wm-t8-actions {
+    flex-direction: column;
+  }
+
+  .wm-t8-actions button {
+    width: 100%;
+  }
+
+  .wm-t8-mascot-card {
+    flex-direction: column;
+    text-align: center;
+  }
+}

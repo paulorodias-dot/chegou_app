@@ -1,0 +1,1074 @@
+/* =========================================================
+   WIZARD MORADOR - TELA 5
+   VEÍCULOS E GARAGEM - REFATORADO
+========================================================= */
+
+.wm-t5-page {
+  width: 100%;
+}
+
+.wm-t5-card {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 22px;
+}
+
+/* HEADER */
+
+.wm-t5-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.wm-t5-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.wm-t5-step {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: #fff3e8;
+  color: #ff7900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.wm-t5-title h1 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.12;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #0f172a;
+}
+
+.wm-t5-title p {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #64748b;
+  max-width: 720px;
+}
+
+.wm-t5-safe-card {
+  min-width: 280px;
+  max-width: 340px;
+  border-radius: 18px;
+  border: 1px solid #dbe5f0;
+  background: linear-gradient(180deg, #fbfdff 0%, #f4f8ff 100%);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #0648d8;
+}
+
+.wm-t5-safe-card strong {
+  font-size: 11px;
+  line-height: 1.35;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t5-divider {
+  height: 1px;
+  background: #e5eaf3;
+  margin: 0 0 22px;
+}
+
+/* RESUMO */
+
+.wm-t5-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.wm-t5-summary div {
+  border-radius: 18px;
+  border: 1px solid #dbe5f0;
+  background: linear-gradient(180deg, #fbfdff 0%, #f4f8ff 100%);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.wm-t5-summary span {
+  font-size: 9px;
+  font-weight: 900;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.wm-t5-summary strong {
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+/* =========================================================
+   GARAGEM
+========================================================= */
+
+.wm-t5-garage-question {
+  margin-bottom: 24px;
+}
+
+.wm-t5-section-head {
+  margin-bottom: 14px;
+}
+
+.wm-t5-section-head h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.15;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t5-section-head p {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wm-t5-option-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.wm-t5-garage-option {
+  position: relative;
+  min-height: 168px;
+  border-radius: 20px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  padding: 18px 14px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t5-garage-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+.wm-t5-garage-option.active {
+  border-color: #ff7900;
+  background: linear-gradient(180deg, #fff9f3 0%, #fff4e8 100%);
+  box-shadow: 0 14px 28px rgba(255, 121, 0, 0.14);
+}
+
+.wm-t5-option-radio {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 23px;
+  height: 23px;
+  border-radius: 999px;
+  border: 2px solid #dbe5f0;
+  background: #ffffff;
+}
+
+.wm-t5-garage-option.active .wm-t5-option-radio {
+  border-color: #ff7900;
+  background: #ff7900;
+  box-shadow: inset 0 0 0 5px #ffffff;
+}
+
+.wm-t5-garage-option i {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: #eef4ff;
+  color: #0648d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t5-garage-option.active i {
+  background: rgba(255, 121, 0, 0.12);
+  color: #ff7900;
+}
+
+.wm-t5-garage-option strong {
+  font-size: 12px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t5-garage-option small {
+  font-size: 10px;
+  line-height: 1.4;
+  color: #64748b;
+  font-weight: 700;
+}
+
+/* =========================================================
+   GRID PRINCIPAL
+========================================================= */
+
+.wm-t5-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 20px;
+  align-items: start;
+}
+
+.wm-t5-left {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wm-t5-right {
+  width: 310px;
+  min-width: 310px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.wm-t5-content-card,
+.wm-t5-side-card {
+  width: 100%;
+  border-radius: 22px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+}
+
+.wm-t5-content-card {
+  padding: 20px;
+}
+
+.wm-t5-side-card {
+  padding: 18px;
+}
+
+.wm-t5-highlight {
+  border-color: rgba(255, 121, 0, 0.25);
+  background: linear-gradient(180deg, #fffdfb 0%, #fff7ef 100%);
+}
+
+.wm-t5-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.wm-t5-card-head h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.15;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t5-card-head p {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wm-t5-add-btn {
+  min-height: 42px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ff9a00 0%, #ff7900 100%);
+  color: #ffffff;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(255, 121, 0, 0.22);
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   HERO IMAGES
+========================================================= */
+
+.wm-t5-hero {
+  width: 100%;
+  min-height: 180px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.wm-t5-hero img {
+  width: 100%;
+  max-width: 340px;
+  object-fit: contain;
+}
+
+/* =========================================================
+   LISTAS
+========================================================= */
+
+.wm-t5-items-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.wm-t5-item-card {
+  border-radius: 20px;
+  border: 1px solid #dbe5f0;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wm-t5-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.wm-t5-item-top strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.1;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t5-item-top span {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  line-height: 1.45;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wm-t5-item-top svg {
+  color: #0648d8;
+  flex-shrink: 0;
+}
+
+.wm-t5-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wm-t5-item-tags small {
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+}
+
+.wm-t5-item-tags small.linked {
+  background: #e8f9ef;
+  color: #15803d;
+}
+
+.wm-t5-item-tags small.free {
+  background: #eef4ff;
+  color: #0648d8;
+}
+
+.wm-t5-observation {
+  border-radius: 14px;
+  background: #f8fbff;
+  padding: 12px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #475569;
+  font-weight: 700;
+}
+
+.wm-t5-item-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.wm-t5-item-actions button {
+  flex: 1;
+  min-height: 38px;
+  border-radius: 14px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+  color: #475569;
+}
+
+.wm-t5-item-actions button.danger {
+  color: #dc2626;
+}
+
+/* =========================================================
+   EMPTY / NOTES
+========================================================= */
+
+.wm-t5-empty {
+  border: 1px dashed #cdd9e8;
+  border-radius: 20px;
+  padding: 36px 22px;
+  background: linear-gradient(180deg, #fbfdff 0%, #f8fbff 100%);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 11px;
+}
+
+.wm-t5-empty.small {
+  padding: 24px 18px;
+}
+
+.wm-t5-empty svg {
+  color: #0648d8;
+}
+
+.wm-t5-empty strong {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t5-empty p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #64748b;
+  font-weight: 700;
+  max-width: 420px;
+}
+
+.wm-t5-note-card {
+  border-radius: 18px;
+  border: 1px solid #dbe5f0;
+  background: #f8fbff;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.wm-t5-note-card.blue {
+  background: #eef4ff;
+  border-color: #d6e3fb;
+}
+
+.wm-t5-note-card svg {
+  color: #0648d8;
+  flex-shrink: 0;
+}
+
+.wm-t5-note-card strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 5px;
+}
+
+.wm-t5-note-card p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #64748b;
+  font-weight: 700;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.wm-t5-side-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: #eef4ff;
+  color: #0648d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.wm-t5-side-icon.orange {
+  background: #fff3e8;
+  color: #ff7900;
+}
+
+.wm-t5-side-card h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t5-side-card p,
+.wm-t5-side-card li {
+  font-size: 10px;
+  line-height: 1.55;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wm-t5-side-card ul {
+  margin: 0;
+  padding-left: 17px;
+}
+
+.wm-t5-mini-tags {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wm-t5-mini-tags small {
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.wm-t5-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wm-t5-faq-list details {
+  border-radius: 14px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  padding: 10px 12px;
+}
+
+.wm-t5-faq-list summary {
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t5-faq-list p {
+  margin: 8px 0 0;
+}
+
+.wm-t5-info-footer {
+  margin-top: 16px;
+  border-radius: 16px;
+  background: #eef4ff;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.wm-t5-info-footer svg {
+  color: #0648d8;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.wm-t5-info-footer span {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #0648d8;
+  font-weight: 800;
+}
+
+/* =========================================================
+   FOOTER DA TELA
+========================================================= */
+
+.wm-t5-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.wm-t5-actions button {
+  min-height: 46px;
+  border-radius: 16px;
+  padding: 0 18px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.wm-t5-actions button.secondary {
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  color: #475569;
+}
+
+.wm-t5-actions button.outline {
+  background: #eef4ff;
+  color: #0648d8;
+}
+
+.wm-t5-actions button.primary {
+  background: linear-gradient(135deg, #ff9a00 0%, #ff7900 100%);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(255, 121, 0, 0.22);
+}
+
+/* =========================================================
+   MODAIS
+========================================================= */
+
+.wm-t5-modal {
+  width: min(980px, 94vw);
+  max-height: 92vh;
+  background: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+}
+
+.wm-t5-modal-vehicle {
+  width: min(920px, 94vw);
+}
+
+.wm-t5-modal-head {
+  padding: 20px 24px 18px;
+  border-bottom: 1px solid #e5edf7;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.wm-t5-modal-head h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.wm-t5-modal-head p {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wm-t5-modal-head button {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #475569;
+  flex-shrink: 0;
+}
+
+.wm-t5-modal-body {
+  padding: 18px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.wm-t5-modal-section {
+  border-radius: 20px;
+  border: 1px solid #dbe5f0;
+  background: #fbfdff;
+  padding: 18px;
+}
+
+.wm-t5-modal-section h3 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+/* SITUAÇÃO DA VAGA */
+
+.wm-t5-situation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.wm-t5-situation-card {
+  position: relative;
+  border-radius: 18px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wm-t5-situation-card:hover {
+  transform: translateY(-1px);
+}
+
+.wm-t5-situation-card.active {
+  border-color: #ff7900;
+  background: linear-gradient(180deg, #fff9f3 0%, #fff4e8 100%);
+}
+
+.wm-t5-situation-card.invalid {
+  border-color: #ef4444;
+}
+
+.wm-t5-situation-card span {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 2px solid #dbe5f0;
+  background: #ffffff;
+}
+
+.wm-t5-situation-card.active span {
+  border-color: #ff7900;
+  background: #ff7900;
+  box-shadow: inset 0 0 0 5px #ffffff;
+}
+
+.wm-t5-situation-card strong {
+  display: block;
+  padding-right: 30px;
+  margin-bottom: 7px;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.wm-t5-situation-card small {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #64748b;
+  font-weight: 700;
+}
+
+/* CAMPOS */
+
+.wm-t5-modal-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.wm-t5-modal-grid.two {
+  grid-template-columns: 1fr 1fr;
+}
+
+.wm-t5-modal-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wm-t5-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.wm-t5-field span {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #334155;
+}
+
+.wm-t5-field input,
+.wm-t5-field select,
+.wm-t5-field textarea {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #0f172a;
+  outline: none;
+}
+
+.wm-t5-field textarea {
+  min-height: 120px;
+  resize: vertical;
+  padding: 14px;
+}
+
+.wm-t5-field input.invalid,
+.wm-t5-field select.invalid,
+.wm-t5-field textarea.invalid {
+  border-color: #ef4444;
+  background: #fff5f5;
+}
+
+/* FOTO VEÍCULO */
+
+.wm-t5-vehicle-preview {
+  width: 100%;
+  min-height: 220px;
+  border-radius: 20px;
+  border: 1px dashed #cdd9e8;
+  background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.wm-t5-vehicle-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.wm-t5-vehicle-preview svg {
+  color: #0648d8;
+}
+
+.wm-t5-modal-help {
+  margin: 14px 0 0;
+  font-size: 10px;
+  line-height: 1.55;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wm-t5-photo-actions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wm-t5-create-vehicle,
+.wm-t5-clear-btn {
+  min-height: 42px;
+  border-radius: 16px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.wm-t5-create-vehicle {
+  border: none;
+  background: linear-gradient(135deg, #ff9a00 0%, #ff7900 100%);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(255, 121, 0, 0.22);
+}
+
+.wm-t5-clear-btn {
+  border: 1px solid #dbe5f0;
+  background: #ffffff;
+  color: #475569;
+}
+
+/* FOOTER MODAL */
+
+.wm-t5-modal-actions {
+  padding: 18px 24px;
+  border-top: 1px solid #e5edf7;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.wm-t5-modal-actions button {
+  min-height: 44px;
+  border-radius: 16px;
+  border: none;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.wm-t5-modal-actions button.secondary {
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  color: #475569;
+}
+
+.wm-t5-modal-actions button.outline {
+  background: #eef4ff;
+  color: #0648d8;
+}
+
+.wm-t5-modal-actions button.primary {
+  background: linear-gradient(135deg, #ff9a00 0%, #ff7900 100%);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(255, 121, 0, 0.22);
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 1180px) {
+  .wm-t5-option-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wm-t5-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t5-right {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+@media (max-width: 980px) {
+  .wm-t5-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wm-t5-items-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t5-title-row {
+    flex-direction: column;
+  }
+
+  .wm-t5-safe-card {
+    width: 100%;
+    max-width: unset;
+  }
+
+  .wm-t5-modal-grid.two,
+  .wm-t5-modal-grid.three,
+  .wm-t5-situation-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .wm-t5-option-grid,
+  .wm-t5-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-t5-card-head {
+    flex-direction: column;
+  }
+
+  .wm-t5-add-btn,
+  .wm-t5-actions button,
+  .wm-t5-modal-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wm-t5-actions,
+  .wm-t5-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .wm-t5-item-actions {
+    flex-direction: column;
+  }
+
+  .wm-t5-modal {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 20px;
+  }
+}
+
+/* FIX ZOOM IPHONE */
+
+@supports (-webkit-touch-callout: none) {
+  .wm-t5-field input,
+  .wm-t5-field select,
+  .wm-t5-field textarea {
+    font-size: 16px !important;
+  }
+}

@@ -1,0 +1,55 @@
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --wm-bg: #020617;
+    --wm-surface: #0f172a;
+    --wm-surface-soft: #111827;
+    --wm-text: #f8fafc;
+    --wm-text-soft: #cbd5e1;
+    --wm-border: #1e293b;
+    --wm-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+}
+
+[data-theme="dark"] {
+  --wm-bg: #020617;
+  --wm-surface: #0f172a;
+  --wm-surface-soft: #111827;
+  --wm-text: #f8fafc;
+  --wm-text-soft: #cbd5e1;
+  --wm-border: #1e293b;
+  --wm-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="light"] {
+  --wm-bg: #f4f7fb;
+  --wm-surface: #ffffff;
+  --wm-surface-soft: #f8fbff;
+  --wm-text: #0f172a;
+  --wm-text-soft: #475569;
+  --wm-border: #dbe3ef;
+}
+
+[data-theme="dark"] .wm-topbar,
+[data-theme="dark"] .wm-footer {
+  background: rgba(15, 23, 42, 0.96);
+}
+
+[data-theme="dark"] .wm-help-btn,
+[data-theme="dark"] .wm-step-item,
+[data-theme="dark"] .wm-loading-card {
+  background: #111827;
+  border-color: #1e293b;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: #020617;
+  color: #f8fafc;
+  border-color: #1e293b;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #64748b;
+}

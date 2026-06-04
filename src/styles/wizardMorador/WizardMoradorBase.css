@@ -1,0 +1,126 @@
+:root {
+  --wm-royal: #0f3dff;
+  --wm-royal-dark: #0a2eb8;
+  --wm-orange: #ff7a00;
+  --wm-orange-soft: #fff3e8;
+
+  --wm-bg: #f4f7fb;
+  --wm-surface: #ffffff;
+  --wm-surface-soft: #f8fbff;
+
+  --wm-text: #0f172a;
+  --wm-text-soft: #475569;
+  --wm-border: #dbe3ef;
+  --wm-danger: #ef4444;
+  --wm-success: #16a34a;
+  --wm-warning: #f59e0b;
+
+  --wm-radius: 18px;
+  --wm-radius-lg: 24px;
+
+  --wm-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.08);
+
+  --wm-transition: all 0.25s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: "Inter", sans-serif;
+  background: var(--wm-bg);
+  color: var(--wm-text);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.wm-brand-orange {
+  color: var(--wm-orange);
+}
+
+.wm-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(15, 61, 255, 0.08), transparent 35%),
+    radial-gradient(circle at bottom left, rgba(255, 122, 0, 0.08), transparent 35%),
+    var(--wm-bg);
+}
+
+.wm-loading-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--wm-surface);
+  border-radius: var(--wm-radius-lg);
+  border: 1px solid var(--wm-border);
+  box-shadow: var(--wm-shadow);
+  padding: 40px;
+  text-align: center;
+}
+
+.wm-loading-card h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.wm-loading-card p {
+  margin: 0;
+  color: var(--wm-text-soft);
+  line-height: 1.6;
+}
+
+.wm-page-fade {
+  animation: wmFadeUp 0.35s ease;
+}
+
+@keyframes wmFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.wm-footer-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-footer-brand img {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+}
+
+.wm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
