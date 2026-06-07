@@ -6,6 +6,10 @@ import {
   LogOut,
   Menu,
   MessageSquare,
+  Home,
+  ClipboardList,
+  Package,
+  Settings,
 } from "lucide-react";
 
 import logo from "../assets/logo.png";
@@ -83,6 +87,10 @@ export default function AppLayout({
     }
 
     return "Acesso conforme permissões do perfil.";
+  }
+
+  function navegarMobile(destino) {
+    onNavigate(destino);
   }
 
   function handleMenuButton() {
@@ -218,7 +226,79 @@ export default function AppLayout({
         </div>
       </aside>
 
-      <main className="app-main">{children}</main>
+      <>
+  <main className="app-main">{children}</main>
+
+  {role === "admin_logistica" && (
+    <nav className="mobile-bottom-nav">
+      <button
+        type="button"
+        className={
+          activePage === "admin-dashboard"
+            ? "mobile-nav-item active"
+            : "mobile-nav-item"
+        }
+        onClick={() => navegarMobile("admin-dashboard")}
+      >
+        <Home size={20} />
+        <span>Início</span>
+      </button>
+
+      <button
+        type="button"
+        className={
+          activePage === "admin-cadastro-morador" ||
+          activePage === "admin-divergencias-moradores"
+            ? "mobile-nav-item active"
+            : "mobile-nav-item"
+        }
+        onClick={() => navegarMobile("admin-cadastro-morador")}
+      >
+        <ClipboardList size={20} />
+        <span>Cadastro</span>
+      </button>
+
+      <button
+        type="button"
+        className={
+          activePage === "admin-encomendas"
+            ? "mobile-nav-item active"
+            : "mobile-nav-item"
+        }
+        onClick={() => navegarMobile("admin-encomendas")}
+      >
+        <Package size={20} />
+        <span>Encomendas</span>
+      </button>
+
+      <button
+        type="button"
+        className={
+          activePage === "admin-notificacoes"
+            ? "mobile-nav-item active"
+            : "mobile-nav-item"
+        }
+        onClick={() => navegarMobile("admin-notificacoes")}
+      >
+        <Bell size={20} />
+        <span>Alertas</span>
+      </button>
+
+      <button
+        type="button"
+        className={
+          activePage === "admin-configuracoes"
+            ? "mobile-nav-item active"
+            : "mobile-nav-item"
+        }
+        onClick={() => navegarMobile("admin-configuracoes")}
+      >
+        <Settings size={20} />
+        <span>Config</span>
+      </button>
+    </nav>
+  )}
+</>
     </div>
   );
 }

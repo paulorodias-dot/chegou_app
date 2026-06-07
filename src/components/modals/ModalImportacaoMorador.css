@@ -827,3 +827,28 @@
   }
 
 }
+
+.mi-contact-select {
+  width: 100%;
+  min-width: 220px;
+  min-height: 32px;
+  border-radius: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0 9px;
+  outline: none;
+}
+
+.mi-contact-select:focus {
+  border-color: rgba(37, 99, 235, 0.7);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+[data-theme="dark"] .mi-contact-select {
+  background: #0f172a;
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.24);
+}

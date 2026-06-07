@@ -21,6 +21,7 @@ import AuditoriaCondominios from "./pages/master/AuditoriaCondominios";
 
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import CadastroMorador from "./pages/admin/CadastroMorador";
+import ImportacaoMoradoresDivergencias from "./pages/admin/ImportacaoMoradoresDivergencias";
 
 import PaginaPreparando from "./pages/PaginaPreparando";
 import WizardCondominio from "./pages/wizardCondominio";
@@ -186,6 +187,10 @@ function App() {
 
     if (paginaAtual === "admin-cadastro-morador") {
       return <CadastroMorador perfil={perfil} />;
+    }
+
+    if (paginaAtual === "admin-divergencias-moradores") {
+      return <ImportacaoMoradoresDivergencias perfil={perfil} />;
     }
 
     return <PaginaPreparando titulo="Módulo Administrativo" />;

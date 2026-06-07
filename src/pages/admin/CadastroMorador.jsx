@@ -26,6 +26,7 @@ import ModalNovoMorador from "../../components/cadastroMorador/ModalNovoMorador"
 import ModalVisualizarMorador from "../../components/cadastroMorador/ModalVisualizarMorador";
 import ModalEditarMorador from "../../components/cadastroMorador/ModalEditarMorador";
 import ModalImportacaoMorador from "../../components/modals/ModalImportacaoMorador";
+import ModalImportacaoMoradorPDF from "../../components/modals/ModalImportacaoMoradorPDF";
 
 import "./CadastroMorador.css";
 
@@ -163,6 +164,7 @@ export default function CadastroMorador({ perfil }) {
   const [modalNovoMorador, setModalNovoMorador] = useState(false);
 
   const [modalImportacaoMorador, setModalImportacaoMorador] = useState(false);
+  const [modalImportacaoMoradorPDF, setModalImportacaoMoradorPDF] = useState(false);
 
   const [modalVisualizar, setModalVisualizar] = useState(false);
   const [moradorSelecionado, setMoradorSelecionado] = useState(null);
@@ -324,9 +326,19 @@ export default function CadastroMorador({ perfil }) {
 
       const buscaOk = !termo || texto.includes(termo);
 
+      const torreFiltroNormalizada = normalizarTexto(filtroTorre);
+      const torreItemNormalizada = normalizarTexto(item.torre_nome);
+      const torreRawNormalizada = normalizarTexto(item.raw?.torre);
+      const blocoRawNormalizado = normalizarTexto(item.raw?.bloco);
+
       const torreOk =
         filtroTorre === "todos" ||
-        normalizarTexto(item.torre_nome) === normalizarTexto(filtroTorre);
+        torreItemNormalizada === torreFiltroNormalizada ||
+        torreRawNormalizada === torreFiltroNormalizada ||
+        blocoRawNormalizado === torreFiltroNormalizada ||
+        torreItemNormalizada.includes(torreFiltroNormalizada) ||
+        torreFiltroNormalizada.includes(torreRawNormalizada) ||
+        torreFiltroNormalizada.includes(blocoRawNormalizado);
 
       const statusPrincipal = item.status_principal;
       const statusConvite = item.status_convite;
@@ -377,6 +389,26 @@ export default function CadastroMorador({ perfil }) {
   const indicadores = useMemo(() => {
     const hoje = new Date().toISOString().slice(0, 10);
 
+    const preCadastrosAtivos = preCadastros.filter((item) => {
+    const statusCadastro = item.status_cadastro;
+    const statusConta = item.status_conta;
+    const statusAcompanhamento = item.status_acompanhamento;
+
+    const cancelado =
+      statusCadastro === "CANCELADO" ||
+      statusCadastro === "cancelado";
+
+    const aprovadoOuAtivo =
+      statusCadastro === "APROVADO" ||
+      statusCadastro === "aprovado" ||
+      statusCadastro === "ativo" ||
+      statusConta === "conta_ativa" ||
+      statusAcompanhamento === "conta_ativa" ||
+      statusAcompanhamento === "aprovado";
+
+    return !cancelado && !aprovadoOuAtivo;
+  });
+
     const prontos = preCadastros.filter((item) =>
       ["PRONTO_CONVITE", "IMPORTADO", "RASCUNHO", "aguardando_envio"].includes(
         item.status_cadastro || item.status_convite
@@ -400,12 +432,12 @@ export default function CadastroMorador({ perfil }) {
     );
 
     return {
-      total: preCadastros.length,
+      total: preCadastrosAtivos.length,
       prontos: prontos.length,
       pendencias: pendencias.length,
       importadosHoje: importadosHoje.length,
-      semTelefone: preCadastros.filter((i) => !i.telefone).length,
-      semEmail: preCadastros.filter((i) => !i.email).length,
+      semTelefone: preCadastrosAtivos.filter((i) => !i.telefone).length,
+      semEmail: preCadastrosAtivos.filter((i) => !i.email).length,
     };
   }, [preCadastros]);
 
@@ -555,7 +587,7 @@ export default function CadastroMorador({ perfil }) {
   }
 
   function abrirImportacaoPDF() {
-    toast("Importação PDF será preparada em componente próprio.");
+    setModalImportacaoMoradorPDF(true);
   }
 
   async function lerArquivoXLSX(file) {
@@ -975,6 +1007,19 @@ export default function CadastroMorador({ perfil }) {
         perfil={perfil}
         condominio={condominio}
         torres={torres}
+        preCadastros={preCadastros}
+        onImportacaoConcluida={async () => {
+          await carregarDados();
+        }}
+      />
+
+      <ModalImportacaoMoradorPDF
+        aberto={modalImportacaoMoradorPDF}
+        onClose={() => setModalImportacaoMoradorPDF(false)}
+        perfil={perfil}
+        condominio={condominio}
+        torres={torres}
+        unidades={unidades}
         preCadastros={preCadastros}
         onImportacaoConcluida={async () => {
           await carregarDados();

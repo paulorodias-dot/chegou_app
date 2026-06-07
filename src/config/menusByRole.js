@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Home,
   Building2,
   ClipboardList,
   Users,
@@ -10,6 +11,7 @@ import {
   ShieldCheck,
   Mail,
   Clock,
+  Package,
 } from "lucide-react";
 
 export const menusByRole = {
@@ -64,32 +66,50 @@ export const menusByRole = {
   ],
 
   admin_logistica: [
-    {
-      id: "admin-dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      id: "admin-cadastros",
-      label: "Cadastro",
-      icon: ClipboardList,
-      children: [
-        {
-          id: "admin-cadastro-morador",
-          label: "Morador",
-          icon: UserPlus,
-        },
-      ],
-    },
-    {
-      id: "admin-notificacoes",
-      label: "Notificações",
-      icon: Bell,
-    },
-    {
-      id: "admin-relatorios",
-      label: "Relatórios",
-      icon: FileText,
-    },
-  ],
+  {
+    id: "admin-dashboard",
+    label: "Início",
+    icon: Home,
+  },
+  {
+    id: "admin-cadastros",
+    label: "Cadastro",
+    icon: ClipboardList,
+    mobileTarget: "admin-cadastro-morador",
+    children: [
+      {
+        id: "admin-cadastro-morador",
+        label: "Morador",
+        icon: UserPlus,
+      },
+      {
+        id: "admin-divergencias-moradores",
+        label: "Divergências",
+        icon: ShieldCheck,
+      },
+    ],
+  },
+  {
+    id: "admin-encomendas",
+    label: "Encomendas",
+    icon: Package,
+  },
+  {
+    id: "admin-notificacoes",
+    label: "Alertas",
+    icon: Bell,
+  },
+  {
+    id: "admin-configuracoes",
+    label: "Config",
+    icon: Settings,
+  },
+  {
+    id: "admin-relatorios",
+    label: "Relatórios",
+    icon: FileText,
+    hideOnMobileBottom: true,
+  },
+],
+
 };
