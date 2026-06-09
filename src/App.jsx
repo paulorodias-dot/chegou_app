@@ -22,6 +22,7 @@ import AuditoriaCondominios from "./pages/master/AuditoriaCondominios";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import CadastroMorador from "./pages/admin/CadastroMorador";
 import ImportacaoMoradoresDivergencias from "./pages/admin/ImportacaoMoradoresDivergencias";
+import AuditoriaMoradoresConvite from "./pages/auditoria/AuditoriaMoradoresConvite";
 
 import PaginaPreparando from "./pages/PaginaPreparando";
 import WizardCondominio from "./pages/wizardCondominio";
@@ -191,6 +192,14 @@ function App() {
 
     if (paginaAtual === "admin-divergencias-moradores") {
       return <ImportacaoMoradoresDivergencias perfil={perfil} />;
+    }
+
+    if (paginaAtual === "admin-auditoria-moradores-convite") {
+      return <AuditoriaMoradoresConvite perfil={perfil} />;
+    }
+
+    if (paginaAtual === "admin-logs-auditoria") {
+      return <PaginaPreparando titulo="Logs de Auditoria" />;
     }
 
     return <PaginaPreparando titulo="Módulo Administrativo" />;

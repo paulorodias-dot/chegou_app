@@ -159,7 +159,7 @@ export async function criarPreCadastroMoradorIndividual({
     origem_cadastro: dados.origem_cadastro || "manual",
 
     status_cadastro: dados.status_cadastro || "RASCUNHO",
-    status_convite: dados.status_convite || "AGUARDANDO_ENVIO",
+    status_convite: dados.status_convite || "NAO_ENVIADO",
     status_auditoria: dados.status_auditoria || "NAO_ENVIADO",
 
         percentual_preenchimento: dados.percentual_preenchimento ?? 10,
@@ -259,6 +259,55 @@ export async function atualizarPreCadastroMorador({
     throw new Error("Condomínio não identificado no perfil.");
   }
 
+  const { data: preCadastroAtual, error: erroBuscaPreCadastro } = await supabase
+    .from("pre_cadastro_moradores")
+    .select("id, status_cadastro, status_convite, status_auditoria")
+    .eq("id", preCadastroId)
+    .eq("condominio_id", perfil.condominio_id)
+    .maybeSingle();
+
+  if (erroBuscaPreCadastro) throw erroBuscaPreCadastro;
+
+  if (!preCadastroAtual) {
+    throw new Error("Pré-cadastro não encontrado.");
+  }
+
+  const { data: conviteExistente, error: erroBuscaConvite } = await supabase
+    .from("convites_morador")
+    .select("id, status_convite, status_envio, token_revogado")
+    .eq("pre_cadastro_id", preCadastroId)
+    .eq("condominio_id", perfil.condominio_id)
+    .maybeSingle();
+
+  if (erroBuscaConvite) throw erroBuscaConvite;
+
+  const statusCadastro = String(preCadastroAtual.status_cadastro || "")
+    .trim()
+    .toUpperCase();
+
+  const statusConvite = String(
+    preCadastroAtual.status_convite ||
+      conviteExistente?.status_convite ||
+      conviteExistente?.status_envio ||
+      ""
+  )
+    .trim()
+    .toUpperCase();
+
+  const statusCadastroEditavel = ["RASCUNHO", "PRE_CADASTRO", "PRÉ-CADASTRO"].includes(
+    statusCadastro
+  );
+
+  const statusConviteEditavel = ["", "—", "NAO_ENVIADO", "NÃO_ENVIADO"].includes(
+    statusConvite
+  );
+
+  if (!statusCadastroEditavel || !statusConviteEditavel || conviteExistente?.id) {
+    throw new Error(
+      "Edição bloqueada. Após a criação do convite, os dados só podem ser alterados pelo morador no Wizard."
+    );
+  }
+
   const { data: authData } = await supabase.auth.getUser();
 
   const usuarioId =
@@ -356,6 +405,23 @@ export async function cancelarPreCadastroMorador({
     throw new Error("Condomínio não identificado no perfil.");
   }
 
+  const dadosAntes = preCadastro.raw || preCadastro;
+
+  const { data: conviteExistente, error: erroBuscaConvite } = await supabase
+    .from("convites_morador")
+    .select("id, status_convite, status_envio")
+    .eq("pre_cadastro_id", dadosAntes.id)
+    .eq("condominio_id", perfil.condominio_id)
+    .maybeSingle();
+
+  if (erroBuscaConvite) throw erroBuscaConvite;
+
+  if (conviteExistente?.id) {
+    throw new Error(
+      "Cancelamento bloqueado. Após a criação do convite, este cadastro passa para o fluxo de Auditoria e Convite."
+    );
+  }
+
   const { data: authData } = await supabase.auth.getUser();
 
   const usuarioId =
@@ -363,8 +429,6 @@ export async function cancelarPreCadastroMorador({
     perfil?.usuario_id ||
     perfil?.id ||
     null;
-
-  const dadosAntes = preCadastro.raw || preCadastro;
 
   const payloadAtualizacao = {
     status_cadastro: "CANCELADO",

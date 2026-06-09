@@ -113,6 +113,14 @@ function validarTelefone(ddi = "+55", telefone = "") {
   return telLimpo.length >= 6;
 }
 
+function MailHintIcon() {
+  return (
+    <span className="cadmor-contact-hint-icon" aria-hidden="true">
+      i
+    </span>
+  );
+}
+
 export default function ModalEditarMorador({
   aberto,
   morador,
@@ -465,37 +473,56 @@ export default function ModalEditarMorador({
             <div className="cadmor-view-section">
               <div className="cadmor-view-section-head">
                 <h3>Contato</h3>
-                <p>Atualize os dados utilizados para comunicação e convite.</p>
+                <p>
+                  Atualize os dados utilizados para comunicação, envio de convite e
+                  acompanhamento do pré-cadastro.
+                </p>
               </div>
 
-              <div className="cadmor-form-grid phone">
-                <label className="cadmor-field">
-                  <span>DDI *</span>
+              <div className="cadmor-contact-box">
+                <div className="cadmor-contact-phone-row">
+                  <label className="cadmor-field cadmor-field-ddi">
+                    <span>DDI *</span>
+                    <input
+                      value={form.ddi}
+                      onChange={(event) => atualizar("ddi", event.target.value)}
+                      placeholder="+55"
+                      inputMode="tel"
+                    />
+                  </label>
+
+                  <label className="cadmor-field cadmor-field-phone">
+                    <span>
+                      <FaWhatsapp className="cadmor-whatsapp-icon" />
+                      WhatsApp / Celular *
+                    </span>
+                    <input
+                      value={form.telefone}
+                      onChange={(event) => atualizar("telefone", event.target.value)}
+                      placeholder="(11) 99999-9999"
+                      inputMode="tel"
+                    />
+                  </label>
+                </div>
+
+                <label className="cadmor-field cadmor-field-email">
+                  <span>E-mail *</span>
                   <input
-                    value={form.ddi}
-                    onChange={(event) => atualizar("ddi", event.target.value)}
+                    value={form.email}
+                    onChange={(event) => atualizar("email", event.target.value)}
+                    placeholder="morador@email.com.br"
+                    inputMode="email"
                   />
                 </label>
 
-                <label className="cadmor-field">
+                <div className="cadmor-contact-hint">
+                  <MailHintIcon />
                   <span>
-                    <FaWhatsapp className="cadmor-whatsapp-icon" />
-                    WhatsApp *
+                    O e-mail será usado para envio do convite. O WhatsApp será utilizado
+                    para comunicação operacional quando o canal estiver habilitado.
                   </span>
-                  <input
-                    value={form.telefone}
-                    onChange={(event) => atualizar("telefone", event.target.value)}
-                  />
-                </label>
+                </div>
               </div>
-
-              <label className="cadmor-field">
-                <span>E-mail *</span>
-                <input
-                  value={form.email}
-                  onChange={(event) => atualizar("email", event.target.value)}
-                />
-              </label>
             </div>
 
             <div className="cadmor-view-section">
@@ -504,14 +531,27 @@ export default function ModalEditarMorador({
                 <p>Campo administrativo para registro complementar.</p>
               </div>
 
-              <label className="cadmor-field">
-                <span>Observações</span>
+              <label className="cadmor-field cadmor-field-observacoes">
+                <span>Observações Administrativas</span>
+
+                <small className="cadmor-field-helper">
+                  Informações internas para auditoria e acompanhamento.
+                </small>
+
                 <textarea
-                  value={form.observacoes}
-                  onChange={(event) => atualizar("observacoes", event.target.value)}
-                  rows={4}
-                  placeholder="Digite uma observação administrativa, se necessário."
+                  maxLength={500}
+                  value={form.observacoes || ""}
+                  onChange={(e) =>
+                    setForm((old) => ({
+                      ...old,
+                      observacoes: e.target.value,
+                    }))
+                  }
                 />
+
+                <small className="cadmor-counter">
+                  {(form.observacoes || "").length} / 500 caracteres
+                </small>
               </label>
             </div>
           </section>

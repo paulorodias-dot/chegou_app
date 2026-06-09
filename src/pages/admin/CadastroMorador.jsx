@@ -58,6 +58,8 @@ const STATUS_LABELS = {
   RASCUNHO: "Rascunho",
   IMPORTADO: "Importado",
   PRE_CADASTRO: "Pré-cadastro",
+  NAO_ENVIADO: "Não enviado",
+  NÃO_ENVIADO: "Não enviado",
   AGUARDANDO_ENVIO: "Aguardando envio",
   PRONTO_CONVITE: "Pronto para convite",
   EM_PREENCHIMENTO: "Em preenchimento",
@@ -104,6 +106,31 @@ function formatarTelefoneTabela(telefone = "") {
 
 function labelStatus(status) {
   return STATUS_LABELS[status] || status || "—";
+}
+
+function normalizarStatus(valor = "") {
+  return String(valor || "").trim().toUpperCase();
+}
+
+function podeEditarMoradorCadastro(item = {}) {
+  const statusCadastro = normalizarStatus(
+    item.status_principal ||
+      item.raw?.status_cadastro ||
+      item.status_cadastro
+  );
+
+  const possuiConviteCriado = Boolean(
+    item.convite?.id ||
+      item.raw?.convite?.id
+  );
+
+  const statusCadastroEditavel = [
+    "RASCUNHO",
+    "PRE_CADASTRO",
+    "PRÉ-CADASTRO",
+  ].includes(statusCadastro);
+
+  return statusCadastroEditavel && !possuiConviteCriado;
 }
 
 function formatarTorreTabela(item = {}, torreEstrutura = null) {
@@ -158,7 +185,7 @@ export default function CadastroMorador({ perfil }) {
 
   const [busca, setBusca] = useState("");
   const [filtroTorre, setFiltroTorre] = useState("todos");
-  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [filtroStatus, setFiltroStatus] = useState("RASCUNHO");
   const [pagina, setPagina] = useState(1);
 
   const [modalNovoMorador, setModalNovoMorador] = useState(false);
@@ -345,7 +372,14 @@ export default function CadastroMorador({ perfil }) {
       const statusConta = item.raw?.status_conta;
       const statusAcompanhamento = item.raw?.status_acompanhamento;
 
+      const possuiConviteCriado = Boolean(item.convite?.id);
+
+      if (possuiConviteCriado) {
+        return false;
+      }
+
       const statusOculto =
+        possuiConviteCriado ||
         STATUS_OCULTOS_NO_TODOS.includes(statusPrincipal) ||
         STATUS_OCULTOS_NO_TODOS.includes(statusConvite) ||
         STATUS_OCULTOS_NO_TODOS.includes(statusConta) ||
@@ -390,9 +424,17 @@ export default function CadastroMorador({ perfil }) {
     const hoje = new Date().toISOString().slice(0, 10);
 
     const preCadastrosAtivos = preCadastros.filter((item) => {
-    const statusCadastro = item.status_cadastro;
-    const statusConta = item.status_conta;
-    const statusAcompanhamento = item.status_acompanhamento;
+      const conviteCriado = convites.some(
+        (convite) => convite.pre_cadastro_id === item.id
+      );
+
+      if (conviteCriado) {
+        return false;
+      }
+
+      const statusCadastro = item.status_cadastro;
+      const statusConta = item.status_conta;
+      const statusAcompanhamento = item.status_acompanhamento;
 
     const cancelado =
       statusCadastro === "CANCELADO" ||
@@ -409,27 +451,55 @@ export default function CadastroMorador({ perfil }) {
     return !cancelado && !aprovadoOuAtivo;
   });
 
-    const prontos = preCadastros.filter((item) =>
-      ["PRONTO_CONVITE", "IMPORTADO", "RASCUNHO", "aguardando_envio"].includes(
-        item.status_cadastro || item.status_convite
-      )
-    );
+    const prontos = preCadastros.filter((item) => {
+      const conviteCriado = convites.some(
+        (convite) => convite.pre_cadastro_id === item.id
+      );
 
-    const pendencias = preCadastros.filter(
-      (item) =>
+      if (conviteCriado) {
+        return false;
+      }
+
+      const status = item.status_cadastro || item.status_convite;
+
+      return ["PRONTO_CONVITE", "IMPORTADO", "RASCUNHO", "PRE_CADASTRO"].includes(
+        status
+      );
+    });
+
+    const pendencias = preCadastros.filter((item) => {
+      const conviteCriado = convites.some(
+        (convite) => convite.pre_cadastro_id === item.id
+      );
+
+      if (conviteCriado) {
+        return false;
+      }
+
+      return (
         item.possui_divergencia ||
         !item.email ||
         !item.telefone ||
         !item.nome ||
         !item.torre ||
         !item.unidade
-    );
+      );
+    });
 
-    const importadosHoje = preCadastros.filter(
-      (item) =>
+    const importadosHoje = preCadastros.filter((item) => {
+      const conviteCriado = convites.some(
+        (convite) => convite.pre_cadastro_id === item.id
+      );
+
+      if (conviteCriado) {
+        return false;
+      }
+
+      return (
         item.origem_cadastro === "xlsx" &&
         String(item.criado_em || "").slice(0, 10) === hoje
-    );
+      );
+    });
 
     return {
       total: preCadastrosAtivos.length,
@@ -439,12 +509,12 @@ export default function CadastroMorador({ perfil }) {
       semTelefone: preCadastrosAtivos.filter((i) => !i.telefone).length,
       semEmail: preCadastrosAtivos.filter((i) => !i.email).length,
     };
-  }, [preCadastros]);
+  }, [preCadastros, convites]);
 
   function limparFiltros() {
     setBusca("");
     setFiltroTorre("todos");
-    setFiltroStatus("todos");
+    setFiltroStatus("RASCUNHO");
     setPagina(1);
   }
 
@@ -493,8 +563,16 @@ export default function CadastroMorador({ perfil }) {
       listaUnificada.find((item) => item.id === registro?.id) ||
       registro;
 
+    if (!podeEditarMoradorCadastro(itemCompleto)) {
+      toast.error(
+        "Edição bloqueada. Após a criação do convite, os dados só podem ser alterados pelo morador no Wizard."
+      );
+      return;
+    }
+
     setMoradorEdicao(itemCompleto);
     setModalEditar(true);
+
   }
 
   async function salvarEdicaoMorador(payload) {
@@ -516,6 +594,13 @@ export default function CadastroMorador({ perfil }) {
   }
 
   function abrirCancelamentoMorador(item) {
+    if (!podeEditarMoradorCadastro(item)) {
+      toast.error(
+        "Cancelamento bloqueado. Após a criação do convite, este cadastro passa para o fluxo de Auditoria e Convite."
+      );
+      return;
+    }
+
     setMoradorCancelamento(item);
     setMotivoCancelamento("");
     setModalCancelar(true);
@@ -546,6 +631,14 @@ export default function CadastroMorador({ perfil }) {
   }, [modalCancelar, cancelando]);
 
   async function confirmarCancelamentoMorador() {
+    if (!podeEditarMoradorCadastro(moradorCancelamento)) {
+      toast.error(
+        "Cancelamento bloqueado. Este cadastro já possui convite criado ou enviado."
+      );
+
+      setModalCancelar(false);
+      return;
+    }
     const motivo = motivoCancelamento.trim();
 
     if (!motivo) {
@@ -850,13 +943,24 @@ export default function CadastroMorador({ perfil }) {
                               <Eye size={15} />
                             </button>
 
-                            <button
-                              type="button"
-                              title="Cancelar pré-cadastro"
-                              onClick={() => abrirCancelamentoMorador(item)}
-                            >
-                              <XCircle size={15} />
-                            </button>
+                            {podeEditarMoradorCadastro(item) ? (
+                              <button
+                                type="button"
+                                title="Cancelar pré-cadastro"
+                                onClick={() => abrirCancelamentoMorador(item)}
+                              >
+                                <XCircle size={15} />
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                title="Cancelamento bloqueado após criação ou envio do convite"
+                                disabled
+                                className="cadmor-action-disabled"
+                              >
+                                <XCircle size={15} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

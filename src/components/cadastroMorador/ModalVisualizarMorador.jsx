@@ -111,6 +111,30 @@ function StatusPill({ label, status }) {
   );
 }
 
+function normalizarStatusEdicao(valor = "") {
+  return String(valor || "").trim().toUpperCase();
+}
+
+function podeEditarMoradorVisualizacao(morador = {}) {
+  const raw = morador?.raw || morador || {};
+
+  const statusCadastro = normalizarStatusEdicao(
+    raw.status_cadastro ||
+      morador.status_principal ||
+      morador.status_cadastro
+  );
+
+  const possuiConviteCriado = Boolean(morador.convite?.id || raw.convite?.id);
+
+  const statusCadastroEditavel = [
+    "RASCUNHO",
+    "PRE_CADASTRO",
+    "PRÉ-CADASTRO",
+  ].includes(statusCadastro);
+
+  return statusCadastroEditavel && !possuiConviteCriado;
+}
+
 export default function ModalVisualizarMorador({
   aberto,
   morador,
@@ -121,6 +145,7 @@ export default function ModalVisualizarMorador({
   if (!aberto || !morador) return null;
 
   const raw = morador.raw || morador;
+  const edicaoPermitida = podeEditarMoradorVisualizacao(morador);
 
   const nome = raw.nome || morador.nome;
   const email = raw.email || morador.email;
@@ -276,14 +301,27 @@ export default function ModalVisualizarMorador({
             Fechar
           </button>
 
-          <button
-            type="button"
-            className="cadmor-btn primary"
-            onClick={() => onEditar?.(raw)}
-          >
-            <Edit3 size={16} />
-            Editar Dados
-          </button>
+          {edicaoPermitida ? (
+            <button
+              type="button"
+              className="cadmor-btn primary"
+              onClick={() => onEditar?.(raw)}
+            >
+              <Edit3 size={16} />
+              Editar Dados
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="cadmor-btn secondary"
+              disabled
+              title="Edição bloqueada após criação ou envio do convite."
+            >
+              <Edit3 size={16} />
+              Edição bloqueada
+            </button>
+          )}
+
         </footer>
       </div>
     </div>
