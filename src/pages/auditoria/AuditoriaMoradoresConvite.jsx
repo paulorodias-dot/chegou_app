@@ -820,7 +820,7 @@ function gerarNomeArquivoConvites() {
   return `auditoria_convites_moradores_${data}_${hora}${minuto}.xlsx`;
 }
 
-export default function AuditoriaMoradoresConvite({ perfil }) {
+export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
   const condominioId =
     perfil?.condominio_id ||
     perfil?.condominio_atual_id ||
@@ -1119,10 +1119,24 @@ export default function AuditoriaMoradoresConvite({ perfil }) {
         </div>
 
         <div className="amc-tabs">
-          <button type="button" className="active">Convite</button>
-          <button type="button" onClick={() => handleAcaoTopo("Pré-Cadastro")}>Pré-Cadastro</button>
-          <button type="button" onClick={() => handleAcaoTopo("Auditoria")}>Auditoria</button>
-          <button type="button" onClick={() => handleAcaoTopo("Histórico")}>Histórico</button>
+          <button
+            type="button"
+            onClick={() => onNavigate?.("admin-auditoria-moradores-pre-cadastro")}
+          >
+            Pré-Cadastro
+          </button>
+
+          <button type="button" className="active">
+            Convite
+          </button>
+
+          <button type="button" onClick={() => handleAcaoTopo("Auditoria")}>
+            Auditoria
+          </button>
+
+          <button type="button" onClick={() => handleAcaoTopo("Histórico")}>
+            Histórico
+          </button>
         </div>
 
         <section className="amc-kpis">

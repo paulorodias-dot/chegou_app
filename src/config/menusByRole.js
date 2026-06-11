@@ -97,9 +97,9 @@ export const menusByRole = {
       hideOnMobileBottom: true,
       children: [
         {
-          id: "admin-auditoria-moradores-convite",
+          id: "admin-auditoria-moradores-pre-cadastro",
           label: "Moradores",
-          icon: Users,
+          icon: Mail,
         },
         {
           id: "admin-logs-auditoria",
