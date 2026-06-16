@@ -44,7 +44,7 @@ serve(async (req) => {
       );
     }
 
-    if (!etapa || etapa < 1 || etapa > 8) {
+    if (!etapa || etapa < 1 || etapa > 9) {
       return jsonResponse(
         { success: false, code: "ETAPA_INVALIDA", message: "Etapa inválida." },
         400
@@ -92,7 +92,28 @@ serve(async (req) => {
       );
     }
 
-    const proximaEtapa = avancar ? Math.min(etapa + 1, 8) : etapa;
+    if (etapa === 7) {
+      const aceiteTermos = dados?.aceite_termos === true;
+      const aceiteLgpd = dados?.aceite_lgpd === true;
+
+      if (aceiteTermos && aceiteLgpd) {
+        await supabase
+          .from("pre_cadastro_moradores")
+          .update({
+            aceite_termos: true,
+            aceite_lgpd: true,
+            aceite_comunicacoes:
+              dados?.aceite_comunicacoes === true ||
+              dados?.aceite_comunicacao_operacional === true,
+            versao_termos: dados?.versao_termos || null,
+            aceito_em: dados?.aceito_em || new Date().toISOString(),
+            atualizado_em: new Date().toISOString(),
+          })
+          .eq("token_convite", token);
+      }
+    }
+
+    const proximaEtapa = avancar ? Math.min(etapa + 1, 9) : etapa;
 
     return jsonResponse({
       success: true,

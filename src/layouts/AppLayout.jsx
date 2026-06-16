@@ -121,7 +121,10 @@ export default function AppLayout({
         <div className="topbar-actions">
           <span className="notification">
             <Bell size={20} />
-            <b>0</b>
+
+            {Number(perfil?.notificacoes_nao_lidas || 0) > 0 ? (
+              <b>{perfil.notificacoes_nao_lidas}</b>
+            ) : null}
           </span>
 
           <span className="notification desktop-only">

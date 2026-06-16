@@ -1,9 +1,14 @@
 import { supabase } from "./supabase";
 
 const STATUS_ATIVOS_AUDITORIA = [
+  "RASCUNHO",
   "AGUARDANDO_ENVIO",
+  "PROCESSANDO",
+  "ERRO_ENVIO",
   "CONVITE_ENVIADO",
+  "ABERTO",
   "EM_PREENCHIMENTO",
+  "WIZARD_FINALIZADO",
   "AGUARDANDO_AUDITORIA",
   "CORRECAO_SOLICITADA",
   "APROVADO",
@@ -12,17 +17,41 @@ const STATUS_ATIVOS_AUDITORIA = [
 ];
 
 function normalizarStatusVisual(status) {
-  if (!status) return "AGUARDANDO ENVIO";
-  return String(status).replaceAll("_", " ").toUpperCase();
+  if (!status) return "RASCUNHO";
+
+  const mapa = {
+    RASCUNHO: "RASCUNHO",
+    AGUARDANDO_ENVIO: "NA FILA DE ENVIO",
+    PROCESSANDO: "ENVIANDO E-MAIL",
+    ERRO_ENVIO: "ERRO NO ENVIO",
+    CONVITE_ENVIADO: "E-MAIL ENVIADO",
+    ABERTO: "E-MAIL ABERTO",
+    EM_PREENCHIMENTO: "EM PREENCHIMENTO",
+    WIZARD_FINALIZADO: "WIZARD FINALIZADO",
+    AGUARDANDO_AUDITORIA: "AGUARDANDO AUDITORIA",
+    CORRECAO_SOLICITADA: "CORREÇÃO SOLICITADA",
+    APROVADO: "APROVADO",
+    REPROVADO: "REPROVADO",
+    BLOQUEADO: "BLOQUEADO",
+  };
+
+  return mapa[status] || String(status).replaceAll("_", " ").toUpperCase();
 }
 
 function mapearStatusLegado(convite = {}, preCadastro = {}) {
+  const statusEnvio = String(convite.status_envio || "").toUpperCase();
   const statusConvite = String(
-    convite.status_convite ||
+    statusEnvio ||
+      convite.status_convite ||
       preCadastro.status_convite ||
-      convite.status_envio ||
       ""
   ).toUpperCase();
+
+    const statusCadastro = String(preCadastro.status_cadastro || "").toUpperCase();
+
+    if (!convite?.id && statusCadastro === "RASCUNHO") {
+      return "RASCUNHO";
+    }
 
   if (convite.bloqueado || preCadastro.bloqueado) return "BLOQUEADO";
   if (convite.token_revogado) return "TOKEN_REVOGADO";
@@ -35,12 +64,48 @@ function mapearStatusLegado(convite = {}, preCadastro = {}) {
   if (preCadastro.percentual_preenchimento > 0 || preCadastro.status_cadastro === "EM_PREENCHIMENTO") {
     return "EM_PREENCHIMENTO";
   }
+
+  if (statusConvite === "AGUARDANDO_ENVIO") {
+    return "AGUARDANDO_ENVIO";
+  }
+
+  if (statusConvite === "PROCESSANDO") {
+    return "PROCESSANDO";
+  }
+
+  if (statusConvite === "ERRO_ENVIO") {
+    return "ERRO_ENVIO";
+  }
+
+  if (convite.convite_aberto || convite.convite_aberto_em) {
+    return "ABERTO";
+  }
+
+  if (convite.wizard_finalizado || preCadastro.status_cadastro === "WIZARD_FINALIZADO") {
+    return "WIZARD_FINALIZADO";
+  }
+
   if (statusConvite === "ENVIADO" || statusConvite === "EMAIL_ENVIADO") {
     return "CONVITE_ENVIADO";
   }
-  if (statusConvite === "PENDENTE") return "CONVITE_ENVIADO";
 
-  return "AGUARDANDO_ENVIO";
+  if (statusConvite === "PENDENTE") return "AGUARDANDO_ENVIO";
+
+  if (
+    !convite?.id &&
+    ["RASCUNHO", "rascunho"].includes(String(preCadastro.status_cadastro || ""))
+  ) {
+    return "RASCUNHO";
+  }
+
+  if (
+    String(preCadastro.status_cadastro || "").toUpperCase() === "RASCUNHO"
+  ) {
+    return "RASCUNHO";
+  }
+
+  return "RASCUNHO";
+
 }
 
 function calcularUltimaAtividade(item = {}) {
@@ -119,13 +184,15 @@ export async function listarAuditoriaConvitesMoradores({
   status = "TODOS",
   torre = "TODAS",
   unidade = "TODAS",
-  limite = 50,
+  dataInicio = "",
+  dataFim = "",
+  limite = 500,
 } = {}) {
   if (!condominioId) {
     throw new Error("Condomínio autenticado não encontrado.");
   }
 
-  let query = supabase
+  const { data: convites, error: erroConvites } = await supabase
     .from("convites_morador")
     .select("*")
     .eq("condominio_id", condominioId)
@@ -134,35 +201,61 @@ export async function listarAuditoriaConvitesMoradores({
     .order("criado_em", { ascending: false })
     .limit(limite);
 
-  const { data: convites, error } = await query;
+  if (erroConvites) throw erroConvites;
 
-  if (error) throw error;
+  const preCadastroIdsComConvite = [
+    ...new Set((convites || []).map((c) => c.pre_cadastro_id).filter(Boolean)),
+  ];
 
-  const preCadastroIds = [...new Set((convites || []).map((c) => c.pre_cadastro_id).filter(Boolean))];
-
-  let preCadastros = [];
+  let preCadastrosComConvite = [];
   let auditorias = [];
 
-  if (preCadastroIds.length) {
+  if (preCadastroIdsComConvite.length) {
     const { data: preData, error: preError } = await supabase
       .from("pre_cadastro_moradores")
       .select("*")
-      .in("id", preCadastroIds);
+      .in("id", preCadastroIdsComConvite);
 
     if (preError) throw preError;
-    preCadastros = preData || [];
+
+    preCadastrosComConvite = preData || [];
 
     const { data: audData, error: audError } = await supabase
       .from("auditorias_morador")
       .select("*")
-      .in("pre_cadastro_id", preCadastroIds)
+      .in("pre_cadastro_id", preCadastroIdsComConvite)
       .order("criado_em", { ascending: false });
 
     if (audError) throw audError;
+
     auditorias = audData || [];
   }
 
-  const preMap = new Map(preCadastros.map((p) => [p.id, p]));
+  const { data: preCadastrosRascunho, error: erroRascunhos } = await supabase
+    .from("pre_cadastro_moradores")
+    .select("*")
+    .eq("condominio_id", condominioId)
+    .or(
+      [
+        "status_cadastro.eq.RASCUNHO",
+        "status_cadastro.eq.rascunho",
+        "status_convite.eq.RASCUNHO",
+        "status_convite.eq.rascunho",
+        "status_convite.is.null",
+      ].join(",")
+    )
+    .order("criado_em", { ascending: false })
+    .limit(limite);
+
+  if (erroRascunhos) throw erroRascunhos;
+
+  const idsComConvite = new Set(preCadastroIdsComConvite);
+
+  const rascunhosSemConvite = (preCadastrosRascunho || []).filter(
+    (pre) => !idsComConvite.has(pre.id)
+  );
+
+  const preMap = new Map(preCadastrosComConvite.map((p) => [p.id, p]));
   const audMap = new Map();
 
   auditorias.forEach((a) => {
@@ -171,14 +264,44 @@ export async function listarAuditoriaConvitesMoradores({
     }
   });
 
-  let registros = (convites || [])
-    .map((convite) =>
-      formatarRegistro(
-        convite,
-        preMap.get(convite.pre_cadastro_id),
-        audMap.get(convite.pre_cadastro_id)
-      )
+  const registrosComConvite = (convites || []).map((convite) =>
+    formatarRegistro(
+      convite,
+      preMap.get(convite.pre_cadastro_id),
+      audMap.get(convite.pre_cadastro_id)
     )
+  );
+
+  const registrosRascunho = rascunhosSemConvite.map((preCadastro) => {
+    const registro = formatarRegistro(
+      {
+        id: null,
+        condominio_id: preCadastro.condominio_id,
+        pre_cadastro_id: preCadastro.id,
+        business_id: preCadastro.business_id,
+        nome_destino: preCadastro.nome,
+        email_destino: preCadastro.email,
+        telefone_destino: preCadastro.telefone,
+        status_envio: null,
+        status_convite: null,
+        token_revogado: false,
+        cancelado: false,
+        criado_em: preCadastro.criado_em,
+      },
+      preCadastro,
+      null
+    );
+
+    return {
+      ...registro,
+      id: `rascunho-${preCadastro.id}`,
+      convite_id: null,
+      status_sistema: "RASCUNHO",
+      status_visual: "RASCUNHO",
+    };
+  });
+
+  let registros = [...registrosRascunho, ...registrosComConvite]
     .filter((item) => item.status_sistema !== "CONTA_ATIVA")
     .filter((item) => STATUS_ATIVOS_AUDITORIA.includes(item.status_sistema));
 
@@ -209,6 +332,28 @@ export async function listarAuditoriaConvitesMoradores({
 
   if (unidade !== "TODAS") {
     registros = registros.filter((item) => item.unidade === unidade);
+  }
+
+  if (dataInicio || dataFim) {
+    const inicio = dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
+    const fim = dataFim ? new Date(`${dataFim}T23:59:59`) : null;
+
+    registros = registros.filter((item) => {
+      const dataBase =
+        item.ultima_atividade_em ||
+        item.enviado_em ||
+        item.convite?.criado_em ||
+        item.pre_cadastro?.criado_em;
+
+      if (!dataBase) return false;
+
+      const data = new Date(dataBase);
+
+      if (inicio && data < inicio) return false;
+      if (fim && data > fim) return false;
+
+      return true;
+    });
   }
 
   return registros;
@@ -293,4 +438,52 @@ export async function obterLimiteEnvioDiario({ condominioId } = {}) {
       limite: 20,
     },
   };
+}
+
+export async function enviarConviteMoradorAuditoria({
+  perfil,
+  registro,
+  enviarAgora = true,
+  tipoEnvio = "individual",
+}) {
+  if (!perfil?.condominio_id) {
+    throw new Error("Condomínio não identificado no perfil.");
+  }
+
+  if (!registro?.pre_cadastro_id) {
+    throw new Error("Pré-cadastro não identificado.");
+  }
+
+  const { data, error } = await supabase.functions.invoke(
+    "enviar-convite-morador",
+    {
+      body: {
+        condominio_id: perfil.condominio_id,
+        pre_cadastro_id: registro.pre_cadastro_id,
+        nome: registro.nome,
+        email: registro.email,
+        telefone: registro.telefone,
+        torre: registro.torre,
+        unidade: registro.unidade,
+        tipo_envio: tipoEnvio,
+        origem_cadastro: "administrativo",
+        enviado_por: perfil?.usuario_id || perfil?.id || null,
+        prioridade: 0,
+        enviar_agora: enviarAgora,
+        observacoes: null,
+        site_url: window.location.origin,
+      },
+    }
+  );
+
+  if (error || data?.success === false) {
+    throw new Error(
+      data?.error ||
+        data?.message ||
+        error?.message ||
+        "Erro ao enviar convite do morador."
+    );
+  }
+
+  return data;
 }

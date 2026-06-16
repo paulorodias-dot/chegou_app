@@ -9,7 +9,6 @@ import {
   DatabaseZap,
   Download,
   Eye,
-  Filter,
   Info,
   Mail,
   MoreVertical,
@@ -27,22 +26,24 @@ import "./AuditoriaMoradoresConvite.css";
 import * as XLSX from "xlsx";
 import {
   buscarTorresAuditoriaMoradores,
-  copiarLinkConviteMorador,
   listarAuditoriaConvitesMoradores,
   obterResumoAuditoriaConvitesMoradores,
   obterLimiteEnvioDiario,
+  enviarConviteMoradorAuditoria,
 } from "../../services/auditoriaMoradoresConvitesService";
 
 const STATUS_FILTROS = [
   { value: "TODOS", label: "Todos" },
-  { value: "AGUARDANDO_ENVIO", label: "Aguardando Envio" },
-  { value: "CONVITE_ENVIADO", label: "Convite Enviado" },
-  { value: "EM_PREENCHIMENTO", label: "Em Preenchimento" },
-  { value: "AGUARDANDO_AUDITORIA", label: "Aguardando Auditoria" },
-  { value: "CORRECAO_SOLICITADA", label: "Correção Solicitada" },
+  { value: "RASCUNHO", label: "Rascunho" },
+  { value: "AGUARDANDO_ENVIO", label: "Na fila de envio" },
+  { value: "PROCESSANDO", label: "Enviando e-mail" },
+  { value: "ERRO_ENVIO", label: "Erro no envio" },
+  { value: "CONVITE_ENVIADO", label: "E-mail enviado" },
+  { value: "ABERTO", label: "E-mail aberto" },
+  { value: "EM_PREENCHIMENTO", label: "Em preenchimento" },
+  { value: "AGUARDANDO_AUDITORIA", label: "Aguardando auditoria" },
   { value: "APROVADO", label: "Aprovado" },
   { value: "REPROVADO", label: "Reprovado" },
-  { value: "BLOQUEADO", label: "Bloqueado" },
 ];
 
 function formatarDataHora(valor) {
@@ -124,9 +125,14 @@ function formatarStatusTela(status) {
   if (!status) return "Aguardando Envio";
 
   const mapa = {
-    AGUARDANDO_ENVIO: "Aguardando Envio",
-    CONVITE_ENVIADO: "E-mail Enviado",
+    RASCUNHO: "Rascunho",
+    AGUARDANDO_ENVIO: "Na fila de envio",
+    PROCESSANDO: "Enviando e-mail",
+    ERRO_ENVIO: "Erro no envio",
+    CONVITE_ENVIADO: "E-mail enviado",
+    ABERTO: "E-mail aberto",
     EM_PREENCHIMENTO: "Em Preenchimento",
+    WIZARD_FINALIZADO: "Wizard Finalizado",
     AGUARDANDO_AUDITORIA: "Aguardando Auditoria",
     CORRECAO_SOLICITADA: "Correção Solicitada",
     APROVADO: "Aprovado",
@@ -149,9 +155,14 @@ function formatarCanalEnvio(item) {
 
 function classeStatus(status) {
   const mapa = {
+    RASCUNHO: "aguardando",
     AGUARDANDO_ENVIO: "aguardando",
+    PROCESSANDO: "processando",
+    ERRO_ENVIO: "erro",
     CONVITE_ENVIADO: "enviado",
+    ABERTO: "enviado",
     EM_PREENCHIMENTO: "preenchimento",
+    WIZARD_FINALIZADO: "auditoria",
     AGUARDANDO_AUDITORIA: "auditoria",
     CORRECAO_SOLICITADA: "correcao",
     APROVADO: "aprovado",
@@ -165,9 +176,28 @@ function classeStatus(status) {
 function obterSubStatus(item) {
   if (!item) return "—";
 
+  if (item.status_sistema === "RASCUNHO") {
+    return "Ainda não enviado";
+  }
+
+  if (item.status_sistema === "AGUARDANDO_ENVIO") {
+    return "Aguardando envio pelo sistema";
+  }
+
+  if (item.status_sistema === "PROCESSANDO") {
+    return "Envio em andamento";
+  }
+
+  if (item.status_sistema === "ERRO_ENVIO") {
+    return "Necessário revisar e-mail";
+  }
+
   if (item.status_sistema === "CONVITE_ENVIADO") {
-    if (item.convite_aberto) return "Aberto";
-    return "Enviado";
+    return "E-mail enviado";
+  }
+
+  if (item.status_sistema === "ABERTO") {
+    return "Morador abriu o e-mail/link";
   }
 
   if (item.status_sistema === "EM_PREENCHIMENTO") {
@@ -176,13 +206,31 @@ function obterSubStatus(item) {
       : "Wizard iniciado";
   }
 
-  if (item.status_sistema === "AGUARDANDO_AUDITORIA") return "Wizard finalizado";
-  if (item.status_sistema === "APROVADO") return "Aguardando 1º acesso";
-  if (item.status_sistema === "REPROVADO") return "Auditoria encerrada";
-  if (item.status_sistema === "BLOQUEADO") return "Suspeita de fraude";
-  if (item.status_sistema === "CORRECAO_SOLICITADA") return "Pendente de ajuste";
+  if (item.status_sistema === "WIZARD_FINALIZADO") {
+    return "Wizard concluído pelo morador";
+  }
 
-  return "Aguardando envio";
+  if (item.status_sistema === "AGUARDANDO_AUDITORIA") {
+    return "Aguardando análise administrativa";
+  }
+
+  if (item.status_sistema === "APROVADO") {
+    return "Aguardando 1º acesso";
+  }
+
+  if (item.status_sistema === "REPROVADO") {
+    return "Auditoria encerrada";
+  }
+
+  if (item.status_sistema === "BLOQUEADO") {
+    return "Suspeita de fraude";
+  }
+
+  if (item.status_sistema === "CORRECAO_SOLICITADA") {
+    return "Pendente de ajuste";
+  }
+
+  return "Acompanhamento do convite";
 }
 
 function obterIniciais(nome = "") {
@@ -226,44 +274,82 @@ function AcaoLinhaMenu({
   const [posicao, setPosicao] = useState({ top: 0, left: 0 });
 
   const opcoesPorStatus = {
-    AGUARDANDO_ENVIO: [
+    RASCUNHO: [
       "Enviar Convite",
       "Editar Dados",
       "Visualizar Cadastro",
       "Cancelar Pré-Cadastro",
     ],
+
+    AGUARDANDO_ENVIO: [
+      "Visualizar Convite",
+      "Cancelar Envio",
+      "Visualizar Cadastro",
+    ],
+
+    PROCESSANDO: [
+      "Visualizar Convite",
+      "Visualizar Cadastro",
+    ],
+
+    ERRO_ENVIO: [
+      "Corrigir e Enviar",
+      "Visualizar Cadastro",
+      "Visualizar Histórico",
+    ],
+
     CONVITE_ENVIADO: [
       "Visualizar Convite",
-      "Copiar Link",
       "Reenviar Convite",
       "Revogar Convite",
       "Visualizar Cadastro",
     ],
-    EM_PREENCHIMENTO: [
+
+    ABERTO: [
       "Visualizar Andamento",
-      "Copiar Link",
       "Reenviar Convite",
       "Visualizar Cadastro",
     ],
+
+    EM_PREENCHIMENTO: [
+      "Visualizar Andamento",
+      "Reenviar Convite",
+      "Visualizar Cadastro",
+    ],
+
+    WIZARD_FINALIZADO: [
+      "Visualizar Cadastro Completo",
+      "Abrir Auditoria",
+    ],
+
     AGUARDANDO_AUDITORIA: [
       "Visualizar Cadastro Completo",
-      "Aprovar",
-      "Solicitar Correção",
-      "Reprovar",
+      "Abrir Auditoria",
     ],
+
     CORRECAO_SOLICITADA: [
       "Visualizar Pendências",
       "Reenviar Aviso",
-      "Copiar Link",
       "Visualizar Cadastro",
     ],
+
     APROVADO: [
       "Visualizar Usuário Criado",
-      "Reenviar Orientação",
       "Visualizar Histórico",
     ],
-    REPROVADO: ["Visualizar Motivo", "Visualizar Histórico", "Reabrir Auditoria"],
-    BLOQUEADO: ["Visualizar Risco", "Visualizar Logs", "Desbloquear", "Reabrir Auditoria"],
+
+    REPROVADO: [
+      "Visualizar Motivo",
+      "Visualizar Histórico",
+      "Reabrir Auditoria",
+    ],
+
+    BLOQUEADO: [
+      "Visualizar Risco",
+      "Visualizar Logs",
+      "Desbloquear",
+      "Reabrir Auditoria",
+    ],
   };
 
   const opcoes = opcoesPorStatus[item.status_sistema] || ["Visualizar Cadastro"];
@@ -485,10 +571,8 @@ function DrawerAndamentoConvite({ item, onClose }) {
   );
 }
 
-function DrawerConvite({ item, onClose, onCopiarLink }) {
+function DrawerConvite({ item, onClose }) {
   if (!item) return null;
-
-  const link = obterLinkConvite(item);
 
   return (
     <>
@@ -550,22 +634,6 @@ function DrawerConvite({ item, onClose, onCopiarLink }) {
           <div>
             <small>Expira em</small>
             <strong>{formatarData(item.token_expira_em)}</strong>
-          </div>
-        </div>
-
-        <div className="amc-drawer-section">
-          <h3>Link do Wizard</h3>
-          <p>{link || "Link não encontrado no payload do convite."}</p>
-
-          <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              className="amc-btn amc-btn-primary"
-              onClick={() => onCopiarLink(item)}
-              disabled={!link}
-            >
-              Copiar Link
-            </button>
           </div>
         </div>
 
@@ -828,6 +896,7 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
     null;
 
   const [carregando, setCarregando] = useState(true);
+  const [ultimaAtualizacao, setUltimaAtualizacao] = useState(null);
   const [erro, setErro] = useState("");
   const [registros, setRegistros] = useState([]);
   const [resumo, setResumo] = useState({
@@ -838,6 +907,8 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
     aprovados: 0,
     reprovadosBloqueados: 0,
   });
+
+  const [processandoAcao, setProcessandoAcao] = useState(false);
 
   const [limiteEnvio, setLimiteEnvio] = useState({
     convites: { usados: 0, limite: 40 },
@@ -850,6 +921,9 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
   const [status, setStatus] = useState("TODOS");
   const [torre, setTorre] = useState("TODAS");
   const [unidade, setUnidade] = useState("TODAS");
+  const hojeISO = new Date().toISOString().slice(0, 10);
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState(hojeISO);
   const [menuAberto, setMenuAberto] = useState(null);
   const [andamentoSelecionado, setAndamentoSelecionado] = useState(null);
   const [conviteSelecionado, setConviteSelecionado] = useState(null);
@@ -858,6 +932,9 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
   const [reenvioSelecionado, setReenvioSelecionado] = useState(null);
   const [pagina, setPagina] = useState(1);
   const [linhasPorPagina, setLinhasPorPagina] = useState(10);
+  const [modoSelecao, setModoSelecao] = useState(null); 
+  const [selecionados, setSelecionados] = useState([]);
+  const [progressoEnvio, setProgressoEnvio] = useState(null);
 
   async function carregarDados() {
     if (!condominioId) {
@@ -877,6 +954,8 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
           status,
           torre,
           unidade,
+          dataInicio,
+          dataFim,
           limite: 500,
         }),
         obterResumoAuditoriaConvitesMoradores({ condominioId }),
@@ -888,6 +967,7 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
       setResumo(resumoAtual);
       setTorres(torresAtual);
       setLimiteEnvio(limiteAtual);
+      setUltimaAtualizacao(new Date());
       setPagina(1);
     } catch (error) {
       console.error(error);
@@ -900,7 +980,7 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
   useEffect(() => {
     carregarDados();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [condominioId, status, torre, unidade]);
+  }, [condominioId, status, torre, unidade, dataInicio, dataFim]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -954,13 +1034,259 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
     return Math.min(100, Math.round((Number(usados || 0) / Number(limite)) * 100));
   }
 
-  async function handleCopiarLink(item) {
-    try {
-      await copiarLinkConviteMorador(item.convite);
-      toast.success("Link do convite copiado.");
-    } catch (error) {
-      toast.error(error?.message || "Não foi possível copiar o link.");
+  function limparSelecao() {
+    setModoSelecao(null);
+    setSelecionados([]);
+  }
+
+  function fecharProgressoEnvio() {
+    if (progressoEnvio?.bloqueado) return;
+    setProgressoEnvio(null);
+  }
+
+  function podeSelecionar(item) {
+    return ["RASCUNHO", "ERRO_ENVIO"].includes(item.status_sistema);
+  }
+
+  function alternarSelecionado(item) {
+    if (!podeSelecionar(item)) {
+      toast("Este registro não está disponível para envio.", {
+        icon: "⚠️",
+      });
+      return;
     }
+
+    setSelecionados((atuais) => {
+      const jaExiste = atuais.some((id) => id === item.pre_cadastro_id);
+
+      if (jaExiste) {
+        return atuais.filter((id) => id !== item.pre_cadastro_id);
+      }
+
+      if (modoSelecao === "individual" && atuais.length >= 1) {
+        toast.dismiss();
+
+        toast("Para enviar mais de um convite, use o botão Enviar em Lote.", {
+          icon: "📦",
+        });
+
+        return atuais;
+      }
+
+      return [...atuais, item.pre_cadastro_id];
+    });
+  }
+
+  function selecionarRascunhosPagina() {
+    const elegiveis = registrosPagina.filter(podeSelecionar);
+
+    if (!elegiveis.length) {
+      toast("Não há registros disponíveis para envio nesta página.", {
+        icon: "⚠️",
+      });
+      return;
+    }
+
+    if (modoSelecao === "individual") {
+      toast("Envio individual permite selecionar apenas um morador.", {
+        icon: "✉️",
+      });
+      return;
+    }
+
+    setSelecionados((atuais) => {
+      const novos = elegiveis
+        .map((item) => item.pre_cadastro_id)
+        .filter((id) => !atuais.includes(id));
+
+      return [...atuais, ...novos];
+    });
+  }
+
+  function validarSelecaoParaEnvio() {
+    if (modoSelecao === "individual") {
+      if (selecionados.length !== 1) {
+        toast("Selecione exatamente um morador para Enviar Convite.", {
+          icon: "✉️",
+        });
+        return false;
+      }
+
+      return true;
+    }
+
+    if (modoSelecao === "lote") {
+      if (selecionados.length < 2) {
+        toast("Para Enviar em Lote, selecione pelo menos dois moradores.", {
+          icon: "📦",
+        });
+        return false;
+      }
+
+      if (selecionados.length > 30) {
+        toast("O envio em lote permite no máximo 30 convites por vez.", {
+          icon: "⚠️",
+        });
+        return false;
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  async function confirmarEnvioSelecionados() {
+    if (!validarSelecaoParaEnvio()) return;
+
+    const registrosSelecionados = registros.filter((item) =>
+      selecionados.includes(item.pre_cadastro_id)
+    );
+
+    if (modoSelecao === "individual" && registrosSelecionados.length !== 1) {
+      toast("Selecione exatamente um morador para Enviar Convite.", {
+        icon: "✉️",
+      });
+      return;
+    }
+
+    if (modoSelecao === "lote" && registrosSelecionados.length < 2) {
+      toast("Para Enviar em Lote, selecione pelo menos dois moradores.", {
+        icon: "📦",
+      });
+      return;
+    }
+
+    try {
+      setProcessandoAcao(true);
+
+      setProgressoEnvio({
+        aberto: true,
+        bloqueado: true,
+        titulo:
+          modoSelecao === "individual"
+            ? "Enviando convite"
+            : "Enviando convites em lote",
+        mensagem:
+          "Não feche esta janela até a confirmação final. Os convites já processados permanecerão registrados.",
+        total: registrosSelecionados.length,
+        processados: 0,
+        sucesso: 0,
+        erro: 0,
+        finalizado: false,
+      });
+
+      let sucesso = 0;
+      let erro = 0;
+
+      for (let index = 0; index < registrosSelecionados.length; index += 1) {
+        const registro = registrosSelecionados[index];
+
+        setProgressoEnvio((atual) => ({
+          ...atual,
+          processados: index,
+          sucesso,
+          erro,
+          mensagem: `Processando ${index + 1} de ${registrosSelecionados.length}: ${registro.nome}`,
+        }));
+
+        try {
+          await enviarConviteMoradorAuditoria({
+            perfil,
+            registro,
+            enviarAgora: false,
+            tipoEnvio: modoSelecao === "individual" ? "individual" : "lote",
+          });
+
+          sucesso += 1;
+        } catch (error) {
+          console.error("Erro ao enviar convite:", registro, error);
+          erro += 1;
+        }
+
+        setProgressoEnvio((atual) => ({
+          ...atual,
+          processados: index + 1,
+          sucesso,
+          erro,
+        }));
+      }
+
+      setProgressoEnvio((atual) => ({
+        ...atual,
+        bloqueado: false,
+        finalizado: true,
+        processados: registrosSelecionados.length,
+        sucesso,
+        erro,
+        titulo:
+          erro === 0
+            ? "Envio concluído com sucesso"
+            : "Envio concluído com atenção",
+        mensagem:
+          erro === 0
+            ? `${sucesso} convite(s) adicionados à fila de envio.`
+            : `${sucesso} convite(s) adicionados à fila. ${erro} registro(s) tiveram erro.`,
+      }));
+
+      limparSelecao();
+      await carregarDados();
+
+      setTimeout(() => {
+        setProgressoEnvio((atual) => {
+          if (!atual?.finalizado) return atual;
+          return null;
+        });
+      }, 7000);
+    } catch (error) {
+      console.error(error);
+
+      setProgressoEnvio((atual) => ({
+        ...atual,
+        bloqueado: false,
+        finalizado: true,
+        titulo: "Falha no processamento",
+        mensagem:
+          error?.message ||
+          "Não foi possível concluir o processamento. Verifique os registros e tente novamente.",
+      }));
+
+      toast.error(error?.message || "Erro ao processar envio.");
+    } finally {
+      setProcessandoAcao(false);
+    }
+  }
+
+  function alterarDataInicio(valor) {
+    if (valor && valor > hojeISO) {
+      toast("A data inicial não pode ser futura.", { icon: "📅" });
+      return;
+    }
+
+    setDataInicio(valor);
+
+    if (dataFim && valor && dataFim < valor) {
+      setDataFim(valor);
+    }
+  }
+
+  function alterarDataFim(valor) {
+    if (valor && valor > hojeISO) {
+      toast("A data final não pode ser futura.", { icon: "📅" });
+      return;
+    }
+
+    if (dataInicio && valor && valor < dataInicio) {
+      toast("A data final não pode ser anterior à data inicial.", { icon: "📅" });
+      return;
+    }
+
+    setDataFim(valor);
+  }
+
+  function limparPeriodo() {
+    setDataInicio("");
+    setDataFim(hojeISO);
   }
 
   async function handleAcaoLinha(acao, item) {
@@ -988,8 +1314,29 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
       return;
     }
 
-    if (acao === "Copiar Link") {
-      await handleCopiarLink(item);
+    if (acao === "Enviar Convite") {
+      if (processandoAcao) return;
+
+      try {
+        setProcessandoAcao(true);
+
+        await enviarConviteMoradorAuditoria({
+          perfil,
+          registro: item,
+          enviarAgora: false,
+          tipoEnvio: "individual",
+        });
+
+        toast.success("Convite adicionado à fila de envio.");
+
+        await carregarDados();
+      } catch (error) {
+        console.error(error);
+        toast.error(error?.message || "Erro ao adicionar convite à fila.");
+      } finally {
+        setProcessandoAcao(false);
+      }
+
       return;
     }
 
@@ -998,21 +1345,58 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
       return;
     }
 
+    if (acao === "Corrigir e Enviar") {
+      setCadastroSelecionado(item);
+      toast("Revise o e-mail do morador antes de reenviar.", {
+        icon: "✉️",
+      });
+      return;
+    }
+
     setAcaoPendente({ acao, item });
   }
 
-  function handleAcaoTopo(acao) {
-    toast(`${acao} será conectado na próxima etapa.`, {
-      icon: "⚙️",
-    });
-  }
+    function handleAcaoTopo(acao) {
+      if (acao === "Enviar Convite") {
+        setStatus("RASCUNHO");
+        setModoSelecao("individual");
+        setSelecionados([]);
 
-  function confirmarReenvioConvite() {
+        toast("Selecione um único morador em Rascunho para enviar o convite.", {
+          icon: "✉️",
+        });
+
+        return;
+      }
+
+      if (acao === "Enviar em Lote") {
+        setStatus("RASCUNHO");
+        setModoSelecao("lote");
+        setSelecionados([]);
+
+        toast("Selecione dois ou mais moradores em Rascunho para envio em lote.", {
+          icon: "📦",
+        });
+
+        return;
+      }
+
+      if (acao === "Logs de Auditoria") {
+        onNavigate?.("admin-auditoria-moradores-historico");
+        return;
+      }
+
+      toast(`${acao} será conectado na próxima etapa.`, {
+        icon: "⚙️",
+      });
+    }
+
+  async function confirmarReenvioConvite() {
     if (!reenvioSelecionado) return;
 
-    toast.success(
-      "Reenvio validado. Na próxima etapa será conectado à fila Brevo."
-    );
+    toast("Reenvio será conectado com manutenção do mesmo token na próxima etapa.", {
+      icon: "🔐",
+    });
 
     setReenvioSelecionado(null);
   }
@@ -1101,6 +1485,15 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
             <button
               type="button"
               className="amc-btn amc-btn-outline"
+              onClick={carregarDados}
+              disabled={carregando}
+            >
+              <RefreshCw size={17} className={carregando ? "amc-spin" : ""} />
+              Atualizar
+            </button>
+            <button
+              type="button"
+              className="amc-btn amc-btn-outline"
               onClick={() => handleAcaoTopo("Enviar Convite")}
             >
               <Send size={17} />
@@ -1130,11 +1523,17 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
             Convite
           </button>
 
-          <button type="button" onClick={() => handleAcaoTopo("Auditoria")}>
+          <button
+            type="button"
+            onClick={() => onNavigate?.("admin-auditoria-moradores-auditoria")}
+          >
             Auditoria
           </button>
 
-          <button type="button" onClick={() => handleAcaoTopo("Histórico")}>
+          <button
+            type="button"
+            onClick={() => onNavigate?.("admin-auditoria-moradores-historico")}
+          >
             Histórico
           </button>
         </div>
@@ -1196,26 +1595,89 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
             </label>
 
             <label>
-              <span>Período</span>
-              <button type="button" className="amc-filter-button">
-                <CalendarDays size={16} />
-                Últimos 30 dias
-                <ChevronDown size={15} />
-              </button>
+              <span>De</span>
+              <input
+                type="date"
+                className="amc-date-input"
+                value={dataInicio}
+                max={hojeISO}
+                onChange={(event) => alterarDataInicio(event.target.value)}
+              />
             </label>
 
-            <button type="button" className="amc-filter-extra">
-              <Filter size={16} />
-              Mais filtros
+            <label>
+              <span>Até</span>
+              <input
+                type="date"
+                className="amc-date-input"
+                value={dataFim}
+                min={dataInicio || undefined}
+                max={hojeISO}
+                onChange={(event) => alterarDataFim(event.target.value)}
+              />
+            </label>
+
+            <button
+              type="button"
+              className="amc-filter-extra"
+              onClick={limparPeriodo}
+            >
+              Limpar
             </button>
+
           </div>
 
           {erro ? <div className="amc-error">{erro}</div> : null}
+
+          {modoSelecao && (
+            <div className="amc-selection-bar">
+              <div>
+                <strong>
+                  {modoSelecao === "individual"
+                    ? "Envio individual"
+                    : "Envio em lote"}
+                </strong>
+                <span>
+                  {selecionados.length} selecionado(s)
+                </span>
+              </div>
+
+              <div className="amc-selection-actions">
+                {modoSelecao === "lote" && (
+                  <button
+                    type="button"
+                    className="amc-btn amc-btn-outline"
+                    onClick={selecionarRascunhosPagina}
+                  >
+                    Selecionar página
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  className="amc-btn amc-btn-outline"
+                  onClick={limparSelecao}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="button"
+                  className="amc-btn amc-btn-primary"
+                  disabled={processandoAcao}
+                  onClick={confirmarEnvioSelecionados}
+                >
+                  {processandoAcao ? "Processando..." : "Confirmar Envio"}
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="amc-table-wrap">
             <table className="amc-table">
               <thead>
                 <tr>
+                  {modoSelecao && <th>Sel.</th>}
                   <th>Morador</th>
                   <th>Unidade</th>
                   <th>E-mail</th>
@@ -1230,7 +1692,7 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
               <tbody>
                 {carregando ? (
                   <tr>
-                    <td colSpan="8">
+                    <td colSpan={modoSelecao ? 9 : 8}>
                       <div className="amc-loading">
                         <RefreshCw size={18} className="amc-spin" />
                         Carregando convites...
@@ -1240,6 +1702,18 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
                 ) : registrosPagina.length ? (
                   registrosPagina.map((item) => (
                     <tr key={item.id}>
+                      {modoSelecao && (
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={selecionados.includes(item.pre_cadastro_id)}
+                            disabled={!podeSelecionar(item)}
+                            onChange={() => alternarSelecionado(item)}
+                            aria-label={`Selecionar ${item.nome}`}
+                          />
+                        </td>
+                      )}
+
                       <td>
                         <div className="amc-person">
                           <div className="amc-avatar">{obterIniciais(item.nome)}</div>
@@ -1290,7 +1764,7 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8">
+                    <td colSpan={modoSelecao ? 9 : 8}>
                       <div className="amc-empty">
                         <strong>Nenhum registro encontrado</strong>
 
@@ -1430,7 +1904,21 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
             </div>
           </div>
 
-          <small>Período de Envio: 08h às 20h (Brasília)</small>
+          <small>
+            Período de Envio: 08h às 20h (Brasília)
+            <br />
+            Use o botão Atualizar para consultar o status mais recente.
+            {ultimaAtualizacao ? (
+              <>
+                <br />
+                Última atualização:{" "}
+                {new Intl.DateTimeFormat("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }).format(ultimaAtualizacao)}
+              </>
+            ) : null}
+          </small>
         </section>
       </aside>
 
@@ -1439,7 +1927,6 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
       <DrawerConvite
         item={conviteSelecionado}
         onClose={() => setConviteSelecionado(null)}
-        onCopiarLink={handleCopiarLink}
       />
 
       <DrawerCadastro item={cadastroSelecionado} onClose={() => setCadastroSelecionado(null)} />
@@ -1455,6 +1942,71 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
         item={acaoPendente?.item}
         onClose={() => setAcaoPendente(null)}
       />
+
+      {progressoEnvio?.aberto && (
+        <>
+          <div className="amc-progress-backdrop" />
+
+          <div className="amc-progress-modal" role="dialog" aria-modal="true">
+            <button
+              type="button"
+              className="amc-progress-close"
+              onClick={fecharProgressoEnvio}
+              disabled={progressoEnvio.bloqueado}
+              aria-label="Fechar progresso"
+            >
+              ×
+            </button>
+
+            <div className="amc-progress-modal-header">
+              <strong>{progressoEnvio.titulo}</strong>
+              <span>{progressoEnvio.mensagem}</span>
+            </div>
+
+            <div className="amc-progress-large">
+              <span
+                style={{
+                  width: `${
+                    progressoEnvio.total
+                      ? Math.round(
+                          (progressoEnvio.processados / progressoEnvio.total) * 100
+                        )
+                      : 0
+                  }%`,
+                }}
+              />
+            </div>
+
+            <div className="amc-progress-numbers">
+              <strong>
+                {progressoEnvio.total
+                  ? Math.round(
+                      (progressoEnvio.processados / progressoEnvio.total) * 100
+                    )
+                  : 0}
+                %
+              </strong>
+
+              <span>
+                {progressoEnvio.processados} de {progressoEnvio.total} processado(s)
+              </span>
+            </div>
+
+            <div className="amc-progress-summary">
+              <span>Sucesso: {progressoEnvio.sucesso}</span>
+              <span>Erros: {progressoEnvio.erro}</span>
+            </div>
+
+            {!progressoEnvio.finalizado && (
+              <p>
+                Caso a internet caia ou o computador seja desligado, os convites já
+                adicionados à fila permanecerão salvos. Ao retornar, confira a lista
+                para continuar apenas os pendentes.
+              </p>
+            )}
+          </div>
+        </>
+      )}
 
       {infoAberta && (
         <>

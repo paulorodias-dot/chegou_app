@@ -24,6 +24,8 @@ import CadastroMorador from "./pages/admin/CadastroMorador";
 import ImportacaoMoradoresDivergencias from "./pages/admin/ImportacaoMoradoresDivergencias";
 import AuditoriaMoradoresConvite from "./pages/auditoria/AuditoriaMoradoresConvite";
 import AuditoriaMoradoresPreCadastro from "./pages/auditoria/AuditoriaMoradoresPreCadastro";
+import AuditoriaMoradoresAuditoria from "./pages/auditoria/AuditoriaMoradoresAuditoria";
+import AuditoriaMoradoresHistorico from "./pages/auditoria/AuditoriaMoradoresHistorico";
 
 import PaginaPreparando from "./pages/PaginaPreparando";
 import WizardCondominio from "./pages/wizardCondominio";
@@ -207,6 +209,24 @@ function App() {
     if (paginaAtual === "admin-auditoria-moradores-pre-cadastro") {
       return (
         <AuditoriaMoradoresPreCadastro
+          perfil={perfil}
+          onNavigate={navegarPara}
+        />
+      );
+    }
+
+    if (paginaAtual === "admin-auditoria-moradores-auditoria") {
+      return (
+        <AuditoriaMoradoresAuditoria
+          perfil={perfil}
+          onNavigate={navegarPara}
+        />
+      );
+    }
+
+    if (paginaAtual === "admin-auditoria-moradores-historico") {
+      return (
+        <AuditoriaMoradoresHistorico
           perfil={perfil}
           onNavigate={navegarPara}
         />

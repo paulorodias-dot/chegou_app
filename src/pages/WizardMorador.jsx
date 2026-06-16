@@ -577,17 +577,27 @@ export default function WizardMorador({ modoTeste = false }) {
 
   async function handleFinalizarWizard(payloadFinal) {
     try {
-      await enviarWizardParaAuditoria({
+      const retorno = await enviarWizardParaAuditoria({
         token: tokenAtual,
-        aceiteTermos: termos.aceiteTermos,
-        aceiteLgpd: termos.aceiteLgpd,
+        aceiteTermos:
+          termos.aceiteTermos ||
+          payloadFinal?.tela7?.aceite_termos === true,
+
+        aceiteLgpd:
+          termos.aceiteLgpd ||
+          payloadFinal?.tela7?.aceite_lgpd === true,
         dadosFinais: payloadFinal,
       });
 
       toast.success("Cadastro enviado para análise.");
-      aplicarMudancaEtapa(9);
+
+      return retorno;
     } catch (error) {
+      console.error("Erro ao finalizar WizardMorador:", error);
+
       toast.error(error.message || "Erro ao finalizar wizard.");
+
+      throw error;
     }
   }
 
@@ -685,7 +695,18 @@ export default function WizardMorador({ modoTeste = false }) {
             {...propsBase}
             setTermos={setTermos}
             onBack={voltarEtapa}
-            onNext={(payload) => salvarEResponder(7, payload, true)}
+            onNext={(payload) => {
+              setTermos({
+                aceiteTermos: Boolean(payload?.aceite_termos),
+                aceiteLgpd: Boolean(payload?.aceite_lgpd),
+                aceiteComunicacoes: Boolean(
+                  payload?.aceite_comunicacoes ||
+                  payload?.aceite_comunicacao_operacional
+                ),
+              });
+
+              return salvarEResponder(7, payload, true);
+            }}
             onSaveDraft={(payload) => salvarEResponder(7, payload, false)}
           />
         );

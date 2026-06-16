@@ -618,12 +618,18 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
                 Convite
             </button>
 
-            <button type="button" onClick={() => handleAcaoTopo("Auditoria")}>
-                Auditoria
+            <button
+              type="button"
+              onClick={() => onNavigate?.("admin-auditoria-moradores-auditoria")}
+            >
+              Auditoria
             </button>
 
-            <button type="button" onClick={() => handleAcaoTopo("Histórico")}>
-                Histórico
+            <button
+              type="button"
+              onClick={() => onNavigate?.("admin-auditoria-moradores-historico")}
+            >
+              Histórico
             </button>
             </div>
 

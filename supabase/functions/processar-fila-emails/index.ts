@@ -18,6 +18,33 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
   });
 }
 
+function agoraBrasilia() {
+  const partes = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Sao_Paulo",
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date());
+
+  const mapa = Object.fromEntries(partes.map((p) => [p.type, p.value]));
+
+  return {
+    hora: Number(mapa.hour),
+    minuto: Number(mapa.minute),
+    dataHoraTexto: `${mapa.year}-${mapa.month}-${mapa.day} ${mapa.hour}:${mapa.minute}:${mapa.second}`,
+  };
+}
+
+function dentroJanelaEnvio() {
+  const brasilia = agoraBrasilia();
+
+  return brasilia.hora >= 8 && brasilia.hora < 20;
+}
+
 async function registrarLog({
   supabaseAdmin,
   acao,
@@ -41,11 +68,107 @@ async function registrarLog({
       condominio_id: condominio_id || null,
       usuario_id: usuario_id || null,
       email: email || null,
-      origem: origem || "sistema",
+      origem: origem || "processar_fila_emails",
       detalhes: detalhes || {},
     });
   } catch (error) {
     console.error(`Erro ao registrar log ${acao}:`, error);
+  }
+}
+
+async function criarNotificacaoErroEnvio({
+  supabaseAdmin,
+  item,
+  erro,
+}: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  item: Record<string, any>;
+  erro: string;
+}) {
+  const { data: preCadastro } = await supabaseAdmin
+    .from("pre_cadastro_moradores")
+    .select("id, nome, email, torre, unidade, business_id, condominio_id")
+    .eq("id", item.pre_cadastro_id)
+    .maybeSingle();
+
+  await supabaseAdmin.from("notificacoes").insert({
+    usuario_id: null,
+    titulo: "Falha no envio do convite",
+    mensagem: `Não foi possível entregar o convite para ${
+      preCadastro?.nome || item.nome_destino || "morador"
+    }. Revise o e-mail e entre em contato com o morador para ajuste.`,
+    tipo: "erro_envio_convite",
+    lida: false,
+    origem: "processar_fila_emails",
+    business_id: preCadastro?.business_id || item.business_id || null,
+    condominio_id: preCadastro?.condominio_id || item.condominio_id || null,
+    prioridade: "alta",
+    icone: "mail-warning",
+    modulo: "moradores",
+    destino_tipo: "administrativo",
+    enviada_in_app: true,
+    enviada_email: false,
+    metadata: {
+      pre_cadastro_id: item.pre_cadastro_id,
+      convite_id: item.convite_id,
+      fila_email_id: item.id,
+      nome: preCadastro?.nome || item.nome_destino || null,
+      email: preCadastro?.email || item.email_destino || null,
+      torre: preCadastro?.torre || null,
+      unidade: preCadastro?.unidade || null,
+      motivo_tecnico: erro,
+      orientacao:
+        "Após 3 tentativas, o envio automático foi interrompido. O administrativo deve revisar o e-mail do morador.",
+    },
+  });
+}
+
+async function atualizarStatusRelacionado({
+  supabaseAdmin,
+  item,
+  status,
+  enviadoEm = null,
+  brevoResult = null,
+  brevoMessageId = null,
+  mensagemErro = null,
+}: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  item: Record<string, any>;
+  status: "processando" | "aguardando_envio" | "enviado" | "erro_envio";
+  enviadoEm?: string | null;
+  brevoResult?: Record<string, unknown> | null;
+  brevoMessageId?: string | null;
+  mensagemErro?: string | null;
+}) {
+  if (item.convite_id) {
+    const payloadConvite: Record<string, unknown> = {
+      status_envio: status,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (enviadoEm) payloadConvite.enviado_em = enviadoEm;
+    if (brevoResult) payloadConvite.resposta_brevo = brevoResult;
+    if (brevoMessageId) payloadConvite.brevo_message_id = brevoMessageId;
+    if (mensagemErro) payloadConvite.mensagem_erro = mensagemErro;
+
+    await supabaseAdmin
+      .from("convites_morador")
+      .update(payloadConvite)
+      .eq("id", item.convite_id);
+  }
+
+  if (item.pre_cadastro_id) {
+    const payloadPre: Record<string, unknown> = {
+      status_convite: status,
+      atualizado_em: new Date().toISOString(),
+    };
+
+    if (enviadoEm) payloadPre.convite_enviado_em = enviadoEm;
+
+    await supabaseAdmin
+      .from("pre_cadastro_moradores")
+      .update(payloadPre)
+      .eq("id", item.pre_cadastro_id);
   }
 }
 
@@ -57,57 +180,38 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const brevoApiKey = Deno.env.get("BREVO_API_KEY");
 
     if (!supabaseUrl || !serviceRoleKey) {
       return jsonResponse(
-        {
-          error:
-            "Variáveis SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY ausentes.",
-        },
+        { success: false, error: "SUPABASE_URL ou SERVICE_ROLE ausente." },
         500
       );
     }
-
-    const supabaseAdmin = createClient(
-      supabaseUrl,
-      serviceRoleKey
-    );
-
-    const brevoApiKey = Deno.env.get("BREVO_API_KEY");
 
     if (!brevoApiKey) {
       return jsonResponse(
-        { error: "BREVO_API_KEY não configurada." },
+        { success: false, error: "BREVO_API_KEY não configurada." },
         500
       );
     }
 
+    if (!dentroJanelaEnvio()) {
+      return jsonResponse({
+        success: true,
+        enviado: false,
+        motivo: "Fora da janela de envio 08h às 20h Brasília.",
+        horario_brasilia: agoraBrasilia().dataHoraTexto,
+      });
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+
     const remetenteEmail =
-      Deno.env.get("BREVO_SENDER_EMAIL") ||
-      "sistemachegou@gmail.com";
+      Deno.env.get("BREVO_SENDER_EMAIL") || "sistemachegou@gmail.com";
 
     const remetenteNome =
-      Deno.env.get("BREVO_SENDER_NAME") ||
-      "Chegou! Sistema";
-
-    const hoje = new Date();
-    const inicioDia = new Date(
-      hoje.getFullYear(),
-      hoje.getMonth(),
-      hoje.getDate(),
-      0,
-      0,
-      0
-    ).toISOString();
-
-    const fimDia = new Date(
-      hoje.getFullYear(),
-      hoje.getMonth(),
-      hoje.getDate(),
-      23,
-      59,
-      59
-    ).toISOString();
+      Deno.env.get("BREVO_SENDER_NAME") || "Chegou! Sistema";
 
     const { data: configuracao } = await supabaseAdmin
       .from("configuracoes_envio_email")
@@ -116,293 +220,280 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    if (!configuracao) {
-      return jsonResponse(
-        { error: "Configuração de envio não encontrada." },
-        404
-      );
-    }
-
-    if (configuracao.pausar_envios) {
+    if (configuracao?.pausar_envios) {
       return jsonResponse({
         success: true,
-        message: "Envios pausados pelo sistema.",
+        enviado: false,
+        motivo: "Envios pausados nas configurações.",
       });
     }
 
-    const limiteConvites =
-      configuracao.limite_diario_convites || 40;
+    const maxTentativas = Number(configuracao?.max_tentativas || 3);
+    const limiteDiarioConvites = Number(configuracao?.limite_diario_convites || 40);
 
-    const limiteConfirmacoes =
-      configuracao.limite_diario_confirmacoes || 20;
+    const umMinutoAtras = new Date(Date.now() - 60 * 1000).toISOString();
+
+    const { count: enviadosUltimoMinuto } = await supabaseAdmin
+      .from("fila_emails")
+      .select("id", { count: "exact", head: true })
+      .eq("status_envio", "enviado")
+      .gte("enviado_em", umMinutoAtras);
+
+    if (Number(enviadosUltimoMinuto || 0) > 0) {
+      return jsonResponse({
+        success: true,
+        enviado: false,
+        motivo: "Anti-spam ativo: já houve envio no último minuto.",
+      });
+    }
+
+    const inicioDia = new Date();
+    inicioDia.setHours(0, 0, 0, 0);
+
+    const fimDia = new Date();
+    fimDia.setHours(23, 59, 59, 999);
 
     const { count: convitesHoje } = await supabaseAdmin
       .from("fila_emails")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("categoria_email", "convite")
       .eq("status_envio", "enviado")
-      .gte("enviado_em", inicioDia)
-      .lte("enviado_em", fimDia);
+      .gte("enviado_em", inicioDia.toISOString())
+      .lte("enviado_em", fimDia.toISOString());
 
-    const { count: confirmacoesHoje } = await supabaseAdmin
-      .from("fila_emails")
-      .select("*", { count: "exact", head: true })
-      .eq("categoria_email", "confirmacao")
-      .eq("status_envio", "enviado")
-      .gte("enviado_em", inicioDia)
-      .lte("enviado_em", fimDia);
-
-    const restanteConvites =
-      limiteConvites - Number(convitesHoje || 0);
-
-    const restanteConfirmacoes =
-      limiteConfirmacoes - Number(confirmacoesHoje || 0);
-
-    const totalDisponivel =
-      Math.max(restanteConvites, 0) +
-      Math.max(restanteConfirmacoes, 0);
-
-    if (totalDisponivel <= 0) {
+    if (Number(convitesHoje || 0) >= limiteDiarioConvites) {
       return jsonResponse({
         success: true,
-        message: "Limite diário atingido.",
+        enviado: false,
+        motivo: "Limite diário de convites atingido.",
+        limite_diario_convites: limiteDiarioConvites,
       });
     }
 
-    const { data: fila, error: filaError } =
-      await supabaseAdmin
-        .from("fila_emails")
-        .select("*")
-        .in("status_envio", [
-          "aguardando_envio",
-          "erro_envio",
-        ])
-        .eq("pausado", false)
-        .eq("cancelado", false)
-        .lte(
-          "quantidade_tentativas",
-          configuracao.max_tentativas || 5
-        )
-        .order("prioridade", { ascending: false })
-        .order("peso_envio", { ascending: false })
-        .order("criado_em", { ascending: true })
-        .limit(totalDisponivel);
+    const agora = new Date().toISOString();
+
+    const { data: fila, error: filaError } = await supabaseAdmin
+      .from("fila_emails")
+      .select("*")
+      .in("status_envio", ["aguardando_envio", "erro_envio"])
+      .eq("pausado", false)
+      .eq("cancelado", false)
+      .eq("processado", false)
+      .lte("quantidade_tentativas", maxTentativas - 1)
+      .or(`proxima_tentativa_em.is.null,proxima_tentativa_em.lte.${agora}`)
+      .order("prioridade", { ascending: false })
+      .order("peso_envio", { ascending: false })
+      .order("criado_em", { ascending: true })
+      .limit(1);
 
     if (filaError) throw filaError;
 
-    if (!fila || fila.length === 0) {
+    const item = fila?.[0];
+
+    if (!item) {
       return jsonResponse({
         success: true,
-        message: "Nenhum e-mail pendente na fila.",
+        enviado: false,
+        motivo: "Nenhum e-mail pendente elegível na fila.",
       });
     }
 
-    const resultados = [];
+    const { data: itemBloqueado, error: lockError } = await supabaseAdmin
+      .from("fila_emails")
+      .update({
+        status_envio: "processando",
+        atualizado_em: new Date().toISOString(),
+      })
+      .eq("id", item.id)
+      .in("status_envio", ["aguardando_envio", "erro_envio"])
+      .select("*")
+      .maybeSingle();
 
-    for (const item of fila) {
-      try {
-        const categoria = item.categoria_email || "convite";
+    if (lockError) throw lockError;
 
-        if (
-          categoria === "convite" &&
-          restanteConvites <= 0
-        ) {
-          continue;
-        }
+    if (!itemBloqueado) {
+      return jsonResponse({
+        success: true,
+        enviado: false,
+        motivo: "Item já foi capturado por outro processamento.",
+      });
+    }
 
-        if (
-          categoria === "confirmacao" &&
-          restanteConfirmacoes <= 0
-        ) {
-          continue;
-        }
+    await atualizarStatusRelacionado({
+      supabaseAdmin,
+      item,
+      status: "processando",
+    });
 
-        const payload = item.payload || {};
+    await registrarLog({
+      supabaseAdmin,
+      acao: "EMAIL_PROCESSANDO",
+      condominio_id: item.condominio_id,
+      usuario_id: item.usuario_id,
+      email: item.email_destino,
+      origem: "processar_fila_emails",
+      detalhes: {
+        fila_email_id: item.id,
+        convite_id: item.convite_id,
+        pre_cadastro_id: item.pre_cadastro_id,
+        tentativa: Number(item.quantidade_tentativas || 0) + 1,
+      },
+    });
 
-        const htmlContent =
-          payload.html_content || "";
+    const payload = item.payload || {};
+    const htmlContent = payload.html_content || "";
 
-        const responseBrevo = await fetch(
-          "https://api.brevo.com/v3/smtp/email",
+    const brevoResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": brevoApiKey,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: {
+          name: remetenteNome,
+          email: remetenteEmail,
+        },
+        to: [
           {
-            method: "POST",
-            headers: {
-              "api-key": brevoApiKey,
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify({
-              sender: {
-                name: remetenteNome,
-                email: remetenteEmail,
-              },
-              to: [
-                {
-                  email: item.email_destino,
-                  name:
-                    item.nome_destino || "Usuário",
-                },
-              ],
-              subject:
-                item.assunto ||
-                "Chegou! Sistema",
-              htmlContent,
-            }),
-          }
-        );
-
-        const brevoResult = await responseBrevo
-          .json()
-          .catch(() => ({}));
-
-        if (!responseBrevo.ok) {
-          await supabaseAdmin
-            .from("fila_emails")
-            .update({
-              status_envio: "erro_envio",
-              erro_em: new Date().toISOString(),
-              mensagem_erro:
-                brevoResult?.message ||
-                brevoResult?.error ||
-                "Erro Brevo",
-              resposta_brevo: brevoResult,
-              quantidade_tentativas:
-                Number(item.quantidade_tentativas || 0) + 1,
-              processado: false,
-            })
-            .eq("id", item.id);
-
-          resultados.push({
-            fila_email_id: item.id,
-            status: "erro",
-          });
-
-          await registrarLog({
-            supabaseAdmin,
-            acao: "FILA_EMAIL_ERRO",
-            condominio_id: item.condominio_id,
-            usuario_id: item.usuario_id,
             email: item.email_destino,
-            origem: "processador_fila",
-            detalhes: {
-              fila_email_id: item.id,
-              erro:
-                brevoResult?.message ||
-                brevoResult?.error,
-            },
-          });
-
-          continue;
-        }
-
-        const enviadoEm = new Date().toISOString();
-
-        await supabaseAdmin
-          .from("fila_emails")
-          .update({
-            status_envio: "enviado",
-            enviado_em: enviadoEm,
-            processado: true,
-            resposta_brevo: brevoResult,
-            brevo_message_id:
-              brevoResult?.messageId || null,
-          })
-          .eq("id", item.id);
-
-        if (item.convite_id) {
-          await supabaseAdmin
-            .from("convites_morador")
-            .update({
-              status_envio: "enviado",
-              enviado_em: enviadoEm,
-              resposta_brevo: brevoResult,
-              brevo_message_id:
-                brevoResult?.messageId || null,
-            })
-            .eq("id", item.convite_id);
-        }
-
-        if (item.pre_cadastro_id) {
-          await supabaseAdmin
-            .from("pre_cadastro_moradores")
-            .update({
-              status_convite: "enviado",
-              convite_enviado_em: enviadoEm,
-            })
-            .eq("id", item.pre_cadastro_id);
-        }
-
-        resultados.push({
-          fila_email_id: item.id,
-          status: "enviado",
-        });
-
-        await registrarLog({
-          supabaseAdmin,
-          acao: "FILA_EMAIL_PROCESSADA",
-          condominio_id: item.condominio_id,
-          usuario_id: item.usuario_id,
-          email: item.email_destino,
-          origem: "processador_fila",
-          detalhes: {
-            fila_email_id: item.id,
-            categoria_email:
-              item.categoria_email,
-            tipo_email: item.tipo_email,
-            brevo_message_id:
-              brevoResult?.messageId || null,
+            name: item.nome_destino || "Morador",
           },
-        });
-      } catch (error) {
-        console.error(
-          "Erro item fila:",
-          item.id,
-          error
-        );
+        ],
+        subject: item.assunto || "Complete seu cadastro no Chegou!",
+        htmlContent,
+      }),
+    });
 
-        await supabaseAdmin
-          .from("fila_emails")
-          .update({
-            status_envio: "erro_envio",
-            erro_em: new Date().toISOString(),
-            mensagem_erro:
-              error instanceof Error
-                ? error.message
-                : "Erro inesperado.",
-            quantidade_tentativas:
-              Number(item.quantidade_tentativas || 0) + 1,
-          })
-          .eq("id", item.id);
+    const brevoResult = await brevoResponse.json().catch(() => ({}));
 
-        resultados.push({
-          fila_email_id: item.id,
-          status: "erro",
+    if (!brevoResponse.ok) {
+      const tentativaAtual = Number(item.quantidade_tentativas || 0) + 1;
+      const erro =
+        brevoResult?.message ||
+        brevoResult?.error ||
+        "Erro desconhecido no envio de e-mail.";
+
+      const atingiuLimite = tentativaAtual >= maxTentativas;
+
+      await supabaseAdmin
+        .from("fila_emails")
+        .update({
+          status_envio: atingiuLimite ? "erro_envio" : "aguardando_envio",
+          quantidade_tentativas: tentativaAtual,
+          erro_em: new Date().toISOString(),
+          mensagem_erro: erro,
+          resposta_brevo: brevoResult,
+          processado: false,
+          pausado: atingiuLimite,
+          proxima_tentativa_em: atingiuLimite
+            ? null
+            : new Date(Date.now() + tentativaAtual * 10 * 60 * 1000).toISOString(),
+          atualizado_em: new Date().toISOString(),
+        })
+        .eq("id", item.id);
+
+      await atualizarStatusRelacionado({
+        supabaseAdmin,
+        item,
+        status: atingiuLimite ? "erro_envio" : "aguardando_envio",
+        brevoResult,
+        mensagemErro: erro,
+      });
+
+      if (atingiuLimite) {
+        await criarNotificacaoErroEnvio({
+          supabaseAdmin,
+          item,
+          erro,
         });
       }
+
+      await registrarLog({
+        supabaseAdmin,
+        acao: atingiuLimite ? "EMAIL_ERRO_FINAL" : "EMAIL_ERRO_REPROCESSAR",
+        condominio_id: item.condominio_id,
+        usuario_id: item.usuario_id,
+        email: item.email_destino,
+        origem: "processar_fila_emails",
+        detalhes: {
+          fila_email_id: item.id,
+          convite_id: item.convite_id,
+          pre_cadastro_id: item.pre_cadastro_id,
+          tentativa: tentativaAtual,
+          max_tentativas: maxTentativas,
+          erro,
+          resposta_brevo: brevoResult,
+        },
+      });
+
+      return jsonResponse({
+        success: true,
+        enviado: false,
+        status: atingiuLimite ? "erro_envio" : "aguardando_envio",
+        tentativa: tentativaAtual,
+        erro,
+      });
     }
+
+    const enviadoEm = new Date().toISOString();
+    const brevoMessageId = brevoResult?.messageId || null;
+
+    await supabaseAdmin
+      .from("fila_emails")
+      .update({
+        status_envio: "enviado",
+        enviado_em: enviadoEm,
+        brevo_message_id: brevoMessageId,
+        resposta_brevo: brevoResult,
+        processado: true,
+        atualizado_em: new Date().toISOString(),
+      })
+      .eq("id", item.id);
+
+    await atualizarStatusRelacionado({
+      supabaseAdmin,
+      item,
+      status: "enviado",
+      enviadoEm,
+      brevoResult,
+      brevoMessageId,
+    });
+
+    await registrarLog({
+      supabaseAdmin,
+      acao: "EMAIL_ENVIADO",
+      condominio_id: item.condominio_id,
+      usuario_id: item.usuario_id,
+      email: item.email_destino,
+      origem: "processar_fila_emails",
+      detalhes: {
+        fila_email_id: item.id,
+        convite_id: item.convite_id,
+        pre_cadastro_id: item.pre_cadastro_id,
+        brevo_message_id: brevoMessageId,
+      },
+    });
 
     return jsonResponse({
       success: true,
-      processados: resultados.length,
-      resultados,
-      limite_convites: limiteConvites,
-      limite_confirmacoes: limiteConfirmacoes,
-      convites_enviados_hoje: convitesHoje || 0,
-      confirmacoes_enviadas_hoje:
-        confirmacoesHoje || 0,
+      enviado: true,
+      fila_email_id: item.id,
+      email: item.email_destino,
+      brevo_message_id: brevoMessageId,
+      enviado_em: enviadoEm,
     });
   } catch (error) {
-    console.error(
-      "Erro processar-fila-emails:",
-      error
-    );
+    console.error("Erro processar-fila-emails:", error);
 
     return jsonResponse(
       {
+        success: false,
         error:
           error instanceof Error
             ? error.message
-            : "Erro inesperado.",
+            : "Erro inesperado ao processar fila de e-mails.",
       },
       500
     );

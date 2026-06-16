@@ -472,7 +472,11 @@ export default function WizardMoradorTela6({
           <button
             type="button"
             className="secondary"
-            onClick={onVoltar}
+            onClick={() => {
+              if (typeof onVoltar === "function") {
+                onVoltar();
+              }
+            }}
           >
             <ArrowLeft size={16} />
             Voltar
@@ -481,7 +485,11 @@ export default function WizardMoradorTela6({
           <button
             type="button"
             className="outline"
-            onClick={onSalvarRascunho}
+            onClick={() => {
+              if (typeof onSalvarRascunho === "function") {
+                onSalvarRascunho();
+              }
+            }}
           >
             <Save size={16} />
             Salvar e continuar depois
@@ -490,7 +498,11 @@ export default function WizardMoradorTela6({
           <button
             type="button"
             className="primary"
-            onClick={onContinuar}
+            onClick={() => {
+              if (typeof onContinuar === "function") {
+                onContinuar();
+              }
+            }}
           >
             Confirmar revisão e continuar
             <ArrowRight size={16} />

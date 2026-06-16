@@ -401,7 +401,7 @@ serve(async (req) => {
 
     const token = gerarTokenSeguro();
     const agora = new Date();
-    const expiraEm = new Date(agora.getTime() + 24 * 60 * 60 * 1000).toISOString();
+    const expiraEm = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const businessId =
       preCadastroExistente?.business_id ||

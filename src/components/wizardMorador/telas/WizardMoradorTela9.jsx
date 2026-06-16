@@ -306,6 +306,11 @@ export default function WizardMoradorTela9({
   formTela1,
   formMorador,
   dependentes = [],
+  ecossistema = {},
+  estrutura = {},
+  termos = {},
+  pesquisa = {},
+  onFinish,
 }) {
   const resumo = useMemo(
     () => obterResumo(dadosWizard, formTela1, formMorador, dependentes),
@@ -323,6 +328,9 @@ export default function WizardMoradorTela9({
   );
 
   const [consultando, setConsultando] = useState(false);
+
+  const [finalizando, setFinalizando] = useState(false);
+  const [finalizado, setFinalizado] = useState(false);
 
   const statusInfo =
     STATUS_CONFIG[statusAtual] || STATUS_CONFIG.fila_auditoria;
@@ -396,6 +404,58 @@ export default function WizardMoradorTela9({
 
     return () => clearInterval(intervalo);
   }, []);
+
+  useEffect(() => {
+    async function finalizarCadastro() {
+      const tokenReal = obterTokenConsulta(dadosWizard, resumo);
+
+      const tokenSandbox =
+        !tokenReal ||
+        tokenReal === "sandbox-token-morador" ||
+        tokenReal?.startsWith("sandbox-") ||
+        tokenReal?.startsWith("mock-") ||
+        tokenReal?.startsWith("teste-");
+
+      if (ambienteTeste && tokenSandbox) {
+        setFinalizado(true);
+        return;
+      }
+
+      if (finalizado || finalizando) return;
+
+      if (typeof onFinish !== "function") {
+        toast.error("Função de finalização não encontrada.");
+        return;
+      }
+
+      try {
+        setFinalizando(true);
+
+        await onFinish({
+          tela1: formTela1,
+          tela2: formMorador,
+          tela3: {
+            dependentes,
+          },
+          tela4: ecossistema,
+          tela5: estrutura,
+          tela7: termos,
+          tela8: pesquisa,
+        });
+
+        setFinalizado(true);
+        setStatusAtual("fila_auditoria");
+      } catch (error) {
+        toast.error(error?.message || "Erro ao enviar cadastro para auditoria.");
+      } finally {
+        setFinalizando(false);
+      }
+    }
+
+    finalizarCadastro();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="wm-t9-page">
       <section className="wm-t9-card">
@@ -456,10 +516,14 @@ export default function WizardMoradorTela9({
                 <button
                   type="button"
                   onClick={atualizarStatus}
-                  disabled={consultando}
+                  disabled={consultando || finalizando}
                 >
                   <RefreshCcw size={17} />
-                  {consultando ? "Atualizando..." : "Atualizar status"}
+                  {finalizando
+                    ? "Enviando..."
+                    : consultando
+                      ? "Atualizando..."
+                      : "Atualizar status"}
                 </button>
               </div>
             </section>
