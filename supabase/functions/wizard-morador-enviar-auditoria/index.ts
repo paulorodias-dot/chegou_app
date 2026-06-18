@@ -266,32 +266,44 @@ serve(async (req) => {
         atualizado_em: agora,
       });
     }
-
+    
     if (criarNotificacao) {
-      await supabase.from("notificacoes").insert({
-        usuario_id: null,
-        business_id: preCadastro.business_id || convite.business_id || null,
-        condominio_id: preCadastro.condominio_id || convite.condominio_id || null,
-        titulo: "Novo cadastro aguardando auditoria",
-        mensagem: `${preCadastro.nome || "Morador"} finalizou o cadastro e aguarda auditoria.`,
-        tipo: "morador_aguardando_auditoria",
-        destino_tipo: "administrativo",
-        modulo: "moradores",
-        prioridade: "normal",
-        lida: false,
-        enviada_in_app: true,
-        enviada_email: false,
-        metadata: {
+      const { data: notificacaoExistente } = await supabase
+        .from("notificacoes")
+        .select("id")
+        .eq("tipo", "morador_aguardando_auditoria")
+        .eq("condominio_id", preCadastro.condominio_id || convite.condominio_id)
+        .contains("metadata", {
           pre_cadastro_id: preCadastro.id,
-          convite_id: convite.id,
-          nome: preCadastro.nome || null,
-          email: preCadastro.email || null,
-          torre: preCadastro.torre || null,
-          unidade: preCadastro.unidade || null,
-        },
-      });
-    }
+        })
+        .maybeSingle();
 
+      if (!notificacaoExistente?.id) {
+        await supabase.from("notificacoes").insert({
+          usuario_id: null,
+          business_id: preCadastro.business_id || convite.business_id || null,
+          condominio_id: preCadastro.condominio_id || convite.condominio_id || null,
+          titulo: "Novo cadastro aguardando auditoria",
+          mensagem: `${preCadastro.nome || "Morador"} finalizou o cadastro e aguarda auditoria.`,
+          tipo: "morador_aguardando_auditoria",
+          destino_tipo: "administrativo",
+          modulo: "moradores",
+          prioridade: "normal",
+          lida: false,
+          enviada_in_app: true,
+          enviada_email: false,
+          metadata: {
+            pre_cadastro_id: preCadastro.id,
+            convite_id: convite.id,
+            nome: preCadastro.nome || null,
+            email: preCadastro.email || null,
+            torre: preCadastro.torre || null,
+            unidade: preCadastro.unidade || null,
+          },
+        });
+      }
+    }
+    
     await registrarLog({
       supabase,
       acao: "WIZARD_MORADOR_ENVIADO_AUDITORIA",

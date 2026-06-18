@@ -1267,6 +1267,406 @@ body.dark .cadmor-side-card.faq summary,
 }
 
 /* =========================================================
+   Modal Novo Morador — Premium
+   ========================================================= */
+
+.cadmor-modal-novo {
+  width: min(920px, 100%);
+}
+
+.cadmor-modal-grid-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
+
+  padding: 16px 18px;
+}
+
+.cadmor-modal-form {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cadmor-form-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.cadmor-form-grid.two {
+  grid-template-columns: minmax(0, 1fr) 160px;
+}
+
+.cadmor-form-grid.phone {
+  grid-template-columns: 88px minmax(0, 1fr);
+}
+
+.cadmor-field {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cadmor-field span {
+  color: #0f172a;
+
+  font-size: 10.5px;
+  line-height: 1.2;
+  font-weight: 850;
+}
+
+.cadmor-field input,
+.cadmor-field select,
+.cadmor-field textarea {
+  width: 100%;
+  min-width: 0;
+
+  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+
+  background: #ffffff;
+  color: #0f172a;
+
+  outline: none;
+
+  padding: 0 11px;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cadmor-field input,
+.cadmor-field select {
+  height: 40px;
+}
+
+.cadmor-field textarea {
+  min-height: 96px;
+  max-height: 190px;
+
+  resize: vertical;
+
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  line-height: 1.45;
+}
+
+.cadmor-field input::placeholder,
+.cadmor-field textarea::placeholder {
+  color: #94a3b8;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cadmor-field input:focus,
+.cadmor-field input:focus-visible,
+.cadmor-field select:focus,
+.cadmor-field select:focus-visible,
+.cadmor-field textarea:focus,
+.cadmor-field textarea:focus-visible {
+  border-color: #dbe3ef;
+  box-shadow: none;
+  outline: none;
+}
+
+/* Remove autofill/sugestão visual do Chrome */
+.cadmor-field input:-webkit-autofill,
+.cadmor-field input:-webkit-autofill:hover,
+.cadmor-field input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  box-shadow: 0 0 0 1000px #ffffff inset;
+  -webkit-text-fill-color: #0f172a;
+}
+
+/* =========================
+   Status da Unidade
+========================= */
+
+.cadmor-unit-status {
+  margin: 0;
+
+  border-radius: 14px;
+
+  padding: 11px 12px;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.cadmor-unit-status strong {
+  font-size: 11.5px;
+  font-weight: 900;
+}
+
+.cadmor-unit-status p {
+  font-size: 10.8px;
+  line-height: 1.4;
+}
+
+/* =========================
+   Aside Informativo
+========================= */
+
+.cadmor-modal-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cadmor-modal-info section {
+  position: relative;
+
+  overflow: hidden;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #f8fafc
+    );
+
+  padding: 14px;
+
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.cadmor-modal-info section::after {
+  content: "";
+
+  position: absolute;
+  right: -24px;
+  bottom: -24px;
+
+  width: 72px;
+  height: 72px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 121, 0, 0.055);
+
+  pointer-events: none;
+}
+
+.cadmor-modal-info h3 {
+  position: relative;
+  z-index: 2;
+
+  margin: 0 0 8px;
+
+  color: #0f172a;
+
+  font-size: 12.5px;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.cadmor-modal-info p {
+  position: relative;
+  z-index: 2;
+
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 650;
+}
+
+.cadmor-modal-info ul {
+  position: relative;
+  z-index: 2;
+
+  margin: 0;
+  padding-left: 17px;
+
+  color: #475569;
+
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 650;
+}
+
+.cadmor-modal-info li {
+  margin-bottom: 6px;
+}
+
+.cadmor-modal-info li:last-child {
+  margin-bottom: 0;
+}
+
+.cadmor-modal-info li::marker {
+  color: #ff7900;
+  font-weight: 900;
+}
+
+/* =========================
+   Rodapé / Ações
+========================= */
+
+.cadmor-modal-actions {
+  padding: 14px 18px 18px;
+
+  border-top: 1px solid #e2e8f0;
+
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+
+  background: #ffffff;
+}
+
+.cadmor-btn-modal {
+  min-height: 38px;
+
+  border-radius: 11px;
+  border: 1px solid #e2e8f0;
+
+  padding: 0 15px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 850;
+
+  transition: 0.16s ease;
+}
+
+.cadmor-btn-modal:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+}
+
+.cadmor-btn-modal.secondary {
+  background: #ffffff;
+  color: #334155;
+}
+
+.cadmor-btn-modal.primary {
+  border-color: #ff7900;
+  background:
+    linear-gradient(
+      135deg,
+      #ff7900,
+      #e85f00
+    );
+  color: #ffffff;
+}
+
+.cadmor-btn-modal:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* =========================
+   Dark Mode — Modal Novo Morador
+========================= */
+
+html.dark .cadmor-field span,
+html.dark .cadmor-modal-info h3,
+body.dark .cadmor-field span,
+body.dark .cadmor-modal-info h3,
+[data-theme="dark"] .cadmor-field span,
+[data-theme="dark"] .cadmor-modal-info h3 {
+  color: #f8fafc;
+}
+
+html.dark .cadmor-field input,
+html.dark .cadmor-field select,
+html.dark .cadmor-field textarea,
+html.dark .cadmor-modal-info section,
+html.dark .cadmor-modal-actions,
+body.dark .cadmor-field input,
+body.dark .cadmor-field select,
+body.dark .cadmor-field textarea,
+body.dark .cadmor-modal-info section,
+body.dark .cadmor-modal-actions,
+[data-theme="dark"] .cadmor-field input,
+[data-theme="dark"] .cadmor-field select,
+[data-theme="dark"] .cadmor-field textarea,
+[data-theme="dark"] .cadmor-modal-info section,
+[data-theme="dark"] .cadmor-modal-actions {
+  background: #020617;
+  color: #e5e7eb;
+  border-color: #334155;
+}
+
+html.dark .cadmor-modal-info p,
+html.dark .cadmor-modal-info ul,
+body.dark .cadmor-modal-info p,
+body.dark .cadmor-modal-info ul,
+[data-theme="dark"] .cadmor-modal-info p,
+[data-theme="dark"] .cadmor-modal-info ul {
+  color: #cbd5e1;
+}
+
+html.dark .cadmor-btn-modal.secondary,
+body.dark .cadmor-btn-modal.secondary,
+[data-theme="dark"] .cadmor-btn-modal.secondary {
+  background: #0f172a;
+  color: #e5e7eb;
+  border-color: #334155;
+}
+
+/* =========================
+   Mobile — Modal Novo Morador
+========================= */
+
+@media (max-width: 760px) {
+  .cadmor-modal-novo {
+    width: 100%;
+  }
+
+  .cadmor-modal-grid-main {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .cadmor-form-grid.two,
+  .cadmor-form-grid.phone {
+    grid-template-columns: 1fr;
+  }
+
+  .cadmor-modal-actions {
+    padding: 13px 15px 15px;
+    flex-direction: column-reverse;
+  }
+
+  .cadmor-btn-modal {
+    width: 100%;
+    min-height: 42px;
+    font-size: 16px;
+  }
+
+  .cadmor-field input,
+  .cadmor-field select,
+  .cadmor-field textarea {
+    font-size: 16px;
+  }
+}
+
+/* =========================================================
    Modal Visualizar Morador
    ========================================================= */
 

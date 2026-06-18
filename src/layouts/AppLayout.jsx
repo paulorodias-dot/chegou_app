@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { contarNotificacoesNaoLidasAdministrativo } from "../services/notificacoesService";
 import {
   Bell,
   ChevronDown,
@@ -14,6 +15,8 @@ import {
 
 import logo from "../assets/logo.png";
 import { menusByRole } from "../config/menusByRole";
+
+import NotificationCenter from "../components/NotificationCenter";
 import "./AppLayout.css";
 
 const APP_VERSION = "01.01.01";
@@ -30,6 +33,11 @@ export default function AppLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
+  const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
+
+  const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(
+    Number(perfil?.notificacoes_nao_lidas || 0)
+  );
 
   const menus = menusByRole[role] || menusByRole.master;
 
@@ -42,6 +50,52 @@ export default function AppLayout({
       setOpenMenu(menuAberto.id);
     }
   }, [activePage, menus]);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarNotificacoes() {
+      if (role !== "admin_logistica") {
+        if (ativo) {
+          setNotificacoesNaoLidas(Number(perfil?.notificacoes_nao_lidas || 0));
+        }
+        return;
+      }
+
+      try {
+        const total = await contarNotificacoesNaoLidasAdministrativo({ perfil });
+
+        if (ativo) {
+          setNotificacoesNaoLidas(total);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar notificações:", error);
+      }
+    }
+
+    carregarNotificacoes();
+
+    const intervalo = window.setInterval(carregarNotificacoes, 60000);
+
+    return () => {
+      ativo = false;
+      window.clearInterval(intervalo);
+    };
+  }, [role, perfil?.id, perfil?.usuario_id, perfil?.condominio_id]);
+
+  async function atualizarContadorNotificacoes() {
+    if (role !== "admin_logistica") {
+      setNotificacoesNaoLidas(Number(perfil?.notificacoes_nao_lidas || 0));
+      return;
+    }
+
+    try {
+      const total = await contarNotificacoesNaoLidasAdministrativo({ perfil });
+      setNotificacoesNaoLidas(total);
+    } catch (error) {
+      console.error("Erro ao atualizar contador de notificações:", error);
+    }
+  }
 
   function clicarMenu(menu) {
     if (menu.children?.length) {
@@ -119,13 +173,18 @@ export default function AppLayout({
         </div>
 
         <div className="topbar-actions">
-          <span className="notification">
+          <button
+            type="button"
+            className="notification"
+            onClick={() => setNotificationCenterOpen(true)}
+            aria-label="Abrir notificações"
+          >
             <Bell size={20} />
 
-            {Number(perfil?.notificacoes_nao_lidas || 0) > 0 ? (
-              <b>{perfil.notificacoes_nao_lidas}</b>
+            {Number(notificacoesNaoLidas || 0) > 0 ? (
+              <b>{notificacoesNaoLidas}</b>
             ) : null}
-          </span>
+          </button>
 
           <span className="notification desktop-only">
             <MessageSquare size={20} />
@@ -302,6 +361,16 @@ export default function AppLayout({
     </nav>
   )}
 </>
+
+    <NotificationCenter
+      aberto={notificationCenterOpen}
+      perfil={perfil}
+      role={role}
+      onClose={() => setNotificationCenterOpen(false)}
+      onAtualizarContador={atualizarContadorNotificacoes}
+      onNavigate={onNavigate}
+    />
+
     </div>
   );
 }

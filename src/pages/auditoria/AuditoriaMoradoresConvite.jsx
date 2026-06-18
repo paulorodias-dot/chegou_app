@@ -153,6 +153,101 @@ function formatarCanalEnvio(item) {
   );
 }
 
+function formatarCanalEnvioTela(item) {
+  const canal = formatarCanalEnvio(item);
+
+  if (!canal || canal === "—") return "—";
+
+  const valor = String(canal).trim().toLowerCase();
+
+  if (valor === "email" || valor === "e-mail") return "E-mail";
+  if (valor === "whatsapp") return "WhatsApp";
+
+  return canal;
+}
+
+function formatarStatusEntregaTela(status = "") {
+  const valor = String(status || "").trim().toUpperCase();
+
+  const mapa = {
+    AGUARDANDO: "Aguardando abertura",
+    ENTREGUE: "Entregue",
+    ABERTO: "Aberto",
+    ERRO: "Erro",
+    ERRO_ENVIO: "Erro no envio",
+  };
+
+  return mapa[valor] || formatarStatusTela(valor);
+}
+
+function classeStatusEntrega(status = "") {
+  const valor = String(status || "").trim().toUpperCase();
+
+  if (["ENTREGUE", "ABERTO"].includes(valor)) return "enviado";
+  if (["ERRO", "ERRO_ENVIO"].includes(valor)) return "erro";
+
+  return "aguardando";
+}
+
+function formatarAbertoEm(valor) {
+  if (!valor) return "Convite não aberto";
+  return formatarDataHora(valor);
+}
+
+function formatarReenvios(valor) {
+  const total = Number(valor || 0);
+
+  if (total === 0) return "Nenhum reenvio";
+  if (total === 1) return "1 reenvio";
+
+  return `${total} reenvios`;
+}
+
+function obterStatusToken(item) {
+  const status = String(item?.convite?.status_token || "").trim().toUpperCase();
+
+  if (item?.convite?.token_revogado) return "Revogado";
+  if (status === "REVOGADO") return "Revogado";
+
+  const expiraEm = item?.token_expira_em;
+
+  if (expiraEm && new Date(expiraEm) < new Date()) return "Expirado";
+
+  return "Ativo";
+}
+
+function classeStatusToken(item) {
+  const status = obterStatusToken(item);
+
+  if (status === "Ativo") return "enviado";
+  if (status === "Expirado") return "aguardando";
+  if (status === "Revogado") return "erro";
+
+  return "aguardando";
+}
+
+function formatarOrigemConvite(item) {
+  const origem =
+    item?.convite?.origem_envio ||
+    item?.convite?.origem ||
+    item?.pre_cadastro?.origem_cadastro ||
+    "Administrativo";
+
+  const valor = String(origem).trim().toLowerCase();
+
+  const mapa = {
+    manual: "Administrativo",
+    administrativo: "Administrativo",
+    lote: "Envio em lote",
+    envio_lote: "Envio em lote",
+    reenvio_manual: "Reenvio manual",
+    xlsx: "Importação XLSX",
+    pdf: "Importação PDF",
+  };
+
+  return mapa[valor] || origem;
+}
+
 function classeStatus(status) {
   const mapa = {
     RASCUNHO: "aguardando",
@@ -523,18 +618,14 @@ function DrawerAndamentoConvite({ item, onClose }) {
 
           <div>
             <small>Último envio</small>
-            <td>
-              <strong>{formatarDataHora(item.enviado_em)}</strong>
-              <span>{formatarCanalEnvio(item)}</span>
-            </td>
+            <strong>{formatarDataHora(item.enviado_em)}</strong>
+            <span>{formatarCanalEnvio(item)}</span>
           </div>
 
           <div>
             <small>Expira em</small>
-            <td>
-              <strong>{formatarData(item.token_expira_em)}</strong>
-              <span>{calcularDiasRestantes(item.token_expira_em)}</span>
-            </td>
+            <strong>{formatarData(item.token_expira_em)}</strong>
+            <span>{calcularDiasRestantes(item.token_expira_em)}</span>
           </div>
         </div>
 
@@ -598,12 +689,20 @@ function DrawerConvite({ item, onClose }) {
         <div className="amc-drawer-grid">
           <div>
             <small>Status do convite</small>
-            <strong>{formatarStatusTela(item.status_sistema)}</strong>
+            <strong>
+              <span className={`amc-status amc-status-${classeStatus(item.status_sistema)}`}>
+                {formatarStatusTela(item.status_sistema)}
+              </span>
+            </strong>
           </div>
 
           <div>
-            <small>Status de entrega</small>
-            <strong>{item.status_entrega || "—"}</strong>
+            <small>Status de acompanhamento</small>
+            <strong>
+              <span className={`amc-status amc-status-${classeStatusEntrega(item.status_entrega)}`}>
+                {formatarStatusEntregaTela(item.status_entrega)}
+              </span>
+            </strong>
           </div>
 
           <div>
@@ -613,7 +712,7 @@ function DrawerConvite({ item, onClose }) {
 
           <div>
             <small>Canal</small>
-            <strong>{item.convite?.canal_envio || "E-mail"}</strong>
+            <strong>{formatarCanalEnvioTela(item)}</strong>
           </div>
 
           <div>
@@ -623,17 +722,32 @@ function DrawerConvite({ item, onClose }) {
 
           <div>
             <small>Aberto em</small>
-            <strong>{formatarDataHora(item.convite_aberto_em)}</strong>
+            <strong>{formatarAbertoEm(item.convite_aberto_em)}</strong>
           </div>
 
           <div>
-            <small>Reenvios</small>
-            <strong>{item.quantidade_reenvios || 0}</strong>
+            <small>Reenvios realizados</small>
+            <strong>{formatarReenvios(item.quantidade_reenvios)}</strong>
           </div>
 
           <div>
             <small>Expira em</small>
             <strong>{formatarData(item.token_expira_em)}</strong>
+            <span>{calcularDiasRestantes(item.token_expira_em)}</span>
+          </div>
+
+          <div>
+            <small>Token do convite</small>
+            <strong>
+              <span className={`amc-status amc-status-${classeStatusToken(item)}`}>
+                {obterStatusToken(item)}
+              </span>
+            </strong>
+          </div>
+
+          <div>
+            <small>Origem</small>
+            <strong>{formatarOrigemConvite(item)}</strong>
           </div>
         </div>
 
@@ -641,7 +755,7 @@ function DrawerConvite({ item, onClose }) {
           <h3>Observações</h3>
           <p>
             {item.convite?.observacoes ||
-              "Convite carregado com os dados reais registrados no Supabase."}
+              "Convite enviado para o endereço cadastrado do morador. O acompanhamento de abertura e preenchimento será atualizado automaticamente."}
           </p>
         </div>
       </aside>
@@ -831,8 +945,8 @@ function ModalConfirmarReenvio({ item, onClose, onConfirmar }) {
         aria-label="Cancelar reenvio"
       />
 
-      <aside className="amc-drawer">
-        <div className="amc-drawer-header">
+      <aside className="amc-confirm-modal">
+        <div className="amc-confirm-header">
           <div>
             <span>Confirmação de Reenvio</span>
             <h2>Reenviar Convite</h2>
@@ -843,7 +957,7 @@ function ModalConfirmarReenvio({ item, onClose, onConfirmar }) {
           </button>
         </div>
 
-        <div className="amc-drawer-section">
+        <div className="amc-confirm-section">
           <h3>Morador</h3>
           <p>
             <strong>{item.nome}</strong>
@@ -854,7 +968,7 @@ function ModalConfirmarReenvio({ item, onClose, onConfirmar }) {
           </p>
         </div>
 
-        <div className="amc-drawer-section">
+        <div className="amc-confirm-section">
           <h3>Como funcionará o reenvio</h3>
           <p>
             Ao confirmar, o reenvio será colocado na fila de e-mails do
@@ -864,7 +978,7 @@ function ModalConfirmarReenvio({ item, onClose, onConfirmar }) {
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <div className="amc-confirm-actions">
           <button type="button" className="amc-btn amc-btn-outline" onClick={onClose}>
             Cancelar
           </button>
@@ -1479,6 +1593,10 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
                 <Info size={17} />
               </button>
             </h1>
+            <p>
+              Acompanhe o envio, abertura e andamento dos convites enviados aos moradores pelo Sistema
+              Chegou<span className="amc-orange">!</span>.
+            </p>
           </div>
 
           <div className="amc-header-actions">
@@ -1844,23 +1962,27 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
           </button>
         </section>
 
-        <section className="amc-side-card amc-side-card-orange">
+        <section className="amc-side-card amc-side-card-orange amc-communication-premium">
           <div className="amc-side-title">
             <Info size={17} />
-            <strong>Comunicados e Orientações</strong>
+            <strong>
+              Painel de Comunicados Chegou<span className="amc-orange">!</span>
+            </strong>
           </div>
 
-          <p>Comunicados e orientações deste módulo.</p>
-          <p>Este espaço será utilizado futuramente para:</p>
+          <div className="amc-communication-box">
+            <div className="amc-communication-orb" />
 
-          <ul>
-            <li>Avisos operacionais</li>
-            <li>Atualizações do sistema</li>
-            <li>Comunicados da administração</li>
-            <li>Orientações de uso</li>
-          </ul>
+            <div>
+              <strong>Comunicados do Módulo</strong>
+              <p>Espaço reservado para avisos do Master ou Administrativo.</p>
+            </div>
+          </div>
 
-          <Bell className="amc-watermark-icon" size={72} />
+          <p className="amc-communication-footer">
+            Este espaço será usado para comunicados operacionais, orientações,
+            novidades do sistema e avisos importantes.
+          </p>
         </section>
 
         <section className="amc-side-card">

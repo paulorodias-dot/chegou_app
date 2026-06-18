@@ -305,9 +305,21 @@ export default function WizardMorador({ modoTeste = false }) {
     });
 
     setTermos({
-      aceiteTermos: Boolean(dados?.aceite_termos),
-      aceiteLgpd: Boolean(dados?.aceite_lgpd),
-      aceiteComunicacoes: Boolean(dados?.aceite_comunicacoes),
+      aceiteTermos: Boolean(
+        dados?.aceite_termos ||
+          dados?.preCadastro?.aceite_termos ||
+          dados?.pre_cadastro?.aceite_termos
+      ),
+      aceiteLgpd: Boolean(
+        dados?.aceite_lgpd ||
+          dados?.preCadastro?.aceite_lgpd ||
+          dados?.pre_cadastro?.aceite_lgpd
+      ),
+      aceiteComunicacoes: Boolean(
+        dados?.aceite_comunicacoes ||
+          dados?.preCadastro?.aceite_comunicacoes ||
+          dados?.pre_cadastro?.aceite_comunicacoes
+      ),
     });
 
     setPesquisa(dados?.pesquisa || {});

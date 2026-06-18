@@ -8,12 +8,10 @@ import {
   ChevronRight,
   ClipboardCheck,
   Download,
-  Eye,
   FileSpreadsheet,
   Filter,
   Info,
   MoreVertical,
-  Pencil,
   Search,
   ShieldCheck,
   UserRound,
@@ -23,7 +21,10 @@ import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
 
 import ModalEditarMorador from "../../components/cadastroMorador/ModalEditarMorador";
-import { cancelarPreCadastroMorador } from "../../services/cadastroMoradorService";
+import {
+  atualizarPreCadastroMorador,
+  cancelarPreCadastroMorador,
+} from "../../services/cadastroMoradorService";
 
 import "./AuditoriaMoradoresPreCadastro.css";
 import {
@@ -39,7 +40,6 @@ const STATUS_FILTROS = [
   { value: "IMPORTADO", label: "Importado" },
   { value: "NAO_ENVIADO", label: "Não Enviado" },
   { value: "REVOGADO", label: "Revogado" },
-  { value: "CANCELADO", label: "Cancelado" },
 ];
 
 const ORIGEM_FILTROS = [
@@ -63,6 +63,46 @@ function formatarDataHora(valor) {
   } catch {
     return "—";
   }
+}
+
+function formatarDataInput(data) {
+  if (!data) return "";
+
+  try {
+    return new Date(data).toISOString().slice(0, 10);
+  } catch {
+    return "";
+  }
+}
+
+function obterDataInicioPadrao() {
+  const data = new Date();
+  data.setDate(data.getDate() - 30);
+  return formatarDataInput(data);
+}
+
+function obterDataFimPadrao() {
+  return formatarDataInput(new Date());
+}
+
+function dataDentroPeriodo(item, dataInicio, dataFim) {
+  const referencia = item.atualizado_em || item.criado_em;
+
+  if (!referencia) return true;
+
+  const data = new Date(referencia);
+
+  if (dataInicio) {
+    const inicio = new Date(`${dataInicio}T00:00:00`);
+    if (data < inicio) return false;
+  }
+
+  if (dataFim) {
+    const fim = new Date(`${dataFim}T23:59:59`);
+    if (data > fim) return false;
+  }
+
+  return true;
 }
 
 function formatarUltimaAtualizacao(valor) {
@@ -378,6 +418,9 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
   const [status, setStatus] = useState("TODOS");
   const [origem, setOrigem] = useState("TODAS");
   const [torre, setTorre] = useState("TODAS");
+  const [dataInicio, setDataInicio] = useState(obterDataInicioPadrao());
+  const [dataFim, setDataFim] = useState(obterDataFimPadrao());
+  const dataHoje = obterDataFimPadrao();
   const [menuAberto, setMenuAberto] = useState(null);
   const [cadastroSelecionado, setCadastroSelecionado] = useState(null);
   const [moradorEdicao, setMoradorEdicao] = useState(null);
@@ -405,14 +448,56 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
           status,
           origem,
           torre,
+          dataInicio,
+          dataFim,
           limite: 500,
         }),
         obterResumoPreCadastro({ condominioId }),
         buscarTorresPreCadastro({ condominioId }),
       ]);
 
-      setRegistros(lista);
-      setResumo(resumoAtual);
+      const listaVisivel = lista.filter((item) => {
+        const statusNormalizado = normalizarStatus(item.status);
+
+        if (statusNormalizado === "CANCELADO") return false;
+
+        return dataDentroPeriodo(item, dataInicio, dataFim);
+      });
+
+      const resumoVisivel = listaVisivel.reduce(
+        (acc, item) => {
+          const percentual = Number(item.percentual || 0);
+
+          acc.total += 1;
+
+          if (percentual === 100) {
+            acc.prontos += 1;
+          } else {
+            acc.pendencias += 1;
+          }
+
+          const origemNormalizada = normalizarStatus(item.origem);
+          const criadoHoje =
+            item.criado_em &&
+            new Date(item.criado_em).toISOString().slice(0, 10) ===
+              new Date().toISOString().slice(0, 10);
+
+          if ((origemNormalizada === "XLSX" || origemNormalizada === "PDF") && criadoHoje) {
+            acc.importadosHoje += 1;
+          }
+
+          return acc;
+        },
+        {
+          total: 0,
+          prontos: 0,
+          pendencias: 0,
+          importadosHoje: 0,
+        }
+      );
+
+      setRegistros(listaVisivel);
+      setResumo(resumoVisivel);
       setTorres(torresAtual);
       setPagina(1);
     } catch (error) {
@@ -426,7 +511,7 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
   useEffect(() => {
     carregarDados();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [condominioId, status, origem, torre]);
+  }, [condominioId, status, origem, torre, dataInicio, dataFim]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -455,6 +540,16 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
     const inicio = (pagina - 1) * linhasPorPagina;
     return registros.slice(inicio, inicio + linhasPorPagina);
   }, [pagina, registros, linhasPorPagina]);
+
+  function limparFiltros() {
+    setBusca("");
+    setStatus("TODOS");
+    setOrigem("TODAS");
+    setTorre("TODAS");
+    setDataInicio(obterDataInicioPadrao());
+    setDataFim(obterDataFimPadrao());
+    setPagina(1);
+  }
 
   function handleAcaoLinha(acao, item) {
     if (acao === "Visualizar Cadastro") {
@@ -543,6 +638,19 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
     if (atualizou) {
         carregarDados();
     }
+  }
+
+  async function salvarEdicaoMorador(payload) {
+    await atualizarPreCadastroMorador({
+      perfil,
+      condominio: null,
+      preCadastroId: payload.id,
+      dadosAntes: payload.dados_antes,
+      dadosDepois: payload.dados_depois,
+      metadadosEdicao: payload.metadados_edicao,
+    });
+
+    await carregarDados();
   }
 
   async function confirmarCancelamentoPreCadastro() {
@@ -668,13 +776,18 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
         </section>
 
         <section className="amp-table-card">
-          <div className="amp-filters">
+          <div className="amp-filters amp-filters-pre-cadastro">
             <div className="amp-search">
               <Search size={18} />
               <input
                 value={busca}
                 onChange={(event) => setBusca(event.target.value)}
                 placeholder="Buscar por nome, e-mail, unidade ou ID do morador..."
+                autoComplete="new-password"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                name={`amp-pre-cadastro-busca-${Date.now()}`}
               />
             </div>
 
@@ -713,17 +826,37 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
             </label>
 
             <label>
-              <span>Período</span>
-              <button type="button" className="amp-filter-button">
-                <CalendarDays size={16} />
-                Últimos 30 dias
-                <ChevronDown size={15} />
-              </button>
+              <span>De</span>
+              <input
+                type="date"
+                value={dataInicio}
+                max={dataHoje}
+                onChange={(event) => {
+                  const novaDataInicio = event.target.value;
+
+                  setDataInicio(novaDataInicio);
+
+                  if (dataFim && novaDataInicio && dataFim < novaDataInicio) {
+                    setDataFim(novaDataInicio);
+                  }
+                }}
+              />
             </label>
 
-            <button type="button" className="amp-filter-extra">
+            <label>
+              <span>Até</span>
+              <input
+                type="date"
+                value={dataFim}
+                min={dataInicio || undefined}
+                max={dataHoje}
+                onChange={(event) => setDataFim(event.target.value)}
+              />
+            </label>
+
+            <button type="button" className="amp-filter-extra amp-filter-clear" onClick={limparFiltros}>
               <Filter size={16} />
-              Mais filtros
+              Limpar
             </button>
           </div>
 
@@ -943,10 +1076,12 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
       />
 
         <ModalEditarMorador
-            aberto={Boolean(moradorEdicao)}
-            morador={moradorEdicao}
-            onClose={() => fecharEdicaoMorador(false)}
-            onSaved={() => fecharEdicaoMorador(true)}
+          aberto={Boolean(moradorEdicao)}
+          morador={moradorEdicao}
+          torres={torres}
+          preCadastros={registros}
+          onClose={() => fecharEdicaoMorador(false)}
+          onSalvar={salvarEdicaoMorador}
         />
 
         {cancelamentoSelecionado ? (
@@ -963,8 +1098,8 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
                 aria-label="Fechar cancelamento"
                 />
 
-                <aside className="amp-drawer">
-                <div className="amp-drawer-header">
+                <aside className="amp-cancel-modal">
+                <div className="amp-cancel-header">
                     <div>
                     <span>Cancelar Pré-Cadastro</span>
                     <h2>{cancelamentoSelecionado.nome}</h2>
@@ -984,7 +1119,7 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
                     </button>
                 </div>
 
-                <div className="amp-drawer-section">
+                <div className="amp-cancel-section">
                     <h3>Confirmação</h3>
                     <p>
                     Esta ação cancelará o pré-cadastro do morador e bloqueará a edição administrativa
@@ -992,32 +1127,22 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
                     </p>
                 </div>
 
-                <div className="amp-drawer-section">
+                <div className="amp-cancel-section">
                     <h3>Motivo do cancelamento</h3>
 
                     <textarea
-                    value={motivoCancelamento}
-                    onChange={(event) => setMotivoCancelamento(event.target.value)}
-                    placeholder="Informe o motivo do cancelamento..."
-                    rows={5}
-                    style={{
-                        width: "100%",
-                        resize: "vertical",
-                        border: "1px solid var(--amp-border)",
-                        borderRadius: 12,
-                        padding: 12,
-                        fontFamily: "inherit",
-                        fontSize: 16,
-                        outline: "none",
-                    }}
+                      value={motivoCancelamento}
+                      onChange={(event) => setMotivoCancelamento(event.target.value)}
+                      placeholder="Informe o motivo do cancelamento..."
+                      rows={5}
                     />
 
-                    <p style={{ marginTop: 8, fontSize: 11 }}>
-                    Este motivo será registrado no histórico do pré-cadastro.
+                    <p className="amp-cancel-help">
+                      Este motivo será registrado no histórico do pré-cadastro.
                     </p>
                 </div>
 
-                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <div className="amp-cancel-actions">
                     <button
                     type="button"
                     className="amp-btn amp-btn-outline"

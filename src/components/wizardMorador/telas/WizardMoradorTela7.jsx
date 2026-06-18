@@ -174,12 +174,19 @@ export default function WizardMoradorTela7({
   formMorador,
   dependentes = [],
   estrutura = {},
+  termos = {},
   onBack,
   onNext,
   onSaveDraft,
 }) {
+
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const senhaJaPreparada = Boolean(
+    dadosWizard?.senha_preparada ||
+      dadosWizard?.preCadastro?.senha_preparada ||
+      dadosWizard?.pre_cadastro?.senha_preparada
+  );
 
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
@@ -188,7 +195,15 @@ export default function WizardMoradorTela7({
 
   const [modalTermos, setModalTermos] = useState(null);
 
-  const [aceites, setAceites] = useState(aceiteInicial);
+  const [aceites, setAceites] = useState(() => {
+    if (termos?.aceiteTermos && termos?.aceiteLgpd) {
+      return Object.fromEntries(
+        Object.keys(aceiteInicial).map((chave) => [chave, true])
+      );
+    }
+
+    return aceiteInicial;
+  });
 
   const resumo = useMemo(
     () =>
@@ -221,7 +236,7 @@ export default function WizardMoradorTela7({
     todosAceitesMarcados(aceites);
 
   const podeContinuar =
-    senhaValida && aceitouTudo;
+    (senhaValida || senhaJaPreparada) && aceitouTudo;
 
   const itensTermos = useMemo(
     () => obterItensTermos(),
@@ -266,10 +281,8 @@ export default function WizardMoradorTela7({
   }
 
   async function finalizarEtapa() {
-    if (!senhaValida) {
-      toast.error(
-        "Crie uma senha forte antes de continuar."
-      );
+    if (!senhaValida && !senhaJaPreparada) {
+      toast.error("Crie uma senha forte antes de continuar.");
       return;
     }
 
@@ -314,14 +327,18 @@ export default function WizardMoradorTela7({
       return;
     }
 
+
+
     try {
-      await prepararSenhaWizardMorador({
-        token: tokenConvite,
-        senha,
-        confirmarSenha,
-        email: resumo.email,
-        cpf: somenteNumeros(resumo.cpf),
-      });
+      if (!senhaJaPreparada) {
+        await prepararSenhaWizardMorador({
+          token: tokenConvite,
+          senha,
+          confirmarSenha,
+          email: resumo.email,
+          cpf: somenteNumeros(resumo.cpf),
+        });
+      }
 
       await onNext({
         etapa_atual: 7,

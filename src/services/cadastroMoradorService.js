@@ -294,13 +294,22 @@ export async function atualizarPreCadastroMorador({
     .trim()
     .toUpperCase();
 
-  const statusCadastroEditavel = ["RASCUNHO", "PRE_CADASTRO", "PRÉ-CADASTRO"].includes(
-    statusCadastro
-  );
+  const statusCadastroEditavel = [
+    "RASCUNHO",
+    "PRE_CADASTRO",
+    "PRÉ-CADASTRO",
+    "IMPORTADO",
+    "NAO_ENVIADO",
+    "NÃO_ENVIADO",
+  ].includes(statusCadastro);
 
-  const statusConviteEditavel = ["", "—", "NAO_ENVIADO", "NÃO_ENVIADO"].includes(
-    statusConvite
-  );
+  const statusConviteEditavel = [
+    "",
+    "—",
+    "NAO_ENVIADO",
+    "NÃO_ENVIADO",
+    "AGUARDANDO_ENVIO",
+  ].includes(statusConvite);
 
   if (!statusCadastroEditavel || !statusConviteEditavel || conviteExistente?.id) {
     throw new Error(
