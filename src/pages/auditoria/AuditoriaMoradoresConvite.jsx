@@ -559,7 +559,9 @@ function DrawerAndamentoConvite({ item, onClose }) {
     },
     {
       titulo: "Bloqueado",
-      data: item.convite?.atualizado_em || item.ultima_atividade_em,
+      data: item.status_sistema === "BLOQUEADO"
+        ? item.convite?.atualizado_em || item.ultima_atividade_em
+        : null,
       ativo: item.status_sistema === "BLOQUEADO",
     },
   ];
@@ -588,12 +590,20 @@ function DrawerAndamentoConvite({ item, onClose }) {
         <div className="amc-drawer-grid">
           <div>
             <small>Status atual</small>
-            <strong>{formatarStatusTela(item.status_sistema)}</strong>
+            <strong>
+              <span className={`amc-status amc-status-${classeStatus(item.status_sistema)}`}>
+                {formatarStatusTela(item.status_sistema)}
+              </span>
+            </strong>
           </div>
 
           <div>
             <small>Preenchimento</small>
-            <strong>{item.percentual_preenchimento || 0}%</strong>
+            <strong>
+              <span className="amc-status amc-status-preenchimento">
+                {item.percentual_preenchimento || 0}%
+              </span>
+            </strong>
           </div>
 
           <div>
@@ -879,8 +889,8 @@ function DrawerAcaoPendente({ acao, item, onClose }) {
         aria-label="Fechar ação"
       />
 
-      <aside className="amc-drawer">
-        <div className="amc-drawer-header">
+      <aside className="amc-action-modal">
+        <div className="amc-action-header">
           <div>
             <span>Ação Selecionada</span>
             <h2>{acao}</h2>
@@ -891,7 +901,7 @@ function DrawerAcaoPendente({ acao, item, onClose }) {
           </button>
         </div>
 
-        <div className="amc-drawer-grid">
+        <div className="amc-action-grid">
           <div>
             <small>Morador</small>
             <strong>{item.nome}</strong>
@@ -913,7 +923,7 @@ function DrawerAcaoPendente({ acao, item, onClose }) {
           </div>
         </div>
 
-        <div className="amc-drawer-section">
+        <div className="amc-action-section">
           <h3>{dependeEdge ? "Próxima etapa técnica" : "Informação"}</h3>
 
           <p>
@@ -923,7 +933,7 @@ function DrawerAcaoPendente({ acao, item, onClose }) {
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <div className="amc-action-actions">
           <button type="button" className="amc-btn amc-btn-primary" onClick={onClose}>
             Entendi
           </button>

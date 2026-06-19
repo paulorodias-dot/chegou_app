@@ -3275,3 +3275,317 @@ body.dark .amc-progress-modal,
     min-height: 42px;
   }
 }
+
+/* =========================
+   MODAL AÇÃO PENDENTE / REVOGAR CONVITE
+========================= */
+
+.amc-action-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+
+  z-index: 1201;
+
+  width: 620px;
+  max-width: calc(100vw - 28px);
+  max-height: calc(100vh - 28px);
+
+  overflow-y: auto;
+
+  transform: translate(-50%, -50%);
+
+  border: 1px solid var(--amc-border);
+  border-radius: 22px;
+
+  background: #ffffff;
+
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.24);
+}
+
+.amc-action-header {
+  padding: 20px 24px 16px;
+
+  border-bottom: 1px solid var(--amc-border-soft);
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(255, 121, 0, 0.08),
+      transparent 30%
+    ),
+    linear-gradient(180deg, #ffffff, #fbfdff);
+}
+
+.amc-action-header span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #526681;
+
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.amc-action-header h2 {
+  margin: 0;
+
+  color: var(--amc-text);
+
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 900;
+
+  letter-spacing: -0.04em;
+}
+
+.amc-action-header button {
+  width: 38px;
+  height: 38px;
+
+  border: 1px solid var(--amc-border);
+  border-radius: 13px;
+
+  background: #ffffff;
+  color: var(--amc-text);
+
+  display: grid;
+  place-items: center;
+
+  cursor: pointer;
+
+  font-size: 20px;
+}
+
+.amc-action-header button:hover {
+  border-color: rgba(255, 121, 0, 0.5);
+  color: var(--amc-orange);
+  background: #fff7ed;
+}
+
+.amc-action-grid {
+  padding: 16px 24px 4px;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.amc-action-grid > div {
+  position: relative;
+
+  min-height: 82px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--amc-border);
+  border-radius: 16px;
+
+  background: #ffffff;
+
+  padding: 14px;
+
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.amc-action-grid > div::after {
+  content: "";
+
+  position: absolute;
+  right: -24px;
+  bottom: -24px;
+
+  width: 72px;
+  height: 72px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 121, 0, 0.055);
+
+  pointer-events: none;
+}
+
+.amc-action-grid small {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #526681;
+
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.amc-action-grid strong {
+  position: relative;
+  z-index: 2;
+
+  display: block;
+
+  color: var(--amc-text);
+
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 900;
+
+  word-break: break-word;
+}
+
+.amc-action-section {
+  position: relative;
+
+  margin: 14px 24px 0;
+  padding: 15px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--amc-border);
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.amc-action-section::after {
+  content: "";
+
+  position: absolute;
+  right: -30px;
+  bottom: -30px;
+
+  width: 90px;
+  height: 90px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 121, 0, 0.055);
+}
+
+.amc-action-section h3 {
+  position: relative;
+  z-index: 2;
+
+  margin: 0 0 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--amc-text);
+
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.amc-action-section h3::before {
+  content: "";
+
+  width: 7px;
+  height: 18px;
+
+  border-radius: 999px;
+
+  background: linear-gradient(180deg, var(--amc-orange), var(--amc-orange-dark));
+}
+
+.amc-action-section p {
+  position: relative;
+  z-index: 2;
+
+  margin: 0;
+
+  color: #475569;
+
+  font-size: 11.5px;
+  line-height: 1.55;
+  font-weight: 650;
+}
+
+.amc-action-actions {
+  padding: 16px 24px 24px;
+
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.amc-action-actions .amc-btn {
+  min-width: 118px;
+}
+
+/* Mobile */
+@media (max-width: 720px) {
+  .amc-action-modal {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    border-radius: 18px;
+  }
+
+  .amc-action-header {
+    padding: 18px 16px 14px;
+  }
+
+  .amc-action-header h2 {
+    font-size: 18px;
+  }
+
+  .amc-action-grid {
+    padding: 14px 16px 4px;
+    grid-template-columns: 1fr;
+  }
+
+  .amc-action-section {
+    margin: 12px 16px 0;
+    padding: 14px;
+  }
+
+  .amc-action-actions {
+    padding: 14px 16px 16px;
+    flex-direction: column-reverse;
+  }
+
+  .amc-action-actions .amc-btn {
+    width: 100%;
+    min-height: 42px;
+  }
+}
+
+/* =========================
+   DRAWER ANDAMENTO — AJUSTE PREMIUM
+========================= */
+
+.amc-timeline-item:not(.active) {
+  opacity: 0.55;
+}
+
+.amc-timeline-item:not(.active) strong {
+  color: #64748b;
+}
+
+.amc-timeline-item.active strong {
+  color: var(--amc-text);
+}
+
+@media (max-width: 720px) {
+  .amc-timeline-item {
+    padding-bottom: 16px;
+  }
+
+  .amc-timeline-item strong {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .amc-timeline-item small {
+    font-size: 10.5px;
+  }
+}
