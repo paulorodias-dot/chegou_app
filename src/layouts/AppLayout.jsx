@@ -144,6 +144,8 @@ export default function AppLayout({
   }
 
   function navegarMobile(destino) {
+    setNotificationCenterOpen(false);
+    setMobileOpen(false);
     onNavigate(destino);
   }
 

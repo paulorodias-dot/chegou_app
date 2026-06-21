@@ -34,6 +34,7 @@ function validarSenhaForte(senha = "") {
 }
 
 async function hashSenha(senha: string) {
+
   const encoder = new TextEncoder();
   const saltArray = new Uint8Array(16);
   crypto.getRandomValues(saltArray);
@@ -65,6 +66,68 @@ async function hashSenha(senha: string) {
     .join("");
 
   return `pbkdf2_sha256$${iterations}$${salt}$${hash}`;
+}
+
+async function obterChaveCriptografia() {
+  const secret = Deno.env.get("CHEGOU_AUTH_PASSWORD_SECRET");
+
+  if (!secret || secret.length < 32) {
+    throw new Error(
+      "CHEGOU_AUTH_PASSWORD_SECRET ausente ou inválida."
+    );
+  }
+
+  const encoder = new TextEncoder();
+
+  const hash = await crypto.subtle.digest(
+    "SHA-256",
+    encoder.encode(secret)
+  );
+
+  return crypto.subtle.importKey(
+    "raw",
+    hash,
+    "AES-GCM",
+    false,
+    ["encrypt"]
+  );
+}
+
+function bytesParaBase64(bytes: Uint8Array) {
+  return btoa(
+    String.fromCharCode(...bytes)
+  );
+}
+
+async function criptografarSenhaAuth(
+  senha: string
+) {
+  const encoder = new TextEncoder();
+
+  const chave =
+    await obterChaveCriptografia();
+
+  const iv = new Uint8Array(12);
+
+  crypto.getRandomValues(iv);
+
+  const encrypted =
+    await crypto.subtle.encrypt(
+      {
+        name: "AES-GCM",
+        iv,
+      },
+      chave,
+      encoder.encode(senha)
+    );
+
+  return [
+    "v1",
+    bytesParaBase64(iv),
+    bytesParaBase64(
+      new Uint8Array(encrypted)
+    ),
+  ].join("$");
 }
 
 function obterIp(req: Request) {
@@ -166,7 +229,12 @@ serve(async (req) => {
       return jsonResponse({ success: false, error: "Token do convite expirado." }, 410);
     }
 
-    const senhaHash = await hashSenha(senha);
+    const senhaHash =
+      await hashSenha(senha);
+
+    const senhaAuthCriptografada =
+      await criptografarSenhaAuth(senha);
+
     const tokenAcompanhamento = preCadastro.token_acompanhamento || gerarTokenSeguro();
 
     const ip = obterIp(req);
@@ -176,6 +244,8 @@ serve(async (req) => {
       .from("pre_cadastro_moradores")
       .update({
         senha_hash: senhaHash,
+        senha_auth_criptografada:
+          senhaAuthCriptografada,
         senha_preparada: true,
         senha_definida: true,
         status_conta: "PENDENTE_APROVACAO",

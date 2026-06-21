@@ -125,6 +125,15 @@
   flex: 0 0 auto;
 }
 
+.ama-header p {
+  margin: 7px 0 0;
+  color: var(--ama-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 500;
+  max-width: 780px;
+}
+
 /* =========================
    BOTÕES
 ========================= */
@@ -361,19 +370,50 @@
   padding: 12px;
 
   display: grid;
+
   grid-template-columns:
-    minmax(240px, 1fr)
-    150px
-    150px
-    140px
-    130px
-    130px;
+    minmax(210px, 1fr)
+    145px
+    145px
+    135px
+    250px
+    90px;
+
+  grid-template-areas:
+    "search status torre unidade periodo limpar";
+
   gap: 8px;
 
   align-items: end;
-  justify-content: start;
 
   border-bottom: 1px solid var(--ama-border-soft);
+}
+
+.ama-search {
+  grid-area: search;
+}
+
+.ama-filters label:nth-of-type(1) {
+  grid-area: status;
+}
+
+.ama-filters label:nth-of-type(2) {
+  grid-area: torre;
+}
+
+.ama-filters label:nth-of-type(3) {
+  grid-area: unidade;
+}
+
+.ama-periodo-premium {
+  grid-area: periodo;
+  min-width: 0;
+}
+
+.ama-filter-extra {
+  grid-area: limpar;
+
+  width: 100%;
 }
 
 .ama-search {
@@ -418,6 +458,11 @@
   font-weight: 600;
 }
 
+.ama-search:focus-within {
+  border-color: var(--ama-border);
+  box-shadow: none;
+}
+
 .ama-filters label {
   min-width: 0;
 
@@ -436,6 +481,7 @@
 }
 
 .ama-filters select,
+.ama-date-input,
 .ama-filter-button,
 .ama-filter-extra {
   width: 100%;
@@ -578,26 +624,26 @@
   border-radius: 999px;
 }
 
+/* =========================
+   COLUNAS OFICIAIS
+========================= */
+
 .ama-table {
   width: 100%;
-  min-width: 1120px;
+  min-width: 940px;
 
   border-collapse: collapse;
   table-layout: fixed;
 }
 
-/* =========================
-   COLUNAS OFICIAIS
-========================= */
-
 .ama-table th:nth-child(1),
 .ama-table td:nth-child(1) {
-  width: 120px;
+  width: 110px;
 }
 
 .ama-table th:nth-child(2),
 .ama-table td:nth-child(2) {
-  width: 120px;
+  width: 110px;
 }
 
 .ama-table th:nth-child(3),
@@ -617,13 +663,16 @@
 
 .ama-table th:nth-child(6),
 .ama-table td:nth-child(6) {
-  width: 150px;
+  width: 76px;
+  text-align: right;
 }
 
-.ama-table th:nth-child(7),
-.ama-table td:nth-child(7) {
-  width: 72px;
-  text-align: right;
+.ama-table th:nth-child(6) {
+  padding-right: 20px;
+}
+
+.ama-table td:nth-child(6) {
+  padding-right: 16px;
 }
 
 /* =========================
@@ -2543,6 +2592,11 @@
 
   .ama-filters {
     grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "search search"
+      "status torre"
+      "unidade periodo"
+      "limpar limpar";
   }
 
   .ama-search {
@@ -2598,6 +2652,13 @@
 
   .ama-filters {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "search"
+      "status"
+      "torre"
+      "unidade"
+      "periodo"
+      "limpar";
   }
 
   .ama-table {
@@ -2704,3 +2765,359 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+
+.ama-search,
+.ama-search:focus,
+.ama-search:focus-within,
+.ama-search:hover {
+  border-color: var(--ama-border) !important;
+  box-shadow: none !important;
+}
+
+.ama-search input,
+.ama-search input:focus,
+.ama-search input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ama-search:has(input:focus) {
+  border-color: var(--ama-border) !important;
+  box-shadow: none !important;
+}
+
+.ama-periodo-premium .drp-trigger {
+  padding: 0 9px;
+}
+
+.ama-periodo-premium .drp-trigger strong {
+  max-width: 150px;
+}
+
+.ama-periodo-premium .drp-trigger small {
+  font-size: 9px;
+}
+
+/* =========================
+   MODAL DECISÃO AUDITORIA — PREMIUM
+========================= */
+
+.ama-decision-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+
+  z-index: 1251;
+
+  width: 560px;
+  max-width: calc(100vw - 28px);
+  max-height: calc(100vh - 28px);
+
+  overflow-y: auto;
+
+  transform: translate(-50%, -50%);
+
+  border: 1px solid var(--ama-border);
+  border-radius: 22px;
+
+  background: #ffffff;
+
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.24);
+}
+
+.ama-decision-modal-header {
+  padding: 20px 20px 16px;
+
+  border-bottom: 1px solid var(--ama-border-soft);
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(255, 121, 0, 0.08),
+      transparent 30%
+    ),
+    linear-gradient(180deg, #ffffff, #fbfdff);
+}
+
+.ama-decision-modal-header span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--ama-orange);
+
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ama-decision-modal-header h2 {
+  margin: 0;
+
+  color: var(--ama-text);
+
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 900;
+
+  letter-spacing: -0.04em;
+}
+
+.ama-decision-modal-header button {
+  width: 38px;
+  height: 38px;
+
+  border: 1px solid var(--ama-border);
+  border-radius: 13px;
+
+  background: #ffffff;
+  color: var(--ama-text);
+
+  display: grid;
+  place-items: center;
+
+  cursor: pointer;
+
+  font-size: 20px;
+}
+
+.ama-decision-modal-header button:hover {
+  border-color: rgba(255, 121, 0, 0.5);
+  color: var(--ama-orange);
+  background: #fff7ed;
+}
+
+.ama-decision-modal-section {
+  position: relative;
+
+  margin: 16px 20px 0;
+  padding: 15px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--ama-border);
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.ama-decision-modal-section::after {
+  content: "";
+
+  position: absolute;
+  right: -30px;
+  bottom: -30px;
+
+  width: 90px;
+  height: 90px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 121, 0, 0.055);
+}
+
+.ama-decision-modal-section h3 {
+  position: relative;
+  z-index: 2;
+
+  margin: 0 0 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--ama-text);
+
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.ama-decision-modal-section h3::before {
+  content: "";
+
+  width: 7px;
+  height: 18px;
+
+  border-radius: 999px;
+
+  background: linear-gradient(180deg, var(--ama-orange), var(--ama-orange-dark));
+}
+
+.ama-decision-modal-section p {
+  position: relative;
+  z-index: 2;
+
+  margin: 0;
+
+  color: #475569;
+
+  font-size: 11.5px;
+  line-height: 1.55;
+  font-weight: 650;
+}
+
+.ama-decision-modal-section p strong {
+  color: var(--ama-text);
+  font-weight: 900;
+}
+
+.ama-decision-modal-textarea {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  min-height: 136px;
+
+  resize: vertical;
+
+  border: 1px solid var(--ama-border);
+  border-radius: 14px;
+
+  background: #ffffff;
+  color: var(--ama-text);
+
+  padding: 12px;
+
+  outline: none;
+
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 650;
+}
+
+.ama-decision-modal-textarea:focus,
+.ama-decision-modal-textarea:focus-visible {
+  border-color: var(--ama-border);
+  box-shadow: none;
+  outline: none;
+}
+
+.ama-decision-modal-helper {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+}
+
+.ama-decision-modal-actions {
+  padding: 16px 26px 24px;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.ama-decision-modal-actions .ama-btn {
+  min-width: 118px;
+}
+
+.ama-decision-modal-actions .ama-btn-primary {
+  min-width: 170px;
+}
+
+/* Mobile */
+@media (max-width: 720px) {
+  .ama-decision-modal {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    border-radius: 18px;
+  }
+
+  .ama-decision-modal-header {
+    padding: 18px 16px 14px;
+  }
+
+  .ama-decision-modal-header h2 {
+    font-size: 18px;
+  }
+
+  .ama-decision-modal-section {
+    margin: 12px 16px 0;
+    padding: 14px;
+  }
+
+  .ama-decision-modal-actions {
+    padding: 14px 16px 16px;
+    flex-direction: column-reverse;
+  }
+
+  .ama-decision-modal-actions .ama-btn {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .ama-decision-modal-textarea {
+    font-size: 16px;
+  }
+}
+
+/* =========================
+   AUDITORIA DRAWER — MOBILE PREMIUM
+========================= */
+
+@media (max-width: 720px) {
+  .ama-audit-drawer {
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ama-audit-head,
+  .ama-audit-profile,
+  .ama-audit-warning,
+  .ama-audit-footer {
+    flex: 0 0 auto;
+  }
+
+  .ama-accordion-list {
+    flex: 0 0 auto;
+
+    overflow: visible;
+
+    padding: 12px 14px 16px;
+  }
+
+  .ama-accordion-item {
+    display: block;
+    width: 100%;
+  }
+
+  .ama-accordion-head {
+    width: 100%;
+    min-height: 62px;
+  }
+
+  .ama-accordion-body {
+    display: block;
+    width: 100%;
+
+    overflow: visible;
+  }
+
+  .ama-audit-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+  }
+
+  .ama-footer-action {
+    min-height: 54px;
+  }
+}

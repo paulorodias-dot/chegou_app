@@ -1,14 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
-  CalendarDays,
   CheckCircle2,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
-  Eye,
-  Filter,
   Info,
   MoreVertical,
   RefreshCw,
@@ -20,6 +16,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+import DateRangePickerPremium from "../../components/premium/DateRangePickerPremium";
 import "./AuditoriaMoradoresAuditoria.css";
 import {
   buscarTorresAuditoriaMoradores,
@@ -81,6 +78,16 @@ function classeStatus(status = "") {
   if (valorStatus === "REPROVADO") return "reprovado";
 
   return "neutro";
+}
+
+function dataHojeInput() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function dataMenosDiasInput(dias = 30) {
+  const data = new Date();
+  data.setDate(data.getDate() - dias);
+  return data.toISOString().slice(0, 10);
 }
 
 function KpiCard({ icon: Icon, titulo, valor, detalhe, variante = "azul" }) {
@@ -740,6 +747,8 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
   const [status, setStatus] = useState("TODOS");
   const [torre, setTorre] = useState("TODAS");
   const [unidade, setUnidade] = useState("TODAS");
+  const [dataInicio, setDataInicio] = useState(() => dataMenosDiasInput(30));
+  const [dataFim, setDataFim] = useState(() => dataHojeInput());
 
   const [menuAberto, setMenuAberto] = useState(null);
   const [auditoriaSelecionada, setAuditoriaSelecionada] = useState(null);
@@ -771,6 +780,8 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
           status,
           torre,
           unidade,
+          dataInicio,
+          dataFim,
           limite: 500,
         }),
         obterResumoAuditoriaMoradores({ condominioId }),
@@ -792,7 +803,7 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
   useEffect(() => {
     carregarDados();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [condominioId, status, torre, unidade]);
+  }, [condominioId, status, torre, unidade, dataInicio, dataFim]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -951,6 +962,11 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
               Auditoria de Moradores
               <Info size={17} />
             </h1>
+
+            <p>
+              Analise os cadastros finalizados pelos moradores, valide informações,
+              solicite correções quando necessário e aprove apenas dados consistentes.
+            </p>
           </div>
         </div>
 
@@ -1061,18 +1077,33 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
               </select>
             </label>
 
-            <label>
-              <span>Período</span>
-              <button type="button" className="ama-filter-button">
-                <CalendarDays size={16} />
-                Últimos 30 dias
-                <ChevronDown size={15} />
-              </button>
-            </label>
+            <div className="ama-periodo-premium">
+              <DateRangePickerPremium
+                dataInicio={dataInicio}
+                dataFim={dataFim}
+                persistKey="admin-auditoria-moradores-auditoria-periodo"
+                onChange={({ inicio, fim }) => {
+                  setDataInicio(inicio);
+                  setDataFim(fim);
+                  setPagina(1);
+                }}
+              />
+            </div>
 
-            <button type="button" className="ama-filter-extra">
-              <Filter size={16} />
-              Mais filtros
+            <button
+              type="button"
+              className="ama-filter-extra"
+              onClick={() => {
+                setBusca("");
+                setStatus("TODOS");
+                setTorre("TODAS");
+                setUnidade("TODAS");
+                setDataInicio(dataMenosDiasInput(30));
+                setDataFim(dataHojeInput());
+                setPagina(1);
+              }}
+            >
+              Limpar
             </button>
           </div>
 
@@ -1290,8 +1321,8 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
             aria-label="Fechar decisão"
           />
 
-          <aside className="ama-decision-drawer">
-            <header className="ama-drawer-header">
+          <aside className="ama-decision-modal">
+            <header className="ama-decision-modal-header">
               <div>
                 <span>Decisão da Auditoria</span>
                 <h2>{formatarStatusAuditoria(decisaoPendente.decisao)}</h2>
@@ -1304,12 +1335,13 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
                   setDecisaoPendente(null);
                   setObservacaoDecisao("");
                 }}
+                aria-label="Fechar decisão"
               >
                 ×
               </button>
             </header>
 
-            <section className="ama-drawer-section">
+            <section className="ama-decision-modal-section">
               <h3>Morador</h3>
               <p>
                 <strong>{decisaoPendente.item.nome}</strong>
@@ -1319,15 +1351,15 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
             </section>
 
             {decisaoPendente.decisao === "APROVADO" ? (
-              <section className="ama-drawer-section">
+              <section className="ama-decision-modal-section">
                 <h3>Confirmação</h3>
                 <p>
-                  Ao confirmar, o cadastro será aprovado e o sistema seguirá para o
-                  próximo responsável pendente de auditoria.
+                  Ao confirmar, o cadastro será aprovado e o sistema seguirá para o próximo
+                  responsável pendente de auditoria.
                 </p>
               </section>
             ) : (
-              <section className="ama-drawer-section">
+              <section className="ama-decision-modal-section">
                 <h3>
                   {decisaoPendente.decisao === "CORRECAO_SOLICITADA"
                     ? "Orientação para correção"
@@ -1343,16 +1375,16 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
                       : "Informe o motivo da reprovação..."
                   }
                   rows={6}
-                  className="ama-decision-textarea"
+                  className="ama-decision-modal-textarea"
                 />
 
-                <p className="ama-helper-text">
+                <p className="ama-decision-modal-helper">
                   Esta informação será usada no fluxo de comunicação com o morador.
                 </p>
               </section>
             )}
 
-            <div className="ama-decision-actions">
+            <footer className="ama-decision-modal-actions">
               <button
                 type="button"
                 className="ama-btn ama-btn-outline"
@@ -1373,10 +1405,11 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
               >
                 {salvandoDecisao ? "Salvando..." : "Confirmar"}
               </button>
-            </div>
+            </footer>
           </aside>
         </>
       ) : null}
     </div>
   );
 }
+

@@ -50,6 +50,47 @@ function detectarNavegador(userAgent = "") {
   return "Não identificado";
 }
 
+async function obterChaveDescriptografia() {
+  const secret = Deno.env.get("CHEGOU_AUTH_PASSWORD_SECRET");
+
+  if (!secret || secret.length < 32) {
+    throw new Error("CHEGOU_AUTH_PASSWORD_SECRET ausente ou inválida.");
+  }
+
+  const encoder = new TextEncoder();
+  const hash = await crypto.subtle.digest("SHA-256", encoder.encode(secret));
+
+  return crypto.subtle.importKey("raw", hash, "AES-GCM", false, ["decrypt"]);
+}
+
+function base64ParaBytes(base64: string) {
+  const binario = atob(base64);
+  return Uint8Array.from(binario, (char) => char.charCodeAt(0));
+}
+
+async function descriptografarSenhaAuth(valor: string) {
+  const partes = String(valor || "").split("$");
+
+  if (partes.length !== 3 || partes[0] !== "v1") {
+    throw new Error("Formato da senha temporária inválido.");
+  }
+
+  const [, ivBase64, encryptedBase64] = partes;
+
+  const chave = await obterChaveDescriptografia();
+
+  const decrypted = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: base64ParaBytes(ivBase64),
+    },
+    chave,
+    base64ParaBytes(encryptedBase64)
+  );
+
+  return new TextDecoder().decode(decrypted);
+}
+
 async function registrarLog({
   supabaseAdmin,
   acao,
@@ -172,16 +213,26 @@ serve(async (req) => {
 
     const {
       auditoria_id,
+      pre_cadastro_id,
+      condominio_id,
       aprovado_por,
       aprovado_por_nome,
       aprovado_por_email,
     } = body;
 
-    if (!auditoria_id) {
+    if (!auditoria_id && !pre_cadastro_id) {
       return jsonResponse(
         {
-          error:
-            "auditoria_id obrigatório.",
+          error: "auditoria_id ou pre_cadastro_id obrigatório.",
+        },
+        400
+      );
+    }
+
+    if (!auditoria_id && !condominio_id) {
+      return jsonResponse(
+        {
+          error: "condominio_id obrigatório quando pre_cadastro_id for informado.",
         },
         400
       );
@@ -232,59 +283,80 @@ serve(async (req) => {
       navegador,
     };
 
-    const {
-      data: auditoria,
-      error: auditoriaError,
-    } = await supabaseAdmin
-      .from(
-        "auditorias_morador"
-      )
-      .select(`
-        *,
-        pre_cadastro_moradores (*)
-      `)
-      .eq("id", auditoria_id)
-      .maybeSingle();
+    let auditoria: Record<string, unknown> | null = null;
+    let preCadastro: Record<string, unknown> | null = null;
 
-    if (auditoriaError) {
-      throw auditoriaError;
+    if (auditoria_id) {
+      const { data, error } = await supabaseAdmin
+        .from("auditorias_morador")
+        .select(`
+          *,
+          pre_cadastro_moradores (*)
+        `)
+        .eq("id", auditoria_id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      auditoria = data;
+      preCadastro = data?.pre_cadastro_moradores || null;
+    } else {
+      const { data, error } = await supabaseAdmin
+        .from("pre_cadastro_moradores")
+        .select("*")
+        .eq("id", pre_cadastro_id)
+        .eq("condominio_id", condominio_id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      preCadastro = data;
+
+      const { data: auditoriaAtual } = await supabaseAdmin
+        .from("auditorias_morador")
+        .select("*")
+        .eq("pre_cadastro_id", pre_cadastro_id)
+        .eq("condominio_id", condominio_id)
+        .order("criado_em", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      auditoria = auditoriaAtual || null;
     }
 
-    if (!auditoria) {
+    if (!preCadastro) {
       return jsonResponse(
         {
-          error:
-            "Auditoria não encontrada.",
+          error: "Pré-cadastro não encontrado.",
         },
         404
       );
     }
 
-    if (
-      auditoria.status_auditoria ===
-      "aprovado"
-    ) {
+    if (String(preCadastro.status_auditoria || "").toUpperCase() === "APROVADO") {
       return jsonResponse(
         {
-          error:
-            "Morador já aprovado.",
+          error: "Morador já aprovado.",
         },
         409
       );
     }
 
-    const preCadastro =
-      auditoria.pre_cadastro_moradores;
-
-    if (!preCadastro) {
+    if (!preCadastro.senha_preparada || !preCadastro.senha_auth_criptografada) {
       return jsonResponse(
         {
-          error:
-            "Pré-cadastro não encontrado.",
+          error: "Senha do morador não preparada. O morador precisa finalizar a etapa de senha no Wizard.",
         },
-        404
+        400
       );
     }
+
+    const senhaAuth = await descriptografarSenhaAuth(
+      String(preCadastro.senha_auth_criptografada)
+    );
+
+    const condominioIdFinal =
+      String(preCadastro.condominio_id || condominio_id || auditoria?.condominio_id || "");
 
     const email =
       String(
@@ -328,44 +400,40 @@ serve(async (req) => {
       usuarioAuth?.id || null;
 
     if (!authUserId) {
-      const {
-        data: novoAuth,
-        error: createAuthError,
-      } =
-        await supabaseAdmin.auth.admin.createUser(
-          {
-            email,
-            email_confirm: true,
+      const { data: novoAuth, error: createAuthError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email,
+          password: senhaAuth,
+          email_confirm: true,
+          user_metadata: {
+            nome,
+            tipo: "morador",
+            nivel_id: 6,
+            condominio_id: condominioIdFinal,
+            business_id: preCadastro.business_id,
+          },
+        });
 
-            user_metadata: {
-              nome,
-              tipo:
-                "morador",
-              nivel_id: 6,
-
-              condominio_id:
-                auditoria.condominio_id,
-
-              business_id:
-                preCadastro.business_id,
-            },
-          }
-        );
-
-      if (
-        createAuthError ||
-        !novoAuth?.user?.id
-      ) {
-        throw (
-          createAuthError ||
-          new Error(
-            "Erro ao criar Auth."
-          )
-        );
+      if (createAuthError || !novoAuth?.user?.id) {
+        throw createAuthError || new Error("Erro ao criar Auth.");
       }
 
-      authUserId =
-        novoAuth.user.id;
+      authUserId = novoAuth.user.id;
+    } else {
+      const { error: updateAuthError } =
+        await supabaseAdmin.auth.admin.updateUserById(authUserId, {
+          password: senhaAuth,
+          email_confirm: true,
+          user_metadata: {
+            nome,
+            tipo: "morador",
+            nivel_id: 6,
+            condominio_id: condominioIdFinal,
+            business_id: preCadastro.business_id,
+          },
+        });
+
+      if (updateAuthError) throw updateAuthError;
     }
 
     const {
@@ -394,7 +462,7 @@ serve(async (req) => {
         preCadastro.cpf,
 
       condominio_id:
-        auditoria.condominio_id,
+        condominioIdFinal,
 
       nivel_id: 6,
 
@@ -460,58 +528,35 @@ serve(async (req) => {
     const agora =
       new Date().toISOString();
 
-    await supabaseAdmin
-      .from(
-        "auditorias_morador"
-      )
-      .update({
-        status_auditoria:
-          "aprovado",
+    if (auditoria?.id) {
+      await supabaseAdmin
+        .from("auditorias_morador")
+        .update({
+          status_auditoria: "APROVADO",
+          aprovado_em: agora,
+          aprovado_por: aprovado_por || null,
+          observacao_auditor: "Cadastro aprovado.",
+          ip_auditor: ip,
+          dispositivo_auditor: userAgent,
+          navegador_auditor: navegador,
+        })
+        .eq("id", auditoria.id);
+    }
 
+    await supabaseAdmin
+      .from("pre_cadastro_moradores")
+      .update({
+        status_cadastro: "ATIVO",
+        status_auditoria: "APROVADO",
+        status_conta: "CONTA_ATIVA",
+        auth_ativo: true,
+        auth_user_id: authUserId,
+        senha_auth_criptografada: null,
         aprovado_em: agora,
-
-        aprovado_por:
-          aprovado_por ||
-          null,
-
-        observacao_auditor:
-          "Cadastro aprovado.",
-
-        ip_auditor: ip,
-
-        dispositivo_auditor:
-          userAgent,
-
-        navegador_auditor:
-          navegador,
+        aprovado_por: aprovado_por || null,
+        atualizado_em: agora,
       })
-      .eq(
-        "id",
-        auditoria.id
-      );
-
-    await supabaseAdmin
-      .from(
-        "pre_cadastro_moradores"
-      )
-      .update({
-        status_cadastro:
-          "ativo",
-
-        status_auditoria:
-          "aprovado",
-
-        aprovado_em:
-          agora,
-
-        aprovado_por:
-          aprovado_por ||
-          null,
-      })
-      .eq(
-        "id",
-        preCadastro.id
-      );
+      .eq("id", preCadastro.id);
 
     const {
       data: convites,
@@ -546,8 +591,8 @@ serve(async (req) => {
           token_revogado:
             true,
 
-          status_envio:
-            "finalizado",
+          status_envio: "FINALIZADO",
+          status_convite: "FINALIZADO",
         })
         .in("id", ids);
     }
@@ -563,7 +608,7 @@ serve(async (req) => {
         `)
         .eq(
           "id",
-          auditoria.condominio_id
+          condominioIdFinal
         )
         .maybeSingle();
 
@@ -706,7 +751,7 @@ serve(async (req) => {
         "MORADOR_APROVADO",
 
       condominio_id:
-        auditoria.condominio_id,
+        condominioIdFinal,
 
       usuario_id:
         authUserId,
@@ -718,7 +763,7 @@ serve(async (req) => {
 
       detalhes: {
         auditoria_id:
-          auditoria.id,
+          auditoria?.id || null,
 
         pre_cadastro_id:
           preCadastro.id,
@@ -752,7 +797,7 @@ serve(async (req) => {
         authUserId,
 
       auditoria_id:
-        auditoria.id,
+        auditoria?.id || null,
 
       pre_cadastro_id:
         preCadastro.id,

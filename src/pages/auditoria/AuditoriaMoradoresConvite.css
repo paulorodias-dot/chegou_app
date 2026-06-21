@@ -594,38 +594,50 @@
   table-layout: fixed;
 }
 
-/* Colunas oficiais da tela Convites — Premium */
-.amc-table {
+/* =========================
+   COLUNAS OFICIAIS — AUDITORIA PREMIUM
+========================= */
+
+.ama-table {
   width: 100%;
-  min-width: 1280px;
+  min-width: 920px;
 
   border-collapse: collapse;
   table-layout: fixed;
 }
 
-.amc-table th:nth-child(1),
-.amc-table td:nth-child(1) {
-  width: 46px;
+.ama-table th:nth-child(1),
+.ama-table td:nth-child(1) {
+  width: 140px;
 }
 
-.amc-table th:nth-child(2),
-.amc-table td:nth-child(2) {
-  width: 100px;
+.ama-table th:nth-child(2),
+.ama-table td:nth-child(2) {
+  width: 320px;
 }
 
-.amc-table th:nth-child(3),
-.amc-table td:nth-child(3) {
-  width: 260px;
+.ama-table th:nth-child(3),
+.ama-table td:nth-child(3) {
+  width: 190px;
 }
 
-.amc-table th:nth-child(4),
-.amc-table td:nth-child(4) {
-  width: 170px;
+.ama-table th:nth-child(4),
+.ama-table td:nth-child(4) {
+  width: 210px;
 }
 
-.amc-table th:nth-child(5),
-.amc-table td:nth-child(5) {
-  width: 155px;
+.ama-table th:nth-child(5),
+.ama-table td:nth-child(5) {
+  width: 72px;
+  text-align: right;
+}
+
+.ama-table th:nth-child(5) {
+  padding-right: 20px;
+}
+
+.ama-table td:nth-child(5) {
+  padding-right: 16px;
 }
 
 .amc-table th:nth-child(6),
