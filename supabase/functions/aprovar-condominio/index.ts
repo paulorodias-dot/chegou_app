@@ -311,17 +311,24 @@ serve(async (req) => {
       );
     }
 
-    const responsavel = condominio.responsavel_logistica?.[0];
+    const responsavel = Array.isArray(condominio.responsavel_logistica)
+      ? condominio.responsavel_logistica[0]
+      : condominio.responsavel_logistica;
 
-    if (!responsavel?.email) {
+    const emailFinal =
+      responsavel?.email ||
+      condominio.email_condominio ||
+      null;
+
+    if (!emailFinal) {
       return jsonResponse(
         { error: "Responsável sem e-mail cadastrado." },
         400
       );
     }
 
-    const email = String(responsavel.email).trim().toLowerCase();
-    const nome = responsavel.nome || "Responsável do Condomínio";
+    const email = String(emailFinal).trim().toLowerCase();
+    const nome = responsavel?.nome || "Responsável do Condomínio";
     const username = normalizarUsername(nome);
     const nomeCondominio =
       condominio.nome_fantasia || condominio.razao_social || "Condomínio";
