@@ -92,6 +92,7 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
         },
       ],
     },
+
     {
       id: "ambiente-validacao",
       label: "Ambiente de Validação",
@@ -109,6 +110,12 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
         }
       ],
     },
+    {
+      id: "acesso-assistido",
+      label: "Acesso Assistido",
+      icon: UserCheck,
+    },
+
     {
       id: "notificacoes",
       label: "Notificações",

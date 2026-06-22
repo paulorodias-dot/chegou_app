@@ -28,6 +28,7 @@ export default function AppLayout({
   activePage,
   onNavigate,
   onLogout,
+  onExitSupport,
   children,
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -160,6 +161,19 @@ export default function AppLayout({
 
   return (
     <div className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+
+      {perfil?.modo_suporte_master ? (
+        <div className="support-master-banner">
+          <strong>Modo Suporte Master</strong>
+          <span>
+            Condomínio: {perfil?.nome_condominio || "Condomínio selecionado"}
+          </span>
+          <button type="button" onClick={onExitSupport}>
+            Sair do Suporte
+          </button>
+        </div>
+      ) : null}
+
       <header className="app-topbar">
         <div className="topbar-left">
           <button

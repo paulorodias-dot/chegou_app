@@ -1,0 +1,244 @@
+.mas-page {
+  padding: 16px;
+  min-height: calc(100vh - 72px);
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: Inter, Poppins, system-ui, sans-serif;
+}
+
+.mas-header {
+  margin-bottom: 16px;
+}
+
+.mas-header span {
+  display: block;
+  margin-bottom: 5px;
+  color: #ff7900;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mas-header h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+}
+
+.mas-header p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 11.5px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.mas-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #fff;
+  padding: 16px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.055);
+}
+
+.mas-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.mas-card-title svg {
+  color: #ff7900;
+}
+
+.mas-card-title strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.mas-card-title small {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.mas-search {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 110px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 8px 10px;
+  background: #fff;
+}
+
+.mas-search svg {
+  color: #64748b;
+}
+
+.mas-search input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 650;
+  min-width: 0;
+}
+
+.mas-search button,
+.mas-cond-card button {
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ff7900, #e85f00);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.mas-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.mas-cond-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 160px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #edf0f5;
+  border-radius: 15px;
+  padding: 12px;
+  background: #fbfdff;
+}
+
+.mas-cond-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #eff6ff;
+  color: #0284c7;
+}
+
+.mas-cond-info {
+  min-width: 0;
+}
+
+.mas-cond-info strong,
+.mas-cond-info span,
+.mas-cond-info small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mas-cond-info strong {
+  font-size: 12.5px;
+  font-weight: 900;
+}
+
+.mas-cond-info span {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 10.5px;
+  font-weight: 750;
+}
+
+.mas-cond-info small {
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.mas-error,
+.mas-empty {
+  margin-top: 12px;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 11.5px;
+  font-weight: 750;
+}
+
+.mas-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.mas-empty {
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #64748b;
+  text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mas-page {
+    background: #07111f;
+    color: #e5e7eb;
+  }
+
+  .mas-card,
+  .mas-search,
+  .mas-cond-card {
+    background: #0f1b2d;
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+
+  .mas-header p,
+  .mas-card-title small,
+  .mas-search input,
+  .mas-cond-info span,
+  .mas-cond-info small {
+    color: #94a3b8;
+  }
+
+  .mas-empty {
+    background: #111f33;
+    border-color: rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+  }
+}
+
+@media (max-width: 720px) {
+  .mas-page {
+    padding: 12px 10px 96px;
+  }
+
+  .mas-search {
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+
+  .mas-search button {
+    grid-column: 1 / -1;
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .mas-search input {
+    font-size: 16px;
+  }
+
+  .mas-cond-card {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .mas-cond-card button {
+    grid-column: 1 / -1;
+    width: 100%;
+    font-size: 16px;
+  }
+}

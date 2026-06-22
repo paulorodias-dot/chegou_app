@@ -15,6 +15,8 @@ import {
 import MasterLayout from "./layouts/MasterLayout";
 import AppLayout from "./layouts/AppLayout";
 
+import AcessoAssistidoMaster from "./pages/master/AcessoAssistidoMaster";
+
 import DashboardMaster from "./pages/master/DashboardMaster";
 import CadastroCondominio from "./pages/master/CadastroCondominio";
 import AuditoriaCondominios from "./pages/master/AuditoriaCondominios";
@@ -41,6 +43,16 @@ function App() {
   const [paginaAtual, setPaginaAtual] = useState(
     localStorage.getItem("chegou_pagina_atual") || "dashboard"
   );
+
+  const [suporteMaster, setSuporteMaster] = useState(() => {
+    try {
+      const salvo = localStorage.getItem("chegou_suporte_master");
+      return salvo ? JSON.parse(salvo) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [carregandoSessao, setCarregandoSessao] = useState(true);
 
   useEffect(() => {
@@ -146,9 +158,13 @@ function App() {
     await logout();
 
     setPerfil(null);
+
+    setSuporteMaster(null);
+
     setPaginaAtual("dashboard");
 
     localStorage.removeItem("chegou_pagina_atual");
+    localStorage.removeItem("chegou_suporte_master");
 
     if (inatividade) {
       navigate("/login", {
@@ -162,8 +178,31 @@ function App() {
     }
   }
 
+  function entrarModoSuporteMaster(contexto) {
+    setSuporteMaster(contexto);
+    localStorage.setItem("chegou_suporte_master", JSON.stringify(contexto));
+    setPaginaAtual("admin-dashboard");
+    localStorage.setItem("chegou_pagina_atual", "admin-dashboard");
+  }
+
+  function sairModoSuporteMaster() {
+    setSuporteMaster(null);
+    localStorage.removeItem("chegou_suporte_master");
+    setPaginaAtual("dashboard");
+    localStorage.setItem("chegou_pagina_atual", "dashboard");
+  }
+
   function renderizarPaginaMaster() {
     if (paginaAtual === "dashboard") return <DashboardMaster />;
+
+    if (paginaAtual === "acesso-assistido") {
+      return (
+        <AcessoAssistidoMaster
+          perfil={perfil}
+          onEntrarSuporte={entrarModoSuporteMaster}
+        />
+      );
+    }
 
     if (paginaAtual === "condominios-cadastro") {
       return <CadastroCondominio perfil={perfil} />;
@@ -184,23 +223,23 @@ function App() {
     return <PaginaPreparando titulo="Módulo" />;
   }
 
-  function renderizarPaginaAdmin() {
+  function renderizarPaginaAdmin(perfilContexto = perfil) {
     if (paginaAtual === "admin-dashboard") {
-      return <DashboardAdmin perfil={perfil} />;
+      return <DashboardAdmin perfil={perfilContexto} />;
     }
 
     if (paginaAtual === "admin-cadastro-morador") {
-      return <CadastroMorador perfil={perfil} />;
+      return <CadastroMorador perfil={perfilContexto} />;
     }
 
     if (paginaAtual === "admin-divergencias-moradores") {
-      return <ImportacaoMoradoresDivergencias perfil={perfil} />;
+      return <ImportacaoMoradoresDivergencias perfil={perfilContexto} />;
     }
 
     if (paginaAtual === "admin-auditoria-moradores-convite") {
       return (
         <AuditoriaMoradoresConvite
-          perfil={perfil}
+          perfil={perfilContexto}
           onNavigate={navegarPara}
         />
       );
@@ -209,7 +248,7 @@ function App() {
     if (paginaAtual === "admin-auditoria-moradores-pre-cadastro") {
       return (
         <AuditoriaMoradoresPreCadastro
-          perfil={perfil}
+          perfil={perfilContexto}
           onNavigate={navegarPara}
         />
       );
@@ -218,7 +257,7 @@ function App() {
     if (paginaAtual === "admin-auditoria-moradores-auditoria") {
       return (
         <AuditoriaMoradoresAuditoria
-          perfil={perfil}
+          perfil={perfilContexto}
           onNavigate={navegarPara}
         />
       );
@@ -227,7 +266,7 @@ function App() {
     if (paginaAtual === "admin-auditoria-moradores-historico") {
       return (
         <AuditoriaMoradoresHistorico
-          perfil={perfil}
+          perfil={perfilContexto}
           onNavigate={navegarPara}
         />
       );
@@ -254,6 +293,34 @@ function App() {
     }
 
     const role = getRole(perfil);
+
+    if (role === "master" && suporteMaster?.modo_suporte_master) {
+      const perfilSuporte = {
+        ...perfil,
+        modo_suporte_master: true,
+        suporte_master_id: suporteMaster.suporte_master_id,
+        suporte_master_nome: suporteMaster.suporte_master_nome,
+        suporte_master_email: suporteMaster.suporte_master_email,
+        condominio_id: suporteMaster.condominio_id,
+        business_id_condominio: suporteMaster.business_id_condominio,
+        nome_condominio: suporteMaster.nome_condominio,
+        codigo_condominio: suporteMaster.codigo_condominio,
+        origem_login: "suporte_master",
+      };
+
+      return (
+        <AppLayout
+          perfil={perfilSuporte}
+          role="admin_logistica"
+          activePage={paginaAtual}
+          onNavigate={navegarPara}
+          onLogout={() => handleLogout(false)}
+          onExitSupport={sairModoSuporteMaster}
+        >
+          {renderizarPaginaAdmin(perfilSuporte)}
+        </AppLayout>
+      );
+    }
 
     if (role === "master") {
       return (

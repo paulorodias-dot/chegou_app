@@ -432,3 +432,88 @@
 [data-theme="dark"] .mobile-nav-item.active svg {
   color: #f97316;
 }
+
+.support-master-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  z-index: 3000;
+
+  min-height: 34px;
+
+  background: linear-gradient(135deg, #ff7900, #e85f00);
+  color: #fff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+
+  padding: 6px 12px;
+
+  font-size: 11px;
+  font-weight: 850;
+
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+}
+
+.support-master-banner span {
+  opacity: 0.95;
+}
+
+.support-master-banner button {
+  height: 24px;
+
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+
+  padding: 0 10px;
+
+  cursor: pointer;
+
+  font-size: 10.5px;
+  font-weight: 900;
+}
+
+.support-master-banner button:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.app-shell:has(.support-master-banner) .app-topbar {
+  top: 34px;
+}
+
+.app-shell:has(.support-master-banner) .app-sidebar {
+  top: calc(72px + 34px);
+}
+
+.app-shell:has(.support-master-banner) .app-main {
+  padding-top: 34px;
+}
+
+@media (max-width: 720px) {
+  .support-master-banner {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px;
+    min-height: 46px;
+    font-size: 10.5px;
+  }
+
+  .support-master-banner strong,
+  .support-master-banner span {
+    max-width: calc(100% - 110px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-shell:has(.support-master-banner) .app-main {
+    padding-top: 46px;
+  }
+}
