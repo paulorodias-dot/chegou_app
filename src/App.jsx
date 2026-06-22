@@ -297,14 +297,21 @@ function App() {
     if (role === "master" && suporteMaster?.modo_suporte_master) {
       const perfilSuporte = {
         ...perfil,
+
         modo_suporte_master: true,
+
         suporte_master_id: suporteMaster.suporte_master_id,
         suporte_master_nome: suporteMaster.suporte_master_nome,
         suporte_master_email: suporteMaster.suporte_master_email,
+
         condominio_id: suporteMaster.condominio_id,
+
+        business_id: suporteMaster.business_id_condominio,
         business_id_condominio: suporteMaster.business_id_condominio,
+
         nome_condominio: suporteMaster.nome_condominio,
         codigo_condominio: suporteMaster.codigo_condominio,
+
         origem_login: "suporte_master",
       };
 

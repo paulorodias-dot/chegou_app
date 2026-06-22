@@ -724,6 +724,7 @@ function DrawerAuditoria({
   );
 }
 export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
+  console.log("PERFIL AUDITORIA", perfil);
   const condominioId =
     perfil?.condominio_id ||
     perfil?.condominio_atual_id ||
