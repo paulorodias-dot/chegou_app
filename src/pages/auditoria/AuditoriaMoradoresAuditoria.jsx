@@ -16,7 +16,10 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+
+
 import DateRangePickerPremium from "../../components/premium/DateRangePickerPremium";
+import { supabase } from "../../services/supabase";
 import "./AuditoriaMoradoresAuditoria.css";
 import {
   buscarTorresAuditoriaMoradores,
@@ -724,7 +727,7 @@ function DrawerAuditoria({
   );
 }
 export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
-  console.log("PERFIL AUDITORIA", perfil);
+  
   const condominioId =
     perfil?.condominio_id ||
     perfil?.condominio_atual_id ||
@@ -783,7 +786,7 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
           unidade,
           dataInicio,
           dataFim,
-          limite: 500,
+          limite: 100,
         }),
         obterResumoAuditoriaMoradores({ condominioId }),
         buscarTorresAuditoriaMoradores({ condominioId }),
@@ -897,15 +900,35 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
     try {
       setSalvandoDecisao(true);
 
-      await registrarDecisaoAuditoriaMorador({
-        perfil,
-        preCadastroId: decisaoPendente.item.pre_cadastro_id,
-        decisao: decisaoPendente.decisao,
-        observacao: observacaoDecisao,
-      });
+      if (decisaoPendente.decisao === "APROVADO") {
+        const { data, error } = await supabase.functions.invoke("aprovar-morador", {
+          body: {
+            pre_cadastro_id: decisaoPendente.item.pre_cadastro_id,
+            condominio_id: condominioId,
+            aprovado_por: perfil?.id || null,
+            aprovado_por_nome: perfil?.nome || null,
+            aprovado_por_email: perfil?.email || null,
+          },
+        });
+
+        if (error || data?.error) {
+          throw new Error(
+            data?.error ||
+              error?.message ||
+              "Não foi possível aprovar o morador."
+          );
+        }
+      } else {
+        await registrarDecisaoAuditoriaMorador({
+          perfil,
+          preCadastroId: decisaoPendente.item.pre_cadastro_id,
+          decisao: decisaoPendente.decisao,
+          observacao: observacaoDecisao,
+        });
+      }
 
       const mensagens = {
-        APROVADO: "Cadastro aprovado com sucesso.",
+        APROVADO: "Cadastro aprovado, conta criada e acesso liberado.",
         CORRECAO_SOLICITADA: "Correção solicitada ao morador.",
         REPROVADO: "Cadastro reprovado com sucesso.",
       };
@@ -913,10 +936,9 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
       toast.success(mensagens[decisaoPendente.decisao] || "Auditoria atualizada.");
 
       const idAtual = decisaoPendente.item.id;
-
       const listaAtualizada = registros.filter((item) => item.id !== idAtual);
-      setRegistros(listaAtualizada);
 
+      setRegistros(listaAtualizada);
       setDecisaoPendente(null);
       setObservacaoDecisao("");
 
