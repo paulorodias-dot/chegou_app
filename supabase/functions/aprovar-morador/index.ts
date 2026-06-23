@@ -126,57 +126,69 @@ function montarHtmlBoasVindas({
   nome,
   nomeCondominio,
   empresaEndereco,
+  loginUrl,
 }: {
   nome: string;
   nomeCondominio: string;
   empresaEndereco: string;
+  loginUrl: string;
 }) {
   return `
-<div style="background:#0b0f17;padding:20px;font-family:Arial,Helvetica,sans-serif;color:#e5e7eb">
-  <div style="max-width:540px;margin:0 auto;background:#0f172a;border-radius:12px;overflow:hidden;border:1px solid #1e293b">
+<div style="background:#f4f7fb;padding:20px;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
+  <div style="max-width:540px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;box-shadow:0 12px 30px rgba(15,23,42,0.08)">
 
-    <div style="background:#0f3f8f;padding:20px;text-align:center">
-      <h1 style="margin:0;color:#fff;font-size:24px">
+    <div style="background:#174ea6;padding:22px;text-align:center">
+      <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800">
         Chegou<span style="color:#ff7900">!</span>
       </h1>
 
-      <p style="margin:5px 0 0;color:#cbd5e1;font-size:13px">
+      <p style="margin:6px 0 0;color:#eaf2ff;font-size:13px">
         Gestão Inteligente de Encomendas
       </p>
     </div>
 
-    <div style="padding:22px">
+    <div style="padding:24px;color:#0f172a;font-size:15px;line-height:1.55">
 
-      <p>Olá <strong>${nome}</strong>,</p>
+      <p style="margin:0 0 14px">
+        Olá <strong>${nome}</strong>,
+      </p>
 
-      <p>
+      <p style="margin:0 0 14px">
         Seu cadastro no condomínio
         <strong>${nomeCondominio}</strong>
         foi aprovado com sucesso.
       </p>
 
-      <p>
-        Agora você já pode acompanhar notificações,
-        entregas e movimentações das suas encomendas
-        diretamente pelo sistema Chegou<span style="color:#ff7900">!</span>
+      <p style="margin:0 0 16px">
+        Agora você já pode acompanhar notificações, entregas e movimentações das suas encomendas diretamente pelo Sistema Chegou<span style="color:#ff7900">!</span>
       </p>
 
-      <div style="background:#111827;border:1px solid #1f2937;border-radius:10px;padding:14px;margin:18px 0">
-        <p style="margin:0;color:#cbd5e1;font-size:13px">
-          Seu acesso já está liberado.
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin:18px 0;color:#334155">
+        <p style="margin:0;font-size:13px">
+          Seu acesso já está liberado. Utilize seu e-mail cadastrado e a senha definida no Wizard para acessar o sistema.
         </p>
       </div>
 
-      <p>
-        Utilize seu e-mail cadastrado para acessar o sistema.
+      <div style="text-align:center;margin:24px 0 18px">
+        <a
+          href="${loginUrl}"
+          style="display:inline-block;background:#ff7900;color:#ffffff;text-decoration:none;padding:14px 24px;border-radius:10px;font-weight:700;font-size:15px"
+        >
+          Acessar o Sistema Chegou!
+        </a>
+      </div>
+
+      <p style="font-size:12px;color:#64748b;margin:0 0 18px">
+        Caso o botão não funcione, copie e cole este endereço no navegador:<br>
+        <span style="color:#174ea6;word-break:break-all">${loginUrl}</span>
       </p>
 
-      <p style="margin-top:20px">
+      <p style="margin:20px 0 0">
         <strong>Equipe Chegou<span style="color:#ff7900">!</span></strong>
       </p>
     </div>
 
-    <div style="background:#020617;padding:16px;text-align:center;font-size:11px;color:#64748b">
+    <div style="background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#64748b;border-top:1px solid #e5e7eb">
       <p style="margin:0">
         Este é um e-mail automático.
       </p>
@@ -261,6 +273,12 @@ serve(async (req) => {
         supabaseUrl,
         serviceRoleKey
       );
+
+    const appUrl =
+      Deno.env.get("CHEGOU_APP_URL") ||
+      "https://chegou-app.vercel.app";
+
+    const loginUrl = `${appUrl.replace(/\/$/, "")}/login`;
 
     const ip = obterIp(req);
 
@@ -379,25 +397,20 @@ serve(async (req) => {
       preCadastro.nome ||
       "Morador";
 
-    const {
-      data: authUsers,
-      error: authListError,
-    } =
-      await supabaseAdmin.auth.admin.listUsers();
+    let authUserId: string | null = null;
 
-    if (authListError) {
-      throw authListError;
+    const { data: usuarioSistemaExistente, error: buscaUsuarioSistemaError } =
+      await supabaseAdmin
+        .from("usuarios")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+
+    if (buscaUsuarioSistemaError) {
+      throw buscaUsuarioSistemaError;
     }
 
-    let usuarioAuth =
-      authUsers.users.find(
-        (item) =>
-          item.email?.toLowerCase() ===
-          email
-      );
-
-    let authUserId =
-      usuarioAuth?.id || null;
+    authUserId = usuarioSistemaExistente?.id || null;
 
     if (!authUserId) {
       const { data: novoAuth, error: createAuthError } =
@@ -529,7 +542,7 @@ serve(async (req) => {
       new Date().toISOString();
 
     if (auditoria?.id) {
-      await supabaseAdmin
+      const { error: updateAuditoriaError } = await supabaseAdmin
         .from("auditorias_morador")
         .update({
           status_auditoria: "APROVADO",
@@ -541,22 +554,38 @@ serve(async (req) => {
           navegador_auditor: navegador,
         })
         .eq("id", auditoria.id);
+
+      if (updateAuditoriaError) {
+        throw updateAuditoriaError;
+      }
     }
 
-    await supabaseAdmin
-      .from("pre_cadastro_moradores")
-      .update({
-        status_cadastro: "ATIVO",
-        status_auditoria: "APROVADO",
-        status_conta: "CONTA_ATIVA",
-        auth_ativo: true,
-        auth_user_id: authUserId,
-        senha_auth_criptografada: null,
-        aprovado_em: agora,
-        aprovado_por: aprovado_por || null,
-        atualizado_em: agora,
-      })
-      .eq("id", preCadastro.id);
+    const { data: preCadastroAtualizado, error: updatePreCadastroError } =
+      await supabaseAdmin
+        .from("pre_cadastro_moradores")
+        .update({
+          status_auditoria: "APROVADO",
+          status_conta: "CONTA_ATIVA",
+          auth_ativo: true,
+          auth_user_id: authUserId,
+          senha_auth_criptografada: null,
+          aprovado_em: agora,
+          aprovado_por: aprovado_por || null,
+          atualizado_em: agora,
+        })
+        .eq("id", preCadastro.id)
+        .select(
+          "id, status_auditoria, status_conta, auth_ativo, auth_user_id"
+        )
+        .maybeSingle();
+
+    if (updatePreCadastroError) {
+      throw updatePreCadastroError;
+    }
+
+    if (!preCadastroAtualizado?.id) {
+      throw new Error("Pré-cadastro não foi atualizado após aprovação.");
+    }
 
     const {
       data: convites,
@@ -580,21 +609,31 @@ serve(async (req) => {
           (item) => item.id
         );
 
-      await supabaseAdmin
-        .from(
-          "convites_morador"
-        )
-        .update({
-          token_utilizado:
-            true,
+      const { error: updateConvitesError } =
+        await supabaseAdmin
+          .from(
+            "convites_morador"
+          )
+          .update({
+            token_utilizado:
+              true,
 
-          token_revogado:
-            true,
+            token_revogado:
+              true,
 
-          status_envio: "FINALIZADO",
-          status_convite: "FINALIZADO",
-        })
-        .in("id", ids);
+            status_envio:
+              "FINALIZADO",
+
+            status_convite:
+              "FINALIZADO",
+          })
+          .in("id", ids);
+
+      if (
+        updateConvitesError
+      ) {
+        throw updateConvitesError;
+      }
     }
 
     const {
@@ -654,13 +693,12 @@ serve(async (req) => {
     if (brevoApiKey) {
       try {
         const htmlContent =
-          montarHtmlBoasVindas(
-            {
-              nome,
-              nomeCondominio,
-              empresaEndereco,
-            }
-          );
+          montarHtmlBoasVindas({
+            nome,
+            nomeCondominio,
+            empresaEndereco,
+            loginUrl,
+          });
 
         const brevoResponse =
           await fetch(
@@ -742,6 +780,27 @@ serve(async (req) => {
             ? error.message
             : "Erro inesperado.";
       }
+    }
+
+    if (emailStatus === "enviado") {
+      await registrarLog({
+        supabaseAdmin,
+        acao: "EMAIL_APROVACAO_MORADOR_ENVIADO",
+        condominio_id: condominioIdFinal,
+        usuario_id: authUserId,
+        email,
+        origem: "brevo",
+        detalhes: {
+          tipo_email: "aprovacao_morador",
+          brevo_message_id: brevoMessageId,
+          remetente_email: remetenteEmail,
+          remetente_nome: remetenteNome,
+          login_url: loginUrl,
+          pre_cadastro_id: preCadastro.id,
+          auditoria_id: auditoria?.id || null,
+          ...contextoRequisicao,
+        },
+      });
     }
 
     await registrarLog({
