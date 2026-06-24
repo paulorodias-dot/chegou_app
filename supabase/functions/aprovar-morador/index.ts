@@ -206,6 +206,312 @@ function montarHtmlBoasVindas({
 `;
 }
 
+function tipoUsuarioUnidade(tipoMorador = "") {
+  const tipo = String(tipoMorador || "").toLowerCase();
+
+  if (tipo.includes("inquilino") || tipo.includes("locatario")) {
+    return "inquilino";
+  }
+
+  if (tipo.includes("dependente")) {
+    return "dependente";
+  }
+
+  return "proprietario";
+}
+
+async function obterOuCriarUnidade({
+  supabaseAdmin,
+  condominioId,
+  businessId,
+  torreNome,
+  unidadeNumero,
+}: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  condominioId: string;
+  businessId?: string | null;
+  torreNome?: string | null;
+  unidadeNumero: string;
+}) {
+  const numero = String(unidadeNumero || "").trim();
+
+  if (!numero) {
+    throw new Error("Número da unidade não informado.");
+  }
+
+  const { data: torre } = await supabaseAdmin
+    .from("torres")
+    .select("id, nome")
+    .eq("condominio_id", condominioId)
+    .eq("nome", torreNome || "")
+    .maybeSingle();
+
+  let unidadeId: string | null = null;
+
+  const { data: unidadeExistente, error: unidadeBuscaError } =
+    await supabaseAdmin
+      .from("unidades")
+      .select("id")
+      .eq("condominio_id", condominioId)
+      .eq("numero", numero)
+      .eq("torre_id", torre?.id || null)
+      .maybeSingle();
+
+  if (unidadeBuscaError) throw unidadeBuscaError;
+
+  if (unidadeExistente?.id) {
+    unidadeId = unidadeExistente.id;
+  } else {
+    const { data: novaUnidade, error: novaUnidadeError } =
+      await supabaseAdmin
+        .from("unidades")
+        .insert({
+          condominio_id: condominioId,
+          business_id: businessId || null,
+          torre_id: torre?.id || null,
+          numero,
+        })
+        .select("id")
+        .single();
+
+    if (novaUnidadeError) throw novaUnidadeError;
+
+    unidadeId = novaUnidade.id;
+  }
+
+  let condominioUnidadeId: string | null = null;
+
+  const { data: condUnidadeExistente, error: condUnidadeBuscaError } =
+    await supabaseAdmin
+      .from("condominio_unidades")
+      .select("id")
+      .eq("condominio_id", condominioId)
+      .eq("torre", torreNome || "")
+      .eq("unidade", numero)
+      .maybeSingle();
+
+  if (condUnidadeBuscaError) throw condUnidadeBuscaError;
+
+  if (condUnidadeExistente?.id) {
+    condominioUnidadeId = condUnidadeExistente.id;
+  } else {
+    const { data: novaCondUnidade, error: novaCondUnidadeError } =
+      await supabaseAdmin
+        .from("condominio_unidades")
+        .insert({
+          condominio_id: condominioId,
+          torre: torreNome || null,
+          bloco: null,
+          unidade: numero,
+          ativo: true,
+        })
+        .select("id")
+        .single();
+
+    if (novaCondUnidadeError) throw novaCondUnidadeError;
+
+    condominioUnidadeId = novaCondUnidade.id;
+  }
+
+  return {
+    unidadeId,
+    condominioUnidadeId,
+  };
+}
+
+async function vincularUsuarioUnidade({
+  supabaseAdmin,
+  usuarioId,
+  unidadeId,
+  tipo,
+}: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  usuarioId: string;
+  unidadeId: string;
+  tipo: string;
+}) {
+  const { data: vinculoExistente, error: buscaVinculoError } =
+    await supabaseAdmin
+      .from("usuario_unidade")
+      .select("id")
+      .eq("usuario_id", usuarioId)
+      .eq("unidade_id", unidadeId)
+      .maybeSingle();
+
+  if (buscaVinculoError) throw buscaVinculoError;
+
+  if (vinculoExistente?.id) return vinculoExistente.id;
+
+  const { data: novoVinculo, error: insertVinculoError } =
+    await supabaseAdmin
+      .from("usuario_unidade")
+      .insert({
+        usuario_id: usuarioId,
+        unidade_id: unidadeId,
+        tipo,
+      })
+      .select("id")
+      .single();
+
+  if (insertVinculoError) throw insertVinculoError;
+
+  return novoVinculo.id;
+}
+
+function extrairVagasPreCadastro(preCadastro: Record<string, unknown>) {
+  const dados = preCadastro.dados_complementares as Record<string, unknown> | null;
+
+  const vagasDiretas = Array.isArray(dados?.vagas)
+    ? dados?.vagas
+    : [];
+
+  const tela5 = dados?.tela5 as Record<string, unknown> | null;
+
+  const vagasTela5 = Array.isArray(tela5?.vagas)
+    ? tela5?.vagas
+    : [];
+
+  return vagasDiretas.length ? vagasDiretas : vagasTela5;
+}
+
+function normalizarSituacaoVaga(situacao = "") {
+  const valor = String(situacao || "").trim().toLowerCase();
+
+  if (!valor || valor === "sem_uso") return "sem_uso";
+  if (valor.includes("uso")) return "em_uso";
+  if (valor.includes("emprest")) return "emprestada";
+  if (valor.includes("alug")) return "alugada";
+
+  return valor;
+}
+
+function normalizarLocalizacaoVaga(vaga: Record<string, unknown>) {
+  return String(
+    vaga.local ||
+      vaga.localizacao ||
+      vaga.localizacao_vaga ||
+      "Não informada"
+  ).trim();
+}
+
+async function migrarVagasUnidade({
+  supabaseAdmin,
+  preCadastro,
+  condominioId,
+  unidadeId,
+  usuarioId,
+}: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  preCadastro: Record<string, unknown>;
+  condominioId: string;
+  unidadeId: string;
+  usuarioId: string;
+}) {
+  const vagas = extrairVagasPreCadastro(preCadastro);
+
+  if (!vagas.length) {
+    return [];
+  }
+
+  const registrosCriados: string[] = [];
+
+  for (const vagaOriginal of vagas) {
+    const vaga = vagaOriginal as Record<string, unknown>;
+
+    const numeroVaga = String(
+      vaga.identificacao ||
+        vaga.numero_vaga ||
+        vaga.identificacao_vaga ||
+        ""
+    ).trim();
+
+    if (!numeroVaga) {
+      continue;
+    }
+
+    const localizacao = normalizarLocalizacaoVaga(vaga);
+    const tipoUso = normalizarSituacaoVaga(String(vaga.situacao || vaga.tipo_uso || ""));
+    const emUso = tipoUso !== "sem_uso";
+
+    const { data: vagaExistente, error: buscaVagaError } =
+      await supabaseAdmin
+        .from("vagas_unidade")
+        .select("id")
+        .eq("condominio_id", condominioId)
+        .eq("unidade_id", unidadeId)
+        .eq("numero_vaga", numeroVaga)
+        .maybeSingle();
+
+    if (buscaVagaError) {
+      throw buscaVagaError;
+    }
+
+    const payloadVaga = {
+      business_id: preCadastro.business_id || null,
+      condominio_id: condominioId,
+      unidade_id: unidadeId,
+      morador_responsavel_id: usuarioId,
+      proprietario_vaga_id: usuarioId,
+
+      numero_vaga: numeroVaga,
+      identificacao_vaga: numeroVaga,
+
+      localizacao,
+      localizacao_vaga: localizacao,
+
+      tipo_vaga: "privativa",
+      tipo_fisico_vaga: "padrao",
+
+      status_vaga: "ATIVA",
+      status: "ATIVA",
+
+      em_uso: emUso,
+      tipo_uso: tipoUso,
+      modo_uso_vaga: tipoUso,
+
+      vaga_pertence_unidade: true,
+      autorizacao_status: "APROVADO",
+      status_conflito: "SEM_CONFLITO",
+
+      observacoes: String(vaga.observacoes || "").trim() || null,
+      atualizado_em: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (vagaExistente?.id) {
+      const { error: updateVagaError } =
+        await supabaseAdmin
+          .from("vagas_unidade")
+          .update(payloadVaga)
+          .eq("id", vagaExistente.id);
+
+      if (updateVagaError) {
+        throw updateVagaError;
+      }
+
+      registrosCriados.push(vagaExistente.id);
+    } else {
+      const { data: novaVaga, error: insertVagaError } =
+        await supabaseAdmin
+          .from("vagas_unidade")
+          .insert({
+            ...payloadVaga,
+            criado_em: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+
+      if (insertVagaError) {
+        throw insertVagaError;
+      }
+
+      registrosCriados.push(novaVaga.id);
+    }
+  }
+
+  return registrosCriados;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", {
@@ -538,6 +844,33 @@ serve(async (req) => {
       }
     }
 
+    const { unidadeId, condominioUnidadeId } = await obterOuCriarUnidade({
+      supabaseAdmin,
+      condominioId: condominioIdFinal,
+      businessId: preCadastro.business_id || null,
+      torreNome: String(preCadastro.torre || ""),
+      unidadeNumero: String(preCadastro.unidade || ""),
+    });
+
+    const tipoVinculoUnidade = tipoUsuarioUnidade(
+      String(preCadastro.tipo_morador || preCadastro.perfil_morador || "")
+    );
+
+    await vincularUsuarioUnidade({
+      supabaseAdmin,
+      usuarioId: authUserId,
+      unidadeId,
+      tipo: tipoVinculoUnidade,
+    });
+
+    const vagasMigradasIds = await migrarVagasUnidade({
+      supabaseAdmin,
+      preCadastro,
+      condominioId: condominioIdFinal,
+      unidadeId,
+      usuarioId: authUserId,
+    });
+
     const agora =
       new Date().toISOString();
 
@@ -545,6 +878,8 @@ serve(async (req) => {
       const { error: updateAuditoriaError } = await supabaseAdmin
         .from("auditorias_morador")
         .update({
+          usuario_id: authUserId,
+          unidade_id: condominioUnidadeId,
           status_auditoria: "APROVADO",
           aprovado_em: agora,
           aprovado_por: aprovado_por || null,
@@ -832,6 +1167,9 @@ serve(async (req) => {
         aprovado_por_nome,
 
         aprovado_por_email,
+
+        vagas_migradas_ids: vagasMigradasIds,
+        vagas_migradas_total: vagasMigradasIds.length,
 
         email_status:
           emailStatus,

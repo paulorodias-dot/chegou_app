@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { contarNotificacoesNaoLidasAdministrativo } from "../services/notificacoesService";
 import {
   Bell,
@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Package,
   Settings,
+  Car,
 } from "lucide-react";
 
 import logo from "../assets/logo.png";
@@ -41,6 +42,42 @@ export default function AppLayout({
   );
 
   const menus = menusByRole[role] || menusByRole.master;
+
+  const menusVisiveis = menus.filter((menu) => menu.visible !== false);
+
+  const nomeExibicaoMorador = useMemo(() => {
+    if (role !== "morador") return null;
+
+    const nomeBase =
+      perfil?.nome ||
+      perfil?.nome_completo ||
+      perfil?.nome_usuario ||
+      "Usuário";
+
+    const partes = nomeBase.trim().split(" ").filter(Boolean);
+
+    if (partes.length <= 1) return partes[0] || "Usuário";
+
+    return `${partes[0]} ${partes[partes.length - 1]}`;
+  }, [role, perfil?.nome, perfil?.nome_completo, perfil?.nome_usuario]);
+
+  const perfilExibicaoMorador = useMemo(() => {
+    if (role !== "morador") return null;
+
+    return (
+      perfil?.tipo_morador ||
+      perfil?.perfil_morador ||
+      perfil?.papel_morador ||
+      perfil?.descricao_perfil ||
+      "Morador Responsável"
+    );
+  }, [
+    role,
+    perfil?.tipo_morador,
+    perfil?.perfil_morador,
+    perfil?.papel_morador,
+    perfil?.descricao_perfil,
+  ]);
 
   useEffect(() => {
     const menuAberto = menus.find((menu) =>
@@ -207,11 +244,22 @@ export default function AppLayout({
           </span>
 
           <div className="profile desktop-only">
-            <span>{getPerfilNome().charAt(0)}</span>
+            <span>
+              {role === "morador"
+                ? nomeExibicaoMorador?.charAt(0) || "U"
+                : getPerfilNome().charAt(0)}
+            </span>
+
             <div>
-              <strong>{getPerfilNome()}</strong>
-              <small>{getPerfilDescricao()}</small>
+              <strong>
+                {role === "morador" ? nomeExibicaoMorador : getPerfilNome()}
+              </strong>
+
+              <small>
+                {role === "morador" ? perfilExibicaoMorador : getPerfilDescricao()}
+              </small>
             </div>
+
             <ChevronDown size={15} />
           </div>
 
@@ -235,7 +283,7 @@ export default function AppLayout({
         <p className="sidebar-title">MENU PRINCIPAL</p>
 
         <nav className="sidebar-menu">
-          {menus.map((menu) => {
+          {menusVisiveis.map((menu) => {
             const Icon = menu.icon;
             const isOpen = openMenu === menu.id;
             const hasChildren = menu.children?.length > 0;
@@ -267,7 +315,9 @@ export default function AppLayout({
 
                 {hasChildren && isOpen && !sidebarCollapsed && (
                   <div className="sidebar-submenu">
-                    {menu.children.map((child) => {
+                    {menu.children
+                      .filter((child) => child.visible !== false)
+                      .map((child) => {
                       const ChildIcon = child.icon;
 
                       return (
@@ -376,6 +426,77 @@ export default function AppLayout({
       </button>
     </nav>
   )}
+
+    {role === "morador" && (
+      <nav className="mobile-bottom-nav">
+        <button
+          type="button"
+          className={
+            activePage === "morador-dashboard"
+              ? "mobile-nav-item active"
+              : "mobile-nav-item"
+          }
+          onClick={() => navegarMobile("morador-dashboard")}
+        >
+          <Home size={20} />
+          <span>Início</span>
+        </button>
+
+        <button
+          type="button"
+          className={
+            activePage === "morador-encomendas-retiradas"
+              ? "mobile-nav-item active"
+              : "mobile-nav-item"
+          }
+          onClick={() => navegarMobile("morador-encomendas-retiradas")}
+        >
+          <Package size={20} />
+          <span>Encomendas</span>
+        </button>
+
+        <button
+          type="button"
+          className={
+            activePage === "morador-garagem-emprestimo"
+              ? "mobile-nav-item active"
+              : "mobile-nav-item"
+          }
+          onClick={() => navegarMobile("morador-garagem-emprestimo")}
+        >
+          <Car size={20} />
+          <span>Garagem</span>
+        </button>
+
+        <button
+          type="button"
+          className={
+            activePage === "morador-notificacoes"
+              ? "mobile-nav-item active"
+              : "mobile-nav-item"
+          }
+          onClick={() => navegarMobile("morador-notificacoes")}
+        >
+          <Bell size={20} />
+          <span>Alertas</span>
+        </button>
+
+        <button
+          type="button"
+          className={
+            activePage === "morador-configuracoes"
+              ? "mobile-nav-item active"
+              : "mobile-nav-item"
+          }
+          onClick={() => navegarMobile("morador-configuracoes")}
+        >
+          <Settings size={20} />
+          <span>Config</span>
+        </button>
+      </nav>
+    )}
+
+
 </>
 
     <NotificationCenter

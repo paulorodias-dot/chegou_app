@@ -12,6 +12,10 @@ import {
   Mail,
   Clock,
   Package,
+  Car,
+  User,
+  HelpCircle,
+  Info,
 } from "lucide-react";
 
 export const menusByRole = {
@@ -131,4 +135,100 @@ export const menusByRole = {
     },
   ],
 
+    morador: [
+    {
+      id: "morador-dashboard",
+      label: "Início",
+      icon: Home,
+      visible: true,
+    },
+    {
+      id: "morador-encomendas",
+      label: "Encomendas",
+      icon: Package,
+      visible: false,
+      children: [
+        {
+          id: "morador-encomendas-retiradas",
+          label: "Retiradas",
+          icon: Package,
+          visible: false,
+        },
+        {
+          id: "morador-encomendas-rastreio",
+          label: "Rastreio",
+          icon: Package,
+          visible: false,
+        },
+        {
+          id: "morador-encomendas-diretas-grande-porte",
+          label: "Diretas e Grande Porte",
+          icon: Package,
+          visible: false,
+        },
+        {
+          id: "morador-encomendas-pendentes",
+          label: "Pendentes",
+          icon: Package,
+          visible: false,
+        },
+        {
+          id: "morador-encomendas-recebidas",
+          label: "Recebidas",
+          icon: Package,
+          visible: false,
+        },
+      ],
+    },
+    {
+      id: "morador-vagas-garagem",
+      label: "Vagas de Garagem",
+      icon: Car,
+      visible: false,
+      children: [
+        {
+          id: "morador-garagem-perfil-vaga",
+          label: "Perfil Vaga",
+          icon: Car,
+          visible: false,
+        },
+        {
+          id: "morador-garagem-emprestimo",
+          label: "Empréstimo",
+          icon: Car,
+          visible: false,
+        },
+      ],
+    },
+    {
+      id: "morador-perfil",
+      label: "Perfil",
+      icon: User,
+      visible: false,
+    },
+    {
+      id: "morador-notificacoes",
+      label: "Notificações",
+      icon: Bell,
+      visible: false,
+    },
+    {
+      id: "morador-configuracoes",
+      label: "Configurações",
+      icon: Settings,
+      visible: false,
+    },
+    {
+      id: "morador-manual-ajuda",
+      label: "Manual e Ajuda",
+      icon: HelpCircle,
+      visible: false,
+    },
+    {
+      id: "morador-sobre",
+      label: "Sobre",
+      icon: Info,
+      visible: false,
+    },
+  ],
 };

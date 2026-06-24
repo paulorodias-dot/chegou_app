@@ -29,6 +29,8 @@ import AuditoriaMoradoresPreCadastro from "./pages/auditoria/AuditoriaMoradoresP
 import AuditoriaMoradoresAuditoria from "./pages/auditoria/AuditoriaMoradoresAuditoria";
 import AuditoriaMoradoresHistorico from "./pages/auditoria/AuditoriaMoradoresHistorico";
 
+import MoradorDashboard from "./pages/morador/MoradorDashboard";
+
 import PaginaPreparando from "./pages/PaginaPreparando";
 import WizardCondominio from "./pages/wizardCondominio";
 
@@ -280,6 +282,10 @@ function App() {
   }
 
   function renderizarPaginaMorador() {
+    if (paginaAtual === "morador-dashboard") {
+      return <MoradorDashboard perfil={perfil} usuario={perfil} />;
+    }
+
     return <PaginaPreparando titulo="Módulo Morador" />;
   }
 
