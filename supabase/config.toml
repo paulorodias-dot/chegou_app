@@ -576,3 +576,14 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/wizard-morador-status/deno.json"
 entrypoint = "./functions/wizard-morador-status/index.ts"
+
+[functions.reenviar-acesso-responsavel]
+enabled = true
+verify_jwt = false
+import_map = "./functions/reenviar-acesso-responsavel/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/reenviar-acesso-responsavel/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/reenviar-acesso-responsavel/*.html" ]

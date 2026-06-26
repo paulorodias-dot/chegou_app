@@ -872,3 +872,48 @@
   color: #64748b;
   margin-top: 10px;
 }
+
+.auditoria-email-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.auditoria-email-row p {
+  margin: 0;
+}
+
+.btn-reenviar-inline {
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: #0648d8;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0 2px;
+  white-space: nowrap;
+}
+
+.btn-reenviar-inline:hover {
+  color: #ff7900;
+  text-decoration: underline;
+}
+
+.btn-reenviar-inline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+@media (max-width: 520px) {
+  .auditoria-email-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}

@@ -463,6 +463,42 @@ async function confirmarAcao() {
     console.log("Preparar reenvio de convite de correção para:", item);
   }
 
+  async function reenviarAcessoResponsavel(item) {
+    const responsavel = responsavelPrincipal(item);
+
+    if (!responsavel?.email) {
+      toast.error("Responsável logístico sem e-mail cadastrado.");
+      return;
+    }
+
+    try {
+      setProcessando(true);
+
+      const { data, error } = await supabase.functions.invoke(
+        "reenviar-acesso-responsavel",
+        {
+          body: {
+            condominio_id: item.id,
+            solicitado_por_usuario_id: perfil?.id || null,
+            solicitado_por_nome: perfil?.nome || "Master",
+            solicitado_por_email: perfil?.email || null,
+            site_url: window.location.origin,
+          },
+        }
+      );
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success("E-mail de primeiro acesso reenviado ao responsável.");
+    } catch (error) {
+      console.error("Erro ao reenviar acesso:", error);
+      toast.error(error.message || "Não foi possível reenviar o e-mail.");
+    } finally {
+      setProcessando(false);
+    }
+  }
+
   return (
     <div className="auditoria-page">
       <div className="auditoria-shell">
@@ -874,7 +910,27 @@ async function confirmarAcao() {
             <p><strong>Tipo:</strong> {tipoLabel[modalDetalhes.tipo_condominio] || "-"}</p>
             <p><strong>Status:</strong> {statusLabel[modalDetalhes.status_cadastro]}</p>
             <p><strong>Responsável:</strong> {responsavelPrincipal(modalDetalhes)?.nome || "-"}</p>
-            <p><strong>E-mail:</strong> {responsavelPrincipal(modalDetalhes)?.email || modalDetalhes.email_condominio || "-"}</p>
+            <div className="auditoria-email-row">
+              <p>
+                <strong>E-mail:</strong>{" "}
+                {responsavelPrincipal(modalDetalhes)?.email ||
+                  modalDetalhes.email_condominio ||
+                  "-"}
+              </p>
+
+              {modalDetalhes.status_cadastro === "ativo" && (
+                <button
+                  type="button"
+                  className="btn-reenviar-inline"
+                  title="Reenviar e-mail de primeiro acesso"
+                  onClick={() => reenviarAcessoResponsavel(modalDetalhes)}
+                  disabled={processando}
+                >
+                  <RefreshCcw size={14} />
+                  Reenviar
+                </button>
+              )}
+            </div>
             <p><strong>Aceite:</strong> {aceitePrincipal(modalDetalhes)?.aceito_em ? formatarData(aceitePrincipal(modalDetalhes)?.aceito_em) : "Não registrado"}</p>
             <p><strong>Motivo correção:</strong> {modalDetalhes.motivo_rejeicao || "-"}</p>
           </div>
