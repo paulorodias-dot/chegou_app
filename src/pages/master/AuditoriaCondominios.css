@@ -917,3 +917,77 @@
     gap: 4px;
   }
 }
+
+.auditoria-reenvio-box {
+  display: grid;
+  gap: 10px;
+}
+
+.reenvio-email-option {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.reenvio-email-option:hover {
+  border-color: #bfd0ee;
+  background: #f8fafc;
+}
+
+.reenvio-email-option.active {
+  border-color: #0648d8;
+  background: #eff6ff;
+}
+
+.reenvio-email-option.empty {
+  opacity: 0.72;
+}
+
+.reenvio-radio {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #cbd5e1;
+  border-radius: 999px;
+  margin-top: 2px;
+}
+
+.reenvio-email-option.active .reenvio-radio {
+  border-color: #0648d8;
+  background: radial-gradient(circle, #0648d8 42%, transparent 46%);
+}
+
+.reenvio-email-option strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.reenvio-email-option p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.reenvio-email-option.empty p {
+  color: #b45309;
+}
+
+.reenvio-email-alert {
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #c2410c;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+}

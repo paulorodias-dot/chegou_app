@@ -14,7 +14,19 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
   });
 }
 
-function montarHtml({ nome, nomeCondominio, codigoCondominio, linkAcesso, empresaEndereco }: any) {
+function montarHtml({
+  nome,
+  nomeCondominio,
+  codigoCondominio,
+  linkAcesso,
+  empresaEndereco,
+}: {
+  nome: string;
+  nomeCondominio: string;
+  codigoCondominio: string;
+  linkAcesso: string;
+  empresaEndereco: string;
+}) {
   return `
 <div style="background:#f4f7fb;padding:20px;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
   <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
@@ -29,7 +41,7 @@ function montarHtml({ nome, nomeCondominio, codigoCondominio, linkAcesso, empres
       <p>Recebemos uma solicitação para reenviar o link de criação de senha do condomínio <strong>${nomeCondominio}</strong>.</p>
 
       <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin:18px 0">
-        <p style="margin:0 0 6px"><strong>Código do Condomínio:</strong> ${codigoCondominio}</p>
+        <p style="margin:0"><strong>Código do Condomínio:</strong> ${codigoCondominio}</p>
       </div>
 
       <p>Por segurança, este link é individual e deve ser usado apenas pelo responsável autorizado.</p>
@@ -56,7 +68,9 @@ function montarHtml({ nome, nomeCondominio, codigoCondominio, linkAcesso, empres
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
 
   try {
     if (req.method !== "POST") {
@@ -64,8 +78,12 @@ serve(async (req) => {
     }
 
     const body = await req.json();
+
     const {
       condominio_id,
+      email_destino,
+      nome_destino,
+      tipo_email_destino,
       solicitado_por_usuario_id = null,
       solicitado_por_nome = null,
       solicitado_por_email = null,
@@ -94,6 +112,7 @@ serve(async (req) => {
         nome_fantasia,
         status_cadastro,
         ativo,
+        email_condominio,
         responsavel_logistica (
           nome,
           email,
@@ -110,21 +129,45 @@ serve(async (req) => {
     }
 
     if (condominio.status_cadastro !== "ativo" || !condominio.ativo) {
-      return jsonResponse({ error: "Reenvio permitido apenas para condomínio ativo/aprovado." }, 409);
+      return jsonResponse(
+        { error: "Reenvio permitido apenas para condomínio ativo/aprovado." },
+        409
+      );
     }
 
     const responsavel = condominio.responsavel_logistica?.[0];
 
     if (!responsavel?.email) {
-      return jsonResponse({ error: "Responsável logístico sem e-mail cadastrado." }, 400);
+      return jsonResponse({
+        error: "Responsável logístico sem e-mail cadastrado para gerar o link de acesso.",
+      }, 400);
     }
 
-    const email = String(responsavel.email).trim().toLowerCase();
-    const nome = responsavel.nome || "Responsável do Condomínio";
-    const nomeCondominio = condominio.nome_fantasia || condominio.razao_social || "Condomínio";
-    const codigoCondominio = condominio.codigo_condominio || "Não informado";
+    const emailAuth = String(responsavel.email).trim().toLowerCase();
 
-    const origemPermitida = typeof site_url === "string" ? site_url.replace(/\/$/, "") : null;
+    const emailDestinoFinal = String(email_destino || emailAuth)
+      .trim()
+      .toLowerCase();
+
+    const nomeDestinoFinal =
+      nome_destino ||
+      responsavel.nome ||
+      condominio.nome_fantasia ||
+      condominio.razao_social ||
+      "Responsável do Condomínio";
+
+    if (!emailDestinoFinal) {
+      return jsonResponse({ error: "E-mail de destino não informado." }, 400);
+    }
+
+    const nomeCondominio =
+      condominio.nome_fantasia || condominio.razao_social || "Condomínio";
+
+    const codigoCondominio =
+      condominio.codigo_condominio || "Não informado";
+
+    const origem = typeof site_url === "string" ? site_url.replace(/\/$/, "") : null;
+
     const origensPermitidas = [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
@@ -132,14 +175,14 @@ serve(async (req) => {
     ];
 
     const siteUrlFinal =
-      origemPermitida && origensPermitidas.includes(origemPermitida)
-        ? origemPermitida
+      origem && origensPermitidas.includes(origem)
+        ? origem
         : (Deno.env.get("SITE_URL") || "https://chegou-app.vercel.app").replace(/\/$/, "");
 
     const { data: linkData, error: linkError } =
       await supabaseAdmin.auth.admin.generateLink({
         type: "recovery",
-        email,
+        email: emailAuth,
         options: {
           redirectTo: `${siteUrlFinal}/criar-senha-responsavel`,
         },
@@ -154,8 +197,10 @@ serve(async (req) => {
     }
 
     const brevoApiKey = Deno.env.get("BREVO_API_KEY");
-    const remetenteEmail = Deno.env.get("BREVO_SENDER_EMAIL") || "sistemachegou@gmail.com";
-    const remetenteNome = Deno.env.get("BREVO_SENDER_NAME") || "Chegou! Sistema";
+    const remetenteEmail =
+      Deno.env.get("BREVO_SENDER_EMAIL") || "sistemachegou@gmail.com";
+    const remetenteNome =
+      Deno.env.get("BREVO_SENDER_NAME") || "Chegou! Sistema";
     const empresaEndereco =
       Deno.env.get("EMPRESA_ENDERECO") ||
       "[Endereço físico da empresa — definir no módulo institucional]";
@@ -165,8 +210,9 @@ serve(async (req) => {
     }
 
     const assunto = "Reenvio do link de criação de senha — Chegou!";
+
     const htmlContent = montarHtml({
-      nome,
+      nome: nomeDestinoFinal,
       nomeCondominio,
       codigoCondominio,
       linkAcesso,
@@ -182,7 +228,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         sender: { name: remetenteNome, email: remetenteEmail },
-        to: [{ email, name: nome }],
+        to: [{ email: emailDestinoFinal, name: nomeDestinoFinal }],
         subject: assunto,
         htmlContent,
       }),
@@ -192,7 +238,10 @@ serve(async (req) => {
 
     if (!brevoResponse.ok) {
       return jsonResponse({
-        error: brevoResult?.message || brevoResult?.error || "Erro no envio Brevo.",
+        error:
+          brevoResult?.message ||
+          brevoResult?.error ||
+          "Erro no envio Brevo.",
         resposta_brevo: brevoResult,
       }, 500);
     }
@@ -201,11 +250,15 @@ serve(async (req) => {
       acao: "REENVIO_ACESSO_RESPONSAVEL",
       condominio_id: condominio.id,
       usuario_id: solicitado_por_usuario_id,
-      email,
+      email: emailDestinoFinal,
       origem: "master",
       detalhes: {
         nome_condominio: nomeCondominio,
         codigo_condominio: codigoCondominio,
+        email_auth: emailAuth,
+        email_destino: emailDestinoFinal,
+        nome_destino: nomeDestinoFinal,
+        tipo_email_destino: tipo_email_destino || "responsavel",
         solicitado_por_nome,
         solicitado_por_email,
         brevo_message_id: brevoResult?.messageId || null,
@@ -217,7 +270,9 @@ serve(async (req) => {
       success: true,
       message: "E-mail de primeiro acesso reenviado com sucesso.",
       condominio_id: condominio.id,
-      email,
+      email_auth: emailAuth,
+      email_destino: emailDestinoFinal,
+      tipo_email_destino: tipo_email_destino || "responsavel",
       brevo_message_id: brevoResult?.messageId || null,
     });
   } catch (error) {

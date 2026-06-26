@@ -49,8 +49,15 @@ export default function AuditoriaCondominios({ perfil }) {
   const [dataFim, setDataFim] = useState("");
   const [pagina, setPagina] = useState(1);
   const [modalDetalhes, setModalDetalhes] = useState(null);
+
   const [modalRejeicao, setModalRejeicao] = useState(null);
   const [motivoRejeicao, setMotivoRejeicao] = useState("");
+
+  const [modalConfirmarReenvio, setModalConfirmarReenvio] = useState(null);
+  const [emailReenvioSelecionado, setEmailReenvioSelecionado] = useState("responsavel");
+  const [reenviandoAcessoId, setReenviandoAcessoId] = useState(null);
+  const [reenviadoAcessoId, setReenviadoAcessoId] = useState(null);
+
   const [processando, setProcessando] = useState(false);
   const [modalPreviewEmail, setModalPreviewEmail] = useState(null);
   const [emailAssunto, setEmailAssunto] = useState("");
@@ -463,22 +470,50 @@ async function confirmarAcao() {
     console.log("Preparar reenvio de convite de correção para:", item);
   }
 
-  async function reenviarAcessoResponsavel(item) {
+  function opcoesEmailReenvio(item) {
     const responsavel = responsavelPrincipal(item);
 
-    if (!responsavel?.email) {
-      toast.error("Responsável logístico sem e-mail cadastrado.");
+    return {
+      responsavel: {
+        label: "Responsável logístico",
+        nome: responsavel?.nome || "Responsável do Condomínio",
+        email: responsavel?.email || "",
+      },
+      condominio: {
+        label: "E-mail do condomínio",
+        nome: item.nome_fantasia || item.razao_social || "Condomínio",
+        email: item.email_condominio || "",
+      },
+    };
+  }
+
+  function emailEscolhidoReenvio(item) {
+    if (!item) return null;
+
+    const opcoes = opcoesEmailReenvio(item);
+    return opcoes[emailReenvioSelecionado] || opcoes.responsavel;
+  }
+
+  async function reenviarAcessoResponsavel(item) {
+    const escolhido = emailEscolhidoReenvio(item);
+
+    if (!escolhido?.email) {
+      toast.error("E-mail selecionado não cadastrado.");
       return;
     }
 
     try {
       setProcessando(true);
+      setReenviandoAcessoId(item.id);
 
       const { data, error } = await supabase.functions.invoke(
         "reenviar-acesso-responsavel",
         {
           body: {
             condominio_id: item.id,
+            email_destino: escolhido.email,
+            nome_destino: escolhido.nome,
+            tipo_email_destino: emailReenvioSelecionado,
             solicitado_por_usuario_id: perfil?.id || null,
             solicitado_por_nome: perfil?.nome || "Master",
             solicitado_por_email: perfil?.email || null,
@@ -490,12 +525,19 @@ async function confirmarAcao() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      toast.success("E-mail de primeiro acesso reenviado ao responsável.");
+      setReenviadoAcessoId(item.id);
+      toast.success("E-mail de primeiro acesso reenviado.");
+
+      setTimeout(() => {
+        setReenviadoAcessoId(null);
+      }, 2500);
     } catch (error) {
       console.error("Erro ao reenviar acesso:", error);
       toast.error(error.message || "Não foi possível reenviar o e-mail.");
     } finally {
       setProcessando(false);
+      setReenviandoAcessoId(null);
+      setModalConfirmarReenvio(null);
     }
   }
 
@@ -923,11 +965,18 @@ async function confirmarAcao() {
                   type="button"
                   className="btn-reenviar-inline"
                   title="Reenviar e-mail de primeiro acesso"
-                  onClick={() => reenviarAcessoResponsavel(modalDetalhes)}
-                  disabled={processando}
+                  onClick={() => {
+                    setEmailReenvioSelecionado("responsavel");
+                    setModalConfirmarReenvio(modalDetalhes);
+                  }}
+                  disabled={processando || reenviandoAcessoId === modalDetalhes.id}
                 >
                   <RefreshCcw size={14} />
-                  Reenviar
+                  {reenviandoAcessoId === modalDetalhes.id
+                    ? "Enviando..."
+                    : reenviadoAcessoId === modalDetalhes.id
+                    ? "Enviado"
+                    : "Reenviar acesso"}
                 </button>
               )}
             </div>
@@ -935,6 +984,56 @@ async function confirmarAcao() {
             <p><strong>Motivo correção:</strong> {modalDetalhes.motivo_rejeicao || "-"}</p>
           </div>
         )}
+      </ModalChegou>
+
+      <ModalChegou
+        open={Boolean(modalConfirmarReenvio)}
+        type="warning"
+        title="Reenviar e-mail de primeiro acesso?"
+        description="Escolha para qual e-mail o novo link de criação de senha será enviado."
+        confirmText="Reenviar acesso"
+        cancelText="Cancelar"
+        loading={processando}
+        onCancel={() => setModalConfirmarReenvio(null)}
+        onConfirm={() => reenviarAcessoResponsavel(modalConfirmarReenvio)}
+      >
+        {modalConfirmarReenvio && (() => {
+          const opcoes = opcoesEmailReenvio(modalConfirmarReenvio);
+          const escolhido = emailEscolhidoReenvio(modalConfirmarReenvio);
+          const emailValido = Boolean(escolhido?.email);
+
+          return (
+            <div className="auditoria-reenvio-box">
+              {Object.entries(opcoes).map(([key, opcao]) => {
+                const semEmail = !opcao.email;
+
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`reenvio-email-option ${
+                      emailReenvioSelecionado === key ? "active" : ""
+                    } ${semEmail ? "empty" : ""}`}
+                    onClick={() => setEmailReenvioSelecionado(key)}
+                  >
+                    <span className="reenvio-radio" />
+
+                    <div>
+                      <strong>{opcao.label}</strong>
+                      <p>{opcao.email || "Email não cadastrado."}</p>
+                    </div>
+                  </button>
+                );
+              })}
+
+              {!emailValido && (
+                <div className="reenvio-email-alert">
+                  Selecione uma opção com e-mail cadastrado para reenviar o acesso.
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </ModalChegou>
 
       <ModalChegou
