@@ -10,9 +10,13 @@ import {
   XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { Info, Lightbulb, Lock } from "lucide-react";
 
 import { supabase } from "../../services/supabase";
-import { atualizarPreCadastroMorador } from "../../services/cadastroMoradorService";
+import {
+  atualizarPreCadastroMorador,
+  criarPreCadastroMoradorIndividual,
+} from "../../services/cadastroMoradorService";
 
 import {
   listarDivergenciasMoradores,
@@ -116,6 +120,111 @@ function obterCadastroAtual(divergencia = {}) {
   return divergencia.registro_existente || {};
 }
 
+function normalizarComparacao(valor = "") {
+  return String(valor || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function somenteNumerosDivergencia(valor = "") {
+  return String(valor || "").replace(/\D/g, "");
+}
+
+function telefoneLocalDivergencia(valor = "") {
+  let n = somenteNumerosDivergencia(valor);
+
+  if (n.startsWith("55")) n = n.slice(2);
+  return n;
+}
+
+function formatarTelefoneInput(valor = "") {
+  const n = telefoneLocalDivergencia(valor);
+
+  if (n.length <= 2) return n;
+  if (n.length <= 7) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
+
+  return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7, 11)}`;
+}
+
+function montarTelefoneBrasil(valor = "") {
+  const n = telefoneLocalDivergencia(valor);
+  if (!n) return "";
+  return `+55${n}`;
+}
+
+function obterTorrePorCodigoOuNome(torres = [], valor = "") {
+  const alvo = normalizarComparacao(valor);
+
+  return (
+    torres.find(
+      (torre) =>
+        normalizarComparacao(torre.identificador) === alvo ||
+        normalizarComparacao(torre.nome) === alvo
+    ) || null
+  );
+}
+
+function emailValido(valor = "") {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(valor || "").trim());
+}
+
+function telefoneValido(valor = "") {
+  const n = somenteNumerosDivergencia(valor);
+  return n.length >= 10;
+}
+
+function reavaliarDivergenciaAposEdicao(divergencia, preCadastroAtualizado) {
+  const motivo = String(divergencia?.motivo || "").toUpperCase();
+
+  const nomeAtual = normalizarComparacao(preCadastroAtualizado?.nome);
+  const nomeImportado = normalizarComparacao(divergencia?.nome_informado);
+
+  const torreAtual = normalizarComparacao(preCadastroAtualizado?.torre);
+  const torreImportada = normalizarComparacao(divergencia?.torre_informada);
+
+  const unidadeAtual = normalizarComparacao(preCadastroAtualizado?.unidade);
+  const unidadeImportada = normalizarComparacao(divergencia?.unidade_informada);
+
+  const emailAtual = String(preCadastroAtualizado?.email || "").trim();
+  const telefoneAtual = String(preCadastroAtualizado?.telefone || "").trim();
+
+  if (motivo === "EMAIL_INVALIDO") {
+    return emailValido(emailAtual);
+  }
+
+  if (motivo === "WHATSAPP_INVALIDO" || motivo === "TELEFONE_NAO_IDENTIFICADO") {
+    return telefoneValido(telefoneAtual);
+  }
+
+  if (motivo === "EMAIL_NAO_IDENTIFICADO") {
+    return emailValido(emailAtual);
+  }
+
+  if (motivo === "NOME_OBRIGATORIO") {
+    return Boolean(nomeAtual);
+  }
+
+  if (motivo === "UNIDADE_OBRIGATORIA" || motivo === "UNIDADE_NAO_ENCONTRADA") {
+    return Boolean(unidadeAtual);
+  }
+
+  if (motivo === "TORRE_NAO_ENCONTRADA") {
+    return Boolean(torreAtual);
+  }
+
+  if (motivo === "UNIDADE_COM_NOME_DIFERENTE") {
+    return (
+      nomeAtual === nomeImportado &&
+      unidadeAtual === unidadeImportada &&
+      (!torreImportada || torreAtual === torreImportada)
+    );
+  }
+
+  return false;
+}
+
 export default function ImportacaoMoradoresDivergencias({ perfil }) {
   const [loading, setLoading] = useState(true);
   const [processando, setProcessando] = useState(false);
@@ -137,6 +246,17 @@ export default function ImportacaoMoradoresDivergencias({ perfil }) {
   const [painelRevisaoAberto, setPainelRevisaoAberto] = useState(false);
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
   const [moradorEdicao, setMoradorEdicao] = useState(null);
+
+  const [modalCorrigirLinhaAberto, setModalCorrigirLinhaAberto] = useState(false);
+  const [dadosLinhaCorrigida, setDadosLinhaCorrigida] = useState({
+    nome: "",
+    email: "",
+    telefone: "",
+    torre: "",
+    nome_torre: "",
+    unidade: "",
+  });
+
   const [condominio, setCondominio] = useState(null);
   const [torres, setTorres] = useState([]);
   const [preCadastros, setPreCadastros] = useState([]);
@@ -319,6 +439,40 @@ export default function ImportacaoMoradoresDivergencias({ perfil }) {
     setPainelRevisaoAberto(false);
   }
 
+  function abrirCorrecaoLinhaImportada(item) {
+    const torreEncontrada = obterTorrePorCodigoOuNome(
+      torres,
+      item.torre_informada
+    );
+
+    setDivergenciaSelecionada(item);
+
+    setDadosLinhaCorrigida({
+      nome: item.nome_informado || "",
+      email: item.email_informado || "",
+      telefone: telefoneLocalDivergencia(item.telefone_informado || ""),
+      torre: item.torre_informada || "",
+      nome_torre: torreEncontrada?.nome || "",
+      unidade: item.unidade_informada || "",
+    });
+
+    setModalDetalhes(false);
+    setPainelRevisaoAberto(false);
+    setModalCorrigirLinhaAberto(true);
+  }
+
+  function fecharCorrecaoLinhaImportada() {
+    if (processando) return;
+    setModalCorrigirLinhaAberto(false);
+    setDadosLinhaCorrigida({
+      nome: "",
+      email: "",
+      telefone: "",
+      torre: "",
+      unidade: "",
+    });
+  }
+
   function abrirEdicaoPorDivergencia() {
     const registroAtual = obterCadastroAtual(divergenciaSelecionada);
 
@@ -340,12 +494,110 @@ export default function ImportacaoMoradoresDivergencias({ perfil }) {
     };
 
     setMoradorEdicao(moradorFormatado);
+
+    setModalDetalhes(false);
+    setPainelRevisaoAberto(false);
+
     setModalEditarAberto(true);
   }
 
   function fecharModalEditar() {
     setModalEditarAberto(false);
     setMoradorEdicao(null);
+  }
+
+  async function salvarCorrecaoLinhaImportada() {
+    if (!divergenciaSelecionada) return;
+
+    const nome = String(dadosLinhaCorrigida.nome || "").trim();
+    const email = String(dadosLinhaCorrigida.email || "").trim().toLowerCase();
+    const telefone = montarTelefoneBrasil(dadosLinhaCorrigida.telefone);
+    const torre = String(dadosLinhaCorrigida.torre || "").trim();
+    const unidade = String(dadosLinhaCorrigida.unidade || "").trim();
+
+    if (!nome) {
+      toast.error("Informe o nome do morador.");
+      return;
+    }
+
+    if (!emailValido(email)) {
+      toast.error("Informe um e-mail válido.");
+      return;
+    }
+
+    if (!telefoneValido(telefone)) {
+      toast.error("Informe um WhatsApp válido.");
+      return;
+    }
+
+    if (!torre) {
+      toast.error("Informe a torre/bloco.");
+      return;
+    }
+
+    if (!unidade) {
+      toast.error("Informe a unidade.");
+      return;
+    }
+
+    try {
+      setProcessando(true);
+
+      const torreEncontrada = torres.find(
+        (item) =>
+          normalizarComparacao(item.nome) === normalizarComparacao(torre) ||
+          normalizarComparacao(item.identificador) === normalizarComparacao(torre)
+      );
+
+      await criarPreCadastroMoradorIndividual({
+        perfil,
+        condominio,
+        dados: {
+          nome,
+          email,
+          telefone,
+          torre: torreEncontrada?.nome || torre,
+          bloco: torreEncontrada?.identificador || null,
+          unidade,
+          tipo_morador: "morador",
+          origem_cadastro: "importacao_divergencia_corrigida",
+          status_cadastro: "RASCUNHO",
+          status_convite: "NAO_ENVIADO",
+          status_auditoria: "NAO_ENVIADO",
+          percentual_preenchimento: 10,
+          possui_divergencia: false,
+          observacoes: `Criado após correção da divergência ${divergenciaSelecionada.id}.`,
+          dados_importados: {
+            divergencia_id: divergenciaSelecionada.id,
+            lote_id: divergenciaSelecionada.lote_id,
+            arquivo_nome: divergenciaSelecionada.arquivo_nome || null,
+            linha_planilha: divergenciaSelecionada.linha_planilha || null,
+            motivo_original: divergenciaSelecionada.motivo,
+            origem: "correcao_divergencia_importacao",
+          },
+        },
+      });
+
+      await resolverDivergenciaMorador({
+        divergencia: divergenciaSelecionada,
+        perfil,
+        observacao:
+          "Divergência resolvida após correção da linha importada e criação do pré-cadastro.",
+      });
+
+      toast.success("Linha corrigida, pré-cadastro criado e divergência resolvida.");
+
+      fecharCorrecaoLinhaImportada();
+      setDivergenciaSelecionada(null);
+
+      await carregarDadosAuxiliares();
+      await carregarDivergencias();
+    } catch (error) {
+      console.error("Erro ao corrigir linha importada:", error);
+      toast.error(error.message || "Não foi possível corrigir a divergência.");
+    } finally {
+      setProcessando(false);
+    }
   }
 
   async function confirmarAcao() {
@@ -411,7 +663,7 @@ export default function ImportacaoMoradoresDivergencias({ perfil }) {
   }[tipoAcao];
 
   async function salvarEdicaoMorador(payload) {
-    await atualizarPreCadastroMorador({
+    const preCadastroAtualizado = await atualizarPreCadastroMorador({
       perfil,
       condominio,
       preCadastroId: payload.id,
@@ -420,11 +672,28 @@ export default function ImportacaoMoradoresDivergencias({ perfil }) {
       metadadosEdicao: payload.metadados_edicao,
     });
 
+    const divergenciaResolvida = reavaliarDivergenciaAposEdicao(
+      divergenciaSelecionada,
+      preCadastroAtualizado
+    );
+
+    if (divergenciaResolvida) {
+      await resolverDivergenciaMorador({
+        divergencia: divergenciaSelecionada,
+        perfil,
+        observacao:
+          "Divergência resolvida automaticamente após ajuste do pré-cadastro.",
+      });
+
+      toast.success("Pré-cadastro ajustado e divergência resolvida.");
+    } else {
+      toast.error("Pré-cadastro ajustado, mas a divergência ainda permanece pendente.");
+    }
+
     fecharModalEditar();
 
-    toast.success(
-      "Pré-cadastro ajustado. Revise a divergência antes de marcar como resolvida."
-    );
+    setDivergenciaSelecionada(null);
+    setPainelRevisaoAberto(false);
 
     await carregarDadosAuxiliares();
     await carregarDivergencias();
@@ -662,6 +931,40 @@ export default function ImportacaoMoradoresDivergencias({ perfil }) {
 
                             {item.status_divergencia === "pendente" ? (
                               <>
+
+                                <button
+                                  type="button"
+                                  title="Revisar e ajustar"
+                                  onClick={() => {
+                                    setDivergenciaSelecionada(item);
+                                    setPainelRevisaoAberto(false);
+                                    setModalDetalhes(false);
+
+                                    const registroAtual = obterCadastroAtual(item);
+
+                                    if (!registroAtual?.id) {
+                                      abrirCorrecaoLinhaImportada(item);
+                                      return;
+                                    }
+
+                                    const moradorFormatado = {
+                                      id: registroAtual.id,
+                                      pre_cadastro_id: registroAtual.id,
+                                      nome: registroAtual.nome || "",
+                                      email: registroAtual.email || "",
+                                      telefone: registroAtual.telefone || "",
+                                      torre_nome: registroAtual.torre || "",
+                                      unidade_nome: registroAtual.unidade || "",
+                                      unidade_id: registroAtual.unidade_id || null,
+                                      raw: registroAtual,
+                                    };
+
+                                    setMoradorEdicao(moradorFormatado);
+                                    setModalEditarAberto(true);
+                                  }}
+                                >
+                                  <AlertTriangle size={15} />
+                                </button>
                                 <button
                                   type="button"
                                   title="Resolver"
@@ -943,11 +1246,11 @@ export default function ImportacaoMoradoresDivergencias({ perfil }) {
                       className="divmor-review-option primary"
                       onClick={abrirEdicaoPorDivergencia}
                     >
-                      <strong>Usar dados importados</strong>
-                      <span>
-                        Abre a edição do pré-cadastro atual para revisar e ajustar os dados
-                        com segurança.
-                      </span>
+                      <strong>Ajustar pré-cadastro</strong>
+                        <span>
+                          Abre o mesmo modal de edição do Cadastro de Moradores para corrigir
+                          os dados e revalidar a divergência automaticamente.
+                        </span>
                     </button>
 
                     <button
@@ -1119,6 +1422,179 @@ export default function ImportacaoMoradoresDivergencias({ perfil }) {
             onClose={fecharModalEditar}
             onSalvar={salvarEdicaoMorador}
           />
+        </div>
+      ) : null}
+
+      {modalCorrigirLinhaAberto && divergenciaSelecionada ? (
+        <div className="divmor-modal-overlay" role="dialog" aria-modal="true">
+          <div className="divmor-correction-modal">
+            <button
+              type="button"
+              className="divmor-correction-close"
+              onClick={fecharCorrecaoLinhaImportada}
+              disabled={processando}
+              aria-label="Fechar modal"
+            >
+              ×
+            </button>
+
+            <header className="divmor-correction-header">
+              <div className="divmor-correction-icon">
+                <AlertTriangle size={30} />
+              </div>
+
+              <div>
+                <span>Corrigir linha importada</span>
+                <h2>Corrigir Divergência</h2>
+                <p>
+                  Revise e corrija os dados importados para criar o pré-cadastro do morador.
+                </p>
+              </div>
+            </header>
+
+            <section className="divmor-correction-info">
+              <Info size={22} />
+              <span>
+                Após salvar a correção, o pré-cadastro será criado e a divergência será resolvida.
+              </span>
+            </section>
+
+            <main className="divmor-correction-body">
+              <label className="divmor-premium-field full">
+                <span>
+                  Nome completo <strong>*</strong>
+                </span>
+                <input
+                  value={dadosLinhaCorrigida.nome}
+                  onChange={(event) =>
+                    setDadosLinhaCorrigida((old) => ({
+                      ...old,
+                      nome: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+
+              <div className="divmor-correction-grid">
+                <label className="divmor-premium-field">
+                  <span>
+                    E-mail <strong>*</strong>
+                  </span>
+                  <input
+                    value={dadosLinhaCorrigida.email}
+                    placeholder="exemplo@email.com"
+                    onChange={(event) =>
+                      setDadosLinhaCorrigida((old) => ({
+                        ...old,
+                        email: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+
+                <label className="divmor-premium-field">
+                  <span>
+                    WhatsApp <strong>*</strong>
+                  </span>
+
+                  <div className="divmor-phone-field">
+                    <div className="divmor-phone-prefix">
+                      <span>🇧🇷</span>
+                      <strong>+55</strong>
+                    </div>
+
+                    <input
+                      value={formatarTelefoneInput(dadosLinhaCorrigida.telefone)}
+                      placeholder="(11) 9 9999-9999"
+                      onChange={(event) =>
+                        setDadosLinhaCorrigida((old) => ({
+                          ...old,
+                          telefone: telefoneLocalDivergencia(event.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                </label>
+
+                <label className="divmor-premium-field">
+                  <span>
+                    Torre / Bloco <strong>*</strong>
+                  </span>
+                  <input
+                    value={dadosLinhaCorrigida.torre}
+                    onChange={(event) => {
+                      const valor = event.target.value;
+                      const torreEncontrada = obterTorrePorCodigoOuNome(torres, valor);
+
+                      setDadosLinhaCorrigida((old) => ({
+                        ...old,
+                        torre: valor,
+                        nome_torre: torreEncontrada?.nome || "",
+                      }));
+                    }}
+                  />
+                </label>
+
+                <label className="divmor-premium-field">
+                  <span>Nome da Torre / Bloco</span>
+                  <div className="divmor-locked-field">
+                    <input
+                      value={dadosLinhaCorrigida.nome_torre || "Torre não localizada"}
+                      disabled
+                    />
+                    <Lock size={17} />
+                  </div>
+                </label>
+              </div>
+
+              <label className="divmor-premium-field full">
+                <span>
+                  Unidade <strong>*</strong>
+                </span>
+                <input
+                  value={dadosLinhaCorrigida.unidade}
+                  onChange={(event) =>
+                    setDadosLinhaCorrigida((old) => ({
+                      ...old,
+                      unidade: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+
+              <section className="divmor-correction-warning">
+                <Lightbulb size={24} />
+                <div>
+                  <strong>Importante</strong>
+                  <p>
+                    Revise os dados antes de salvar. Após a correção, o pré-cadastro será criado
+                    e o morador seguirá para o fluxo de convite.
+                  </p>
+                </div>
+              </section>
+            </main>
+
+            <footer className="divmor-correction-footer">
+              <button
+                type="button"
+                className="divmor-btn secondary"
+                onClick={fecharCorrecaoLinhaImportada}
+                disabled={processando}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                className="divmor-btn primary divmor-save-correction"
+                onClick={salvarCorrecaoLinhaImportada}
+                disabled={processando}
+              >
+                <CheckCircle2 size={20} />
+                {processando ? "Salvando..." : "Salvar Correção"}
+              </button>
+            </footer>
+          </div>
         </div>
       ) : null}
 

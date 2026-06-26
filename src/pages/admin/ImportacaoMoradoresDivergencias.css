@@ -1146,3 +1146,349 @@
     grid-template-columns: 1fr;
   }
 }
+
+.divmor-correction-modal {
+  width: min(960px, calc(100vw - 40px));
+  max-height: calc(100vh - 40px);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.divmor-correction-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.divmor-correction-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 28px 32px 20px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.divmor-correction-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #ffedd5;
+  color: #f97316;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.divmor-correction-header span {
+  display: block;
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.divmor-correction-header h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.divmor-correction-header p {
+  margin: 8px 56px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.divmor-correction-info {
+  margin: 20px 32px 22px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.divmor-correction-info svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.divmor-correction-body {
+  padding: 0 32px 24px;
+  overflow: auto;
+}
+
+.divmor-correction-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+.divmor-premium-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.divmor-premium-field.full {
+  grid-column: 1 / -1;
+}
+
+.divmor-premium-field span {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.divmor-premium-field span strong {
+  color: #ef4444;
+  font-weight: 800;
+}
+
+.divmor-premium-field input {
+  width: 100%;
+  height: 46px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.divmor-premium-field input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.divmor-premium-field input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.divmor-phone-field {
+  display: flex;
+  width: 100%;
+  height: 46px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.divmor-phone-field:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.divmor-phone-prefix {
+  width: 102px;
+  border-right: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.divmor-phone-prefix strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.divmor-phone-field input {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  flex: 1;
+  box-shadow: none;
+  padding: 0 14px;
+  background: #ffffff;
+}
+
+.divmor-phone-field input:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.divmor-locked-field {
+  position: relative;
+}
+
+.divmor-locked-field input {
+  width: 100%;
+  background: #f8fafc;
+  color: #64748b;
+  padding-right: 42px;
+  cursor: not-allowed;
+}
+
+.divmor-locked-field svg {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.divmor-correction-warning {
+  margin-top: 2px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  color: #78350f;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.divmor-correction-warning svg {
+  width: 20px;
+  height: 20px;
+  color: #f59e0b;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.divmor-correction-warning strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #78350f;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.divmor-correction-warning p {
+  margin: 0;
+  color: #78350f;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.divmor-correction-footer {
+  padding: 18px 32px;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.divmor-save-correction {
+  min-width: 190px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.divmor-save-correction svg {
+  width: 17px;
+  height: 17px;
+}
+
+@media (max-width: 768px) {
+  .divmor-correction-modal {
+    width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+    border-radius: 18px;
+  }
+
+  .divmor-correction-close {
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 22px;
+  }
+
+  .divmor-correction-header {
+    padding: 24px 20px 18px;
+    gap: 12px;
+  }
+
+  .divmor-correction-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+  }
+
+  .divmor-correction-header h2 {
+    font-size: 22px;
+  }
+
+  .divmor-correction-header p {
+    margin-right: 34px;
+    font-size: 13px;
+  }
+
+  .divmor-correction-info {
+    margin: 16px 20px 18px;
+  }
+
+  .divmor-correction-body {
+    padding: 0 20px 20px;
+  }
+
+  .divmor-correction-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .divmor-correction-footer {
+    padding: 16px 20px;
+    flex-direction: column-reverse;
+  }
+
+  .divmor-correction-footer button,
+  .divmor-save-correction {
+    width: 100%;
+  }
+}
