@@ -1031,7 +1031,25 @@ async function confirmarAcao() {
                   Selecione uma opção com e-mail cadastrado para reenviar o acesso.
                 </div>
               )}
+              
+              <div className="reenvio-security-info">
+                <ShieldCheck size={18} />
+
+                <div>
+                  <strong>Aviso de segurança</strong>
+
+                  <p>
+                    O link é gerado para a conta já aprovada do responsável logístico. 
+                    O e-mail escolhido serve apenas como meio de entrega do link. 
+                    A autenticação e a ativação da conta permanecem vinculadas ao responsável 
+                    autorizado.
+                  </p>
+                </div>
+              </div>
+
             </div>
+
+
           );
         })()}
       </ModalChegou>
