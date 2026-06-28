@@ -135,23 +135,45 @@ serve(async (req) => {
       );
     }
 
-    const responsavel = condominio.responsavel_logistica?.[0];
+    const responsavel = Array.isArray(condominio.responsavel_logistica)
+      ? condominio.responsavel_logistica[0]
+      : condominio.responsavel_logistica || null;
 
-    if (!responsavel?.email) {
-      return jsonResponse({
-        error: "Responsável logístico sem e-mail cadastrado para gerar o link de acesso.",
-      }, 400);
-    }
-
-    const emailAuth = String(responsavel.email).trim().toLowerCase();
-
-    const emailDestinoFinal = String(email_destino || emailAuth)
+    const emailDestinoFinal = String(
+      email_destino ||
+        responsavel?.email ||
+        condominio.email_condominio ||
+        ""
+    )
       .trim()
       .toLowerCase();
 
+    const emailAuth = String(
+      responsavel?.email ||
+        condominio.email_condominio ||
+        emailDestinoFinal ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+    if (!emailDestinoFinal) {
+      return jsonResponse(
+        { error: "E-mail de destino não informado." },
+        400
+      );
+    }
+
+    if (!emailAuth) {
+      return jsonResponse(
+        { error: "E-mail base para gerar acesso não encontrado." },
+        400
+      );
+    }
+
     const nomeDestinoFinal =
       nome_destino ||
-      responsavel.nome ||
+      responsavel?.nome ||
       condominio.nome_fantasia ||
       condominio.razao_social ||
       "Responsável do Condomínio";

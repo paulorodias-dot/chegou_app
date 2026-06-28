@@ -15,6 +15,7 @@ import {
 import MasterLayout from "./layouts/MasterLayout";
 import AppLayout from "./layouts/AppLayout";
 
+import CargosFuncoes from "./pages/master/CargosFuncoes";
 import AcessoAssistidoMaster from "./pages/master/AcessoAssistidoMaster";
 
 import DashboardMaster from "./pages/master/DashboardMaster";
@@ -208,6 +209,10 @@ function App() {
 
     if (paginaAtual === "condominios-cadastro") {
       return <CadastroCondominio perfil={perfil} />;
+    }
+
+    if (paginaAtual === "cargos-funcoes") {
+      return <CargosFuncoes perfil={perfil} />;
     }
 
     if (paginaAtual === "validacao-primeiro-acesso-condominio") {

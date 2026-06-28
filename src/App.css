@@ -2148,3 +2148,55 @@ body.modo-escuro .btn-config-secondary {
   border-color: #003fbd !important;
   color: #003fbd !important;
 }
+
+/* =========================================================
+   RADAR DE NOVIDADES - MENUS
+========================================================= */
+
+.menu-label-novo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-novo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #ff7a00;
+  box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.16);
+  flex: 0 0 auto;
+}
+
+.menu-novo-badge {
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 122, 0, 0.14);
+  color: #ff9a1f;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.submenu-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-submenu .menu-novo-badge {
+  font-size: 9px;
+  padding: 2px 5px;
+}
+
+body.modo-escuro .menu-novo-dot {
+  background: #ff9a1f;
+  box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.18);
+}
+
+body.modo-escuro .menu-novo-badge {
+  background: rgba(255, 122, 0, 0.18);
+  color: #ffb36b;
+}

@@ -19,6 +19,8 @@ import {
   Settings,
   Smartphone,
   UserCheck,
+  BriefcaseBusiness,
+  UserCog,
 } from "lucide-react";
 
 import logo from "../assets/logo.png";
@@ -51,6 +53,14 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
   const [localizacaoAtual, setLocalizacaoAtual] = useState(null);
   const [statusPush, setStatusPush] = useState("nao_suportado");
   const [statusLocalizacao, setStatusLocalizacao] = useState("desativado");
+
+  const [menusNovosVistos, setMenusNovosVistos] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("chegou_menus_novos_vistos_master") || "[]");
+    } catch {
+      return [];
+    }
+  });
 
   const preferenciasKey = perfil?.id
     ? `chegou_preferencias_${perfil.id}`
@@ -89,6 +99,20 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
           id: "condominios-auditoria",
           label: "Auditoria",
           icon: ClipboardCheck,
+        },
+      ],
+    },
+    {
+      id: "usuarios-master",
+      label: "Usuários",
+      icon: UserCog,
+      novo: true,
+      children: [
+        {
+          id: "cargos-funcoes",
+          label: "Cargos e Funções",
+          icon: BriefcaseBusiness,
+          novo: true,
         },
       ],
     },
@@ -542,6 +566,20 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
     });
   }
 
+  function marcarMenuNovoComoVisto(id) {
+    setMenusNovosVistos((atuais) => {
+      if (atuais.includes(id)) return atuais;
+
+      const atualizados = [...atuais, id];
+      localStorage.setItem(
+        "chegou_menus_novos_vistos_master",
+        JSON.stringify(atualizados)
+      );
+
+      return atualizados;
+    });
+  }
+
   function clicarMenu(menu) {
     if (menu.children?.length) {
       setOpenMenu((atual) => (atual === menu.id ? null : menu.id));
@@ -554,6 +592,7 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
   }
 
   function clicarSubmenu(id) {
+    marcarMenuNovoComoVisto(id);
     onNavigate(id);
     setMobileOpen(false);
   }
@@ -933,7 +972,13 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
                 >
                   <span>
                     <Icon size={20} />
-                    <em>{menu.label}</em>
+                    <em className="menu-label-novo">
+                      {menu.label}
+                      {menu.novo &&
+                        menu.children?.some((child) => !menusNovosVistos.includes(child.id)) && (
+                          <span className="menu-novo-dot" />
+                        )}
+                    </em>
                   </span>
 
                   {hasChildren &&
@@ -954,7 +999,12 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
                           onClick={() => clicarSubmenu(child.id)}
                         >
                           <ChildIcon size={16} />
-                          {child.label}
+                          <span className="submenu-label">
+                            {child.label}
+                            {child.novo && !menusNovosVistos.includes(child.id) && (
+                              <strong className="menu-novo-badge">NOVO</strong>
+                            )}
+                          </span>
                         </button>
                       );
                     })}

@@ -16,6 +16,8 @@ import {
   User,
   HelpCircle,
   Info,
+  BriefcaseBusiness,
+  UserCog,
 } from "lucide-react";
 
 export const menusByRole = {
@@ -42,6 +44,22 @@ export const menusByRole = {
         },
       ],
     },
+
+    {
+      id: "usuarios-master",
+      label: "Usuários",
+      icon: UserCog,
+      novo: true,
+      children: [
+        {
+          id: "cargos-funcoes",
+          label: "Cargos e Funções",
+          icon: BriefcaseBusiness,
+          novo: true,
+        },
+      ],
+    },
+
     {
       id: "usuarios",
       label: "Usuários",
