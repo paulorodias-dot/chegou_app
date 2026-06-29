@@ -23,6 +23,14 @@ import "./AppLayout.css";
 const APP_VERSION = "01.01.01";
 const COPYRIGHT_YEAR = new Date().getFullYear();
 
+function getUsuarioMemoriaId(perfil) {
+  return perfil?.usuario_id || perfil?.id || perfil?.email || "usuario";
+}
+
+function montarChaveNovidades(role, perfil) {
+  return `chegou_menus_novos_vistos_${role}_${getUsuarioMemoriaId(perfil)}`;
+}
+
 export default function AppLayout({
   perfil,
   role = "master",
@@ -36,6 +44,7 @@ export default function AppLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
+  const [menusNovosVistos, setMenusNovosVistos] = useState([]);
 
   const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(
     Number(perfil?.notificacoes_nao_lidas || 0)
@@ -44,6 +53,11 @@ export default function AppLayout({
   const menus = menusByRole[role] || menusByRole.master;
 
   const menusVisiveis = menus.filter((menu) => menu.visible !== false);
+
+  const chaveNovidades = useMemo(
+    () => montarChaveNovidades(role, perfil),
+    [role, perfil?.id, perfil?.usuario_id, perfil?.email]
+  );
 
   const nomeExibicaoMorador = useMemo(() => {
     if (role !== "morador") return null;
@@ -80,14 +94,23 @@ export default function AppLayout({
   ]);
 
   useEffect(() => {
+    try {
+      const salvo = localStorage.getItem(chaveNovidades);
+      setMenusNovosVistos(salvo ? JSON.parse(salvo) : []);
+    } catch {
+      setMenusNovosVistos([]);
+    }
+  }, [chaveNovidades]);
+
+  useEffect(() => {
     const menuAberto = menus.find((menu) =>
       menu.children?.some((child) => child.id === activePage)
     );
 
-    if (menuAberto) {
+    if (menuAberto && !sidebarCollapsed) {
       setOpenMenu(menuAberto.id);
     }
-  }, [activePage, menus]);
+  }, [activePage, menus, sidebarCollapsed]);
 
   useEffect(() => {
     let ativo = true;
@@ -121,6 +144,56 @@ export default function AppLayout({
     };
   }, [role, perfil?.id, perfil?.usuario_id, perfil?.condominio_id]);
 
+  function salvarMenusNovosVistos(ids) {
+    const unicos = Array.from(new Set(ids));
+
+    setMenusNovosVistos(unicos);
+    localStorage.setItem(chaveNovidades, JSON.stringify(unicos));
+  }
+
+  function menuNovoVisivel(menu) {
+    return Boolean(menu?.novo && !menusNovosVistos.includes(menu.id));
+  }
+
+  function submenuNovoVisivel(child) {
+    return Boolean(child?.novo && !menusNovosVistos.includes(child.id));
+  }
+
+  function menuTemSubmenuNovoVisivel(menu) {
+    return Boolean(
+      menu?.children?.some(
+        (child) => child.visible !== false && submenuNovoVisivel(child)
+      )
+    );
+  }
+
+  function registrarNovidadeVista(menu, childId = null) {
+    const ids = [...menusNovosVistos];
+
+    if (menu?.id) ids.push(menu.id);
+    if (childId) ids.push(childId);
+
+    if (menu?.children?.length) {
+      const todosSubmenusNovos = menu.children
+        .filter((child) => child.novo)
+        .map((child) => child.id);
+
+      if (childId) {
+        ids.push(childId);
+      }
+
+      const aindaTemOutroNovoNaoAberto = todosSubmenusNovos.some(
+        (id) => id !== childId && !menusNovosVistos.includes(id)
+      );
+
+      if (!aindaTemOutroNovoNaoAberto) {
+        ids.push(menu.id);
+      }
+    }
+
+    salvarMenusNovosVistos(ids);
+  }
+
   async function atualizarContadorNotificacoes() {
     if (role !== "admin_logistica") {
       setNotificacoesNaoLidas(Number(perfil?.notificacoes_nao_lidas || 0));
@@ -136,19 +209,40 @@ export default function AppLayout({
   }
 
   function clicarMenu(menu) {
-    if (menu.children?.length) {
+    const hasChildren = menu.children?.length > 0;
+
+    if (hasChildren) {
+      if (sidebarCollapsed) {
+        setSidebarCollapsed(false);
+        setOpenMenu(menu.id);
+        return;
+      }
+
       setOpenMenu((atual) => (atual === menu.id ? null : menu.id));
       return;
     }
 
+    registrarNovidadeVista(menu);
+
     setOpenMenu(null);
     onNavigate(menu.id);
     setMobileOpen(false);
+
+    if (window.innerWidth > 900) {
+      setSidebarCollapsed(true);
+    }
   }
 
-  function clicarSubmenu(id) {
-    onNavigate(id);
+  function clicarSubmenu(menu, childId) {
+    registrarNovidadeVista(menu, childId);
+
+    onNavigate(childId);
     setMobileOpen(false);
+    setOpenMenu(null);
+
+    if (window.innerWidth > 900) {
+      setSidebarCollapsed(true);
+    }
   }
 
   function getPerfilNome() {
@@ -193,12 +287,19 @@ export default function AppLayout({
       return;
     }
 
-    setSidebarCollapsed((atual) => !atual);
+    setSidebarCollapsed((atual) => {
+      const novoEstado = !atual;
+
+      if (novoEstado) {
+        setOpenMenu(null);
+      }
+
+      return novoEstado;
+    });
   }
 
   return (
     <div className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
-
       {perfil?.modo_suporte_master ? (
         <div className="support-master-banner">
           <strong>Modo Suporte Master</strong>
@@ -291,6 +392,9 @@ export default function AppLayout({
               activePage === menu.id ||
               menu.children?.some((child) => child.id === activePage);
 
+            const mostrarNovoMenu =
+              menuNovoVisivel(menu) || menuTemSubmenuNovoVisivel(menu);
+
             return (
               <div className="sidebar-group" key={menu.id}>
                 <button
@@ -302,6 +406,10 @@ export default function AppLayout({
                   <span>
                     <Icon size={20} />
                     <em>{menu.label}</em>
+
+                    {mostrarNovoMenu ? (
+                      <i className="menu-new-dot" aria-label="Novo menu" />
+                    ) : null}
                   </span>
 
                   {hasChildren &&
@@ -318,22 +426,31 @@ export default function AppLayout({
                     {menu.children
                       .filter((child) => child.visible !== false)
                       .map((child) => {
-                      const ChildIcon = child.icon;
+                        const ChildIcon = child.icon;
 
-                      return (
-                        <button
-                          type="button"
-                          key={child.id}
-                          className={
-                            activePage === child.id ? "active-subitem" : ""
-                          }
-                          onClick={() => clicarSubmenu(child.id)}
-                        >
-                          <ChildIcon size={16} />
-                          {child.label}
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button
+                            type="button"
+                            key={child.id}
+                            className={
+                              activePage === child.id ? "active-subitem" : ""
+                            }
+                            onClick={() => clicarSubmenu(menu, child.id)}
+                          >
+                            <ChildIcon size={16} />
+
+                            <span className="submenu-label">
+                              {child.label}
+
+                              {submenuNovoVisivel(child) ? (
+                                <strong className="submenu-new-badge">
+                                  NOVO
+                                </strong>
+                              ) : null}
+                            </span>
+                          </button>
+                        );
+                      })}
                   </div>
                 )}
               </div>
@@ -355,159 +472,157 @@ export default function AppLayout({
       </aside>
 
       <>
-  <main className="app-main">{children}</main>
+        <main className="app-main">{children}</main>
 
-  {role === "admin_logistica" && (
-    <nav className="mobile-bottom-nav">
-      <button
-        type="button"
-        className={
-          activePage === "admin-dashboard"
-            ? "mobile-nav-item active"
-            : "mobile-nav-item"
-        }
-        onClick={() => navegarMobile("admin-dashboard")}
-      >
-        <Home size={20} />
-        <span>Início</span>
-      </button>
+        {role === "admin_logistica" && (
+          <nav className="mobile-bottom-nav">
+            <button
+              type="button"
+              className={
+                activePage === "admin-dashboard"
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
+              onClick={() => navegarMobile("admin-dashboard")}
+            >
+              <Home size={20} />
+              <span>Início</span>
+            </button>
 
-      <button
-        type="button"
-        className={
-          activePage === "admin-cadastro-morador" ||
-          activePage === "admin-divergencias-moradores"
-            ? "mobile-nav-item active"
-            : "mobile-nav-item"
-        }
-        onClick={() => navegarMobile("admin-cadastro-morador")}
-      >
-        <ClipboardList size={20} />
-        <span>Cadastro</span>
-      </button>
+            <button
+              type="button"
+              className={
+                activePage === "admin-cadastro-morador" ||
+                activePage === "admin-divergencias-moradores" ||
+                activePage === "admin-cargos-funcoes"
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
+              onClick={() => navegarMobile("admin-cadastro-morador")}
+            >
+              <ClipboardList size={20} />
+              <span>Cadastro</span>
+            </button>
 
-      <button
-        type="button"
-        className={
-          activePage === "admin-encomendas"
-            ? "mobile-nav-item active"
-            : "mobile-nav-item"
-        }
-        onClick={() => navegarMobile("admin-encomendas")}
-      >
-        <Package size={20} />
-        <span>Encomendas</span>
-      </button>
+            <button
+              type="button"
+              className={
+                activePage === "admin-encomendas"
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
+              onClick={() => navegarMobile("admin-encomendas")}
+            >
+              <Package size={20} />
+              <span>Encomendas</span>
+            </button>
 
-      <button
-        type="button"
-        className={
-          activePage === "admin-notificacoes"
-            ? "mobile-nav-item active"
-            : "mobile-nav-item"
-        }
-        onClick={() => navegarMobile("admin-notificacoes")}
-      >
-        <Bell size={20} />
-        <span>Alertas</span>
-      </button>
+            <button
+              type="button"
+              className={
+                activePage === "admin-notificacoes"
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
+              onClick={() => navegarMobile("admin-notificacoes")}
+            >
+              <Bell size={20} />
+              <span>Alertas</span>
+            </button>
 
-      <button
-        type="button"
-        className={
-          activePage === "admin-configuracoes"
-            ? "mobile-nav-item active"
-            : "mobile-nav-item"
-        }
-        onClick={() => navegarMobile("admin-configuracoes")}
-      >
-        <Settings size={20} />
-        <span>Config</span>
-      </button>
-    </nav>
-  )}
+            <button
+              type="button"
+              className={
+                activePage === "admin-configuracoes"
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
+              onClick={() => navegarMobile("admin-configuracoes")}
+            >
+              <Settings size={20} />
+              <span>Config</span>
+            </button>
+          </nav>
+        )}
 
-    {role === "morador" && (
-      <nav className="mobile-bottom-nav">
-        <button
-          type="button"
-          className={
-            activePage === "morador-dashboard"
-              ? "mobile-nav-item active"
-              : "mobile-nav-item"
-          }
-          onClick={() => navegarMobile("morador-dashboard")}
-        >
-          <Home size={20} />
-          <span>Início</span>
-        </button>
+        {role === "morador" && (
+          <nav className="mobile-bottom-nav">
+            <button
+              type="button"
+              className={
+                activePage === "morador-dashboard"
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
+              onClick={() => navegarMobile("morador-dashboard")}
+            >
+              <Home size={20} />
+              <span>Início</span>
+            </button>
 
-        <button
-          type="button"
-          className={
-            activePage === "morador-encomendas-retiradas"
-              ? "mobile-nav-item active"
-              : "mobile-nav-item"
-          }
-          onClick={() => navegarMobile("morador-encomendas-retiradas")}
-        >
-          <Package size={20} />
-          <span>Encomendas</span>
-        </button>
+            <button
+              type="button"
+              className={
+                activePage === "morador-encomendas-retiradas"
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
+              onClick={() => navegarMobile("morador-encomendas-retiradas")}
+            >
+              <Package size={20} />
+              <span>Encomendas</span>
+            </button>
 
-        <button
-          type="button"
-          className={
-            activePage === "morador-garagem-emprestimo"
-              ? "mobile-nav-item active"
-              : "mobile-nav-item"
-          }
-          onClick={() => navegarMobile("morador-garagem-emprestimo")}
-        >
-          <Car size={20} />
-          <span>Garagem</span>
-        </button>
+            <button
+              type="button"
+              className={
+                activePage === "morador-garagem-emprestimo"
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
+              onClick={() => navegarMobile("morador-garagem-emprestimo")}
+            >
+              <Car size={20} />
+              <span>Garagem</span>
+            </button>
 
-        <button
-          type="button"
-          className={
-            activePage === "morador-notificacoes"
-              ? "mobile-nav-item active"
-              : "mobile-nav-item"
-          }
-          onClick={() => navegarMobile("morador-notificacoes")}
-        >
-          <Bell size={20} />
-          <span>Alertas</span>
-        </button>
+            <button
+              type="button"
+              className={
+                activePage === "morador-notificacoes"
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
+              onClick={() => navegarMobile("morador-notificacoes")}
+            >
+              <Bell size={20} />
+              <span>Alertas</span>
+            </button>
 
-        <button
-          type="button"
-          className={
-            activePage === "morador-configuracoes"
-              ? "mobile-nav-item active"
-              : "mobile-nav-item"
-          }
-          onClick={() => navegarMobile("morador-configuracoes")}
-        >
-          <Settings size={20} />
-          <span>Config</span>
-        </button>
-      </nav>
-    )}
+            <button
+              type="button"
+              className={
+                activePage === "morador-configuracoes"
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
+              onClick={() => navegarMobile("morador-configuracoes")}
+            >
+              <Settings size={20} />
+              <span>Config</span>
+            </button>
+          </nav>
+        )}
+      </>
 
-
-</>
-
-    <NotificationCenter
-      aberto={notificationCenterOpen}
-      perfil={perfil}
-      role={role}
-      onClose={() => setNotificationCenterOpen(false)}
-      onAtualizarContador={atualizarContadorNotificacoes}
-      onNavigate={onNavigate}
-    />
-
+      <NotificationCenter
+        aberto={notificationCenterOpen}
+        perfil={perfil}
+        role={role}
+        onClose={() => setNotificationCenterOpen(false)}
+        onAtualizarContador={atualizarContadorNotificacoes}
+        onNavigate={onNavigate}
+      />
     </div>
   );
 }

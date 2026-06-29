@@ -517,3 +517,31 @@
     padding-top: 46px;
   }
 }
+
+.menu-new-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #f97316;
+  display: inline-block;
+  margin-left: 6px;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.14);
+}
+
+.submenu-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.submenu-new-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #f97316;
+  background: rgba(249, 115, 22, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.22);
+  border-radius: 999px;
+  padding: 2px 6px;
+  line-height: 1;
+}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   Bell,
+  BriefcaseBusiness,
   Building2,
   ChevronDown,
   ChevronRight,
@@ -19,7 +20,6 @@ import {
   Settings,
   Smartphone,
   UserCheck,
-  BriefcaseBusiness,
   UserCog,
 } from "lucide-react";
 
@@ -37,6 +37,29 @@ const preferenciasPadrao = {
   aparelhoConfiavel: false,
   permissoesSolicitadas: false,
 };
+
+const rotasNotificacaoMaster = [
+  {
+    page: "condominios-auditoria",
+    termos: ["condominios-auditoria", "WIZARD_CONDOMINIO", "aprovacao"],
+  },
+  {
+    page: "cargos-funcoes",
+    termos: [
+      "cargos-funcoes",
+      "admin-cargos-funcoes",
+      "CARGOS_FUNCOES",
+      "cargos_funcoes",
+      "auditoria_cargo",
+      "auditoria_cargo_master",
+      "solicitacao_cargo",
+    ],
+  },
+  {
+    page: "notificacoes",
+    termos: ["notificacoes"],
+  },
+];
 
 function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
   const notificationRef = useRef(null);
@@ -56,7 +79,9 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
 
   const [menusNovosVistos, setMenusNovosVistos] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("chegou_menus_novos_vistos_master") || "[]");
+      return JSON.parse(
+        localStorage.getItem("chegou_menus_novos_vistos_master") || "[]"
+      );
     } catch {
       return [];
     }
@@ -116,7 +141,6 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
         },
       ],
     },
-
     {
       id: "ambiente-validacao",
       label: "Ambiente de Validação",
@@ -131,7 +155,7 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
           id: "validacao-wizard-morador",
           label: "Wizard Morador",
           icon: UserCheck,
-        }
+        },
       ],
     },
     {
@@ -139,7 +163,6 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
       label: "Acesso Assistido",
       icon: UserCheck,
     },
-
     {
       id: "notificacoes",
       label: "Notificações",
@@ -185,9 +208,57 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
 
   function ehNotificacaoDoMaster(notificacao) {
     const destinoTipo = String(notificacao?.destino_tipo || "").trim().toUpperCase();
+    const modulo = String(notificacao?.modulo || "").trim().toUpperCase();
     const usuarioId = notificacao?.usuario_id;
 
-    return destinoTipo === "MASTER" || (perfil?.id && usuarioId === perfil.id);
+    return (
+      destinoTipo === "MASTER" ||
+      modulo === "MASTER" ||
+      (perfil?.id && usuarioId === perfil.id)
+    );
+  }
+
+  function obterDestinoNotificacao(notificacao) {
+    const metadata =
+      notificacao?.metadata && typeof notificacao.metadata === "object"
+        ? JSON.stringify(notificacao.metadata)
+        : String(notificacao?.metadata || "");
+
+    const textoBusca = [
+      notificacao?.acao_url,
+      notificacao?.modulo,
+      notificacao?.tipo,
+      notificacao?.origem,
+      notificacao?.origem_tipo,
+      notificacao?.titulo,
+      metadata,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    const rota = rotasNotificacaoMaster.find((item) =>
+      item.termos.some((termo) => textoBusca.includes(String(termo).toLowerCase()))
+    );
+
+    return rota?.page || null;
+  }
+
+  function navegarPorNotificacao(notificacao) {
+    const destino = obterDestinoNotificacao(notificacao);
+
+    if (!destino) return;
+
+    if (destino === "cargos-funcoes") {
+      marcarMenuNovoComoVisto("cargos-funcoes");
+      setOpenMenu("usuarios-master");
+    }
+
+    if (destino === "condominios-auditoria") {
+      setOpenMenu("condominios");
+    }
+
+    onNavigate(destino);
   }
 
   async function carregarNotificacoes() {
@@ -198,9 +269,9 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
       .limit(20);
 
     if (perfil?.id) {
-      query = query.or(`usuario_id.eq.${perfil.id},destino_tipo.eq.MASTER`);
+      query = query.or(`usuario_id.eq.${perfil.id},destino_tipo.eq.MASTER,modulo.eq.MASTER`);
     } else {
-      query = query.eq("destino_tipo", "MASTER");
+      query = query.or("destino_tipo.eq.MASTER,modulo.eq.MASTER");
     }
 
     const { data, error } = await query;
@@ -435,7 +506,9 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
 
     if (Notification.permission === "denied") {
       setStatusPush("bloqueado");
-      alert("As notificações estão bloqueadas no navegador. Libere nas configurações do navegador.");
+      alert(
+        "As notificações estão bloqueadas no navegador. Libere nas configurações do navegador."
+      );
       return;
     }
 
@@ -581,7 +654,15 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
   }
 
   function clicarMenu(menu) {
-    if (menu.children?.length) {
+    const hasChildren = menu.children?.length > 0;
+
+    if (hasChildren) {
+      if (sidebarCollapsed && window.innerWidth > 900) {
+        setSidebarCollapsed(false);
+        setOpenMenu(menu.id);
+        return;
+      }
+
       setOpenMenu((atual) => (atual === menu.id ? null : menu.id));
       return;
     }
@@ -603,7 +684,15 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
       return;
     }
 
-    setSidebarCollapsed((atual) => !atual);
+    setSidebarCollapsed((atual) => {
+      const novoEstado = !atual;
+
+      if (novoEstado) {
+        setOpenMenu(null);
+      }
+
+      return novoEstado;
+    });
   }
 
   async function abrirNotificacao(notificacao) {
@@ -630,13 +719,9 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
       }
     }
 
-    if (notificacao.acao_url) {
-      if (notificacao.acao_url.includes("condominios-auditoria")) {
-        onNavigate("condominios-auditoria");
-      }
-    }
-
+    navegarPorNotificacao(notificacao);
     setNotificacoesAbertas(false);
+    setMobileOpen(false);
   }
 
   function StatusLed({ ativo }) {
@@ -975,9 +1060,9 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
                     <em className="menu-label-novo">
                       {menu.label}
                       {menu.novo &&
-                        menu.children?.some((child) => !menusNovosVistos.includes(child.id)) && (
-                          <span className="menu-novo-dot" />
-                        )}
+                        menu.children?.some(
+                          (child) => !menusNovosVistos.includes(child.id)
+                        ) && <span className="menu-novo-dot" />}
                     </em>
                   </span>
 

@@ -29,6 +29,7 @@ import AuditoriaMoradoresConvite from "./pages/auditoria/AuditoriaMoradoresConvi
 import AuditoriaMoradoresPreCadastro from "./pages/auditoria/AuditoriaMoradoresPreCadastro";
 import AuditoriaMoradoresAuditoria from "./pages/auditoria/AuditoriaMoradoresAuditoria";
 import AuditoriaMoradoresHistorico from "./pages/auditoria/AuditoriaMoradoresHistorico";
+import AdminCargosFuncoes from "./pages/admin/AdminCargosFuncoes";
 
 import MoradorDashboard from "./pages/morador/MoradorDashboard";
 
@@ -241,6 +242,10 @@ function App() {
 
     if (paginaAtual === "admin-divergencias-moradores") {
       return <ImportacaoMoradoresDivergencias perfil={perfilContexto} />;
+    }
+
+    if (paginaAtual === "admin-cargos-funcoes") {
+      return <AdminCargosFuncoes perfil={perfilContexto} />;
     }
 
     if (paginaAtual === "admin-auditoria-moradores-convite") {

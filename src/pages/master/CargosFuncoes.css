@@ -175,11 +175,6 @@
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.cf-search:focus-within {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-}
-
 .cf-search input,
 .cf-toolbar select {
   width: 100%;
@@ -220,11 +215,6 @@
   background: #ffffff;
   padding: 0 12px;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
-}
-
-.cf-toolbar select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 /* TABELA PREMIUM */
@@ -795,10 +785,768 @@ body.modo-escuro .cf-communication-button {
   }
 
   .cf-kpis {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .cf-header-actions {
     grid-template-columns: 1fr;
+  }
+}
+
+/* MOBILE — KPIs em 2 colunas */
+@media (max-width: 900px) {
+  .cf-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cf-kpi-card {
+    min-height: 132px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .cf-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .cf-kpi-card {
+    min-height: 128px;
+  }
+
+  .cf-kpi-card strong {
+    font-size: 28px;
+  }
+
+  .cf-kpi-card small {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+}
+
+/* =========================================================
+   CARGOS E FUNÇÕES — AUDITORIA MASTER
+   Card de solicitações, Drawer Premium e Modal Premium
+========================================================= */
+
+/* CARD DE AUDITORIA */
+
+.cf-auditoria-card {
+  margin-bottom: 14px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+}
+
+.cf-solicitacoes-list {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px 16px;
+}
+
+.cf-solicitacao-item {
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.cf-solicitacao-item:hover {
+  background: #f8fbff;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
+}
+
+.cf-solicitacao-item > div:first-child {
+  min-width: 0;
+}
+
+.cf-solicitacao-item strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 850;
+  margin-bottom: 4px;
+}
+
+.cf-solicitacao-item small {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.cf-solicitacao-item > div:last-child {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* BADGES EXTRAS DA AUDITORIA */
+
+.cf-badge-laranja {
+  background: rgba(249, 115, 22, 0.12);
+  color: #ea580c;
+}
+
+.cf-badge-verde {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+}
+
+.cf-badge-amarelo {
+  background: rgba(202, 138, 4, 0.12);
+  color: #a16207;
+}
+
+/* DRAWER PREMIUM */
+
+.cf-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(15, 23, 42, 0.48);
+  display: flex;
+  justify-content: flex-end;
+  backdrop-filter: blur(4px);
+}
+
+.cf-drawer {
+  width: min(520px, 100vw);
+  height: 100vh;
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  box-shadow: -18px 0 45px rgba(15, 23, 42, 0.22);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  animation: cfDrawerIn 0.22s ease-out;
+}
+
+@keyframes cfDrawerIn {
+  from {
+    opacity: 0.6;
+    transform: translateX(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.cf-drawer-header {
+  min-height: 94px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.10), transparent 36%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.cf-drawer-header span {
+  display: inline-flex;
+  margin-bottom: 6px;
+  color: #f97316;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cf-drawer-header h2 {
+  margin: 0 0 4px;
+  color: #0f172a;
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 850;
+}
+
+.cf-drawer-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.cf-drawer-header button,
+.cf-modal-header button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #334155;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 0.18s ease;
+}
+
+.cf-drawer-header button:hover,
+.cf-modal-header button:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.cf-drawer-body {
+  padding: 16px 18px 18px;
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.cf-drawer-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cf-drawer-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.cf-drawer-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 15px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.035);
+}
+
+.cf-drawer-section h3 {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.cf-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cf-detail-grid div,
+.cf-comparison-box div {
+  min-width: 0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 10px 12px;
+}
+
+.cf-detail-grid small,
+.cf-comparison-box small,
+.cf-similar-list > small {
+  display: block;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.cf-detail-grid strong,
+.cf-comparison-box strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.cf-drawer-note {
+  margin: 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.cf-comparison-box {
+  display: grid;
+  gap: 10px;
+}
+
+.cf-similar-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.cf-similar-list div {
+  min-height: 34px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cf-similar-list strong {
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.cf-similar-list em {
+  margin-left: auto;
+  color: #64748b;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.cf-drawer-actions {
+  padding: 14px 18px;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+
+.cf-btn-danger {
+  height: 40px;
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  border-radius: 10px;
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.18s ease;
+}
+
+.cf-btn-danger:hover {
+  background: rgba(220, 38, 38, 0.12);
+  transform: translateY(-1px);
+}
+
+/* MODAL PREMIUM */
+
+.cf-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: rgba(15, 23, 42, 0.56);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  backdrop-filter: blur(4px);
+}
+
+.cf-modal {
+  width: min(560px, 100%);
+  max-height: min(680px, calc(100vh - 36px));
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  animation: cfModalIn 0.2s ease-out;
+}
+
+@keyframes cfModalIn {
+  from {
+    opacity: 0.5;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cf-modal-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background:
+    radial-gradient(circle at top right, rgba(249, 115, 22, 0.12), transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.cf-modal-header span {
+  display: inline-flex;
+  margin-bottom: 6px;
+  color: #f97316;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cf-modal-header h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 19px;
+  line-height: 1.25;
+  font-weight: 850;
+}
+
+.cf-modal-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  display: grid;
+  gap: 14px;
+}
+
+.cf-modal-body p {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.cf-modal-body label {
+  display: grid;
+  gap: 7px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cf-modal-body textarea {
+  width: 100%;
+  min-height: 98px;
+  resize: vertical;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  outline: none;
+}
+
+.cf-modal-body textarea:focus,
+.cf-modal-body textarea:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+.cf-modal-body textarea::placeholder {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.cf-modal-actions {
+  padding: 14px 20px;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cf-modal-actions button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* DARK MODE — AUDITORIA MASTER */
+
+body.modo-escuro .cf-auditoria-card,
+body.modo-escuro .cf-solicitacao-item,
+body.modo-escuro .cf-drawer,
+body.modo-escuro .cf-drawer-header,
+body.modo-escuro .cf-drawer-section,
+body.modo-escuro .cf-drawer-actions,
+body.modo-escuro .cf-modal,
+body.modo-escuro .cf-modal-header,
+body.modo-escuro .cf-modal-actions,
+body.modo-escuro .cf-modal-body textarea {
+  background: #111827;
+  border-color: #1f2937;
+  color: #e5e7eb;
+}
+
+body.modo-escuro .cf-drawer-header,
+body.modo-escuro .cf-modal-header {
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.14), transparent 36%),
+    linear-gradient(180deg, #111827 0%, #0f172a 100%);
+}
+
+body.modo-escuro .cf-solicitacao-item:hover,
+body.modo-escuro .cf-detail-grid div,
+body.modo-escuro .cf-comparison-box div,
+body.modo-escuro .cf-drawer-note,
+body.modo-escuro .cf-similar-list div {
+  background: #0f172a;
+}
+
+body.modo-escuro .cf-solicitacao-item strong,
+body.modo-escuro .cf-drawer-header h2,
+body.modo-escuro .cf-drawer-section h3,
+body.modo-escuro .cf-detail-grid strong,
+body.modo-escuro .cf-comparison-box strong,
+body.modo-escuro .cf-similar-list strong,
+body.modo-escuro .cf-modal-header h2 {
+  color: #f8fafc;
+}
+
+body.modo-escuro .cf-solicitacao-item small,
+body.modo-escuro .cf-drawer-header p,
+body.modo-escuro .cf-detail-grid small,
+body.modo-escuro .cf-comparison-box small,
+body.modo-escuro .cf-similar-list > small,
+body.modo-escuro .cf-similar-list em,
+body.modo-escuro .cf-drawer-note,
+body.modo-escuro .cf-modal-body p,
+body.modo-escuro .cf-modal-body label {
+  color: #94a3b8;
+}
+
+body.modo-escuro .cf-drawer-header button,
+body.modo-escuro .cf-modal-header button {
+  background: #0f172a;
+  border-color: #1f2937;
+  color: #e5e7eb;
+}
+
+body.modo-escuro .cf-modal-body textarea {
+  color: #f8fafc;
+}
+
+/* RESPONSIVO — AUDITORIA MASTER */
+
+@media (max-width: 720px) {
+  .cf-solicitacao-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cf-solicitacao-item > div:last-child {
+    width: 100%;
+    justify-items: start;
+  }
+
+  .cf-drawer {
+    width: 100vw;
+  }
+
+  .cf-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cf-drawer-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .cf-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .cf-modal-actions button {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   CARGOS E FUNÇÕES — HISTÓRICO, DRAWER DE CARGO E PROMOÇÃO
+========================================================= */
+
+.cf-history-modal {
+  width: min(920px, 100%);
+}
+
+.cf-history-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cf-history-filters button {
+  height: 34px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #475569;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.cf-history-filters button.active,
+.cf-history-filters button:hover {
+  background: #fff7ed;
+  border-color: rgba(249, 115, 22, 0.32);
+  color: #f97316;
+}
+
+.cf-history-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.cf-history-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.cf-history-table th {
+  height: 40px;
+  padding: 0 12px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 850;
+  text-align: left;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cf-history-table td {
+  height: 56px;
+  padding: 10px 12px;
+  color: #334155;
+  font-size: 13px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.cf-history-table td strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.cf-history-table td small {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.cf-history-footer {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cf-history-footer span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cf-history-footer span strong {
+  color: #0f172a;
+}
+
+.cf-history-footer div {
+  display: flex;
+  gap: 8px;
+}
+
+.cf-drawer-actions .cf-btn-primary {
+  grid-column: span 2;
+}
+
+.cf-modal-body p strong {
+  color: #0f172a;
+  font-weight: 850;
+}
+
+/* DARK MODE */
+
+body.modo-escuro .cf-history-filters button,
+body.modo-escuro .cf-history-table-wrap,
+body.modo-escuro .cf-history-table td {
+  background: #111827;
+  border-color: #1f2937;
+  color: #cbd5e1;
+}
+
+body.modo-escuro .cf-history-filters button.active,
+body.modo-escuro .cf-history-filters button:hover {
+  background: rgba(249, 115, 22, 0.12);
+  color: #ffb36b;
+  border-color: rgba(249, 115, 22, 0.32);
+}
+
+body.modo-escuro .cf-history-table th {
+  background: #0b1220;
+  border-color: #1f2937;
+  color: #cbd5e1;
+}
+
+body.modo-escuro .cf-history-table td {
+  border-color: #1f2937;
+}
+
+body.modo-escuro .cf-history-table td strong,
+body.modo-escuro .cf-history-footer span strong,
+body.modo-escuro .cf-modal-body p strong {
+  color: #f8fafc;
+}
+
+body.modo-escuro .cf-history-table td small,
+body.modo-escuro .cf-history-footer span {
+  color: #94a3b8;
+}
+
+/* MOBILE */
+
+@media (max-width: 720px) {
+  .cf-history-footer {
+    display: grid;
+    gap: 10px;
+  }
+
+  .cf-history-footer div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cf-drawer-actions .cf-btn-primary {
+    grid-column: auto;
   }
 }

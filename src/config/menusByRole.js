@@ -18,6 +18,8 @@ import {
   Info,
   BriefcaseBusiness,
   UserCog,
+  Truck,
+  Handshake
 } from "lucide-react";
 
 export const menusByRole = {
@@ -98,6 +100,7 @@ export const menusByRole = {
       label: "Cadastro",
       icon: ClipboardList,
       mobileTarget: "admin-cadastro-morador",
+      novo: true,
       children: [
         {
           id: "admin-cadastro-morador",
@@ -108,6 +111,30 @@ export const menusByRole = {
           id: "admin-divergencias-moradores",
           label: "Divergências",
           icon: ShieldCheck,
+        },
+        {
+          id: "admin-funcionarios",
+          label: "Funcionários",
+          icon: UserCog,
+          visible: false,
+        },
+        {
+          id: "admin-cargos-funcoes",
+          label: "Cargos e Funções",
+          icon: BriefcaseBusiness,
+          novo: true,
+        },
+        {
+          id: "admin-transportadora",
+          label: "Transportadora",
+          icon: Truck,
+          visible: false,
+        },
+        {
+          id: "admin-fornecedor",
+          label: "Fornecedor",
+          icon: Handshake,
+          visible: false,
         },
       ],
     },

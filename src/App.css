@@ -2200,3 +2200,44 @@ body.modo-escuro .menu-novo-badge {
   background: rgba(255, 122, 0, 0.18);
   color: #ffb36b;
 }
+
+/* =========================================================
+   DESIGN SYSTEM PREMIUM — FOCO GLOBAL EM CAMPOS
+   Regra: campos digitáveis nunca usam borda/sombra laranja
+========================================================= */
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* Wrappers de campos com focus-within */
+.login-input-box:focus-within,
+.cf-search:focus-within,
+.field input:focus,
+.field select:focus,
+.cf-toolbar select:focus,
+.cf-pagination-controls select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* Mobile / Chrome / autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
+}
