@@ -3,18 +3,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      ...corsHeaders,
-      "Content-Type": "application/json",
-    },
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
 
@@ -34,11 +30,10 @@ async function buscarAuthUserPorEmail(supabaseAdmin: any, email: string) {
     if (error) throw error;
 
     const user = data?.users?.find(
-      (u: any) => u.email?.toLowerCase() === alvo,
+      (u: any) => u.email?.toLowerCase() === alvo
     );
 
     if (user) return user;
-
     if (!data?.users || data.users.length < 1000) break;
   }
 
@@ -52,10 +47,7 @@ serve(async (req) => {
 
   try {
     if (req.method !== "POST") {
-      return jsonResponse(
-        { success: false, message: "Método não permitido." },
-        405,
-      );
+      return jsonResponse({ success: false, message: "Método não permitido." }, 405);
     }
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -64,15 +56,11 @@ serve(async (req) => {
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       return jsonResponse(
         { success: false, message: "Configuração do servidor não encontrada." },
-        500,
+        500
       );
     }
 
-    const supabaseAdmin = createClient(
-      SUPABASE_URL,
-      SUPABASE_SERVICE_ROLE_KEY,
-    );
-
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const body = await req.json();
 
     const tipoFluxo = body?.tipo_fluxo;
@@ -87,78 +75,66 @@ serve(async (req) => {
     ];
 
     if (!fluxosPermitidos.includes(tipoFluxo)) {
-      return jsonResponse(
-        { success: false, message: "Tipo de acesso inválido." },
-        400,
-      );
+      return jsonResponse({ success: false, message: "Tipo de acesso inválido." }, 400);
     }
 
     if (!token) {
-      return jsonResponse(
-        { success: false, message: "Link de acesso inválido." },
-        400,
-      );
+      return jsonResponse({ success: false, message: "Link de acesso inválido." }, 400);
     }
 
     if (!validarSenha(senha)) {
       return jsonResponse(
         { success: false, message: "A senha deve ter pelo menos 8 caracteres." },
-        400,
+        400
       );
     }
 
     if (senha !== confirmarSenha) {
-      return jsonResponse(
-        { success: false, message: "As senhas não conferem." },
-        400,
-      );
+      return jsonResponse({ success: false, message: "As senhas não conferem." }, 400);
     }
 
-    const { data: tokenData, error: tokenError } = await supabaseAdmin.rpc(
+    const { data: tokenInfo, error: tokenError } = await supabaseAdmin.rpc(
       "rpc_funcionario_validar_token_acesso_v1",
-      { p_token: token },
+      { p_token: token }
     );
 
     if (tokenError) throw tokenError;
-
-    const tokenInfo = tokenData?.[0];
 
     if (!tokenInfo?.valido) {
       return jsonResponse(
         {
           success: false,
-          message:
-            tokenInfo?.mensagem || "Link inválido. Solicite um novo convite.",
+          message: "Link inválido. Solicite um novo convite.",
         },
-        400,
+        400
       );
     }
 
-    if (tokenInfo.tipo_fluxo !== tipoFluxo) {
+    const tipoFluxoToken = tokenInfo?.convite?.tipo_fluxo;
+
+    if (tipoFluxoToken !== tipoFluxo) {
       return jsonResponse(
         {
           success: false,
           message: "Este link não corresponde ao tipo de acesso solicitado.",
         },
-        400,
+        400
       );
     }
 
-    const conviteId = tokenInfo.convite_id;
-    const funcionarioCondominioId = tokenInfo.funcionario_condominio_id;
-    const condominioId = tokenInfo.condominio_id;
-    const pessoaId = tokenInfo.pessoa_id;
-    const email = tokenInfo.email?.toLowerCase()?.trim();
-    const username = tokenInfo.username?.toLowerCase()?.trim();
+    const conviteId = tokenInfo?.convite?.id;
+    const funcionarioCondominioId = tokenInfo?.funcionario?.id;
+    const condominioId = tokenInfo?.condominio?.id;
+    const email = tokenInfo?.funcionario?.email?.toLowerCase()?.trim();
+    const username = tokenInfo?.convite?.username?.toLowerCase()?.trim();
 
-    if (!email || !username) {
+    if (!conviteId || !funcionarioCondominioId || !condominioId || !email || !username) {
       return jsonResponse(
         {
           success: false,
-          message:
-            "Não foi possível identificar os dados de acesso. Solicite um novo convite.",
+          message: "Não foi possível identificar os dados de acesso. Solicite um novo convite.",
         },
-        400,
+        400
       );
     }
 
@@ -192,10 +168,7 @@ serve(async (req) => {
     if (funcionarioError) throw funcionarioError;
 
     if (!funcionario) {
-      return jsonResponse(
-        { success: false, message: "Funcionário não encontrado." },
-        404,
-      );
+      return jsonResponse({ success: false, message: "Funcionário não encontrado." }, 404);
     }
 
     const pessoa = Array.isArray(funcionario.pessoas)
@@ -226,7 +199,7 @@ serve(async (req) => {
           message:
             "Não foi possível localizar o acesso deste funcionário. Solicite a criação de acesso novamente.",
         },
-        400,
+        400
       );
     }
 
@@ -246,7 +219,6 @@ serve(async (req) => {
         });
 
       if (createAuthError) throw createAuthError;
-
       authUserId = novoAuth?.user?.id;
     } else {
       const { error: updateAuthError } =
@@ -267,11 +239,8 @@ serve(async (req) => {
 
     if (!authUserId) {
       return jsonResponse(
-        {
-          success: false,
-          message: "Não foi possível concluir o acesso do funcionário.",
-        },
-        500,
+        { success: false, message: "Não foi possível concluir o acesso do funcionário." },
+        500
       );
     }
 
@@ -294,7 +263,7 @@ serve(async (req) => {
           origem: "MODULO_ADMINISTRATIVO",
           username,
         },
-        { onConflict: "id" },
+        { onConflict: "id" }
       );
 
     if (upsertUsuarioError) throw upsertUsuarioError;
@@ -318,7 +287,7 @@ serve(async (req) => {
           .from("usuario_condominio_vinculos")
           .insert({
             usuario_id: authUserId,
-            pessoa_id: pessoaId,
+            pessoa_id: funcionario.pessoa_id,
             condominio_id: condominioId,
             username,
             tipo_vinculo: "FUNCIONARIO",
@@ -330,7 +299,6 @@ serve(async (req) => {
           .single();
 
       if (vinculoInsertError) throw vinculoInsertError;
-
       vinculoId = novoVinculo.id;
     } else {
       const { error: vinculoUpdateError } = await supabaseAdmin
@@ -378,29 +346,28 @@ serve(async (req) => {
         usuario_condominio_vinculo_id: vinculoId,
         status_acesso: "ACESSO_ATIVO",
         atualizado_em: new Date().toISOString(),
+        motivo_ultima_alteracao: "Primeiro acesso concluído",
       })
       .eq("id", funcionarioCondominioId);
 
     if (atualizarFuncionarioError) throw atualizarFuncionarioError;
 
-    const { error: confirmarError } = await supabaseAdmin.rpc(
-      "rpc_funcionario_confirmar_primeiro_acesso_v1",
+    const { error: marcarError } = await supabaseAdmin.rpc(
+      "rpc_funcionario_marcar_primeiro_acesso_concluido_v1",
       {
         p_convite_id: conviteId,
         p_usuario_id: authUserId,
-      },
+      }
     );
 
-    if (confirmarError) throw confirmarError;
+    if (marcarError) throw marcarError;
 
     return jsonResponse({
       success: true,
       message:
         tipoFluxo === "RESET_SENHA_FUNCIONARIO"
           ? "Senha atualizada com sucesso."
-          : tipoFluxo === "REENVIO_CONVITE_FUNCIONARIO"
-            ? "Acesso atualizado com sucesso."
-            : "Acesso criado com sucesso.",
+          : "Acesso criado com sucesso.",
     });
   } catch (error) {
     console.error("Erro gerenciar-acesso-usuario:", error);
@@ -411,7 +378,7 @@ serve(async (req) => {
         message:
           "Não foi possível concluir o acesso. Tente novamente ou solicite um novo convite.",
       },
-      500,
+      500
     );
   }
 });
