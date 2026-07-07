@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   ArrowRight,
@@ -30,6 +30,12 @@ import "../styles/CriarSenhaResponsavel.css";
 
 export default function CriarSenhaResponsavel() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const token = searchParams.get("token");
+  const tipo = searchParams.get("tipo");
+
+  const [primeiroAcesso, setPrimeiroAcesso] = useState(false);
 
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
@@ -86,6 +92,17 @@ export default function CriarSenhaResponsavel() {
   async function validarSessao() {
     try {
       setValidandoSessao(true);
+
+      if (token) {
+        setPrimeiroAcesso(true);
+
+        console.log("Primeiro acesso detectado", {
+          token,
+          tipo,
+        });
+
+        return;
+      }
 
       const {
         data: { session },
@@ -165,22 +182,10 @@ export default function CriarSenhaResponsavel() {
 
   const requisitos = useMemo(() => {
     return [
-      {
-        texto: "Mínimo de 8 caracteres",
-        valido: senha.length >= 8,
-      },
-      {
-        texto: "Pelo menos 1 letra maiúscula (A-Z)",
-        valido: /[A-Z]/.test(senha),
-      },
-      {
-        texto: "Pelo menos 1 letra minúscula (a-z)",
-        valido: /[a-z]/.test(senha),
-      },
-      {
-        texto: "Pelo menos 1 número (0-9)",
-        valido: /\d/.test(senha),
-      },
+      { texto: "Mínimo de 8 caracteres", valido: senha.length >= 8 },
+      { texto: "Pelo menos 1 letra maiúscula (A-Z)", valido: /[A-Z]/.test(senha) },
+      { texto: "Pelo menos 1 letra minúscula (a-z)", valido: /[a-z]/.test(senha) },
+      { texto: "Pelo menos 1 número (0-9)", valido: /\d/.test(senha) },
       {
         texto: "Pelo menos 1 caractere especial (!@#$%)",
         valido: /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(senha),
@@ -292,9 +297,7 @@ export default function CriarSenhaResponsavel() {
               <ShieldCheck size={20} />
               <span>
                 <strong>Ambiente seguro</strong>
-                <small>
-                  Seus dados são protegidos com criptografia avançada.
-                </small>
+                <small>Seus dados são protegidos com criptografia avançada.</small>
               </span>
             </div>
 
@@ -302,9 +305,7 @@ export default function CriarSenhaResponsavel() {
               <UserCheck size={20} />
               <span>
                 <strong>Acesso pessoal</strong>
-                <small>
-                  Utilize sua senha para acessar de forma segura e individual.
-                </small>
+                <small>Utilize sua senha para acessar de forma segura e individual.</small>
               </span>
             </div>
 
@@ -312,9 +313,7 @@ export default function CriarSenhaResponsavel() {
               <Truck size={20} />
               <span>
                 <strong>Gestão completa</strong>
-                <small>
-                  Gerencie encomendas, transportadoras, moradores e muito mais.
-                </small>
+                <small>Gerencie encomendas, transportadoras, moradores e muito mais.</small>
               </span>
             </div>
           </div>
@@ -540,7 +539,7 @@ export default function CriarSenhaResponsavel() {
                   <ShieldCheck size={19} />
                   <span>
                     <strong>Token único e temporário</strong>
-                    <small>Este link expira em 24 horas.</small>
+                    <small>Este link expira em 5 dias.</small>
                   </span>
                 </div>
 
@@ -567,4 +566,3 @@ export default function CriarSenhaResponsavel() {
     </div>
   );
 }
-

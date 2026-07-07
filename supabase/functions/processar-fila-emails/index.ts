@@ -141,7 +141,7 @@ function gerarHtmlConviteAcessoFuncionario({
   const nomeCondominio = payload.nome_condominio || "seu condomínio";
   const cargoFuncao = payload.cargo_funcao || "Funcionário";
 
-  const link = `${appUrl}/criar-senha?tipo=funcionario&token=${token}`;
+  const link = `${appUrl}/criar-senha-responsavel?tipo=funcionario&token=${token}`;
 
   return `
   <div style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a;">

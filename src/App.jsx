@@ -413,6 +413,11 @@ function App() {
         element={<CriarSenhaResponsavel />}
       />
 
+      <Route
+        path="/criar-senha"
+        element={<CriarSenhaResponsavel />}
+      />
+
       <Route path="/sistema" element={renderizarSistemaProtegido()} />
 
       <Route path="/wizard-morador" element={<WizardMorador />} />
