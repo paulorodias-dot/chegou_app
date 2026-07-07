@@ -36,6 +36,8 @@ export default function CriarSenhaResponsavel() {
   const tipo = searchParams.get("tipo");
 
   const [primeiroAcesso, setPrimeiroAcesso] = useState(false);
+  const [dadosPrimeiroAcesso, setDadosPrimeiroAcesso] = useState(null);
+  const [erroToken, setErroToken] = useState(null);
 
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
@@ -53,7 +55,7 @@ export default function CriarSenhaResponsavel() {
   });
 
   useEffect(() => {
-    validarSessao();
+    validarSessaoOuToken();
   }, []);
 
   useEffect(() => {
@@ -89,18 +91,30 @@ export default function CriarSenhaResponsavel() {
     return "Tema automático";
   }
 
-  async function validarSessao() {
+  async function validarSessaoOuToken() {
     try {
       setValidandoSessao(true);
 
       if (token) {
         setPrimeiroAcesso(true);
 
-        console.log("Primeiro acesso detectado", {
-          token,
-          tipo,
-        });
+        const tipoNormalizado = String(tipo || "").toLowerCase();
 
+        if (tipoNormalizado === "funcionario") {
+          const { data, error } = await supabase.rpc(
+            "rpc_funcionario_validar_token_acesso_v1",
+            {
+              p_token: token,
+            }
+          );
+
+          if (error) throw error;
+
+          setDadosPrimeiroAcesso(data);
+          return;
+        }
+
+        setErroToken("Tipo de acesso não reconhecido.");
         return;
       }
 
@@ -127,6 +141,7 @@ export default function CriarSenhaResponsavel() {
           id,
           nome,
           email,
+          username,
           business_id,
           condominio_id,
           nivel_id,
@@ -164,7 +179,16 @@ export default function CriarSenhaResponsavel() {
         setCondominio(condominioData || null);
       }
     } catch (error) {
-      console.error("Erro ao validar sessão:", error);
+      console.error("Erro ao validar acesso:", error);
+
+      if (token) {
+        setErroToken(
+          error?.message ||
+            "Não foi possível validar este convite. Solicite um novo acesso ao administrador."
+        );
+        return;
+      }
+
       toast.error("Não foi possível validar o acesso.");
       navigate("/login");
     } finally {
@@ -172,19 +196,68 @@ export default function CriarSenhaResponsavel() {
     }
   }
 
-  const emailResponsavel = usuarioSistema?.email || usuarioAuth?.email || "";
+  const fluxoFuncionario =
+    primeiroAcesso &&
+    String(dadosPrimeiroAcesso?.tipo_convite || "").toUpperCase() ===
+      "FUNCIONARIO";
 
-  const nomeResponsavel =
-    usuarioSistema?.nome || usuarioAuth?.user_metadata?.nome || "Responsável";
+  const emailExibido = fluxoFuncionario
+    ? dadosPrimeiroAcesso?.funcionario?.email || ""
+    : usuarioSistema?.email || usuarioAuth?.email || "";
 
-  const nomeCondominio =
-    condominio?.nome_fantasia || condominio?.razao_social || "seu condomínio";
+  const nomeExibido = fluxoFuncionario
+    ? dadosPrimeiroAcesso?.funcionario?.nome || "Funcionário"
+    : usuarioSistema?.nome || usuarioAuth?.user_metadata?.nome || "Responsável";
+
+  const loginExibido = fluxoFuncionario
+    ? dadosPrimeiroAcesso?.convite?.username || ""
+    : usuarioSistema?.username || usuarioAuth?.user_metadata?.username || "";
+
+  const nomeCondominio = fluxoFuncionario
+    ? dadosPrimeiroAcesso?.condominio?.nome || "seu condomínio"
+    : condominio?.nome_fantasia || condominio?.razao_social || "seu condomínio";
+
+  const codigoCondominio = fluxoFuncionario
+    ? dadosPrimeiroAcesso?.condominio?.codigo || "Não informado"
+    : condominio?.codigo_condominio || "Não informado";
+
+  const cargoOuPerfil = fluxoFuncionario
+    ? dadosPrimeiroAcesso?.cargo?.cargo ||
+      dadosPrimeiroAcesso?.cargo?.funcao ||
+      "Funcionário"
+    : "Responsável Logístico";
+
+  const labelEmail = fluxoFuncionario
+    ? "E-mail do funcionário"
+    : "E-mail do responsável";
+
+  const tituloSidebar = fluxoFuncionario
+    ? "Bem-vindo ao Sistema Chegou!"
+    : "Sua conta foi aprovada!";
+
+  const textoSidebar = fluxoFuncionario
+    ? `Você foi convidado para acessar o sistema como ${cargoOuPerfil} do condomínio ${nomeCondominio}.`
+    : `Agora você precisa criar uma senha segura para acessar o sistema e gerenciar as operações logísticas do condomínio ${nomeCondominio}.`;
+
+  const tituloPrincipal = fluxoFuncionario
+    ? "Crie sua senha de acesso"
+    : "Crie sua senha de acesso";
+
+  const subtituloPrincipal = fluxoFuncionario
+    ? "Defina uma senha forte e segura para concluir seu primeiro acesso ao Sistema Chegou!."
+    : "Defina uma senha forte e segura para acessar o sistema Chegou! e gerenciar as operações logísticas do seu condomínio.";
 
   const requisitos = useMemo(() => {
     return [
       { texto: "Mínimo de 8 caracteres", valido: senha.length >= 8 },
-      { texto: "Pelo menos 1 letra maiúscula (A-Z)", valido: /[A-Z]/.test(senha) },
-      { texto: "Pelo menos 1 letra minúscula (a-z)", valido: /[a-z]/.test(senha) },
+      {
+        texto: "Pelo menos 1 letra maiúscula (A-Z)",
+        valido: /[A-Z]/.test(senha),
+      },
+      {
+        texto: "Pelo menos 1 letra minúscula (a-z)",
+        valido: /[a-z]/.test(senha),
+      },
       { texto: "Pelo menos 1 número (0-9)", valido: /\d/.test(senha) },
       {
         texto: "Pelo menos 1 caractere especial (!@#$%)",
@@ -198,7 +271,7 @@ export default function CriarSenhaResponsavel() {
         texto: "Não pode ser igual ao e-mail",
         valido:
           senha.length > 0 &&
-          senha.toLowerCase() !== emailResponsavel.toLowerCase(),
+          senha.toLowerCase() !== String(emailExibido || "").toLowerCase(),
       },
       {
         texto: "Não pode conter sequências simples",
@@ -209,7 +282,7 @@ export default function CriarSenhaResponsavel() {
           ),
       },
     ];
-  }, [senha, emailResponsavel]);
+  }, [senha, emailExibido]);
 
   const requisitosValidos = requisitos.filter((item) => item.valido).length;
   const senhaForte = requisitosValidos >= 7;
@@ -217,7 +290,7 @@ export default function CriarSenhaResponsavel() {
   const senhasIguais =
     senha.length > 0 && confirmarSenha.length > 0 && senha === confirmarSenha;
 
-  const podeEnviar = senhaForte && senhasIguais;
+  const podeEnviar = senhaForte && senhasIguais && !erroToken;
 
   function textoForcaSenha() {
     if (!senha) return "Não informada";
@@ -236,6 +309,11 @@ export default function CriarSenhaResponsavel() {
 
     try {
       setCarregando(true);
+
+      if (fluxoFuncionario) {
+        toast("Fluxo de criação Auth do funcionário será conectado na FASE 3.");
+        return;
+      }
 
       const { error } = await supabase.auth.updateUser({
         password: senha,
@@ -268,6 +346,23 @@ export default function CriarSenhaResponsavel() {
     );
   }
 
+  if (erroToken) {
+    return (
+      <div className="senha-loading">
+        <img src={logo} alt="Chegou!" />
+        <p>{erroToken}</p>
+        <button
+          type="button"
+          className="senha-submit"
+          style={{ maxWidth: 280, margin: "18px auto 0" }}
+          onClick={() => navigate("/login")}
+        >
+          Ir para o login
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="senha-page">
       <aside className="senha-sidebar">
@@ -285,19 +380,18 @@ export default function CriarSenhaResponsavel() {
             <ShieldCheck size={38} />
           </div>
 
-          <h2>Sua conta foi aprovada!</h2>
+          <h2>{tituloSidebar}</h2>
 
-          <p>
-            Agora você precisa criar uma senha segura para acessar o sistema e
-            gerenciar as operações logísticas do condomínio {nomeCondominio}.
-          </p>
+          <p>{textoSidebar}</p>
 
           <div className="senha-sidebar-list">
             <div>
               <ShieldCheck size={20} />
               <span>
                 <strong>Ambiente seguro</strong>
-                <small>Seus dados são protegidos com criptografia avançada.</small>
+                <small>
+                  Seus dados são protegidos com criptografia avançada.
+                </small>
               </span>
             </div>
 
@@ -305,7 +399,9 @@ export default function CriarSenhaResponsavel() {
               <UserCheck size={20} />
               <span>
                 <strong>Acesso pessoal</strong>
-                <small>Utilize sua senha para acessar de forma segura e individual.</small>
+                <small>
+                  Utilize sua senha para acessar de forma segura e individual.
+                </small>
               </span>
             </div>
 
@@ -313,7 +409,9 @@ export default function CriarSenhaResponsavel() {
               <Truck size={20} />
               <span>
                 <strong>Gestão completa</strong>
-                <small>Gerencie encomendas, transportadoras, moradores e muito mais.</small>
+                <small>
+                  Acesse os recursos autorizados para o seu perfil.
+                </small>
               </span>
             </div>
           </div>
@@ -353,11 +451,8 @@ export default function CriarSenhaResponsavel() {
         <section className="senha-content">
           <div className="senha-form-area">
             <div className="senha-title-box">
-              <h1>Crie sua senha de acesso</h1>
-              <p>
-                Defina uma senha forte e segura para acessar o sistema Chegou! e
-                gerenciar as operações logísticas do seu condomínio.
-              </p>
+              <h1>{tituloPrincipal}</h1>
+              <p>{subtituloPrincipal}</p>
             </div>
 
             <div className="senha-info-box">
@@ -365,19 +460,38 @@ export default function CriarSenhaResponsavel() {
               <div>
                 <strong>Esta é sua primeira etapa de acesso.</strong>
                 <p>
-                  Após criar sua senha, você poderá fazer login normalmente com
-                  seu e-mail e senha.
+                  Após criar sua senha, você poderá fazer login com o código do
+                  condomínio, seu login de usuário e sua senha.
+                </p>
+              </div>
+            </div>
+
+            <div className="senha-info-box">
+              <UserCheck size={23} />
+              <div>
+                <strong>Dados do acesso</strong>
+                <p>
+                  <strong>Nome:</strong> {nomeExibido}
+                  <br />
+                  <strong>Perfil:</strong> {cargoOuPerfil}
+                  <br />
+                  <strong>Condomínio:</strong> {nomeCondominio}
+                  <br />
+                  <strong>Código do condomínio:</strong> {codigoCondominio}
+                  <br />
+                  <strong>Login de usuário:</strong>{" "}
+                  {loginExibido || "Será definido após a validação."}
                 </p>
               </div>
             </div>
 
             <form className="senha-form" onSubmit={criarSenha}>
               <div className="senha-field-group">
-                <label>E-mail do responsável</label>
+                <label>{labelEmail}</label>
 
                 <div className="senha-input-wrapper senha-input-disabled">
                   <Mail size={18} />
-                  <input value={emailResponsavel} disabled />
+                  <input value={emailExibido} disabled />
                 </div>
               </div>
 
@@ -417,7 +531,11 @@ export default function CriarSenhaResponsavel() {
                       type="button"
                       onClick={() => setMostrarConfirmar((prev) => !prev)}
                     >
-                      {mostrarConfirmar ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {mostrarConfirmar ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -439,10 +557,14 @@ export default function CriarSenhaResponsavel() {
               </div>
 
               {senha && (
-                <div className={`senha-alert ${senhaForte ? "success" : "warning"}`}>
+                <div
+                  className={`senha-alert ${
+                    senhaForte ? "success" : "warning"
+                  }`}
+                >
                   <CheckCircle size={20} />
                   {senhaForte
-                    ? "Excelente! Sua senha atende a todos os requisitos de segurança."
+                    ? "Excelente! Sua senha atende aos requisitos de segurança."
                     : "Continue ajustando sua senha para atender aos requisitos."}
                 </div>
               )}
@@ -459,7 +581,9 @@ export default function CriarSenhaResponsavel() {
                 disabled={!podeEnviar || carregando}
               >
                 <Lock size={18} />
-                {carregando ? "Criando senha..." : "Criar senha e acessar o sistema"}
+                {carregando
+                  ? "Criando senha..."
+                  : "Criar senha e acessar o sistema"}
                 <ArrowRight size={20} />
               </button>
 
@@ -489,14 +613,14 @@ export default function CriarSenhaResponsavel() {
 
               <div>
                 <Building2 size={22} />
-                <strong>Gestão completa</strong>
-                <p>Administre encomendas, moradores e recursos.</p>
+                <strong>Condomínio</strong>
+                <p>Acesse somente o condomínio autorizado.</p>
               </div>
 
               <div>
                 <Truck size={22} />
-                <strong>Logística eficiente</strong>
-                <p>Otimize processos e tenha mais controle.</p>
+                <strong>Operação eficiente</strong>
+                <p>Tenha acesso aos recursos liberados para sua função.</p>
               </div>
 
               <div>
