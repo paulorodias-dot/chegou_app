@@ -116,7 +116,7 @@ export const menusByRole = {
           id: "admin-funcionarios",
           label: "Funcionários",
           icon: UserCog,
-          visible: false,
+          visible: true,
         },
         {
           id: "admin-cargos-funcoes",
@@ -134,7 +134,7 @@ export const menusByRole = {
           id: "admin-fornecedor",
           label: "Fornecedor",
           icon: Handshake,
-          visible: false,
+          visible: true,
         },
       ],
     },

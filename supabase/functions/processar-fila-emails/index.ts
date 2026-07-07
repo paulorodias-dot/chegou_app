@@ -123,6 +123,103 @@ async function criarNotificacaoErroEnvio({
   });
 }
 
+function gerarHtmlConviteAcessoFuncionario({
+  item,
+  payload,
+}: {
+  item: Record<string, any>;
+  payload: Record<string, any>;
+}) {
+  const appUrl =
+    Deno.env.get("APP_URL") ||
+    Deno.env.get("VITE_APP_URL") ||
+    "http://localhost:5173";
+
+  const token = payload.token;
+  const username = payload.username || "";
+  const nomeFuncionario = payload.nome_funcionario || item.nome_destino || "Funcionário";
+  const nomeCondominio = payload.nome_condominio || "seu condomínio";
+  const cargoFuncao = payload.cargo_funcao || "Funcionário";
+
+  const link = `${appUrl}/criar-senha?tipo=funcionario&token=${token}`;
+
+  return `
+  <div style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a;">
+    <div style="max-width:680px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e7eb;">
+      
+      <div style="background:#ffedd5;padding:34px 28px;text-align:center;color:#0f172a;">
+        <div style="font-size:34px;font-weight:800;letter-spacing:-1px;">
+          Chegou<span style="color:#f97316;">!</span>
+        </div>
+        <div style="margin-top:8px;font-size:16px;color:#7c2d12;">
+          Gestão Inteligente de Encomendas
+        </div>
+      </div>
+
+      <div style="padding:34px 34px 28px;">
+        <h1 style="margin:0 0 20px;font-size:25px;line-height:1.25;color:#0f172a;">
+          Olá ${nomeFuncionario},
+        </h1>
+
+        <p style="font-size:16px;line-height:1.65;color:#334155;margin:0 0 18px;">
+          Você recebeu um convite para acessar o <strong>Sistema Chegou!</strong>
+          como <strong>${cargoFuncao}</strong> do condomínio
+          <strong>${nomeCondominio}</strong>.
+        </p>
+
+        <p style="font-size:16px;line-height:1.65;color:#334155;margin:0 0 24px;">
+          Para concluir seu primeiro acesso, crie uma senha segura usando o botão abaixo.
+        </p>
+
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:18px;margin:24px 0;">
+          <p style="margin:0;color:#7c2d12;font-size:15px;line-height:1.6;">
+            <strong>Login:</strong> ${username}<br/>
+            <strong>Validade:</strong> 5 dias<br/>
+            <strong>Uso:</strong> link único e pessoal
+          </p>
+        </div>
+
+        <div style="text-align:center;margin:32px 0;">
+          <a href="${link}" style="display:inline-block;background:#f97316;color:#ffffff;text-decoration:none;padding:15px 30px;border-radius:12px;font-weight:800;font-size:16px;">
+            Criar minha senha
+          </a>
+        </div>
+
+        <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:16px;margin-top:24px;">
+          <p style="margin:0;color:#64748b;font-size:14px;line-height:1.6;">
+            Este link é pessoal, seguro e de uso único. Não compartilhe com terceiros.
+          </p>
+        </div>
+
+        <p style="color:#64748b;font-size:14px;line-height:1.6;margin:24px 0 8px;">
+          Caso o botão acima não funcione, copie e cole o link abaixo no navegador:
+        </p>
+
+        <p style="color:#2563eb;font-size:13px;word-break:break-all;margin:0 0 28px;">
+          ${link}
+        </p>
+
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0;" />
+
+        <p style="font-size:15px;color:#334155;line-height:1.6;margin:0;">
+          Seja bem-vindo ao Sistema Chegou!
+        </p>
+
+        <p style="font-size:16px;color:#0f172a;font-weight:800;margin:18px 0 0;">
+          Equipe Chegou<span style="color:#f97316;">!</span>
+        </p>
+      </div>
+
+      <div style="background:#f8fafc;text-align:center;padding:24px 28px;color:#64748b;font-size:13px;line-height:1.7;">
+        <p style="margin:0 0 8px;">Este é um e-mail automático. Não responda esta mensagem.</p>
+        <p style="margin:0 0 8px;">[Endereço físico da empresa — definir no módulo institucional]</p>
+        <p style="margin:0;">© 2026 Chegou<span style="color:#f97316;">!</span> Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
 async function atualizarStatusRelacionado({
   supabaseAdmin,
   item,
@@ -156,6 +253,35 @@ async function atualizarStatusRelacionado({
       .update(payloadConvite)
       .eq("id", item.convite_id);
   }
+
+    const conviteFuncionarioId =
+      item.payload?.convite_acesso_funcionario_id || null;
+
+    if (conviteFuncionarioId) {
+      const statusFuncionario =
+        status === "enviado"
+          ? "ENVIADO"
+          : status === "erro_envio"
+          ? "ERRO_ENVIO"
+          : status === "processando"
+          ? "PROCESSANDO"
+          : "AGUARDANDO_ENVIO";
+
+      const payloadFuncionario: Record<string, unknown> = {
+        status: statusFuncionario,
+        atualizado_em: new Date().toISOString(),
+      };
+
+      if (enviadoEm) payloadFuncionario.enviado_em = enviadoEm;
+      if (brevoResult) payloadFuncionario.resposta_brevo = brevoResult;
+      if (brevoMessageId) payloadFuncionario.brevo_message_id = brevoMessageId;
+      if (mensagemErro) payloadFuncionario.ultimo_erro = mensagemErro;
+
+      await supabaseAdmin
+        .from("convites_acesso_funcionarios")
+        .update(payloadFuncionario)
+        .eq("id", conviteFuncionarioId);
+    }
 
   if (item.pre_cadastro_id) {
     const payloadPre: Record<string, unknown> = {
@@ -341,7 +467,16 @@ serve(async (req) => {
     });
 
     const payload = item.payload || {};
-    const htmlContent = payload.html_content || "";
+
+    let htmlContent = payload.html_content || "";
+
+    if (!htmlContent && item.tipo_email === "CONVITE_ACESSO_FUNCIONARIO") {
+      htmlContent = gerarHtmlConviteAcessoFuncionario({ item, payload });
+    }
+
+    if (!htmlContent) {
+      throw new Error("htmlContent is missing");
+    }
 
     const brevoResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -358,7 +493,10 @@ serve(async (req) => {
         to: [
           {
             email: item.email_destino,
-            name: item.nome_destino || "Morador",
+            name:
+              item.tipo_email === "CONVITE_ACESSO_FUNCIONARIO"
+                ? item.nome_destino || "Funcionário"
+                : item.nome_destino || "Morador",
           },
         ],
         subject: item.assunto || "Complete seu cadastro no Chegou!",

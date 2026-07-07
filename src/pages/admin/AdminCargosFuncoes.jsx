@@ -1077,20 +1077,16 @@ export default function AdminCargosFuncoes({ perfil }) {
         <article className="admin-cargos-comunicado-card">
           <div className="admin-cargos-comunicado-head">
             <Info size={18} />
-            <h3>Painel de Comunicados Chegou!</h3>
+            <h3>Painel de Comunicados Chegou</h3>
           </div>
 
           <div className="admin-cargos-comunicado-box">
             <div>
               <strong>Comunicados do Módulo</strong>
-              <p>Espaço reservado para avisos do Master ou Administrativo.</p>
+              <p>Espaço reservado para avisos do Sistema ou Administrativo.</p>
             </div>
           </div>
-
-          <p>
-            Este espaço será usado para comunicados operacionais, orientações,
-            novidades do sistema e avisos importantes.
-          </p>
+          
         </article>
 
         <article className="admin-cargos-side-card">
