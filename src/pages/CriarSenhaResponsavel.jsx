@@ -311,7 +311,41 @@ export default function CriarSenhaResponsavel() {
       setCarregando(true);
 
       if (fluxoFuncionario) {
-        toast("Fluxo de criação Auth do funcionário será conectado na FASE 3.");
+        const tipoFluxo =
+          dadosPrimeiroAcesso?.convite?.tipo_fluxo ||
+          "PRIMEIRO_ACESSO_FUNCIONARIO";
+
+        const { data, error } = await supabase.functions.invoke(
+          "gerenciar-acesso-usuario",
+          {
+            body: {
+              tipo_fluxo: tipoFluxo,
+              token,
+              senha,
+              confirmar_senha: confirmarSenha,
+            },
+          }
+        );
+
+        if (error) throw error;
+
+        if (!data?.success) {
+          throw new Error(
+            data?.message || "Não foi possível criar o acesso."
+          );
+        }
+
+        toast.success("Senha criada com sucesso!");
+
+        setTimeout(() => {
+          navigate("/login", {
+            state: {
+              mensagem:
+                "Senha criada com sucesso. Faça login com o código do condomínio, seu login de usuário e sua senha.",
+            },
+          });
+        }, 1400);
+
         return;
       }
 
