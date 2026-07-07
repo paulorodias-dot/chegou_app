@@ -466,22 +466,43 @@ export default function CriarSenhaResponsavel() {
               </div>
             </div>
 
-            <div className="senha-info-box">
-              <UserCheck size={23} />
-              <div>
-                <strong>Dados do acesso</strong>
-                <p>
-                  <strong>Nome:</strong> {nomeExibido}
-                  <br />
-                  <strong>Perfil:</strong> {cargoOuPerfil}
-                  <br />
-                  <strong>Condomínio:</strong> {nomeCondominio}
-                  <br />
-                  <strong>Código do condomínio:</strong> {codigoCondominio}
-                  <br />
-                  <strong>Login de usuário:</strong>{" "}
-                  {loginExibido || "Será definido após a validação."}
-                </p>
+            <div className="senha-access-card">
+              <div className="senha-access-card-header">
+                <div className="senha-access-icon">
+                  <UserCheck size={20} />
+                </div>
+
+                <div>
+                  <span>Dados do acesso</span>
+                  <strong>Confira as informações antes de criar sua senha.</strong>
+                </div>
+              </div>
+
+              <div className="senha-access-grid">
+                <div>
+                  <span>Nome</span>
+                  <strong>{nomeExibido}</strong>
+                </div>
+
+                <div>
+                  <span>Perfil</span>
+                  <strong>{cargoOuPerfil}</strong>
+                </div>
+
+                <div>
+                  <span>Condomínio</span>
+                  <strong>{nomeCondominio}</strong>
+                </div>
+
+                <div>
+                  <span>Código do condomínio</span>
+                  <strong>{codigoCondominio}</strong>
+                </div>
+
+                <div className="span-2">
+                  <span>Login de usuário</span>
+                  <strong>{loginExibido || "Será definido após a validação."}</strong>
+                </div>
               </div>
             </div>
 
