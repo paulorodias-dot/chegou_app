@@ -12,12 +12,10 @@ import {
   sessaoExpiradaPorInatividade,
 } from "./services/authService";
 
-import MasterLayout from "./layouts/MasterLayout";
 import AppLayout from "./layouts/AppLayout";
 
 import CargosFuncoes from "./pages/master/CargosFuncoes";
 import AcessoAssistidoMaster from "./pages/master/AcessoAssistidoMaster";
-
 import DashboardMaster from "./pages/master/DashboardMaster";
 import CadastroCondominio from "./pages/master/CadastroCondominio";
 import AuditoriaCondominios from "./pages/master/AuditoriaCondominios";
@@ -34,10 +32,10 @@ import AdminCargosFuncoes from "./pages/admin/AdminCargosFuncoes";
 import CadastroFornecedores from "./pages/admin/CadastroFornecedores";
 
 import MoradorDashboard from "./pages/morador/MoradorDashboard";
+import PortariaInicio from "./pages/portaria/PortariaInicio";
 
 import PaginaPreparando from "./pages/PaginaPreparando";
 import WizardCondominio from "./pages/wizardCondominio";
-
 import WizardMorador from "./pages/WizardMorador";
 
 import "./App.css";
@@ -62,6 +60,24 @@ function App() {
   const [carregandoSessao, setCarregandoSessao] = useState(true);
 
   useEffect(() => {
+    document.documentElement.classList.add("chegou-app-fullscreen");
+    document.body.classList.add("chegou-app-fullscreen");
+
+    const viewport = document.querySelector('meta[name="viewport"]');
+
+    if (viewport) {
+      viewport.setAttribute(
+        "content",
+        "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
+      );
+    }
+
+    if ("serviceWorker" in navigator && import.meta.env.PROD) {
+      navigator.serviceWorker.register("/sw.js").catch((error) => {
+        console.warn("Service Worker não registrado:", error);
+      });
+    }
+
     restaurarSessao();
   }, []);
 
@@ -73,9 +89,7 @@ function App() {
     const eventos = ["mousemove", "keydown", "click", "scroll", "touchstart"];
 
     function registrarAtividade() {
-      if (perfil) {
-        registrarAtividadeUsuario();
-      }
+      if (perfil) registrarAtividadeUsuario();
     }
 
     eventos.forEach((evento) => {
@@ -109,12 +123,8 @@ function App() {
 
         if (paginaSalva) {
           setPaginaAtual(paginaSalva);
-        } else if (role === "master") {
-          setPaginaAtual("dashboard");
-        } else if (role === "admin_logistica") {
-          setPaginaAtual("admin-dashboard");
         } else {
-          setPaginaAtual("morador-dashboard");
+          setPaginaAtual(getPaginaInicialPorRole(role));
         }
       }
     } catch (error) {
@@ -128,10 +138,18 @@ function App() {
     const nivel = Number(perfilUsuario?.nivel_id);
 
     if (nivel === 1) return "master";
-    if ([2, 3, 4, 5].includes(nivel)) return "admin_logistica";
+    if ([2, 3, 4].includes(nivel)) return "admin_logistica";
+    if (nivel === 5) return "funcionario";
     if ([6, 7].includes(nivel)) return "morador";
 
     return "admin_logistica";
+  }
+
+  function getPaginaInicialPorRole(role) {
+    if (role === "master") return "dashboard";
+    if (role === "admin_logistica") return "admin-dashboard";
+    if (role === "funcionario") return "portaria-inicio";
+    return "morador-dashboard";
   }
 
   function navegarPara(pagina) {
@@ -141,19 +159,9 @@ function App() {
 
   function handleLogin(perfilUsuario) {
     const role = getRole(perfilUsuario);
+    const paginaInicial = getPaginaInicialPorRole(role);
 
     setPerfil(perfilUsuario);
-
-    let paginaInicial = "dashboard";
-
-    if (role === "master") {
-      paginaInicial = "dashboard";
-    } else if (role === "admin_logistica") {
-      paginaInicial = "admin-dashboard";
-    } else {
-      paginaInicial = "morador-dashboard";
-    }
-
     setPaginaAtual(paginaInicial);
     localStorage.setItem("chegou_pagina_atual", paginaInicial);
 
@@ -164,9 +172,7 @@ function App() {
     await logout();
 
     setPerfil(null);
-
     setSuporteMaster(null);
-
     setPaginaAtual("dashboard");
 
     localStorage.removeItem("chegou_pagina_atual");
@@ -187,15 +193,13 @@ function App() {
   function entrarModoSuporteMaster(contexto) {
     setSuporteMaster(contexto);
     localStorage.setItem("chegou_suporte_master", JSON.stringify(contexto));
-    setPaginaAtual("admin-dashboard");
-    localStorage.setItem("chegou_pagina_atual", "admin-dashboard");
+    navegarPara("admin-dashboard");
   }
 
   function sairModoSuporteMaster() {
     setSuporteMaster(null);
     localStorage.removeItem("chegou_suporte_master");
-    setPaginaAtual("dashboard");
-    localStorage.setItem("chegou_pagina_atual", "dashboard");
+    navegarPara("dashboard");
   }
 
   function renderizarPaginaMaster() {
@@ -230,7 +234,7 @@ function App() {
       return <WizardMorador modoTeste perfil={perfil} />;
     }
 
-    return <PaginaPreparando titulo="Módulo" />;
+    return <PaginaPreparando titulo="Módulo Master" />;
   }
 
   function renderizarPaginaAdmin(perfilContexto = perfil) {
@@ -306,7 +310,63 @@ function App() {
       return <MoradorDashboard perfil={perfil} usuario={perfil} />;
     }
 
+    if (paginaAtual === "morador-encomendas-retiradas") {
+      return <PaginaPreparando titulo="Retiradas de Encomendas" />;
+    }
+
+    if (paginaAtual === "morador-encomendas-rastreio") {
+      return <PaginaPreparando titulo="Rastreio de Encomendas" />;
+    }
+
+    if (paginaAtual === "morador-encomendas-diretas-grande-porte") {
+      return <PaginaPreparando titulo="Entregas Diretas e Grande Porte" />;
+    }
+
+    if (paginaAtual === "morador-encomendas-pendentes") {
+      return <PaginaPreparando titulo="Encomendas Pendentes" />;
+    }
+
+    if (paginaAtual === "morador-encomendas-recebidas") {
+      return <PaginaPreparando titulo="Encomendas Recebidas" />;
+    }
+
+    if (paginaAtual === "morador-garagem-perfil-vaga") {
+      return <PaginaPreparando titulo="Perfil da Vaga" />;
+    }
+
+    if (paginaAtual === "morador-garagem-emprestimo") {
+      return <PaginaPreparando titulo="Empréstimo de Garagem" />;
+    }
+
+    if (paginaAtual === "morador-perfil") {
+      return <PaginaPreparando titulo="Perfil do Morador" />;
+    }
+
+    if (paginaAtual === "morador-notificacoes") {
+      return <PaginaPreparando titulo="Notificações do Morador" />;
+    }
+
+    if (paginaAtual === "morador-configuracoes") {
+      return <PaginaPreparando titulo="Configurações do Morador" />;
+    }
+
+    if (paginaAtual === "morador-manual-ajuda") {
+      return <PaginaPreparando titulo="Manual e Ajuda" />;
+    }
+
+    if (paginaAtual === "morador-sobre") {
+      return <PaginaPreparando titulo="Sobre o Sistema Chegou!" />;
+    }
+
     return <PaginaPreparando titulo="Módulo Morador" />;
+  }
+
+  function renderizarPaginaPortaria() {
+    if (paginaAtual === "portaria-inicio") {
+      return <PortariaInicio perfil={perfil} />;
+    }
+
+    return <PaginaPreparando titulo="Módulo Portaria" />;
   }
 
   function renderizarSistemaProtegido() {
@@ -323,21 +383,15 @@ function App() {
     if (role === "master" && suporteMaster?.modo_suporte_master) {
       const perfilSuporte = {
         ...perfil,
-
         modo_suporte_master: true,
-
         suporte_master_id: suporteMaster.suporte_master_id,
         suporte_master_nome: suporteMaster.suporte_master_nome,
         suporte_master_email: suporteMaster.suporte_master_email,
-
         condominio_id: suporteMaster.condominio_id,
-
         business_id: suporteMaster.business_id_condominio,
         business_id_condominio: suporteMaster.business_id_condominio,
-
         nome_condominio: suporteMaster.nome_condominio,
         codigo_condominio: suporteMaster.codigo_condominio,
-
         origem_login: "suporte_master",
       };
 
@@ -357,14 +411,15 @@ function App() {
 
     if (role === "master") {
       return (
-        <MasterLayout
+        <AppLayout
           perfil={perfil}
+          role="master"
           activePage={paginaAtual}
           onNavigate={navegarPara}
           onLogout={() => handleLogout(false)}
         >
           {renderizarPaginaMaster()}
-        </MasterLayout>
+        </AppLayout>
       );
     }
 
@@ -378,6 +433,20 @@ function App() {
           onLogout={() => handleLogout(false)}
         >
           {renderizarPaginaAdmin()}
+        </AppLayout>
+      );
+    }
+
+    if (role === "funcionario") {
+      return (
+        <AppLayout
+          perfil={perfil}
+          role="funcionario"
+          activePage={paginaAtual}
+          onNavigate={navegarPara}
+          onLogout={() => handleLogout(false)}
+        >
+          {renderizarPaginaPortaria()}
         </AppLayout>
       );
     }
@@ -398,33 +467,16 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-
       <Route path="/login" element={<Login onLogin={handleLogin} />} />
-
       <Route path="/primeiro-acesso" element={<WizardCondominio />} />
-
-      <Route
-        path="/primeiro-acesso-condominio"
-        element={<WizardCondominio />}
-      />
-
-      <Route
-        path="/criar-senha-responsavel"
-        element={<CriarSenhaResponsavel />}
-      />
-
-      <Route
-        path="/criar-senha"
-        element={<CriarSenhaResponsavel />}
-      />
-
+      <Route path="/primeiro-acesso-condominio" element={<WizardCondominio />} />
+      <Route path="/criar-senha-responsavel" element={<CriarSenhaResponsavel />} />
+      <Route path="/criar-senha" element={<CriarSenhaResponsavel />} />
       <Route path="/sistema" element={renderizarSistemaProtegido()} />
-
       <Route path="/wizard-morador" element={<WizardMorador />} />
-
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-    );
+  );
 }
 
 export default App;

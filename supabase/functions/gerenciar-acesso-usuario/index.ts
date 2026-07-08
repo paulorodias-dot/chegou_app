@@ -238,16 +238,26 @@ serve(async (req) => {
       );
     }
 
-    const tipoVinculo =
-      String(tokenInfo?.cargo?.cargo || tokenInfo?.cargo?.funcao || "")
-        .toLowerCase()
-        .includes("zelador")
-        ? "zelador"
-        : String(tokenInfo?.cargo?.cargo || tokenInfo?.cargo?.funcao || "")
-            .toLowerCase()
-            .includes("admin")
-        ? "administrativo"
-        : "porteiro";
+    const cargoTexto = String(
+      tokenInfo?.cargo?.cargo || tokenInfo?.cargo?.funcao || ""
+    ).toLowerCase();
+
+    if (cargoTexto.includes("síndico") || cargoTexto.includes("sindico")) {
+      return jsonResponse(
+        {
+          success: false,
+          message:
+            "Síndico deve ser criado pelo fluxo de Responsável/Admin, não pelo fluxo de Funcionários.",
+        },
+        400
+      );
+    }
+
+    const tipoVinculo = cargoTexto.includes("zelador")
+      ? "zelador"
+      : cargoTexto.includes("admin")
+      ? "administrativo"
+      : "porteiro";
 
     const nivelId = 5;
 

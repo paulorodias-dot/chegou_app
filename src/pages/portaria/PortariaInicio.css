@@ -1,0 +1,156 @@
+.portaria-inicio-page {
+  padding: 24px;
+  min-height: calc(100vh - 80px);
+  background: #f8fafc;
+}
+
+.portaria-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.portaria-kicker {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: #f97316;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.portaria-hero h1 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.portaria-hero p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.portaria-hero-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.portaria-construcao-card {
+  margin-top: 20px;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  background: #ffffff;
+  border: 1px dashed rgba(37, 99, 235, 0.28);
+  border-radius: 24px;
+  padding: 32px;
+}
+
+.portaria-construcao-card svg {
+  color: #2563eb;
+  margin-bottom: 14px;
+}
+
+.portaria-construcao-card h2 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.portaria-construcao-card p {
+  max-width: 520px;
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.portaria-preview-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.portaria-preview-grid div {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.portaria-preview-grid svg {
+  color: #2563eb;
+  margin-bottom: 10px;
+}
+
+.portaria-preview-grid strong {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.portaria-preview-grid span {
+  display: block;
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+  .portaria-inicio-page {
+    background: #071426;
+  }
+
+  .portaria-hero,
+  .portaria-construcao-card,
+  .portaria-preview-grid div {
+    background: #0e213a;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .portaria-hero h1,
+  .portaria-construcao-card h2,
+  .portaria-preview-grid strong {
+    color: #f8fafc;
+  }
+
+  .portaria-hero p,
+  .portaria-construcao-card p {
+    color: #b6c4d8;
+  }
+}
+
+@media (max-width: 768px) {
+  .portaria-inicio-page {
+    padding: 14px;
+    padding-bottom: 86px;
+  }
+
+  .portaria-hero {
+    padding: 18px;
+  }
+
+  .portaria-preview-grid {
+    grid-template-columns: 1fr;
+  }
+}

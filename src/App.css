@@ -2241,3 +2241,71 @@ input:-webkit-autofill:focus {
   -webkit-text-fill-color: #0f172a !important;
   caret-color: #0f172a !important;
 }
+
+/* =========================================================
+   SISTEMA CHEGOU! — PWA / FULLSCREEN / APP-LIKE
+========================================================= */
+
+html.chegou-app-fullscreen,
+body.chegou-app-fullscreen,
+#root {
+  width: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+body.chegou-app-fullscreen {
+  background: #f5f7fb;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    min-height: 100dvh;
+  }
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+@media (min-width: 901px) {
+  input,
+  select,
+  textarea {
+    font-size: 14px;
+  }
+}
+
+/* Remove sensação de página web no mobile/PWA */
+@media (display-mode: standalone) {
+  body {
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  select {
+    user-select: text;
+  }
+}
+
+/* Safe area iPhone */
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-right: env(safe-area-inset-right);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
+}

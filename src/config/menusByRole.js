@@ -19,7 +19,7 @@ import {
   BriefcaseBusiness,
   UserCog,
   Truck,
-  Handshake
+  Handshake,
 } from "lucide-react";
 
 export const menusByRole = {
@@ -46,7 +46,6 @@ export const menusByRole = {
         },
       ],
     },
-
     {
       id: "usuarios-master",
       label: "Usuários",
@@ -61,16 +60,17 @@ export const menusByRole = {
         },
       ],
     },
-
     {
       id: "usuarios",
       label: "Usuários",
       icon: Users,
+      visible: false,
     },
     {
       id: "convites",
       label: "Convites",
       icon: Mail,
+      visible: false,
     },
     {
       id: "notificacoes",
@@ -142,7 +142,7 @@ export const menusByRole = {
       id: "admin-auditoria-logs",
       label: "Auditoria e Logs",
       icon: ShieldCheck,
-      mobileTarget: "admin-auditoria-moradores-convite",
+      mobileTarget: "admin-auditoria-moradores-pre-cadastro",
       hideOnMobileBottom: true,
       children: [
         {
@@ -180,7 +180,7 @@ export const menusByRole = {
     },
   ],
 
-    morador: [
+  morador: [
     {
       id: "morador-dashboard",
       label: "Início",
@@ -191,19 +191,20 @@ export const menusByRole = {
       id: "morador-encomendas",
       label: "Encomendas",
       icon: Package,
-      visible: false,
+      visible: true,
+      mobileTarget: "morador-encomendas-retiradas",
       children: [
         {
           id: "morador-encomendas-retiradas",
           label: "Retiradas",
           icon: Package,
-          visible: false,
+          visible: true,
         },
         {
           id: "morador-encomendas-rastreio",
           label: "Rastreio",
           icon: Package,
-          visible: false,
+          visible: true,
         },
         {
           id: "morador-encomendas-diretas-grande-porte",
@@ -229,7 +230,8 @@ export const menusByRole = {
       id: "morador-vagas-garagem",
       label: "Vagas de Garagem",
       icon: Car,
-      visible: false,
+      visible: true,
+      mobileTarget: "morador-garagem-emprestimo",
       children: [
         {
           id: "morador-garagem-perfil-vaga",
@@ -241,7 +243,7 @@ export const menusByRole = {
           id: "morador-garagem-emprestimo",
           label: "Empréstimo",
           icon: Car,
-          visible: false,
+          visible: true,
         },
       ],
     },
@@ -249,31 +251,40 @@ export const menusByRole = {
       id: "morador-perfil",
       label: "Perfil",
       icon: User,
-      visible: false,
+      visible: true,
     },
     {
       id: "morador-notificacoes",
       label: "Notificações",
       icon: Bell,
-      visible: false,
+      visible: true,
     },
     {
       id: "morador-configuracoes",
       label: "Configurações",
       icon: Settings,
-      visible: false,
+      visible: true,
     },
     {
       id: "morador-manual-ajuda",
       label: "Manual e Ajuda",
       icon: HelpCircle,
-      visible: false,
+      visible: true,
     },
     {
       id: "morador-sobre",
       label: "Sobre",
       icon: Info,
-      visible: false,
+      visible: true,
+    },
+  ],
+
+  funcionario: [
+    {
+      id: "portaria-inicio",
+      label: "Início",
+      icon: Home,
+      visible: true,
     },
   ],
 };
