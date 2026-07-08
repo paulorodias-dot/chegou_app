@@ -179,12 +179,6 @@ serve(async (req) => {
       ? funcionario.cargos[0]
       : funcionario.cargos;
 
-    const nivelCargo = Number(cargo?.nivel_hierarquico);
-    const nivelId =
-      Number.isInteger(nivelCargo) && nivelCargo >= 2 && nivelCargo <= 7
-        ? nivelCargo
-        : 5;
-
     let authUserId = funcionario.usuario_id || null;
 
     if (!authUserId) {
@@ -244,6 +238,19 @@ serve(async (req) => {
       );
     }
 
+    const tipoVinculo =
+      String(tokenInfo?.cargo?.cargo || tokenInfo?.cargo?.funcao || "")
+        .toLowerCase()
+        .includes("zelador")
+        ? "zelador"
+        : String(tokenInfo?.cargo?.cargo || tokenInfo?.cargo?.funcao || "")
+            .toLowerCase()
+            .includes("admin")
+        ? "administrativo"
+        : "porteiro";
+
+    const nivelId = 5;
+
     const { error: upsertUsuarioError } = await supabaseAdmin
       .from("usuarios")
       .upsert(
@@ -274,7 +281,7 @@ serve(async (req) => {
         .select("id")
         .eq("usuario_id", authUserId)
         .eq("condominio_id", condominioId)
-        .eq("tipo_vinculo", "FUNCIONARIO")
+        .in("tipo_vinculo", ["porteiro", "zelador", "administrativo"])
         .maybeSingle();
 
     if (vinculoBuscaError) throw vinculoBuscaError;
@@ -290,7 +297,7 @@ serve(async (req) => {
             pessoa_id: funcionario.pessoa_id,
             condominio_id: condominioId,
             username,
-            tipo_vinculo: "FUNCIONARIO",
+            tipo_vinculo: tipoVinculo,
             cargo: funcionario.tipo_funcionario,
             ativo: true,
             email_login: email,
