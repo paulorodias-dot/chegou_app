@@ -13,6 +13,7 @@ import {
 } from "./services/authService";
 
 import AppLayout from "./layouts/AppLayout";
+import MasterLayout from "./layouts/MasterLayout";
 
 import CargosFuncoes from "./pages/master/CargosFuncoes";
 import AcessoAssistidoMaster from "./pages/master/AcessoAssistidoMaster";
@@ -121,11 +122,7 @@ function App() {
         const role = getRole(sessao.perfil);
         const paginaSalva = localStorage.getItem("chegou_pagina_atual");
 
-        if (paginaSalva) {
-          setPaginaAtual(paginaSalva);
-        } else {
-          setPaginaAtual(getPaginaInicialPorRole(role));
-        }
+        setPaginaAtual(paginaSalva || getPaginaInicialPorRole(role));
       }
     } catch (error) {
       console.warn("Sessão não restaurada:", error);
@@ -162,8 +159,7 @@ function App() {
     const paginaInicial = getPaginaInicialPorRole(role);
 
     setPerfil(perfilUsuario);
-    setPaginaAtual(paginaInicial);
-    localStorage.setItem("chegou_pagina_atual", paginaInicial);
+    navegarPara(paginaInicial);
 
     navigate("/sistema");
   }
@@ -411,15 +407,14 @@ function App() {
 
     if (role === "master") {
       return (
-        <AppLayout
+        <MasterLayout
           perfil={perfil}
-          role="master"
           activePage={paginaAtual}
           onNavigate={navegarPara}
           onLogout={() => handleLogout(false)}
         >
           {renderizarPaginaMaster()}
-        </AppLayout>
+        </MasterLayout>
       );
     }
 

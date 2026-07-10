@@ -2211,7 +2211,7 @@ textarea:focus,
 select:focus {
   outline: none !important;
   box-shadow: none !important;
-  border-color: transparent !important;
+  border-color: #bfdbfe !important;
 }
 
 input:focus-visible,
@@ -2219,7 +2219,7 @@ textarea:focus-visible,
 select:focus-visible {
   outline: none !important;
   box-shadow: none !important;
-  border-color: transparent !important;
+  border-color: #bfdbfe !important;
 }
 
 /* Wrappers de campos com focus-within */
@@ -2231,7 +2231,7 @@ select:focus-visible {
 .cf-pagination-controls select:focus {
   outline: none !important;
   box-shadow: none !important;
-  border-color: transparent !important;
+  border-color: #bfdbfe !important;
 }
 
 /* Mobile / Chrome / autofill */
@@ -2309,3 +2309,4 @@ textarea {
   --safe-bottom: env(safe-area-inset-bottom);
   --safe-left: env(safe-area-inset-left);
 }
+

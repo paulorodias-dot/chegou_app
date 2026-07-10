@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { contarNotificacoesNaoLidasAdministrativo } from "../services/notificacoesService";
 import {
   Bell,
@@ -22,22 +22,18 @@ import NotificationCenter from "../components/NotificationCenter";
 import "./AppLayout.css";
 
 const COPYRIGHT_YEAR = new Date().getFullYear();
+const PWA_INSTALL_KEY = "chegou_pwa_install_state";
+const NAVIGATION_GUARD_KEY = "chegou_navigation_guard";
 
-function getAppVersion() {
-  const versao =
-    import.meta.env.VITE_APP_VERSION ||
-    import.meta.env.VITE_VERSION ||
-    "1.0.0";
+function isStandalonePWA() {
+  return (
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.navigator.standalone === true
+  );
+}
 
-  const commit =
-    import.meta.env.VITE_GIT_COMMIT_SHA ||
-    import.meta.env.VITE_VERCEL_GIT_COMMIT_SHA ||
-    import.meta.env.VITE_COMMIT_SHA ||
-    "";
-
-  const commitCurto = commit ? commit.slice(0, 7) : "";
-
-  return commitCurto ? `${versao}-${commitCurto}` : versao;
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
 function getUsuarioMemoriaId(perfil) {
@@ -75,7 +71,12 @@ export default function AppLayout({
   onLogout,
   onExitSupport,
   children,
+  mobileBottomItems = null,
+  forceMobileBottomNav = false,
+  forceHideMobileFooter = false,
 }) {
+  const deferredPromptRef = useRef(null);
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
@@ -83,11 +84,15 @@ export default function AppLayout({
   const [menusNovosVistos, setMenusNovosVistos] = useState([]);
   const [modalOuDrawerAberto, setModalOuDrawerAberto] = useState(false);
 
+  const [pwaInstalado, setPwaInstalado] = useState(isStandalonePWA());
+  const [pwaInstallPromptDisponivel, setPwaInstallPromptDisponivel] =
+    useState(false);
+  const [mostrarInstalacaoPWA, setMostrarInstalacaoPWA] = useState(false);
+  const [mostrarConfirmacaoSaida, setMostrarConfirmacaoSaida] = useState(false);
+
   const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(
     Number(perfil?.notificacoes_nao_lidas || 0)
   );
-
-  const appVersion = getAppVersion();
 
   const menus = menusByRole[role] || menusByRole.master;
   const menusVisiveis = menus.filter((menu) => menu.visible !== false);
@@ -132,7 +137,12 @@ export default function AppLayout({
   ]);
 
   const ocultarRodapeMobile =
-    mobileOpen || notificationCenterOpen || modalOuDrawerAberto;
+    forceHideMobileFooter ||
+    mobileOpen ||
+    notificationCenterOpen ||
+    modalOuDrawerAberto ||
+    mostrarInstalacaoPWA ||
+    mostrarConfirmacaoSaida;
 
   useEffect(() => {
     try {
@@ -166,7 +176,13 @@ export default function AppLayout({
       attributes: true,
       childList: true,
       subtree: true,
-      attributeFilter: ["class", "style", "aria-modal", "data-modal-open", "data-drawer-open"],
+      attributeFilter: [
+        "class",
+        "style",
+        "aria-modal",
+        "data-modal-open",
+        "data-drawer-open",
+      ],
     });
 
     window.addEventListener("resize", verificarCamadasAbertas);
@@ -210,6 +226,130 @@ export default function AppLayout({
       window.clearInterval(intervalo);
     };
   }, [role, perfil?.id, perfil?.usuario_id, perfil?.condominio_id]);
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
+  }, [activePage]);
+
+  useEffect(() => {
+    function atualizarPWAInstalado() {
+      setPwaInstalado(isStandalonePWA());
+      setMostrarInstalacaoPWA(false);
+    }
+
+    function capturarPrompt(event) {
+      event.preventDefault();
+      deferredPromptRef.current = event;
+      setPwaInstallPromptDisponivel(true);
+    }
+
+    window.addEventListener("beforeinstallprompt", capturarPrompt);
+    window.addEventListener("appinstalled", atualizarPWAInstalado);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", capturarPrompt);
+      window.removeEventListener("appinstalled", atualizarPWAInstalado);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!perfil) return;
+    if (pwaInstalado) return;
+
+    let estado = {
+      instalado: false,
+      ignoradoEm: null,
+      acessos: 0,
+      atualizadoEm: null,
+    };
+
+    try {
+      const salvo = localStorage.getItem(PWA_INSTALL_KEY);
+      if (salvo) estado = { ...estado, ...JSON.parse(salvo) };
+    } catch {
+      estado = {
+        instalado: false,
+        ignoradoEm: null,
+        acessos: 0,
+        atualizadoEm: null,
+      };
+    }
+
+    if (estado.instalado) {
+      setPwaInstalado(true);
+      return;
+    }
+
+    const acessos = Number(estado.acessos || 0) + 1;
+    const ignoradoEm = estado.ignoradoEm ? new Date(estado.ignoradoEm) : null;
+    const diasDesdeIgnorado = ignoradoEm
+      ? (Date.now() - ignoradoEm.getTime()) / (1000 * 60 * 60 * 24)
+      : null;
+
+    const podeMostrarDepoisDeIgnorar =
+      !ignoradoEm || diasDesdeIgnorado >= 7;
+
+    const podeInstalarAndroidDesktop = pwaInstallPromptDisponivel;
+    const podeInstalarIOS = isIOS() && !isStandalonePWA();
+
+    const deveMostrar =
+      acessos >= 3 &&
+      podeMostrarDepoisDeIgnorar &&
+      (podeInstalarAndroidDesktop || podeInstalarIOS);
+
+    localStorage.setItem(
+      PWA_INSTALL_KEY,
+      JSON.stringify({
+        ...estado,
+        acessos,
+        atualizadoEm: new Date().toISOString(),
+      })
+    );
+
+    if (deveMostrar) {
+      setMostrarInstalacaoPWA(true);
+    }
+  }, [perfil, pwaInstallPromptDisponivel, pwaInstalado]);
+
+  useEffect(() => {
+    const isMobile = window.innerWidth <= 900;
+
+    if (!isMobile && !isStandalonePWA()) return;
+
+    history.pushState({ chegouGuard: true }, "", window.location.href);
+
+    function bloquearVoltar(event) {
+      event.preventDefault();
+
+      history.pushState({ chegouGuard: true }, "", window.location.href);
+
+      if (existeModalOuDrawerAberto()) {
+        return;
+      }
+
+      setMostrarConfirmacaoSaida(true);
+
+      localStorage.setItem(
+        NAVIGATION_GUARD_KEY,
+        JSON.stringify({
+          bloqueadoEm: new Date().toISOString(),
+          activePage,
+          role,
+          origem: isStandalonePWA() ? "pwa" : "mobile_browser",
+        })
+      );
+    }
+
+    window.addEventListener("popstate", bloquearVoltar);
+
+    return () => {
+      window.removeEventListener("popstate", bloquearVoltar);
+    };
+  }, [activePage, role]);
 
   function salvarMenusNovosVistos(ids) {
     const unicos = Array.from(new Set(ids));
@@ -271,6 +411,19 @@ export default function AppLayout({
     }
   }
 
+  function navegar(destino) {
+    setNotificationCenterOpen(false);
+    setMobileOpen(false);
+
+    onNavigate(destino);
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
+  }
+
   function clicarMenu(menu) {
     const hasChildren = menu.children?.length > 0;
 
@@ -288,8 +441,7 @@ export default function AppLayout({
     registrarNovidadeVista(menu);
 
     setOpenMenu(null);
-    onNavigate(menu.id);
-    setMobileOpen(false);
+    navegar(menu.id);
 
     if (window.innerWidth > 900) {
       setSidebarCollapsed(true);
@@ -299,8 +451,7 @@ export default function AppLayout({
   function clicarSubmenu(menu, childId) {
     registrarNovidadeVista(menu, childId);
 
-    onNavigate(childId);
-    setMobileOpen(false);
+    navegar(childId);
     setOpenMenu(null);
 
     if (window.innerWidth > 900) {
@@ -352,12 +503,6 @@ export default function AppLayout({
     return "Acesso conforme permissões do perfil.";
   }
 
-  function navegarMobile(destino) {
-    setNotificationCenterOpen(false);
-    setMobileOpen(false);
-    onNavigate(destino);
-  }
-
   function handleMenuButton() {
     if (window.innerWidth <= 900) {
       setMobileOpen(true);
@@ -375,8 +520,42 @@ export default function AppLayout({
     });
   }
 
+  function renderMobileCustomItems() {
+    if (!forceMobileBottomNav && !mobileBottomItems?.length) return null;
+    if (!mobileBottomItems?.length) return null;
+
+    return (
+      <nav className="mobile-bottom-nav">
+        {mobileBottomItems.map((item) => {
+          const Icon = item.icon;
+          const ativo =
+            activePage === item.id ||
+            (Array.isArray(item.activeIds) && item.activeIds.includes(activePage));
+
+          return (
+            <button
+              type="button"
+              key={item.id}
+              className={ativo ? "mobile-nav-item active" : "mobile-nav-item"}
+              onClick={() => navegar(item.id)}
+            >
+              <Icon size={20} />
+              <span>{item.label}</span>
+
+              {Number(item.badge || 0) > 0 ? <b>{item.badge}</b> : null}
+            </button>
+          );
+        })}
+      </nav>
+    );
+  }
+
   function renderMobileBottomNav() {
     if (ocultarRodapeMobile) return null;
+
+    const customNav = renderMobileCustomItems();
+
+    if (customNav) return customNav;
 
     if (role === "admin_logistica") {
       return (
@@ -388,7 +567,7 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("admin-dashboard")}
+            onClick={() => navegar("admin-dashboard")}
           >
             <Home size={20} />
             <span>Início</span>
@@ -405,7 +584,7 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("admin-cadastro-morador")}
+            onClick={() => navegar("admin-cadastro-morador")}
           >
             <ClipboardList size={20} />
             <span>Cadastro</span>
@@ -418,7 +597,7 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("admin-encomendas")}
+            onClick={() => navegar("admin-encomendas")}
           >
             <Package size={20} />
             <span>Encomendas</span>
@@ -431,7 +610,7 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("admin-notificacoes")}
+            onClick={() => navegar("admin-notificacoes")}
           >
             <Bell size={20} />
             <span>Alertas</span>
@@ -444,7 +623,7 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("admin-configuracoes")}
+            onClick={() => navegar("admin-configuracoes")}
           >
             <Settings size={20} />
             <span>Config</span>
@@ -463,44 +642,28 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("portaria-inicio")}
+            onClick={() => navegar("portaria-inicio")}
           >
             <Home size={20} />
             <span>Início</span>
           </button>
 
-          <button
-            type="button"
-            className="mobile-nav-item"
-            onClick={() => navegarMobile("portaria-inicio")}
-          >
+          <button type="button" className="mobile-nav-item" onClick={() => navegar("portaria-inicio")}>
             <Package size={20} />
             <span>Receber</span>
           </button>
 
-          <button
-            type="button"
-            className="mobile-nav-item"
-            onClick={() => navegarMobile("portaria-inicio")}
-          >
+          <button type="button" className="mobile-nav-item" onClick={() => navegar("portaria-inicio")}>
             <ShieldCheck size={20} />
             <span>Entrega</span>
           </button>
 
-          <button
-            type="button"
-            className="mobile-nav-item"
-            onClick={() => navegarMobile("portaria-inicio")}
-          >
+          <button type="button" className="mobile-nav-item" onClick={() => navegar("portaria-inicio")}>
             <Bell size={20} />
             <span>Alertas</span>
           </button>
 
-          <button
-            type="button"
-            className="mobile-nav-item"
-            onClick={() => navegarMobile("portaria-inicio")}
-          >
+          <button type="button" className="mobile-nav-item" onClick={() => navegar("portaria-inicio")}>
             <Settings size={20} />
             <span>Config</span>
           </button>
@@ -518,7 +681,7 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("morador-dashboard")}
+            onClick={() => navegar("morador-dashboard")}
           >
             <Home size={20} />
             <span>Início</span>
@@ -531,7 +694,7 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("morador-encomendas-retiradas")}
+            onClick={() => navegar("morador-encomendas-retiradas")}
           >
             <Package size={20} />
             <span>Encomendas</span>
@@ -544,7 +707,7 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("morador-garagem-emprestimo")}
+            onClick={() => navegar("morador-garagem-emprestimo")}
           >
             <Car size={20} />
             <span>Garagem</span>
@@ -557,7 +720,7 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("morador-notificacoes")}
+            onClick={() => navegar("morador-notificacoes")}
           >
             <Bell size={20} />
             <span>Alertas</span>
@@ -570,7 +733,7 @@ export default function AppLayout({
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegarMobile("morador-configuracoes")}
+            onClick={() => navegar("morador-configuracoes")}
           >
             <Settings size={20} />
             <span>Config</span>
@@ -580,6 +743,130 @@ export default function AppLayout({
     }
 
     return null;
+  }
+
+  async function instalarPWA() {
+    if (deferredPromptRef.current) {
+      deferredPromptRef.current.prompt();
+
+      const resultado = await deferredPromptRef.current.userChoice;
+
+      if (resultado?.outcome === "accepted") {
+        localStorage.setItem(
+          PWA_INSTALL_KEY,
+          JSON.stringify({
+            instalado: true,
+            ignoradoEm: null,
+            acessos: 0,
+            atualizadoEm: new Date().toISOString(),
+          })
+        );
+
+        setPwaInstalado(true);
+        setMostrarInstalacaoPWA(false);
+      }
+
+      deferredPromptRef.current = null;
+      setPwaInstallPromptDisponivel(false);
+      return;
+    }
+
+    if (isIOS()) {
+      setMostrarInstalacaoPWA(true);
+    }
+  }
+
+  function adiarInstalacaoPWA() {
+    localStorage.setItem(
+      PWA_INSTALL_KEY,
+      JSON.stringify({
+        instalado: false,
+        ignoradoEm: new Date().toISOString(),
+        acessos: 0,
+        atualizadoEm: new Date().toISOString(),
+      })
+    );
+
+    setMostrarInstalacaoPWA(false);
+  }
+
+  function confirmarSaida() {
+    setMostrarConfirmacaoSaida(false);
+    onLogout?.();
+  }
+
+  function renderizarCardInstalacaoPWA() {
+    if (!mostrarInstalacaoPWA || pwaInstalado) return null;
+
+    return (
+      <div className="pwa-install-overlay" data-modal-open="true">
+        <section className="pwa-install-card">
+          <div>
+            <strong>Instale o Sistema Chegou!</strong>
+
+            {isIOS() ? (
+              <p>
+                No iPhone, toque em compartilhar e selecione “Adicionar à Tela de
+                Início” para usar o Sistema Chegou! como aplicativo.
+              </p>
+            ) : (
+              <p>
+                Tenha acesso rápido, experiência em tela cheia e navegação com
+                aparência de aplicativo.
+              </p>
+            )}
+          </div>
+
+          <div className="pwa-install-actions">
+            {!isIOS() && pwaInstallPromptDisponivel ? (
+              <button type="button" onClick={instalarPWA}>
+                Instalar
+              </button>
+            ) : null}
+
+            <button
+              type="button"
+              className="btn-config-secondary"
+              onClick={adiarInstalacaoPWA}
+            >
+              Agora não
+            </button>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  function renderizarConfirmacaoSaida() {
+    if (!mostrarConfirmacaoSaida) return null;
+
+    return (
+      <div className="pwa-install-overlay" data-modal-open="true">
+        <section className="pwa-install-card">
+          <div>
+            <strong>Deseja sair do Sistema Chegou?</strong>
+            <p>
+              Para evitar saída acidental, o botão voltar foi protegido neste
+              aplicativo.
+            </p>
+          </div>
+
+          <div className="pwa-install-actions">
+            <button
+              type="button"
+              className="btn-config-secondary"
+              onClick={() => setMostrarConfirmacaoSaida(false)}
+            >
+              Cancelar
+            </button>
+
+            <button type="button" onClick={confirmarSaida}>
+              Sair
+            </button>
+          </div>
+        </section>
+      </div>
+    );
   }
 
   return (
@@ -769,13 +1056,16 @@ export default function AppLayout({
           </div>
 
           <div className="content-footer-meta">
-            <span>© {COPYRIGHT_YEAR} Sistema Chegou!. Todos os direitos reservados.</span>
-            <strong>Versão {appVersion}</strong>
+            <span>
+              © {COPYRIGHT_YEAR} Sistema Chegou!. Todos os direitos reservados.
+            </span>
           </div>
         </footer>
       </main>
 
       {renderMobileBottomNav()}
+      {renderizarCardInstalacaoPWA()}
+      {renderizarConfirmacaoSaida()}
 
       <NotificationCenter
         aberto={notificationCenterOpen}
@@ -783,7 +1073,7 @@ export default function AppLayout({
         role={role}
         onClose={() => setNotificationCenterOpen(false)}
         onAtualizarContador={atualizarContadorNotificacoes}
-        onNavigate={onNavigate}
+        onNavigate={navegar}
       />
     </div>
   );
