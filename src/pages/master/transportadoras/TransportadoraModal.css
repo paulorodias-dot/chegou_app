@@ -1,0 +1,441 @@
+.tr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.tr-modal {
+  width: min(760px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  border: 1px solid #dbe3ef;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
+  font-family: Inter, sans-serif;
+}
+
+.tr-modal-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 76px;
+  padding: 14px 20px;
+  color: #ffffff;
+  background: #2563eb;
+}
+
+.tr-modal-topbar span {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.82;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tr-modal-topbar h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.tr-modal-topbar button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.13);
+  cursor: pointer;
+}
+
+.tr-modal form {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 124px);
+}
+
+.tr-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.tr-modal-error {
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #991b1b;
+  background: #fef2f2;
+  font-size: 13px;
+}
+
+.tr-modal-section {
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.tr-modal-section-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  color: #2563eb;
+}
+
+.tr-modal-section-title h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.tr-modal-section-title p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.tr-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.tr-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tr-modal-field-full {
+  grid-column: 1 / -1;
+}
+
+.tr-modal-field > span {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tr-modal-field input,
+.tr-modal-field select,
+.tr-modal-field textarea {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0 12px;
+  color: #0f172a;
+  background: #ffffff;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  outline: none;
+}
+
+.tr-modal-field textarea {
+  padding-top: 11px;
+  resize: vertical;
+}
+
+.tr-modal-field input:focus,
+.tr-modal-field select:focus,
+.tr-modal-field textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.tr-logo-editor {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.tr-logo-editor > img {
+  width: 92px;
+  height: 92px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #ffffff;
+}
+
+.tr-logo-editor > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tr-logo-editor small {
+  width: 100%;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.tr-upload-button,
+.tr-restore-logo-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tr-upload-button {
+  color: #ffffff;
+  background: #2563eb;
+}
+
+.tr-upload-button input {
+  display: none;
+}
+
+.tr-restore-logo-button {
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  background: #ffffff;
+}
+
+.tr-switch-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tr-switch-list label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.tr-switch-list input {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: #2563eb;
+}
+
+.tr-switch-list strong,
+.tr-switch-list small {
+  display: block;
+}
+
+.tr-switch-list strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.tr-switch-list small {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.tr-integration-future {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.tr-integration-future strong {
+  color: #1e3a8a;
+  font-size: 13px;
+}
+
+.tr-integration-future p {
+  margin: 5px 0 0;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tr-integration-future > span {
+  flex-shrink: 0;
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: #1d4ed8;
+  background: #dbeafe;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tr-modal-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  min-height: 72px;
+  padding: 15px 20px;
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.tr-modal-footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 110px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tr-modal-cancel {
+  color: #475569;
+  background: #e2e8f0;
+}
+
+.tr-modal-save {
+  color: #ffffff;
+  background: #2563eb;
+}
+
+.tr-spinning {
+  animation: tr-modal-spin 0.8s linear infinite;
+}
+
+html.modo-escuro .tr-modal,
+body.modo-escuro .tr-modal,
+html.modo-escuro .tr-modal-section,
+body.modo-escuro .tr-modal-section,
+html.modo-escuro .tr-modal-footer,
+body.modo-escuro .tr-modal-footer {
+  color: #f8fafc;
+  border-color: #334155;
+  background: #111c2e;
+}
+
+html.modo-escuro .tr-modal-section-title h3,
+body.modo-escuro .tr-modal-section-title h3,
+html.modo-escuro .tr-modal-field > span,
+body.modo-escuro .tr-modal-field > span,
+html.modo-escuro .tr-switch-list strong,
+body.modo-escuro .tr-switch-list strong {
+  color: #f8fafc;
+}
+
+html.modo-escuro .tr-modal-field input,
+html.modo-escuro .tr-modal-field select,
+html.modo-escuro .tr-modal-field textarea,
+body.modo-escuro .tr-modal-field input,
+body.modo-escuro .tr-modal-field select,
+body.modo-escuro .tr-modal-field textarea {
+  color: #f8fafc;
+  border-color: #475569;
+  background: #18243a;
+  color-scheme: dark;
+}
+
+html.modo-escuro .tr-switch-list label,
+body.modo-escuro .tr-switch-list label {
+  background: #18243a;
+}
+
+@media (max-width: 680px) {
+  .tr-modal-overlay {
+    align-items: end;
+    padding: 0;
+  }
+
+  .tr-modal {
+    width: 100%;
+    max-height: 94vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .tr-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tr-modal-field-full {
+    grid-column: auto;
+  }
+
+  .tr-logo-editor {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tr-modal-field input,
+  .tr-modal-field select,
+  .tr-modal-field textarea {
+    font-size: 16px;
+  }
+
+  .tr-modal-footer {
+    padding-bottom: max(
+      15px,
+      env(safe-area-inset-bottom)
+    );
+  }
+}
+
+/* =========================================================
+   PROTEÇÃO CONTRA ZOOM AUTOMÁTICO NO IPHONE / SAFARI IOS
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .tr-modal input,
+  .tr-modal select,
+  .tr-modal textarea,
+  .tr-modal button {
+    font-size: 16px;
+  }
+
+  .tr-modal input,
+  .tr-modal select,
+  .tr-modal textarea {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  .tr-modal {
+    touch-action: manipulation;
+  }
+
+  .tr-modal button,
+  .tr-upload-button,
+  .tr-restore-logo-button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@keyframes tr-modal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

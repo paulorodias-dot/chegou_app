@@ -47,15 +47,21 @@ export const menusByRole = {
       ],
     },
     {
-      id: "usuarios-master",
-      label: "Usuários",
-      icon: UserCog,
+      id: "cadastros-master",
+      label: "Cadastros",
+      icon: ClipboardList,
       novo: true,
       children: [
         {
           id: "cargos-funcoes",
           label: "Cargos e Funções",
           icon: BriefcaseBusiness,
+          novo: true,
+        },
+        {
+          id: "transportadoras-master",
+          label: "Transportadoras",
+          icon: Truck,
           novo: true,
         },
       ],

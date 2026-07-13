@@ -1,0 +1,209 @@
+.tr-actions-menu {
+  position: fixed;
+  z-index: 2200;
+  width: 290px;
+  max-width: calc(100vw - 24px);
+  overflow: hidden;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.22);
+  font-family: Inter, system-ui, sans-serif;
+
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-5px) scale(0.98);
+  transform-origin: top right;
+  pointer-events: none;
+
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.tr-actions-menu.is-ready {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.tr-actions-menu.open-up {
+  transform-origin: bottom right;
+}
+
+.tr-actions-menu.open-down {
+  transform-origin: top right;
+}
+
+.tr-actions-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 62px;
+  padding: 11px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.tr-actions-menu-header > div {
+  min-width: 0;
+}
+
+.tr-actions-menu-header strong,
+.tr-actions-menu-header small {
+  display: block;
+}
+
+.tr-actions-menu-header strong {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tr-actions-menu-header small {
+  margin-top: 4px;
+  color: #f97316;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+}
+
+.tr-actions-menu-header > button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  color: #64748b;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tr-actions-menu-header > button:hover {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.tr-actions-menu-list {
+  display: grid;
+  padding: 7px;
+}
+
+.tr-actions-menu-list > button {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 54px;
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  color: #475569;
+  background: transparent;
+  font-family: Inter, system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tr-actions-menu-list > button:hover {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.tr-actions-menu-list > button > svg {
+  min-width: 17px;
+  margin-top: 2px;
+}
+
+.tr-actions-menu-list span,
+.tr-actions-menu-list strong,
+.tr-actions-menu-list small {
+  display: block;
+}
+
+.tr-actions-menu-list span {
+  min-width: 0;
+}
+
+.tr-actions-menu-list strong {
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.tr-actions-menu-list small {
+  margin-top: 3px;
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* Modo escuro */
+
+html.modo-escuro .tr-actions-menu,
+body.modo-escuro .tr-actions-menu {
+  border-color: #334155;
+  background: #111c2e;
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.38);
+}
+
+html.modo-escuro .tr-actions-menu-header,
+body.modo-escuro .tr-actions-menu-header {
+  border-color: #334155;
+  background: #18243a;
+}
+
+html.modo-escuro .tr-actions-menu-header strong,
+html.modo-escuro .tr-actions-menu-list strong,
+body.modo-escuro .tr-actions-menu-header strong,
+body.modo-escuro .tr-actions-menu-list strong {
+  color: #f8fafc;
+}
+
+html.modo-escuro .tr-actions-menu-list > button,
+body.modo-escuro .tr-actions-menu-list > button {
+  color: #cbd5e1;
+}
+
+html.modo-escuro .tr-actions-menu-list > button:hover,
+body.modo-escuro .tr-actions-menu-list > button:hover {
+  background: rgba(37, 99, 235, 0.14);
+}
+
+/* Mobile */
+
+@media (max-width: 680px) {
+  .tr-actions-menu {
+    top: auto !important;
+    right: 12px;
+    bottom: max(
+      84px,
+      calc(70px + env(safe-area-inset-bottom))
+    );
+    left: 12px !important;
+    width: auto;
+    max-width: none;
+    max-height: min(480px, 70dvh);
+    overflow-y: auto;
+    border-radius: 16px;
+    transform-origin: bottom center;
+  }
+
+  .tr-actions-menu button {
+    font-size: 16px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-actions-menu {
+    transition: none;
+  }
+}

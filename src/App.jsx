@@ -16,6 +16,7 @@ import AppLayout from "./layouts/AppLayout";
 import MasterLayout from "./layouts/MasterLayout";
 
 import CargosFuncoes from "./pages/master/CargosFuncoes";
+import Transportadoras from "./pages/master/Transportadoras";
 import AcessoAssistidoMaster from "./pages/master/AcessoAssistidoMaster";
 import DashboardMaster from "./pages/master/DashboardMaster";
 import CadastroCondominio from "./pages/master/CadastroCondominio";
@@ -216,6 +217,10 @@ function App() {
 
     if (paginaAtual === "cargos-funcoes") {
       return <CargosFuncoes perfil={perfil} />;
+    }
+
+    if (paginaAtual === "transportadoras-master") {
+      return <Transportadoras perfil={perfil} />;
     }
 
     if (paginaAtual === "validacao-primeiro-acesso-condominio") {
