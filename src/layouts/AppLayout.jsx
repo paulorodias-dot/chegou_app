@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 
 import logo from "../assets/logo.png";
+import logoFooterClaro from "../assets/logo_azulroyal.png";
+import logoFooterEscuro from "../assets/logo_branco.png";
 import { menusByRole } from "../config/menusByRole";
 
 import NotificationCenter from "../components/NotificationCenter";
@@ -34,6 +36,37 @@ function isStandalonePWA() {
 
 function isIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+function detectarTemaEscuroAtual() {
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return false;
+  }
+
+  const html = document.documentElement;
+  const body = document.body;
+
+  const temaDeclarado =
+    html.getAttribute("data-theme") ||
+    body.getAttribute("data-theme") ||
+    "";
+
+  if (temaDeclarado === "dark" || temaDeclarado === "escuro") {
+    return true;
+  }
+
+  if (temaDeclarado === "light" || temaDeclarado === "claro") {
+    return false;
+  }
+
+  if (
+    html.classList.contains("modo-escuro") ||
+    body.classList.contains("modo-escuro")
+  ) {
+    return true;
+  }
+
+  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches || false;
 }
 
 function getUsuarioMemoriaId(perfil) {
@@ -83,6 +116,9 @@ export default function AppLayout({
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [menusNovosVistos, setMenusNovosVistos] = useState([]);
   const [modalOuDrawerAberto, setModalOuDrawerAberto] = useState(false);
+  const [modoEscuroVisual, setModoEscuroVisual] = useState(
+    detectarTemaEscuroAtual
+  );
 
   const [pwaInstalado, setPwaInstalado] = useState(isStandalonePWA());
   const [pwaInstallPromptDisponivel, setPwaInstallPromptDisponivel] =
@@ -192,6 +228,35 @@ export default function AppLayout({
       observer.disconnect();
       window.removeEventListener("resize", verificarCamadasAbertas);
       window.removeEventListener("keydown", verificarCamadasAbertas);
+    };
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia?.("(prefers-color-scheme: dark)");
+
+    function atualizarTemaVisual() {
+      setModoEscuroVisual(detectarTemaEscuroAtual());
+    }
+
+    atualizarTemaVisual();
+
+    const observer = new MutationObserver(atualizarTemaVisual);
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    });
+
+    media?.addEventListener?.("change", atualizarTemaVisual);
+
+    return () => {
+      observer.disconnect();
+      media?.removeEventListener?.("change", atualizarTemaVisual);
     };
   }, []);
 
@@ -1052,7 +1117,10 @@ export default function AppLayout({
 
         <footer className="app-content-footer">
           <div className="content-footer-brand">
-            <img src={logo} alt="Sistema Chegou!" />
+            <img
+              src={modoEscuroVisual ? logoFooterEscuro : logoFooterClaro}
+              alt="Sistema Chegou!"
+            />
           </div>
 
           <div className="content-footer-meta">

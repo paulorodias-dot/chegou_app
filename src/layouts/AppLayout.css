@@ -311,8 +311,12 @@
 }
 
 .content-footer-brand img {
+  display: block;
+  width: auto;
   height: 34px;
+  max-width: 180px;
   object-fit: contain;
+  object-position: left center;
 }
 
 .content-footer-meta {
@@ -490,24 +494,7 @@
   }
 
   .app-content-footer {
-    margin: 0 14px calc(88px + env(safe-area-inset-bottom));
-    padding: 12px 14px;
-    border-radius: 14px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .content-footer-brand img {
-    height: 30px;
-  }
-
-  .content-footer-meta {
-    width: 100%;
-    align-items: flex-start;
-    justify-content: space-between;
-    text-align: left;
-    gap: 10px;
+    display: none;
   }
 
   .mobile-bottom-nav {
@@ -534,10 +521,6 @@
 
   .mobile-footer-hidden .app-main {
     padding-bottom: 0;
-  }
-
-  .mobile-footer-hidden .app-content-footer {
-    margin-bottom: calc(18px + env(safe-area-inset-bottom));
   }
 
   .mobile-nav-item {
@@ -684,105 +667,6 @@ body.modo-escuro .mobile-nav-item.active svg {
 }
 
 /* =========================================================
-   FIX — MOBILE BOTTOM NAV MASTER / APP-LIKE
-========================================================= */
-
-@media (max-width: 900px) {
-  .mobile-bottom-nav {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    z-index: 9000 !important;
-
-    min-height: 72px;
-    display: grid !important;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 2px;
-
-    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-    border-radius: 22px 22px 0 0;
-
-    background: rgba(255, 255, 255, 0.98);
-    border-top: 1px solid rgba(148, 163, 184, 0.25);
-    box-shadow: 0 -12px 34px rgba(15, 23, 42, 0.12);
-    backdrop-filter: blur(16px);
-  }
-
-  .mobile-nav-item {
-    position: relative;
-    min-width: 0;
-    min-height: 56px;
-
-    border: 0;
-    border-radius: 18px;
-    background: transparent;
-    color: #64748b;
-
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-
-    font-family: "Inter", sans-serif;
-    font-size: 0.62rem;
-    font-weight: 850;
-
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .mobile-nav-item svg {
-    display: block !important;
-    width: 20px !important;
-    height: 20px !important;
-    flex-shrink: 0;
-  }
-
-  .mobile-nav-item span {
-    display: block !important;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .mobile-nav-item.active {
-    color: #2563eb;
-    background: rgba(37, 99, 235, 0.1);
-  }
-
-  .mobile-nav-item.active svg {
-    color: #f97316;
-  }
-
-  .mobile-nav-item b {
-    position: absolute;
-    top: 4px;
-    right: 18%;
-
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
-
-    border-radius: 999px;
-    background: #f97316;
-    color: #fff;
-
-    font-size: 9px;
-    font-weight: 900;
-
-    display: grid;
-    place-items: center;
-  }
-
-  .mobile-footer-hidden .mobile-bottom-nav {
-    display: none !important;
-  }
-}
-
-/* =========================================================
    PWA INSTALL / CONFIRMAÇÃO DE SAÍDA
 ========================================================= */
 
@@ -881,4 +765,56 @@ body.modo-escuro .pwa-install-card strong,
 body.modo-escuro .pwa-install-card p,
 [data-theme="dark"] .pwa-install-card p {
   color: #cbd5e1;
+}
+
+/* =========================================================
+   AJUSTES FINAIS — APP-LIKE, RODAPÉ E ACESSIBILIDADE
+========================================================= */
+
+.app-shell,
+.app-main,
+.app-content {
+  min-width: 0;
+}
+
+.app-shell {
+  overscroll-behavior: none;
+}
+
+.app-topbar,
+.app-sidebar,
+.mobile-bottom-nav {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.hamburger,
+.notification,
+.topbar-logout,
+.sidebar-group > button,
+.sidebar-submenu button,
+.mobile-nav-item {
+  touch-action: manipulation;
+}
+
+.app-content-footer {
+  overflow: hidden;
+}
+
+body.modo-escuro .content-footer-brand img,
+[data-theme="dark"] .content-footer-brand img {
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell,
+  .app-sidebar,
+  .mobile-nav-item,
+  .login-button-new,
+  .status-dot-new,
+  .bell-shake {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
