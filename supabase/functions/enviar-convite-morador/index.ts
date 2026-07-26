@@ -274,6 +274,18 @@ serve(async (req) => {
       site_url?: string | null;
     };
 
+    const tiposEnvioPermitidos: TipoEnvio[] = [
+      "individual",
+      "lote",
+      "reenvio",
+      "correcao",
+      "dependente",
+    ];
+
+    if (!tiposEnvioPermitidos.includes(tipo_envio as TipoEnvio)) {
+      return jsonResponse({ error: "tipo_envio inválido." }, 400);
+    }
+
     if (!condominio_id) {
       return jsonResponse({ error: "condominio_id é obrigatório." }, 400);
     }
@@ -484,6 +496,26 @@ serve(async (req) => {
     const tipoEnvioFinal = tipo_envio || "individual";
     const statusEnvio = enviar_agora ? "enviado" : "aguardando_envio";
 
+    let convitesAnterioresAtivos: Array<{
+      id: string;
+      token_convite?: string | null;
+    }> = [];
+
+    if (tipoEnvioFinal === "reenvio") {
+      const { data: convitesAtivos, error: convitesAtivosError } =
+        await supabaseAdmin
+          .from("convites_morador")
+          .select("id, token_convite")
+          .eq("condominio_id", condominio_id)
+          .eq("pre_cadastro_id", preCadastro.id)
+          .eq("token_revogado", false)
+          .eq("cancelado", false);
+
+      if (convitesAtivosError) throw convitesAtivosError;
+
+      convitesAnterioresAtivos = convitesAtivos || [];
+    }
+
     const { data: convite, error: conviteError } = await supabaseAdmin
       .from("convites_morador")
       .insert({
@@ -569,6 +601,27 @@ serve(async (req) => {
       .single();
 
     if (filaError) throw filaError;
+
+    if (
+      tipoEnvioFinal === "reenvio" &&
+      convitesAnterioresAtivos.length > 0
+    ) {
+      const idsConvitesAnteriores = convitesAnterioresAtivos
+        .map((item) => item.id)
+        .filter((id) => id && id !== convite.id);
+
+      if (idsConvitesAnteriores.length > 0) {
+        const { error: revogacaoError } = await supabaseAdmin
+          .from("convites_morador")
+          .update({
+            token_revogado: true,
+            cancelado: true,
+          })
+          .in("id", idsConvitesAnteriores);
+
+        if (revogacaoError) throw revogacaoError;
+      }
+    }
 
     let emailStatus = "fila";
     let brevoMessageId: string | null = null;
@@ -698,7 +751,12 @@ serve(async (req) => {
 
     await registrarLog({
       supabaseAdmin,
-      acao: preCadastroExistente ? "CONVITE_MORADOR_REPROCESSADO" : "CONVITE_MORADOR_CRIADO",
+      acao:
+        tipoEnvioFinal === "reenvio"
+          ? "CONVITE_MORADOR_REENVIADO"
+          : preCadastroExistente
+            ? "CONVITE_MORADOR_REPROCESSADO"
+            : "CONVITE_MORADOR_CRIADO",
       condominio_id,
       usuario_id: enviado_por,
       email: emailNormalizado,
@@ -711,6 +769,10 @@ serve(async (req) => {
         enviar_agora,
         possui_divergencia: possuiDivergencia,
         divergencias,
+        convites_anteriores_revogados:
+          tipoEnvioFinal === "reenvio"
+            ? convitesAnterioresAtivos.map((item) => item.id)
+            : [],
         status_email: emailStatus,
         brevo_message_id: brevoMessageId,
         brevo_error: brevoErrorMessage,
