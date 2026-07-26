@@ -20,6 +20,7 @@ import {
   UserCog,
   Truck,
   Handshake,
+  Headphones,
 } from "lucide-react";
 
 export const menusByRole = {
@@ -43,6 +44,12 @@ export const menusByRole = {
           id: "condominios-auditoria",
           label: "Aprovações",
           icon: ShieldCheck,
+        },
+        {
+          id: "acesso-assistido",
+          label: "Suporte Master",
+          icon: Headphones,
+          visible: true,
         },
       ],
     },
