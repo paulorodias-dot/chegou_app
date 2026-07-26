@@ -943,7 +943,12 @@ function DrawerAcaoPendente({ acao, item, onClose }) {
   );
 }
 
-function ModalConfirmarReenvio({ item, onClose, onConfirmar }) {
+function ModalConfirmarReenvio({
+  item,
+  onClose,
+  onConfirmar,
+  processando = false,
+}) {
   if (!item) return null;
 
   return (
@@ -962,7 +967,12 @@ function ModalConfirmarReenvio({ item, onClose, onConfirmar }) {
             <h2>Reenviar Convite</h2>
           </div>
 
-          <button type="button" onClick={onClose} aria-label="Fechar">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={processando}
+            aria-label="Fechar"
+          >
             ×
           </button>
         </div>
@@ -989,12 +999,22 @@ function ModalConfirmarReenvio({ item, onClose, onConfirmar }) {
         </div>
 
         <div className="amc-confirm-actions">
-          <button type="button" className="amc-btn amc-btn-outline" onClick={onClose}>
+          <button
+            type="button"
+            className="amc-btn amc-btn-outline"
+            onClick={onClose}
+            disabled={processando}
+          >
             Cancelar
           </button>
 
-          <button type="button" className="amc-btn amc-btn-primary" onClick={onConfirmar}>
-            Confirmar Reenvio
+          <button
+            type="button"
+            className="amc-btn amc-btn-primary"
+            onClick={onConfirmar}
+            disabled={processando}
+          >
+            {processando ? "Adicionando à fila..." : "Confirmar Reenvio"}
           </button>
         </div>
       </aside>
@@ -1117,16 +1137,16 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
 
   useEffect(() => {
     function handleEsc(event) {
-      if (event.key === "Escape") {
-        setMenuAberto(null);
+      if (event.key !== "Escape") return;
 
-        setAndamentoSelecionado(null);
-        setConviteSelecionado(null);
-        setCadastroSelecionado(null);
+      setMenuAberto(null);
+      setAndamentoSelecionado(null);
+      setConviteSelecionado(null);
+      setCadastroSelecionado(null);
+      setAcaoPendente(null);
 
+      if (!processandoAcao) {
         setReenvioSelecionado(null);
-
-        setAcaoPendente(null);
       }
     }
 
@@ -1135,7 +1155,7 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
-  }, []);
+  }, [processandoAcao]);
 
   const unidades = useMemo(() => {
     const lista = registros
@@ -1516,13 +1536,33 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
     }
 
   async function confirmarReenvioConvite() {
-    if (!reenvioSelecionado) return;
+    if (!reenvioSelecionado || processandoAcao) return;
 
-    toast("Reenvio será conectado com manutenção do mesmo token na próxima etapa.", {
-      icon: "🔐",
-    });
+    try {
+      setProcessandoAcao(true);
 
-    setReenvioSelecionado(null);
+      await enviarConviteMoradorAuditoria({
+        perfil,
+        registro: reenvioSelecionado,
+        enviarAgora: false,
+        tipoEnvio: "reenvio",
+      });
+
+      toast.success("Convite adicionado à fila para reenvio.");
+
+      setReenvioSelecionado(null);
+
+      await carregarDados();
+    } catch (error) {
+      console.error("Erro ao reenviar convite do morador:", error);
+
+      toast.error(
+        error?.message ||
+          "Não foi possível adicionar o convite à fila de reenvio."
+      );
+    } finally {
+      setProcessandoAcao(false);
+    }
   }
 
   function exportarListaConvites() {
@@ -2065,8 +2105,13 @@ export default function AuditoriaMoradoresConvite({ perfil, onNavigate }) {
 
       <ModalConfirmarReenvio
         item={reenvioSelecionado}
-        onClose={() => setReenvioSelecionado(null)}
+        onClose={() => {
+          if (!processandoAcao) {
+            setReenvioSelecionado(null);
+          }
+        }}
         onConfirmar={confirmarReenvioConvite}
+        processando={processandoAcao}
       />
 
       <DrawerAcaoPendente
