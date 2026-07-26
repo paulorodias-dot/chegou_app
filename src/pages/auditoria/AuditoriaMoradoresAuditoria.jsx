@@ -523,15 +523,36 @@ function DrawerAuditoria({
 
           <div className="ama-profile-summary">
             <span>Resumo rápido</span>
-            <strong>{item.resumo.dependentes} dependentes</strong>
-            <strong>{item.resumo.pets} pets</strong>
-            <strong>{item.resumo.veiculos} veículos</strong>
 
-            {item.resumo.possuiConflitoGaragem ? (
-              <em className="danger">Garagem: conflito</em>
-            ) : (
-              <em>Garagem: sem conflito</em>
-            )}
+            <strong>
+              Dependentes: {item.resumo.dependentes}
+            </strong>
+
+            <strong>
+              Pets: {item.resumo.pets}
+            </strong>
+
+            <strong>
+              Veículos: {item.resumo.veiculos}
+            </strong>
+
+            <div className="ama-profile-garage-summary">
+              <span>Garagem</span>
+
+              <strong>
+                {item.resumo.garagem === 1
+                  ? "1 vaga cadastrada"
+                  : `${item.resumo.garagem} vagas cadastradas`}
+              </strong>
+
+              {item.resumo.possuiConflitoGaragem ? (
+                <em className="danger">
+                  ⚠ Conflito identificado
+                </em>
+              ) : (
+                <em>✓ Sem conflito</em>
+              )}
+            </div>
           </div>
         </section>
 

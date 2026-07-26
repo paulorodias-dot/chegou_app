@@ -27,6 +27,21 @@ const COPYRIGHT_YEAR = new Date().getFullYear();
 const PWA_INSTALL_KEY = "chegou_pwa_install_state";
 const NAVIGATION_GUARD_KEY = "chegou_navigation_guard";
 
+function ambientePermiteInstalacaoPWA() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const hostname = window.location.hostname;
+
+  const ambienteLocal =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1";
+
+  return import.meta.env.PROD && !ambienteLocal;
+}
+
 function isStandalonePWA() {
   return (
     window.matchMedia?.("(display-mode: standalone)")?.matches ||
@@ -301,13 +316,23 @@ export default function AppLayout({
   }, [activePage]);
 
   useEffect(() => {
+    if (!ambientePermiteInstalacaoPWA()) {
+      deferredPromptRef.current = null;
+      setPwaInstallPromptDisponivel(false);
+      setMostrarInstalacaoPWA(false);
+      return undefined;
+    }
+
     function atualizarPWAInstalado() {
+      deferredPromptRef.current = null;
       setPwaInstalado(isStandalonePWA());
+      setPwaInstallPromptDisponivel(false);
       setMostrarInstalacaoPWA(false);
     }
 
     function capturarPrompt(event) {
       event.preventDefault();
+
       deferredPromptRef.current = event;
       setPwaInstallPromptDisponivel(true);
     }
@@ -322,6 +347,11 @@ export default function AppLayout({
   }, []);
 
   useEffect(() => {
+    if (!ambientePermiteInstalacaoPWA()) {
+      setMostrarInstalacaoPWA(false);
+      return;
+    }
+
     if (!perfil) return;
     if (pwaInstalado) return;
 
@@ -378,7 +408,12 @@ export default function AppLayout({
     if (deveMostrar) {
       setMostrarInstalacaoPWA(true);
     }
-  }, [perfil, pwaInstallPromptDisponivel, pwaInstalado]);
+  }, [
+    perfil?.id,
+    perfil?.usuario_id,
+    pwaInstallPromptDisponivel,
+    pwaInstalado,
+  ]);
 
   useEffect(() => {
     const isMobile = window.innerWidth <= 900;
@@ -811,6 +846,13 @@ export default function AppLayout({
   }
 
   async function instalarPWA() {
+    if (!ambientePermiteInstalacaoPWA()) {
+      deferredPromptRef.current = null;
+      setPwaInstallPromptDisponivel(false);
+      setMostrarInstalacaoPWA(false);
+      return;
+    }
+
     if (deferredPromptRef.current) {
       deferredPromptRef.current.prompt();
 

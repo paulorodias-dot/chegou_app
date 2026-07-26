@@ -1,36 +1,76 @@
 /**
  * Sistema Chegou! — Service Worker V1
  *
- * Objetivos desta primeira versão:
- * - preparar a infraestrutura de atualização do PWA;
- * - não armazenar dados operacionais em cache;
- * - não interceptar chamadas do Supabase ou de integrações externas;
+ * Responsabilidades desta versão:
+ * - preparar a infraestrutura oficial de atualização do PWA;
  * - permitir ativação controlada de uma nova versão;
- * - remover somente caches antigos pertencentes ao Sistema Chegou!.
+ * - comunicar instalação e ativação para a aplicação;
+ * - remover somente caches pertencentes ao Sistema Chegou!;
+ * - não interceptar chamadas de rede;
+ * - não armazenar dados operacionais, sessões ou integrações em cache.
  *
- * Nesta etapa, o Service Worker não implementa modo offline.
+ * Nesta etapa não existe modo offline.
  */
 
-const SERVICE_WORKER_VERSION = "chegou-sw-v1";
+/**
+ * Esta identificação deverá mudar a cada release que alterar o Service Worker.
+ *
+ * Posteriormente, sua geração será automatizada durante o build/deploy.
+ */
+const SERVICE_WORKER_VERSION = "chegou-sw-v1.0.0";
+const SERVICE_WORKER_SCHEMA_VERSION = 1;
+
 const CACHE_PREFIX = "chegou-";
+
+/**
+ * Retorna informações públicas sobre o Service Worker.
+ */
+function obterInformacoesServiceWorker() {
+  return {
+    type: "SW_VERSION",
+    version: SERVICE_WORKER_VERSION,
+    schemaVersion: SERVICE_WORKER_SCHEMA_VERSION,
+  };
+}
+
+/**
+ * Envia uma mensagem para todas as páginas controladas pelo Service Worker.
+ */
+async function comunicarClientes(mensagem) {
+  const clientes = await self.clients.matchAll({
+    type: "window",
+    includeUncontrolled: true,
+  });
+
+  clientes.forEach((cliente) => {
+    cliente.postMessage(mensagem);
+  });
+}
 
 /**
  * Instalação
  *
- * Não utilizamos self.skipWaiting() automaticamente.
- * A nova versão aguardará autorização da aplicação para ser ativada.
+ * Não executamos self.skipWaiting() automaticamente.
+ *
+ * Quando existir uma nova versão, ela permanecerá em waiting até que:
+ * - o usuário clique em "Atualizar agora"; ou
+ * - o Version Manager aplique a atualização no próximo acesso.
  */
-self.addEventListener("install", () => {
-  console.info(
-    `[Sistema Chegou!] Service Worker instalado: ${SERVICE_WORKER_VERSION}`
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    Promise.resolve().then(() => {
+      console.info(
+        `[Sistema Chegou!] Service Worker instalado: ${SERVICE_WORKER_VERSION}`
+      );
+    })
   );
 });
 
 /**
  * Ativação
  *
- * Remove apenas caches antigos criados pelo próprio Sistema Chegou!.
- * Caches de outros sistemas ou extensões não são afetados.
+ * Remove somente caches antigos cujo nome comece com "chegou-".
+ * Não interfere em caches de outros sistemas, sites ou extensões.
  */
 self.addEventListener("activate", (event) => {
   event.waitUntil(
@@ -50,6 +90,13 @@ self.addEventListener("activate", (event) => {
 
         await self.clients.claim();
 
+        await comunicarClientes({
+          type: "SW_ACTIVATED",
+          version: SERVICE_WORKER_VERSION,
+          schemaVersion: SERVICE_WORKER_SCHEMA_VERSION,
+          activatedAt: new Date().toISOString(),
+        });
+
         console.info(
           `[Sistema Chegou!] Service Worker ativado: ${SERVICE_WORKER_VERSION}`
         );
@@ -58,6 +105,8 @@ self.addEventListener("activate", (event) => {
           "[Sistema Chegou!] Erro ao ativar o Service Worker:",
           error
         );
+
+        throw error;
       }
     })()
   );
@@ -66,13 +115,13 @@ self.addEventListener("activate", (event) => {
 /**
  * Comunicação entre a aplicação e o Service Worker.
  *
- * Mensagens suportadas:
+ * Mensagens aceitas:
  *
  * SKIP_WAITING
- * Autoriza uma nova versão em espera a assumir o controle.
+ * Autoriza o Service Worker em espera a assumir o controle.
  *
  * GET_SW_VERSION
- * Retorna para a aplicação a versão atual do Service Worker.
+ * Retorna a identificação da versão atual.
  */
 self.addEventListener("message", (event) => {
   const mensagem = event.data;
@@ -87,15 +136,12 @@ self.addEventListener("message", (event) => {
         "[Sistema Chegou!] Ativação da nova versão autorizada."
       );
 
-      self.skipWaiting();
+      event.waitUntil(self.skipWaiting());
       break;
     }
 
     case "GET_SW_VERSION": {
-      const resposta = {
-        type: "SW_VERSION",
-        version: SERVICE_WORKER_VERSION,
-      };
+      const resposta = obterInformacoesServiceWorker();
 
       if (event.ports?.[0]) {
         event.ports[0].postMessage(resposta);
@@ -137,11 +183,12 @@ self.addEventListener("unhandledrejection", (event) => {
  * Não existe listener de "fetch" nesta versão.
  *
  * Portanto:
- * - nenhuma resposta da aplicação será armazenada;
- * - chamadas ao Supabase não serão interceptadas;
- * - tokens e sessões não serão armazenados;
- * - RPCs não serão armazenadas;
- * - imagens de encomendas não serão armazenadas;
- * - APIs externas não serão armazenadas;
- * - o comportamento atual da aplicação não será alterado.
+ * - nenhuma resposta da aplicação é armazenada;
+ * - chamadas ao Supabase não são interceptadas;
+ * - tokens e sessões não são armazenados;
+ * - RPCs não são armazenadas;
+ * - imagens de encomendas não são armazenadas;
+ * - APIs externas não são armazenadas;
+ * - não existe funcionamento offline;
+ * - o comportamento atual da aplicação não é alterado.
  */

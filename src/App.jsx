@@ -75,12 +75,6 @@ function App() {
       );
     }
 
-    if ("serviceWorker" in navigator && import.meta.env.PROD) {
-      navigator.serviceWorker.register("/sw.js").catch((error) => {
-        console.warn("Service Worker não registrado:", error);
-      });
-    }
-
     restaurarSessao();
 
     return () => {

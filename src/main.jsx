@@ -74,12 +74,12 @@ async function registrarServiceWorker() {
       "[Sistema Chegou!] Este navegador não oferece suporte a Service Worker."
     );
 
-    return;
+    return null;
   }
 
   if (ambienteLocalOuDesenvolvimento()) {
     await removerServiceWorkersLocais();
-    return;
+    return null;
   }
 
   try {
@@ -94,11 +94,45 @@ async function registrarServiceWorker() {
     );
 
     /**
-     * Verifica no servidor se existe uma versão mais recente do sw.js.
-     * Nesta etapa, isso não força a atualização nem recarrega a página.
+     * Informa à aplicação que o registro oficial está disponível.
+     * O Version Manager poderá capturar e reutilizar este registro.
      */
-    await registro.update();
+    window.dispatchEvent(
+      new CustomEvent("chegou:service-worker-registered", {
+        detail: {
+          registration: registro,
+        },
+      })
+    );
 
+    function informarAtualizacaoDisponivel(worker) {
+      if (!worker) return;
+
+      window.dispatchEvent(
+        new CustomEvent("chegou:service-worker-update", {
+          detail: {
+            registration: registro,
+            worker,
+          },
+        })
+      );
+    }
+
+    /**
+     * Pode existir uma atualização já instalada e aguardando autorização
+     * antes mesmo do carregamento atual da aplicação.
+     */
+    if (registro.waiting && navigator.serviceWorker.controller) {
+      console.info(
+        "[Sistema Chegou!] Existe um Service Worker aguardando ativação."
+      );
+
+      informarAtualizacaoDisponivel(registro.waiting);
+    }
+
+    /**
+     * O listener deve ser instalado antes de chamar registro.update().
+     */
     registro.addEventListener("updatefound", () => {
       const novoServiceWorker = registro.installing;
 
@@ -115,25 +149,27 @@ async function registrarServiceWorker() {
             "[Sistema Chegou!] Nova versão do Service Worker disponível."
           );
 
-          /**
-           * O futuro Version Manager poderá observar este evento
-           * para exibir o aviso "Atualizar agora" ou "Depois".
-           */
-          window.dispatchEvent(
-            new CustomEvent("chegou:service-worker-update", {
-              detail: {
-                registration: registro,
-              },
-            })
+          informarAtualizacaoDisponivel(
+            registro.waiting || novoServiceWorker
           );
         }
       });
     });
+
+    /**
+     * Solicita ao navegador uma verificação direta do sw.js.
+     * Não ativa nem recarrega a aplicação automaticamente.
+     */
+    await registro.update();
+
+    return registro;
   } catch (error) {
     console.error(
       "[Sistema Chegou!] Falha ao registrar o Service Worker:",
       error
     );
+
+    return null;
   }
 }
 
