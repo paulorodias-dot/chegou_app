@@ -203,8 +203,24 @@ export async function listarAuditoriaConvitesMoradores({
 
   if (erroConvites) throw erroConvites;
 
+  const convitesMaisRecentes = [];
+  const preCadastrosJaIncluidos = new Set();
+
+  for (const convite of convites || []) {
+    const chave = convite.pre_cadastro_id || convite.id;
+
+    if (preCadastrosJaIncluidos.has(chave)) continue;
+
+    preCadastrosJaIncluidos.add(chave);
+    convitesMaisRecentes.push(convite);
+  }
+
   const preCadastroIdsComConvite = [
-    ...new Set((convites || []).map((c) => c.pre_cadastro_id).filter(Boolean)),
+    ...new Set(
+      convitesMaisRecentes
+        .map((convite) => convite.pre_cadastro_id)
+        .filter(Boolean)
+    ),
   ];
 
   let preCadastrosComConvite = [];
@@ -264,7 +280,7 @@ export async function listarAuditoriaConvitesMoradores({
     }
   });
 
-  const registrosComConvite = (convites || []).map((convite) =>
+  const registrosComConvite = convitesMaisRecentes.map((convite) =>
     formatarRegistro(
       convite,
       preMap.get(convite.pre_cadastro_id),
@@ -446,7 +462,13 @@ export async function enviarConviteMoradorAuditoria({
   enviarAgora = true,
   tipoEnvio = "individual",
 }) {
-  if (!perfil?.condominio_id) {
+  const condominioId =
+    perfil?.condominio_id ||
+    perfil?.condominio_atual_id ||
+    perfil?.usuario_condominio?.condominio_id ||
+    null;
+
+  if (!condominioId) {
     throw new Error("Condomínio não identificado no perfil.");
   }
 
@@ -458,7 +480,7 @@ export async function enviarConviteMoradorAuditoria({
     "enviar-convite-morador",
     {
       body: {
-        condominio_id: perfil.condominio_id,
+        condominio_id: condominioId,
         pre_cadastro_id: registro.pre_cadastro_id,
         nome: registro.nome,
         email: registro.email,
