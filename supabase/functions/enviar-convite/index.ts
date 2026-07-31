@@ -164,7 +164,7 @@ serve(async (req) => {
 
         <p style="margin:10px 0 0;">
           ${enderecoEmpresa ? `📍 ${enderecoEmpresa}<br/>` : ""}
-          ✉️ sistemachegou@gmail.com
+          ✉️ suporte@sistemachegou.com.br
         </p>
       </div>
 
@@ -174,7 +174,7 @@ serve(async (req) => {
 
 // 📧 envio real pelo Brevo
 const brevoApiKey = Deno.env.get("BREVO_API_KEY");
-const emailFrom = Deno.env.get("EMAIL_FROM") || "paulorodias@gmail.com";
+const emailFrom = Deno.env.get("EMAIL_FROM") || "noreply@sistemachegou.com.br";
 
 if (!brevoApiKey) {
   throw new Error("BREVO_API_KEY não configurada.");
@@ -189,7 +189,7 @@ const response = await fetch("https://api.brevo.com/v3/smtp/email", {
   },
   body: JSON.stringify({
     sender: {
-      name: "Chegou! Sistema",
+      name: "Sistema Chegou!",
       email: emailFrom,
     },
     to: [

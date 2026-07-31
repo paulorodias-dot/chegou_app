@@ -220,9 +220,9 @@ serve(async (req) => {
 
     const brevoApiKey = Deno.env.get("BREVO_API_KEY");
     const remetenteEmail =
-      Deno.env.get("BREVO_SENDER_EMAIL") || "sistemachegou@gmail.com";
+      Deno.env.get("BREVO_SENDER_EMAIL") || "noreply@sistemachegou.com.br";
     const remetenteNome =
-      Deno.env.get("BREVO_SENDER_NAME") || "Chegou! Sistema";
+      Deno.env.get("BREVO_SENDER_NAME") || "Sistema Chegou!";
     const empresaEndereco =
       Deno.env.get("EMPRESA_ENDERECO") ||
       "[Endereço físico da empresa — definir no módulo institucional]";

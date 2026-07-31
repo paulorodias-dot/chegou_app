@@ -1008,13 +1008,13 @@ serve(async (req) => {
       Deno.env.get(
         "BREVO_SENDER_EMAIL"
       ) ||
-      "sistemachegou@gmail.com";
+      "noreply@sistemachegou.com.br";
 
     const remetenteNome =
       Deno.env.get(
         "BREVO_SENDER_NAME"
       ) ||
-      "Chegou! Sistema";
+      "Sistema Chegou!";
 
     let emailStatus =
       "nao_enviado";

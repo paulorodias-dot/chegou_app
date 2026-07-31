@@ -334,10 +334,10 @@ serve(async (req) => {
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
     const remetenteEmail =
-      Deno.env.get("BREVO_SENDER_EMAIL") || "sistemachegou@gmail.com";
+      Deno.env.get("BREVO_SENDER_EMAIL") || "noreply@sistemachegou.com.br";
 
     const remetenteNome =
-      Deno.env.get("BREVO_SENDER_NAME") || "Chegou! Sistema";
+      Deno.env.get("BREVO_SENDER_NAME") || "Sistema Chegou!";
 
     const { data: configuracao } = await supabaseAdmin
       .from("configuracoes_envio_email")
