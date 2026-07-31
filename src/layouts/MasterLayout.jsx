@@ -76,7 +76,17 @@ function detectarModalOuDrawerMaster() {
   );
 }
 
-function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
+function MasterLayout({
+  perfil,
+  activePage,
+  onNavigate,
+  onLogout,
+  onOpenChat,
+  onOpenProfile,
+  onOpenSettings,
+  onChangeProfileImage,
+  children,
+}) {
   const [notificacoes, setNotificacoes] = useState([]);
   const [preferencias, setPreferencias] = useState(preferenciasPadrao);
   const [localizacaoAtual, setLocalizacaoAtual] = useState(null);
@@ -892,6 +902,10 @@ function MasterLayout({ perfil, activePage, onNavigate, onLogout, children }) {
       activePage={activePage}
       onNavigate={navegar}
       onLogout={onLogout}
+      onOpenChat={onOpenChat}
+      onOpenProfile={onOpenProfile}
+      onOpenSettings={onOpenSettings || (() => navegar("configuracoes"))}
+      onChangeProfileImage={onChangeProfileImage}
       mobileBottomItems={botoesMobileMaster}
       forceMobileBottomNav
       forceHideMobileFooter={camadaAbertaMaster}

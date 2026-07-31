@@ -34,7 +34,6 @@ import AdminCargosFuncoes from "./pages/admin/AdminCargosFuncoes";
 import CadastroFornecedores from "./pages/admin/CadastroFornecedores";
 
 import MoradorDashboard from "./pages/morador/MoradorDashboard";
-
 import PortariaInicio from "./pages/portaria/PortariaInicio";
 
 import PaginaPreparando from "./pages/PaginaPreparando";
@@ -75,12 +74,13 @@ function App() {
       );
     }
 
-    restaurarSessao();
+    if ("serviceWorker" in navigator && import.meta.env.PROD) {
+      navigator.serviceWorker.register("/sw.js").catch((error) => {
+        console.warn("Service Worker não registrado:", error);
+      });
+    }
 
-    return () => {
-      document.documentElement.classList.remove("chegou-app-fullscreen");
-      document.body.classList.remove("chegou-app-fullscreen");
-    };
+    restaurarSessao();
   }, []);
 
   useEffect(() => {
@@ -315,6 +315,10 @@ function App() {
       return <PaginaPreparando titulo="Retiradas de Encomendas" />;
     }
 
+    if (paginaAtual === "morador-encomendas-rastreio") {
+      return <PaginaPreparando titulo="Rastreio de Encomendas" />;
+    }
+
     if (paginaAtual === "morador-encomendas-diretas-grande-porte") {
       return <PaginaPreparando titulo="Entregas Diretas e Grande Porte" />;
     }
@@ -360,11 +364,7 @@ function App() {
 
   function renderizarPaginaPortaria() {
     if (paginaAtual === "portaria-inicio") {
-      return (
-        <PortariaInicio
-            perfil={perfil}
-        />
-      );
+      return <PortariaInicio perfil={perfil} />;
     }
 
     return <PaginaPreparando titulo="Módulo Portaria" />;

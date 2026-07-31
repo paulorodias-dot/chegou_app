@@ -7,15 +7,21 @@ import App from "./App";
 import ToastProvider from "./components/toast/ToastProvider";
 
 /**
- * Sistema Chegou! — Registro seguro do Service Worker
+ * Sistema Chegou! — Registro oficial do Service Worker
  *
- * Regras desta etapa:
- * - registra o /sw.js somente em produção;
- * - nunca registra no localhost;
- * - remove registros antigos durante o desenvolvimento local;
- * - não força atualização automática;
- * - deixa a ativação da nova versão preparada para o Version Manager.
+ * Responsabilidades:
+ * - registrar /sw.js somente em produção;
+ * - nunca registrar no localhost ou em desenvolvimento;
+ * - remover registros e caches antigos durante o desenvolvimento local;
+ * - detectar novas versões sem ativá-las automaticamente;
+ * - não recarregar a aplicação;
+ * - disponibilizar eventos para o Version Manager oficial.
  */
+
+const EVENTO_SW_REGISTRADO = "chegou:service-worker-registered";
+const EVENTO_SW_ATUALIZACAO = "chegou:service-worker-update";
+const EVENTO_SW_CONTROLADOR_ALTERADO =
+  "chegou:service-worker-controller-changed";
 
 function ambienteLocalOuDesenvolvimento() {
   const hostname = window.location.hostname;
@@ -57,7 +63,16 @@ async function removerServiceWorkersLocais() {
       );
 
       await Promise.all(
-        cachesDoChegou.map((nome) => caches.delete(nome))
+        cachesDoChegou.map(async (nome) => {
+          const removido = await caches.delete(nome);
+
+          if (removido) {
+            console.info(
+              "[Sistema Chegou!] Cache local removido:",
+              nome
+            );
+          }
+        })
       );
     }
   } catch (error) {
@@ -66,6 +81,17 @@ async function removerServiceWorkersLocais() {
       error
     );
   }
+}
+
+function emitirEventoServiceWorker(nome, detalhe = {}) {
+  window.dispatchEvent(
+    new CustomEvent(nome, {
+      detail: {
+        ...detalhe,
+        emittedAt: new Date().toISOString(),
+      },
+    })
+  );
 }
 
 async function registrarServiceWorker() {
@@ -93,45 +119,59 @@ async function registrarServiceWorker() {
       registro.scope
     );
 
-    /**
-     * Informa à aplicação que o registro oficial está disponível.
-     * O Version Manager poderá capturar e reutilizar este registro.
-     */
-    window.dispatchEvent(
-      new CustomEvent("chegou:service-worker-registered", {
-        detail: {
-          registration: registro,
-        },
-      })
-    );
+    emitirEventoServiceWorker(EVENTO_SW_REGISTRADO, {
+      registration: registro,
+      scope: registro.scope,
+    });
 
-    function informarAtualizacaoDisponivel(worker) {
-      if (!worker) return;
+    let workerAtualizacaoInformado = null;
 
-      window.dispatchEvent(
-        new CustomEvent("chegou:service-worker-update", {
-          detail: {
-            registration: registro,
-            worker,
-          },
-        })
+    function informarAtualizacaoDisponivel(worker, origem) {
+      if (!worker) {
+        return;
+      }
+
+      /**
+       * Evita emitir duas vezes o mesmo aviso quando o navegador
+       * disponibiliza o worker por updatefound e registration.waiting.
+       */
+      if (workerAtualizacaoInformado === worker) {
+        return;
+      }
+
+      workerAtualizacaoInformado = worker;
+
+      console.info(
+        "[Sistema Chegou!] Nova versão do Service Worker disponível.",
+        {
+          origem,
+          estado: worker.state,
+          scriptURL: worker.scriptURL,
+        }
       );
+
+      emitirEventoServiceWorker(EVENTO_SW_ATUALIZACAO, {
+        registration: registro,
+        worker,
+        origin: origem,
+        state: worker.state,
+        scriptURL: worker.scriptURL,
+      });
     }
 
     /**
-     * Pode existir uma atualização já instalada e aguardando autorização
+     * Pode existir uma atualização já instalada e aguardando ativação
      * antes mesmo do carregamento atual da aplicação.
      */
     if (registro.waiting && navigator.serviceWorker.controller) {
-      console.info(
-        "[Sistema Chegou!] Existe um Service Worker aguardando ativação."
+      informarAtualizacaoDisponivel(
+        registro.waiting,
+        "registration_waiting"
       );
-
-      informarAtualizacaoDisponivel(registro.waiting);
     }
 
     /**
-     * O listener deve ser instalado antes de chamar registro.update().
+     * O listener deve existir antes de registration.update().
      */
     registro.addEventListener("updatefound", () => {
       const novoServiceWorker = registro.installing;
@@ -140,27 +180,73 @@ async function registrarServiceWorker() {
         return;
       }
 
+      console.info(
+        "[Sistema Chegou!] Instalação de novo Service Worker iniciada."
+      );
+
       novoServiceWorker.addEventListener("statechange", () => {
+        console.info(
+          "[Sistema Chegou!] Estado do novo Service Worker:",
+          novoServiceWorker.state
+        );
+
         if (
           novoServiceWorker.state === "installed" &&
           navigator.serviceWorker.controller
         ) {
-          console.info(
-            "[Sistema Chegou!] Nova versão do Service Worker disponível."
-          );
-
           informarAtualizacaoDisponivel(
-            registro.waiting || novoServiceWorker
+            registro.waiting || novoServiceWorker,
+            "updatefound"
           );
         }
       });
     });
 
     /**
-     * Solicita ao navegador uma verificação direta do sw.js.
-     * Não ativa nem recarrega a aplicação automaticamente.
+     * Detecta quando outro Service Worker assume o controle.
+     *
+     * IMPORTANTE:
+     * este listener não executa window.location.reload().
+     * A decisão de recarregar será exclusiva do Version Manager.
      */
-    await registro.update();
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      () => {
+        console.info(
+          "[Sistema Chegou!] Controlador do Service Worker alterado."
+        );
+
+        emitirEventoServiceWorker(
+          EVENTO_SW_CONTROLADOR_ALTERADO,
+          {
+            controller: navigator.serviceWorker.controller,
+            registration: registro,
+          }
+        );
+      },
+      { once: true }
+    );
+
+    /**
+     * Solicita ao navegador uma verificação direta do sw.js.
+     *
+     * Isso não executa:
+     * - skipWaiting;
+     * - recarregamento;
+     * - atualização automática da interface.
+     */
+    try {
+      await registro.update();
+    } catch (updateError) {
+      /**
+       * Uma falha na verificação não invalida o registro já existente.
+       * O navegador poderá tentar novamente em outro momento.
+       */
+      console.warn(
+        "[Sistema Chegou!] Não foi possível verificar uma nova versão do Service Worker:",
+        updateError
+      );
+    }
 
     return registro;
   } catch (error) {
@@ -174,13 +260,16 @@ async function registrarServiceWorker() {
 }
 
 /**
- * Aguarda o carregamento completo da página para não competir
- * com a renderização inicial, autenticação e carregamento da aplicação.
+ * Aguarda o carregamento completo da página para não competir com:
+ * - renderização inicial;
+ * - autenticação;
+ * - restauração da sessão;
+ * - carregamento dos módulos.
  */
 window.addEventListener(
   "load",
   () => {
-    registrarServiceWorker();
+    void registrarServiceWorker();
   },
   { once: true }
 );

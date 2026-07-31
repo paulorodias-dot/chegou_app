@@ -2,17 +2,20 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { contarNotificacoesNaoLidasAdministrativo } from "../services/notificacoesService";
 import {
   Bell,
+  Camera,
+  Car,
   ChevronDown,
   ChevronRight,
+  ClipboardList,
+  Home,
   LogOut,
   Menu,
   MessageSquare,
-  Home,
-  ClipboardList,
   Package,
   Settings,
-  Car,
   ShieldCheck,
+  UserRound,
+  X,
 } from "lucide-react";
 
 import logo from "../assets/logo.png";
@@ -43,6 +46,10 @@ function ambientePermiteInstalacaoPWA() {
 }
 
 function isStandalonePWA() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
   return (
     window.matchMedia?.("(display-mode: standalone)")?.matches ||
     window.navigator.standalone === true
@@ -50,6 +57,13 @@ function isStandalonePWA() {
 }
 
 function isIOS() {
+  if (
+    typeof navigator === "undefined" ||
+    typeof window === "undefined"
+  ) {
+    return false;
+  }
+
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
@@ -92,8 +106,124 @@ function montarChaveNovidades(role, perfil) {
   return `chegou_menus_novos_vistos_${role}_${getUsuarioMemoriaId(perfil)}`;
 }
 
+function obterNomeCompleto(perfil) {
+  const nome =
+    perfil?.nome ||
+    perfil?.nome_completo ||
+    perfil?.nome_usuario ||
+    perfil?.display_name ||
+    perfil?.usuario_nome ||
+    "Usuário";
+
+  return String(nome).trim().replace(/\s+/g, " ");
+}
+
+function obterPrimeiroEUltimoNome(perfil) {
+  const partes = obterNomeCompleto(perfil).split(" ").filter(Boolean);
+
+  if (partes.length === 0) {
+    return "Usuário";
+  }
+
+  if (partes.length === 1) {
+    return partes[0];
+  }
+
+  return `${partes[0]} ${partes[partes.length - 1]}`;
+}
+
+function obterIniciais(perfil) {
+  const partes = obterPrimeiroEUltimoNome(perfil)
+    .split(" ")
+    .filter(Boolean);
+
+  if (partes.length === 0) {
+    return "U";
+  }
+
+  if (partes.length === 1) {
+    return partes[0].charAt(0).toUpperCase();
+  }
+
+  return `${partes[0].charAt(0)}${partes[
+    partes.length - 1
+  ].charAt(0)}`.toUpperCase();
+}
+
+function obterImagemPerfil(perfil) {
+  return (
+    perfil?.foto_perfil_url ||
+    perfil?.imagem_perfil_url ||
+    perfil?.avatar_url ||
+    perfil?.foto_url ||
+    null
+  );
+}
+
+function obterFuncaoExibicao(role, perfil) {
+  if (perfil?.modo_suporte_master) {
+    return "Suporte Master";
+  }
+
+  const descricaoCadastrada =
+    perfil?.cargo_nome ||
+    perfil?.nome_cargo ||
+    perfil?.cargo ||
+    perfil?.funcao_nome ||
+    perfil?.nome_funcao ||
+    perfil?.funcao ||
+    perfil?.descricao_funcao ||
+    perfil?.tipo_morador ||
+    perfil?.perfil_morador ||
+    perfil?.papel_morador ||
+    perfil?.descricao_perfil ||
+    perfil?.nivel_nome;
+
+  if (descricaoCadastrada) {
+    return String(descricaoCadastrada);
+  }
+
+  if (role === "master") {
+    return "Master";
+  }
+
+  if (role === "admin_logistica") {
+    return "Administrador";
+  }
+
+  if (role === "funcionario") {
+    return "Funcionário";
+  }
+
+  if (role === "morador") {
+    return "Morador";
+  }
+
+  return "Usuário";
+}
+
+function obterRotaPerfil(role) {
+  if (role === "master") return "master-perfil";
+  if (role === "admin_logistica") return "admin-perfil";
+  if (role === "funcionario") return "portaria-perfil";
+  if (role === "morador") return "morador-perfil";
+
+  return "perfil";
+}
+
+function obterRotaConfiguracoes(role) {
+  if (role === "master") return "configuracoes";
+  if (role === "admin_logistica") return "admin-configuracoes";
+  if (role === "funcionario") return "portaria-configuracoes";
+  if (role === "morador") return "morador-configuracoes";
+
+  return "configuracoes";
+}
+
 function existeModalOuDrawerAberto() {
-  if (typeof document === "undefined") return false;
+  if (typeof document === "undefined") {
+    return false;
+  }
 
   return Boolean(
     document.querySelector(
@@ -118,19 +248,26 @@ export default function AppLayout({
   onNavigate,
   onLogout,
   onExitSupport,
+  onOpenChat,
+  onOpenProfile,
+  onOpenSettings,
+  onChangeProfileImage,
   children,
   mobileBottomItems = null,
   forceMobileBottomNav = false,
   forceHideMobileFooter = false,
 }) {
   const deferredPromptRef = useRef(null);
+  const profileMenuRef = useRef(null);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [menusNovosVistos, setMenusNovosVistos] = useState([]);
   const [modalOuDrawerAberto, setModalOuDrawerAberto] = useState(false);
+
   const [modoEscuroVisual, setModoEscuroVisual] = useState(
     detectarTemaEscuroAtual
   );
@@ -153,44 +290,55 @@ export default function AppLayout({
     [role, perfil?.id, perfil?.usuario_id, perfil?.email]
   );
 
-  const nomeExibicaoMorador = useMemo(() => {
-    if (role !== "morador") return null;
+  const nomeExibicao = useMemo(
+    () => obterPrimeiroEUltimoNome(perfil),
+    [
+      perfil?.nome,
+      perfil?.nome_completo,
+      perfil?.nome_usuario,
+      perfil?.display_name,
+      perfil?.usuario_nome,
+    ]
+  );
 
-    const nomeBase =
-      perfil?.nome ||
-      perfil?.nome_completo ||
-      perfil?.nome_usuario ||
-      "Usuário";
+  const iniciaisPerfil = useMemo(
+    () => obterIniciais(perfil),
+    [
+      perfil?.nome,
+      perfil?.nome_completo,
+      perfil?.nome_usuario,
+      perfil?.display_name,
+      perfil?.usuario_nome,
+    ]
+  );
 
-    const partes = nomeBase.trim().split(" ").filter(Boolean);
+  const funcaoExibicao = useMemo(
+    () => obterFuncaoExibicao(role, perfil),
+    [
+      role,
+      perfil?.modo_suporte_master,
+      perfil?.cargo_nome,
+      perfil?.nome_cargo,
+      perfil?.cargo,
+      perfil?.funcao_nome,
+      perfil?.nome_funcao,
+      perfil?.funcao,
+      perfil?.descricao_funcao,
+      perfil?.tipo_morador,
+      perfil?.perfil_morador,
+      perfil?.papel_morador,
+      perfil?.descricao_perfil,
+      perfil?.nivel_nome,
+    ]
+  );
 
-    if (partes.length <= 1) return partes[0] || "Usuário";
-
-    return `${partes[0]} ${partes[partes.length - 1]}`;
-  }, [role, perfil?.nome, perfil?.nome_completo, perfil?.nome_usuario]);
-
-  const perfilExibicaoMorador = useMemo(() => {
-    if (role !== "morador") return null;
-
-    return (
-      perfil?.tipo_morador ||
-      perfil?.perfil_morador ||
-      perfil?.papel_morador ||
-      perfil?.descricao_perfil ||
-      "Morador Responsável"
-    );
-  }, [
-    role,
-    perfil?.tipo_morador,
-    perfil?.perfil_morador,
-    perfil?.papel_morador,
-    perfil?.descricao_perfil,
-  ]);
+  const imagemPerfil = obterImagemPerfil(perfil);
 
   const ocultarRodapeMobile =
     forceHideMobileFooter ||
     mobileOpen ||
     notificationCenterOpen ||
+    profileMenuOpen ||
     modalOuDrawerAberto ||
     mostrarInstalacaoPWA ||
     mostrarConfirmacaoSaida;
@@ -276,18 +424,73 @@ export default function AppLayout({
   }, []);
 
   useEffect(() => {
+    function fecharMenuAoClicarFora(event) {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target)
+      ) {
+        setProfileMenuOpen(false);
+      }
+    }
+
+    function fecharMenuComEscape(event) {
+      if (event.key === "Escape") {
+        setProfileMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", fecharMenuAoClicarFora);
+    document.addEventListener("touchstart", fecharMenuAoClicarFora);
+    document.addEventListener("keydown", fecharMenuComEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", fecharMenuAoClicarFora);
+      document.removeEventListener("touchstart", fecharMenuAoClicarFora);
+      document.removeEventListener("keydown", fecharMenuComEscape);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isStandalonePWA()) {
+      return;
+    }
+
+    const agora = new Date().toISOString();
+
+    localStorage.setItem(
+      PWA_INSTALL_KEY,
+      JSON.stringify({
+        instalado: true,
+        ignoradoEm: null,
+        acessos: 0,
+        detectadoEm: agora,
+        atualizadoEm: agora,
+        origem: "standalone",
+      })
+    );
+
+    setPwaInstalado(true);
+    setMostrarInstalacaoPWA(false);
+  }, []);
+
+  useEffect(() => {
     let ativo = true;
 
     async function carregarNotificacoes() {
       if (role !== "admin_logistica") {
         if (ativo) {
-          setNotificacoesNaoLidas(Number(perfil?.notificacoes_nao_lidas || 0));
+          setNotificacoesNaoLidas(
+            Number(perfil?.notificacoes_nao_lidas || 0)
+          );
         }
+
         return;
       }
 
       try {
-        const total = await contarNotificacoesNaoLidasAdministrativo({ perfil });
+        const total = await contarNotificacoesNaoLidasAdministrativo({
+          perfil,
+        });
 
         if (ativo) {
           setNotificacoesNaoLidas(total);
@@ -305,7 +508,13 @@ export default function AppLayout({
       ativo = false;
       window.clearInterval(intervalo);
     };
-  }, [role, perfil?.id, perfil?.usuario_id, perfil?.condominio_id]);
+  }, [
+    role,
+    perfil?.id,
+    perfil?.usuario_id,
+    perfil?.condominio_id,
+    perfil?.notificacoes_nao_lidas,
+  ]);
 
   useEffect(() => {
     window.scrollTo({
@@ -313,6 +522,8 @@ export default function AppLayout({
       left: 0,
       behavior: "smooth",
     });
+
+    setProfileMenuOpen(false);
   }, [activePage]);
 
   useEffect(() => {
@@ -320,14 +531,31 @@ export default function AppLayout({
       deferredPromptRef.current = null;
       setPwaInstallPromptDisponivel(false);
       setMostrarInstalacaoPWA(false);
+
       return undefined;
     }
 
     function atualizarPWAInstalado() {
+      const instalado = isStandalonePWA();
+
       deferredPromptRef.current = null;
-      setPwaInstalado(isStandalonePWA());
+      setPwaInstalado(instalado);
       setPwaInstallPromptDisponivel(false);
       setMostrarInstalacaoPWA(false);
+
+      const agora = new Date().toISOString();
+
+      localStorage.setItem(
+        PWA_INSTALL_KEY,
+        JSON.stringify({
+          instalado: true,
+          ignoradoEm: null,
+          acessos: 0,
+          detectadoEm: agora,
+          atualizadoEm: agora,
+          origem: "appinstalled",
+        })
+      );
     }
 
     function capturarPrompt(event) {
@@ -352,8 +580,9 @@ export default function AppLayout({
       return;
     }
 
-    if (!perfil) return;
-    if (pwaInstalado) return;
+    if (!perfil || pwaInstalado) {
+      return;
+    }
 
     let estado = {
       instalado: false,
@@ -364,7 +593,13 @@ export default function AppLayout({
 
     try {
       const salvo = localStorage.getItem(PWA_INSTALL_KEY);
-      if (salvo) estado = { ...estado, ...JSON.parse(salvo) };
+
+      if (salvo) {
+        estado = {
+          ...estado,
+          ...JSON.parse(salvo),
+        };
+      }
     } catch {
       estado = {
         instalado: false,
@@ -380,7 +615,10 @@ export default function AppLayout({
     }
 
     const acessos = Number(estado.acessos || 0) + 1;
-    const ignoradoEm = estado.ignoradoEm ? new Date(estado.ignoradoEm) : null;
+    const ignoradoEm = estado.ignoradoEm
+      ? new Date(estado.ignoradoEm)
+      : null;
+
     const diasDesdeIgnorado = ignoradoEm
       ? (Date.now() - ignoradoEm.getTime()) / (1000 * 60 * 60 * 24)
       : null;
@@ -418,14 +656,28 @@ export default function AppLayout({
   useEffect(() => {
     const isMobile = window.innerWidth <= 900;
 
-    if (!isMobile && !isStandalonePWA()) return;
+    if (!isMobile && !isStandalonePWA()) {
+      return;
+    }
 
-    history.pushState({ chegouGuard: true }, "", window.location.href);
+    history.pushState(
+      {
+        chegouGuard: true,
+      },
+      "",
+      window.location.href
+    );
 
     function bloquearVoltar(event) {
       event.preventDefault();
 
-      history.pushState({ chegouGuard: true }, "", window.location.href);
+      history.pushState(
+        {
+          chegouGuard: true,
+        },
+        "",
+        window.location.href
+      );
 
       if (existeModalOuDrawerAberto()) {
         return;
@@ -477,8 +729,13 @@ export default function AppLayout({
   function registrarNovidadeVista(menu, childId = null) {
     const ids = [...menusNovosVistos];
 
-    if (menu?.id) ids.push(menu.id);
-    if (childId) ids.push(childId);
+    if (menu?.id) {
+      ids.push(menu.id);
+    }
+
+    if (childId) {
+      ids.push(childId);
+    }
 
     if (menu?.children?.length) {
       const todosSubmenusNovos = menu.children
@@ -499,12 +756,18 @@ export default function AppLayout({
 
   async function atualizarContadorNotificacoes() {
     if (role !== "admin_logistica") {
-      setNotificacoesNaoLidas(Number(perfil?.notificacoes_nao_lidas || 0));
+      setNotificacoesNaoLidas(
+        Number(perfil?.notificacoes_nao_lidas || 0)
+      );
+
       return;
     }
 
     try {
-      const total = await contarNotificacoesNaoLidasAdministrativo({ perfil });
+      const total = await contarNotificacoesNaoLidasAdministrativo({
+        perfil,
+      });
+
       setNotificacoesNaoLidas(total);
     } catch (error) {
       console.error("Erro ao atualizar contador de notificações:", error);
@@ -512,10 +775,15 @@ export default function AppLayout({
   }
 
   function navegar(destino) {
+    if (!destino) {
+      return;
+    }
+
     setNotificationCenterOpen(false);
+    setProfileMenuOpen(false);
     setMobileOpen(false);
 
-    onNavigate(destino);
+    onNavigate?.(destino);
 
     window.scrollTo({
       top: 0,
@@ -559,31 +827,24 @@ export default function AppLayout({
     }
   }
 
-  function getPerfilNome() {
-    if (role === "master") return "Master";
-    if (role === "admin_logistica") return "Admin Logística";
-    if (role === "funcionario") return "Portaria";
-    if (role === "morador") return "Morador";
-    return "Usuário";
-  }
-
-  function getPerfilDescricao() {
-    if (role === "master") return perfil?.nome || "Perfil Master";
-    if (role === "admin_logistica") return perfil?.nome || "Gestão do Condomínio";
-    if (role === "funcionario") return perfil?.nome || "Funcionário do Condomínio";
-    if (role === "morador") return perfil?.nome || "Morador Responsável";
-    return perfil?.nome || "Perfil";
-  }
-
   function getBadgeTitulo() {
+    if (perfil?.modo_suporte_master) {
+      return "Suporte Master";
+    }
+
     if (role === "master") return "Perfil Master";
     if (role === "admin_logistica") return "Admin Logística";
     if (role === "funcionario") return "Módulo Portaria";
     if (role === "morador") return "Módulo Morador";
+
     return "Perfil do Sistema";
   }
 
   function getBadgeDescricao() {
+    if (perfil?.modo_suporte_master) {
+      return "Acesso assistido ao ambiente administrativo do condomínio.";
+    }
+
     if (role === "master") {
       return "Acesso estratégico à gestão da plataforma Sistema Chegou!.";
     }
@@ -603,6 +864,57 @@ export default function AppLayout({
     return "Acesso conforme permissões do perfil.";
   }
 
+  function abrirChat() {
+    setProfileMenuOpen(false);
+
+    if (typeof onOpenChat === "function") {
+      onOpenChat();
+      return;
+    }
+
+    console.info(
+      "[Sistema Chegou!] Módulo de chat ainda não configurado."
+    );
+  }
+
+  function abrirPerfil() {
+    setProfileMenuOpen(false);
+
+    if (typeof onOpenProfile === "function") {
+      onOpenProfile();
+      return;
+    }
+
+    navegar(obterRotaPerfil(role));
+  }
+
+  function abrirConfiguracoes() {
+    setProfileMenuOpen(false);
+
+    if (typeof onOpenSettings === "function") {
+      onOpenSettings();
+      return;
+    }
+
+    navegar(obterRotaConfiguracoes(role));
+  }
+
+  function trocarImagemPerfil() {
+    setProfileMenuOpen(false);
+
+    if (typeof onChangeProfileImage === "function") {
+      onChangeProfileImage();
+      return;
+    }
+
+    abrirPerfil();
+  }
+
+  function sairPeloMenuPerfil() {
+    setProfileMenuOpen(false);
+    onLogout?.();
+  }
+
   function handleMenuButton() {
     if (window.innerWidth <= 900) {
       setMobileOpen(true);
@@ -620,29 +932,136 @@ export default function AppLayout({
     });
   }
 
+  function renderizarAvatar({ compacto = false } = {}) {
+    return (
+      <span
+        className={[
+          "profile-avatar-premium",
+          compacto ? "profile-avatar-compact" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-hidden="true"
+      >
+        {imagemPerfil ? (
+          <img src={imagemPerfil} alt="" />
+        ) : (
+          <strong>{iniciaisPerfil}</strong>
+        )}
+      </span>
+    );
+  }
+
+  function renderizarMenuPerfil() {
+    if (!profileMenuOpen) {
+      return null;
+    }
+
+    return (
+      <div
+        className="profile-menu-premium"
+        role="menu"
+        aria-label="Opções do perfil"
+        data-drawer-open="true"
+      >
+        <button
+          type="button"
+          className="profile-menu-mobile-close"
+          onClick={() => setProfileMenuOpen(false)}
+          aria-label="Fechar opções do perfil"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="profile-menu-header">
+          {renderizarAvatar()}
+
+          <div>
+            <strong>{nomeExibicao}</strong>
+            <small>{funcaoExibicao}</small>
+          </div>
+        </div>
+
+        <div className="profile-menu-options">
+          <button
+            type="button"
+            role="menuitem"
+            onClick={trocarImagemPerfil}
+          >
+            <Camera size={18} />
+            <span>Trocar imagem do perfil</span>
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={abrirPerfil}
+          >
+            <UserRound size={18} />
+            <span>Meu perfil</span>
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={abrirConfiguracoes}
+          >
+            <Settings size={18} />
+            <span>Configurações</span>
+          </button>
+
+          <div className="profile-menu-separator" />
+
+          <button
+            type="button"
+            role="menuitem"
+            className="profile-menu-logout"
+            onClick={sairPeloMenuPerfil}
+          >
+            <LogOut size={18} />
+            <span>Sair</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   function renderMobileCustomItems() {
-    if (!forceMobileBottomNav && !mobileBottomItems?.length) return null;
-    if (!mobileBottomItems?.length) return null;
+    if (!forceMobileBottomNav && !mobileBottomItems?.length) {
+      return null;
+    }
+
+    if (!mobileBottomItems?.length) {
+      return null;
+    }
 
     return (
       <nav className="mobile-bottom-nav">
         {mobileBottomItems.map((item) => {
           const Icon = item.icon;
+
           const ativo =
             activePage === item.id ||
-            (Array.isArray(item.activeIds) && item.activeIds.includes(activePage));
+            (Array.isArray(item.activeIds) &&
+              item.activeIds.includes(activePage));
 
           return (
             <button
               type="button"
               key={item.id}
-              className={ativo ? "mobile-nav-item active" : "mobile-nav-item"}
+              className={
+                ativo
+                  ? "mobile-nav-item active"
+                  : "mobile-nav-item"
+              }
               onClick={() => navegar(item.id)}
             >
               <Icon size={20} />
               <span>{item.label}</span>
 
-              {Number(item.badge || 0) > 0 ? <b>{item.badge}</b> : null}
+              {Number(item.badge || 0) > 0 ? (
+                <b>{item.badge}</b>
+              ) : null}
             </button>
           );
         })}
@@ -651,11 +1070,15 @@ export default function AppLayout({
   }
 
   function renderMobileBottomNav() {
-    if (ocultarRodapeMobile) return null;
+    if (ocultarRodapeMobile) {
+      return null;
+    }
 
     const customNav = renderMobileCustomItems();
 
-    if (customNav) return customNav;
+    if (customNav) {
+      return customNav;
+    }
 
     if (role === "admin_logistica") {
       return (
@@ -676,11 +1099,13 @@ export default function AppLayout({
           <button
             type="button"
             className={
-              activePage === "admin-cadastro-morador" ||
-              activePage === "admin-divergencias-moradores" ||
-              activePage === "admin-cargos-funcoes" ||
-              activePage === "admin-funcionarios" ||
-              activePage === "admin-fornecedor"
+              [
+                "admin-cadastro-morador",
+                "admin-divergencias-moradores",
+                "admin-cargos-funcoes",
+                "admin-funcionarios",
+                "admin-fornecedor",
+              ].includes(activePage)
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
@@ -748,22 +1173,42 @@ export default function AppLayout({
             <span>Início</span>
           </button>
 
-          <button type="button" className="mobile-nav-item" onClick={() => navegar("portaria-inicio")}>
+          <button
+            type="button"
+            className="mobile-nav-item"
+            onClick={() => navegar("portaria-inicio")}
+          >
             <Package size={20} />
             <span>Receber</span>
           </button>
 
-          <button type="button" className="mobile-nav-item" onClick={() => navegar("portaria-inicio")}>
+          <button
+            type="button"
+            className="mobile-nav-item"
+            onClick={() => navegar("portaria-inicio")}
+          >
             <ShieldCheck size={20} />
             <span>Entrega</span>
           </button>
 
-          <button type="button" className="mobile-nav-item" onClick={() => navegar("portaria-inicio")}>
+          <button
+            type="button"
+            className="mobile-nav-item"
+            onClick={() => navegar("portaria-inicio")}
+          >
             <Bell size={20} />
             <span>Alertas</span>
           </button>
 
-          <button type="button" className="mobile-nav-item" onClick={() => navegar("portaria-inicio")}>
+          <button
+            type="button"
+            className={
+              activePage === "portaria-configuracoes"
+                ? "mobile-nav-item active"
+                : "mobile-nav-item"
+            }
+            onClick={() => navegar("portaria-configuracoes")}
+          >
             <Settings size={20} />
             <span>Config</span>
           </button>
@@ -850,6 +1295,7 @@ export default function AppLayout({
       deferredPromptRef.current = null;
       setPwaInstallPromptDisponivel(false);
       setMostrarInstalacaoPWA(false);
+
       return;
     }
 
@@ -859,13 +1305,17 @@ export default function AppLayout({
       const resultado = await deferredPromptRef.current.userChoice;
 
       if (resultado?.outcome === "accepted") {
+        const agora = new Date().toISOString();
+
         localStorage.setItem(
           PWA_INSTALL_KEY,
           JSON.stringify({
             instalado: true,
             ignoradoEm: null,
             acessos: 0,
-            atualizadoEm: new Date().toISOString(),
+            detectadoEm: agora,
+            atualizadoEm: agora,
+            origem: "prompt",
           })
         );
 
@@ -875,12 +1325,17 @@ export default function AppLayout({
 
       deferredPromptRef.current = null;
       setPwaInstallPromptDisponivel(false);
+
       return;
     }
 
     if (isIOS()) {
       setMostrarInstalacaoPWA(true);
     }
+  }
+
+  function confirmarOrientacaoIOS() {
+    setMostrarInstalacaoPWA(false);
   }
 
   function adiarInstalacaoPWA() {
@@ -903,31 +1358,60 @@ export default function AppLayout({
   }
 
   function renderizarCardInstalacaoPWA() {
-    if (!mostrarInstalacaoPWA || pwaInstalado) return null;
+    if (!mostrarInstalacaoPWA || pwaInstalado) {
+      return null;
+    }
 
     return (
-      <div className="pwa-install-overlay" data-modal-open="true">
+      <div
+        className="pwa-install-overlay"
+        data-modal-open="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pwa-install-title"
+      >
         <section className="pwa-install-card">
           <div>
-            <strong>Instale o Sistema Chegou!</strong>
+            <strong id="pwa-install-title">
+              Instale o Sistema Chegou!
+            </strong>
 
             {isIOS() ? (
-              <p>
-                No iPhone, toque em compartilhar e selecione “Adicionar à Tela de
-                Início” para usar o Sistema Chegou! como aplicativo.
-              </p>
+              <>
+                <p>
+                  No iPhone, a instalação é concluída pelo menu do Safari:
+                </p>
+
+                <ol className="pwa-install-ios-steps">
+                  <li>Toque no botão Compartilhar.</li>
+                  <li>Escolha “Adicionar à Tela de Início”.</li>
+                  <li>Confirme em “Adicionar”.</li>
+                </ol>
+              </>
             ) : (
               <p>
-                Tenha acesso rápido, experiência em tela cheia e navegação com
-                aparência de aplicativo.
+                Tenha acesso rápido, experiência em tela cheia e navegação
+                com aparência de aplicativo.
               </p>
             )}
           </div>
 
           <div className="pwa-install-actions">
             {!isIOS() && pwaInstallPromptDisponivel ? (
-              <button type="button" onClick={instalarPWA}>
+              <button
+                type="button"
+                onClick={instalarPWA}
+              >
                 Instalar
+              </button>
+            ) : null}
+
+            {isIOS() ? (
+              <button
+                type="button"
+                onClick={confirmarOrientacaoIOS}
+              >
+                Entendi, vou instalar
               </button>
             ) : null}
 
@@ -945,13 +1429,24 @@ export default function AppLayout({
   }
 
   function renderizarConfirmacaoSaida() {
-    if (!mostrarConfirmacaoSaida) return null;
+    if (!mostrarConfirmacaoSaida) {
+      return null;
+    }
 
     return (
-      <div className="pwa-install-overlay" data-modal-open="true">
+      <div
+        className="pwa-install-overlay"
+        data-modal-open="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmacao-saida-title"
+      >
         <section className="pwa-install-card">
           <div>
-            <strong>Deseja sair do Sistema Chegou?</strong>
+            <strong id="confirmacao-saida-title">
+              Deseja sair do Sistema Chegou?
+            </strong>
+
             <p>
               Para evitar saída acidental, o botão voltar foi protegido neste
               aplicativo.
@@ -967,7 +1462,10 @@ export default function AppLayout({
               Cancelar
             </button>
 
-            <button type="button" onClick={confirmarSaida}>
+            <button
+              type="button"
+              onClick={confirmarSaida}
+            >
               Sair
             </button>
           </div>
@@ -989,10 +1487,16 @@ export default function AppLayout({
       {perfil?.modo_suporte_master ? (
         <div className="support-master-banner">
           <strong>Modo Suporte Master</strong>
+
           <span>
-            Condomínio: {perfil?.nome_condominio || "Condomínio selecionado"}
+            Condomínio:{" "}
+            {perfil?.nome_condominio || "Condomínio selecionado"}
           </span>
-          <button type="button" onClick={onExitSupport}>
+
+          <button
+            type="button"
+            onClick={onExitSupport}
+          >
             Sair do Suporte
           </button>
         </div>
@@ -1009,15 +1513,30 @@ export default function AppLayout({
             <Menu size={28} />
           </button>
 
-          <img src={logo} alt="Chegou!" className="app-top-logo" />
+          <img
+            src={logo}
+            alt="Chegou!"
+            className="app-top-logo"
+          />
         </div>
 
         <div className="topbar-actions">
           <button
             type="button"
+            className="topbar-chat"
+            onClick={abrirChat}
+            aria-label="Abrir chat"
+            title="Chat"
+          >
+            <MessageSquare size={20} />
+          </button>
+
+          <button
+            type="button"
             className="notification"
             onClick={() => setNotificationCenterOpen(true)}
             aria-label="Abrir notificações"
+            title="Notificações"
           >
             <Bell size={20} />
 
@@ -1026,47 +1545,52 @@ export default function AppLayout({
             ) : null}
           </button>
 
-          <span className="notification desktop-only">
-            <MessageSquare size={20} />
-          </span>
+          <div
+            className="profile-menu-wrapper"
+            ref={profileMenuRef}
+          >
+            <button
+              type="button"
+              className="profile-trigger-premium"
+              onClick={() => setProfileMenuOpen((atual) => !atual)}
+              aria-haspopup="menu"
+              aria-expanded={profileMenuOpen}
+              aria-label={`Abrir opções de ${nomeExibicao}`}
+            >
+              {renderizarAvatar({
+                compacto: true,
+              })}
 
-          <div className="profile desktop-only">
-            <span>
-              {role === "morador"
-                ? nomeExibicaoMorador?.charAt(0) || "U"
-                : getPerfilNome().charAt(0)}
-            </span>
+              <span className="profile-trigger-text desktop-only">
+                <strong>{nomeExibicao}</strong>
+                <small>{funcaoExibicao}</small>
+              </span>
 
-            <div>
-              <strong>
-                {role === "morador" ? nomeExibicaoMorador : getPerfilNome()}
-              </strong>
+              <ChevronDown
+                size={16}
+                className={[
+                  "profile-trigger-chevron",
+                  profileMenuOpen ? "open" : "",
+                  "desktop-only",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              />
+            </button>
 
-              <small>
-                {role === "morador"
-                  ? perfilExibicaoMorador
-                  : getPerfilDescricao()}
-              </small>
-            </div>
-
-            <ChevronDown size={15} />
+            {renderizarMenuPerfil()}
           </div>
-
-          <button type="button" className="topbar-logout" onClick={onLogout}>
-            <LogOut size={16} />
-            Sair
-          </button>
         </div>
       </header>
 
-      {mobileOpen && (
+      {mobileOpen ? (
         <button
           type="button"
           className="sidebar-overlay"
           onClick={() => setMobileOpen(false)}
           aria-label="Fechar menu"
         />
-      )}
+      ) : null}
 
       <aside className={`app-sidebar ${mobileOpen ? "open" : ""}`}>
         <p className="sidebar-title">MENU PRINCIPAL</p>
@@ -1076,6 +1600,7 @@ export default function AppLayout({
             const Icon = menu.icon;
             const isOpen = openMenu === menu.id;
             const hasChildren = menu.children?.length > 0;
+
             const isActive =
               activePage === menu.id ||
               menu.children?.some((child) => child.id === activePage);
@@ -1084,7 +1609,10 @@ export default function AppLayout({
               menuNovoVisivel(menu) || menuTemSubmenuNovoVisivel(menu);
 
             return (
-              <div className="sidebar-group" key={menu.id}>
+              <div
+                className="sidebar-group"
+                key={menu.id}
+              >
                 <button
                   type="button"
                   className={isActive ? "active" : ""}
@@ -1096,20 +1624,23 @@ export default function AppLayout({
                     <em>{menu.label}</em>
 
                     {mostrarNovoMenu ? (
-                      <i className="menu-new-dot" aria-label="Novo menu" />
+                      <i
+                        className="menu-new-dot"
+                        aria-label="Novo menu"
+                      />
                     ) : null}
                   </span>
 
-                  {hasChildren &&
-                    !sidebarCollapsed &&
-                    (isOpen ? (
+                  {hasChildren && !sidebarCollapsed ? (
+                    isOpen ? (
                       <ChevronDown size={17} />
                     ) : (
                       <ChevronRight size={17} />
-                    ))}
+                    )
+                  ) : null}
                 </button>
 
-                {hasChildren && isOpen && !sidebarCollapsed && (
+                {hasChildren && isOpen && !sidebarCollapsed ? (
                   <div className="sidebar-submenu">
                     {menu.children
                       .filter((child) => child.visible !== false)
@@ -1121,9 +1652,13 @@ export default function AppLayout({
                             type="button"
                             key={child.id}
                             className={
-                              activePage === child.id ? "active-subitem" : ""
+                              activePage === child.id
+                                ? "active-subitem"
+                                : ""
                             }
-                            onClick={() => clicarSubmenu(menu, child.id)}
+                            onClick={() =>
+                              clicarSubmenu(menu, child.id)
+                            }
                           >
                             <ChildIcon size={16} />
 
@@ -1140,7 +1675,7 @@ export default function AppLayout({
                         );
                       })}
                   </div>
-                )}
+                ) : null}
               </div>
             );
           })}
@@ -1160,7 +1695,11 @@ export default function AppLayout({
         <footer className="app-content-footer">
           <div className="content-footer-brand">
             <img
-              src={modoEscuroVisual ? logoFooterEscuro : logoFooterClaro}
+              src={
+                modoEscuroVisual
+                  ? logoFooterEscuro
+                  : logoFooterClaro
+              }
               alt="Sistema Chegou!"
             />
           </div>
