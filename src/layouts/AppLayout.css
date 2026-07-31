@@ -1311,3 +1311,372 @@ body.modo-escuro .pwa-install-ios-steps {
     font-size: 11px;
   }
 }
+
+.system-version {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  color: #64748b;
+
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.system-version-app {
+  color: #475569;
+  font-weight: 600;
+}
+
+.system-version-separator {
+  color: #cbd5e1;
+}
+
+.system-version-release {
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .app-content-footer .system-version {
+    display: none;
+  }
+}
+
+.profile-menu-chegou {
+  color: inherit;
+  font-weight: inherit;
+}
+
+.profile-menu-chegou > span {
+  color: #f97316;
+  font-weight: 800;
+}
+
+.profile-menu-chegou {
+  color: inherit;
+  font-weight: inherit;
+}
+
+.profile-menu-chegou > span {
+  color: #f97316;
+  font-weight: 800;
+}
+
+.sobre-sistema-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+
+  animation: sobreSistemaFadeIn 180ms ease-out;
+}
+
+.sobre-sistema-modal {
+  position: relative;
+
+  width: min(100%, 520px);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+
+  padding: 30px;
+
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 24px;
+
+  box-shadow:
+    0 30px 80px rgba(15, 23, 42, 0.24),
+    0 8px 24px rgba(15, 23, 42, 0.12);
+
+  animation: sobreSistemaModalIn 220ms ease-out;
+}
+
+.sobre-sistema-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  padding: 0;
+
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.sobre-sistema-close:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.sobre-sistema-brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  padding-right: 46px;
+  margin-bottom: 24px;
+}
+
+.sobre-sistema-brand img {
+  width: 92px;
+  height: auto;
+  object-fit: contain;
+}
+
+.sobre-sistema-brand > div {
+  min-width: 0;
+}
+
+.sobre-sistema-brand > div > span {
+  display: block;
+
+  color: #64748b;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sobre-sistema-brand h2 {
+  margin: 1px 0 2px;
+
+  color: #1d4ed8;
+
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sobre-sistema-brand h2 span {
+  color: #f97316;
+}
+
+.sobre-sistema-brand p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.sobre-sistema-content {
+  display: grid;
+  gap: 16px;
+}
+
+.sobre-sistema-content > p {
+  margin: 0;
+
+  color: #475569;
+
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.sobre-sistema-version-card,
+.sobre-sistema-module {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  min-height: 58px;
+  padding: 14px 16px;
+
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.sobre-sistema-version-card > span,
+.sobre-sistema-module > span {
+  color: #64748b;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sobre-sistema-module strong {
+  color: #1e3a8a;
+
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.sobre-sistema-version-card .system-version {
+  justify-content: flex-end;
+  color: #475569;
+  font-size: 12px;
+}
+
+.sobre-sistema-content > small {
+  display: block;
+
+  color: #94a3b8;
+
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.sobre-sistema-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 24px;
+  padding-top: 20px;
+
+  border-top: 1px solid #e2e8f0;
+}
+
+.sobre-sistema-actions button {
+  min-width: 120px;
+  min-height: 44px;
+
+  padding: 10px 22px;
+
+  color: #ffffff;
+  background: #2563eb;
+  border: 0;
+  border-radius: 12px;
+
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.sobre-sistema-actions button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+}
+
+.sobre-sistema-close:focus-visible,
+.sobre-sistema-actions button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.28);
+  outline-offset: 3px;
+}
+
+@keyframes sobreSistemaFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sobreSistemaModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .sobre-sistema-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .sobre-sistema-modal {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+
+    padding: 26px 20px 22px;
+
+    border-radius: 24px 24px 18px 18px;
+  }
+
+  .sobre-sistema-brand {
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .sobre-sistema-brand img {
+    width: 78px;
+  }
+
+  .sobre-sistema-brand h2 {
+    font-size: 27px;
+  }
+
+  .sobre-sistema-version-card,
+  .sobre-sistema-module {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .sobre-sistema-version-card .system-version {
+    justify-content: flex-start;
+    white-space: normal;
+  }
+
+  .sobre-sistema-module strong {
+    text-align: left;
+  }
+
+  .sobre-sistema-actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sobre-sistema-overlay,
+  .sobre-sistema-modal {
+    animation: none;
+  }
+
+  .sobre-sistema-close,
+  .sobre-sistema-actions button {
+    transition: none;
+  }
+}

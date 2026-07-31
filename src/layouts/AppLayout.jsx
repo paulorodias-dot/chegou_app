@@ -8,6 +8,7 @@ import {
   ChevronRight,
   ClipboardList,
   Home,
+  Info,
   LogOut,
   Menu,
   MessageSquare,
@@ -24,6 +25,7 @@ import logoFooterEscuro from "../assets/logo_branco.png";
 import { menusByRole } from "../config/menusByRole";
 
 import NotificationCenter from "../components/NotificationCenter";
+import SystemVersion from "../components/SystemVersion";
 import "./AppLayout.css";
 
 const COPYRIGHT_YEAR = new Date().getFullYear();
@@ -265,6 +267,7 @@ export default function AppLayout({
   const [openMenu, setOpenMenu] = useState(null);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [sobreSistemaOpen, setSobreSistemaOpen] = useState(false);
   const [menusNovosVistos, setMenusNovosVistos] = useState([]);
   const [modalOuDrawerAberto, setModalOuDrawerAberto] = useState(false);
 
@@ -341,7 +344,8 @@ export default function AppLayout({
     profileMenuOpen ||
     modalOuDrawerAberto ||
     mostrarInstalacaoPWA ||
-    mostrarConfirmacaoSaida;
+    mostrarConfirmacaoSaida ||
+    sobreSistemaOpen;
 
   useEffect(() => {
     try {
@@ -899,6 +903,46 @@ export default function AppLayout({
     navegar(obterRotaConfiguracoes(role));
   }
 
+  function abrirSobreSistema() {
+    setProfileMenuOpen(false);
+    setSobreSistemaOpen(true);
+  }
+
+  function fecharSobreSistema() {
+    setSobreSistemaOpen(false);
+  }
+
+  useEffect(() => {
+    if (!sobreSistemaOpen) {
+      return undefined;
+    }
+
+    function fecharComEscape(event) {
+      if (event.key === "Escape") {
+        fecharSobreSistema();
+      }
+    }
+
+    document.addEventListener("keydown", fecharComEscape);
+
+    return () => {
+      document.removeEventListener("keydown", fecharComEscape);
+    };
+  }, [sobreSistemaOpen]);
+
+  useEffect(() => {
+    if (!sobreSistemaOpen) {
+      return undefined;
+    }
+
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+    };
+  }, [sobreSistemaOpen]);
+
   function trocarImagemPerfil() {
     setProfileMenuOpen(false);
 
@@ -1008,6 +1052,21 @@ export default function AppLayout({
           >
             <Settings size={18} />
             <span>Configurações</span>
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={abrirSobreSistema}
+          >
+            <Info size={18} />
+
+            <span>
+              Sobre o Sistema{" "}
+              <strong className="profile-menu-chegou">
+                Chegou<span aria-hidden="true">!</span>
+              </strong>
+            </span>
           </button>
 
           <div className="profile-menu-separator" />
@@ -1474,6 +1533,93 @@ export default function AppLayout({
     );
   }
 
+  function renderizarSobreSistema() {
+    if (!sobreSistemaOpen) {
+      return null;
+    }
+
+    return (
+      <div
+        className="sobre-sistema-overlay"
+        data-modal-open="true"
+        role="presentation"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            fecharSobreSistema();
+          }
+        }}
+      >
+        <section
+          className="sobre-sistema-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="sobre-sistema-title"
+          aria-describedby="sobre-sistema-description"
+        >
+          <button
+            type="button"
+            className="sobre-sistema-close"
+            onClick={fecharSobreSistema}
+            aria-label="Fechar informações sobre o sistema"
+            title="Fechar"
+          >
+            <X size={21} />
+          </button>
+
+          <div className="sobre-sistema-brand">
+            <img
+              src={logoFooterClaro}
+              alt="Sistema Chegou! — Gestão inteligente da sua encomenda"
+            />
+
+            <h2
+              id="sobre-sistema-title"
+              className="sr-only"
+            >
+              Sobre o Sistema Chegou!
+            </h2>
+          </div>
+
+          <div
+            className="sobre-sistema-content"
+            id="sobre-sistema-description"
+          >
+            <p>
+              Plataforma de gestão condominial desenvolvida para oferecer
+              mais organização, segurança e eficiência na operação de
+              encomendas e serviços do condomínio.
+            </p>
+
+            <div className="sobre-sistema-version-card">
+              <span>Versão instalada</span>
+
+              <SystemVersion />
+            </div>
+
+            <div className="sobre-sistema-module">
+              <span>Módulo atual</span>
+
+              <strong>{getBadgeTitulo()}</strong>
+            </div>
+
+            <small>
+              © {COPYRIGHT_YEAR} Sistema Chegou!. Todos os direitos reservados.
+            </small>
+          </div>
+
+          <div className="sobre-sistema-actions">
+            <button
+              type="button"
+              onClick={fecharSobreSistema}
+            >
+              Fechar
+            </button>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div
       className={[
@@ -1708,6 +1854,8 @@ export default function AppLayout({
             <span>
               © {COPYRIGHT_YEAR} Sistema Chegou!. Todos os direitos reservados.
             </span>
+
+            <SystemVersion />
           </div>
         </footer>
       </main>
@@ -1715,6 +1863,7 @@ export default function AppLayout({
       {renderMobileBottomNav()}
       {renderizarCardInstalacaoPWA()}
       {renderizarConfirmacaoSaida()}
+      {renderizarSobreSistema()}
 
       <NotificationCenter
         aberto={notificationCenterOpen}

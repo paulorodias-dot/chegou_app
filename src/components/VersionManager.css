@@ -1,0 +1,570 @@
+/**
+ * Sistema Chegou! — Version Manager
+ *
+ * Modal global de atualização:
+ * - desktop;
+ * - tablet;
+ * - mobile;
+ * - PWA instalada;
+ * - modo claro;
+ * - acessibilidade;
+ * - redução de movimento.
+ */
+
+.version-manager-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(37, 99, 235, 0.14),
+      transparent 42%
+    ),
+    rgba(15, 23, 42, 0.64);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  animation: version-manager-overlay-in 180ms ease-out;
+}
+
+.version-manager-modal {
+  position: relative;
+
+  width: min(100%, 520px);
+  max-height: calc(100dvh - 48px);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 24px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 28px 80px rgba(15, 23, 42, 0.28),
+    0 8px 28px rgba(15, 23, 42, 0.12);
+
+  animation: version-manager-modal-in 220ms
+    cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.version-manager-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  padding: 0;
+
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.9);
+  color: #475569;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.version-manager-close:hover:not(:disabled) {
+  border-color: rgba(100, 116, 139, 0.34);
+  background: #f8fafc;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.version-manager-close:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.version-manager-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.version-manager-visual {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 42px 32px 24px;
+
+  background:
+    radial-gradient(
+      circle at 50% 8%,
+      rgba(249, 115, 22, 0.2),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(239, 246, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0) 100%
+    );
+}
+
+.version-manager-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 72px;
+  height: 72px;
+
+  margin-bottom: 16px;
+
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.98),
+      rgba(239, 246, 255, 0.96)
+    );
+
+  color: #2563eb;
+
+  box-shadow:
+    0 16px 34px rgba(37, 99, 235, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.version-manager-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 30px;
+
+  padding: 6px 12px;
+
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  border-radius: 999px;
+
+  background: rgba(255, 247, 237, 0.94);
+  color: #c2410c;
+
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.version-manager-content {
+  padding: 0 32px;
+  text-align: center;
+}
+
+.version-manager-content h2 {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+  font-size: clamp(24px, 4vw, 30px);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+}
+
+.version-manager-message {
+  max-width: 430px;
+
+  margin: 14px auto 0;
+
+  color: #475569;
+
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+.version-manager-version-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+
+  margin-top: 20px;
+
+  color: #64748b;
+
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.version-manager-version-info strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.version-manager-release {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 28px;
+
+  padding: 5px 10px;
+
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+
+  background: #f8fafc;
+  color: #64748b;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.version-manager-required,
+.version-manager-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  margin-top: 20px;
+  padding: 14px 16px;
+
+  border-radius: 14px;
+
+  text-align: left;
+}
+
+.version-manager-required {
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  background: rgba(239, 246, 255, 0.92);
+  color: #1d4ed8;
+}
+
+.version-manager-error {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(254, 242, 242, 0.96);
+  color: #b91c1c;
+}
+
+.version-manager-required svg,
+.version-manager-error svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.version-manager-required p,
+.version-manager-error p {
+  margin: 0;
+
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.version-manager-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  padding: 28px 32px 0;
+}
+
+.version-manager-actions:has(
+    .version-manager-button:only-child
+  ) {
+  grid-template-columns: 1fr;
+}
+
+.version-manager-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  min-height: 48px;
+
+  padding: 12px 18px;
+
+  border-radius: 14px;
+
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.version-manager-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.version-manager-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.version-manager-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+.version-manager-button-primary {
+  border: 1px solid #2563eb;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb 0%,
+      #1d4ed8 100%
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 12px 24px rgba(37, 99, 235, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.version-manager-button-primary:hover:not(:disabled) {
+  border-color: #1d4ed8;
+
+  background:
+    linear-gradient(
+      135deg,
+      #1d4ed8 0%,
+      #1e40af 100%
+    );
+
+  box-shadow:
+    0 15px 28px rgba(37, 99, 235, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.version-manager-button-secondary {
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: #ffffff;
+  color: #334155;
+}
+
+.version-manager-button-secondary:hover:not(:disabled) {
+  border-color: rgba(100, 116, 139, 0.42);
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.version-manager-footer {
+  margin: 0;
+  padding: 18px 32px 28px;
+
+  color: #94a3b8;
+
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.version-manager-spinner {
+  animation: version-manager-spin 800ms linear
+    infinite;
+}
+
+.version-manager-close:focus-visible,
+.version-manager-button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.28);
+  outline-offset: 3px;
+}
+
+@keyframes version-manager-overlay-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes version-manager-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes version-manager-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .version-manager-overlay {
+    align-items: flex-end;
+
+    padding:
+      16px
+      16px
+      max(16px, env(safe-area-inset-bottom));
+  }
+
+  .version-manager-modal {
+    width: 100%;
+    max-height: calc(
+      100dvh -
+      max(32px, env(safe-area-inset-top))
+    );
+
+    border-radius: 24px 24px 18px 18px;
+  }
+
+  .version-manager-close {
+    top: 14px;
+    right: 14px;
+
+    width: 38px;
+    height: 38px;
+  }
+
+  .version-manager-visual {
+    padding: 36px 22px 22px;
+  }
+
+  .version-manager-icon {
+    width: 66px;
+    height: 66px;
+
+    border-radius: 20px;
+  }
+
+  .version-manager-content {
+    padding: 0 22px;
+  }
+
+  .version-manager-content h2 {
+    font-size: 24px;
+  }
+
+  .version-manager-message {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .version-manager-version-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .version-manager-actions {
+    grid-template-columns: 1fr;
+
+    padding: 24px 22px 0;
+  }
+
+  .version-manager-button {
+    width: 100%;
+  }
+
+  .version-manager-footer {
+    padding: 16px 22px 24px;
+  }
+}
+
+@media (max-width: 380px) {
+  .version-manager-overlay {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .version-manager-visual {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .version-manager-content {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .version-manager-actions {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .version-manager-footer {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .version-manager-overlay,
+  .version-manager-modal,
+  .version-manager-spinner {
+    animation: none;
+  }
+
+  .version-manager-close,
+  .version-manager-button {
+    transition: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .version-manager-modal {
+    border-color: #475569;
+  }
+
+  .version-manager-button-secondary,
+  .version-manager-close {
+    border-color: #64748b;
+  }
+
+  .version-manager-button-primary {
+    border-color: #0f172a;
+  }
+}

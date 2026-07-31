@@ -1,40 +1,49 @@
 /**
- * Sistema Chegou! — Service Worker V1
+ * Sistema Chegou! — Service Worker Oficial
  *
- * Responsabilidades desta versão:
- * - preparar a infraestrutura oficial de atualização do PWA;
- * - permitir ativação controlada de uma nova versão;
- * - comunicar instalação e ativação para a aplicação;
+ * Responsabilidades:
+ * - participar do controle oficial de versões do PWA;
+ * - detectar e comunicar instalação e ativação;
+ * - permanecer aguardando autorização antes de assumir o controle;
+ * - aceitar ativação controlada pelo Version Manager;
  * - remover somente caches pertencentes ao Sistema Chegou!;
  * - não interceptar chamadas de rede;
- * - não armazenar dados operacionais, sessões ou integrações em cache.
- *
- * Nesta etapa não existe modo offline.
+ * - não armazenar sessões, tokens ou dados operacionais;
+ * - não oferecer modo offline nesta etapa.
  */
 
 /**
- * Esta identificação deverá mudar a cada release que alterar o Service Worker.
+ * IMPORTANTE
  *
- * Posteriormente, sua geração será automatizada durante o build/deploy.
+ * Estes valores devem acompanhar a release publicada no version.json.
+ *
+ * Enquanto a geração automática não estiver homologada, será necessário
+ * revisar estes identificadores antes de cada publicação que alterar o
+ * Service Worker.
  */
-const SERVICE_WORKER_VERSION = "chegou-sw-v1.0.0";
+const SERVICE_WORKER_VERSION = "chegou-sw-2026.07.30.001";
+const RELEASE_ID = "2026.07.30.001";
+const APP_VERSION = "1.0.0";
 const SERVICE_WORKER_SCHEMA_VERSION = 1;
 
 const CACHE_PREFIX = "chegou-";
 
 /**
- * Retorna informações públicas sobre o Service Worker.
+ * Retorna informações públicas e não sensíveis sobre o Service Worker.
  */
 function obterInformacoesServiceWorker() {
   return {
     type: "SW_VERSION",
-    version: SERVICE_WORKER_VERSION,
+    serviceWorkerVersion: SERVICE_WORKER_VERSION,
+    releaseId: RELEASE_ID,
+    appVersion: APP_VERSION,
     schemaVersion: SERVICE_WORKER_SCHEMA_VERSION,
   };
 }
 
 /**
- * Envia uma mensagem para todas as páginas controladas pelo Service Worker.
+ * Envia uma mensagem para todas as páginas abertas e controladas
+ * pelo Service Worker.
  */
 async function comunicarClientes(mensagem) {
   const clientes = await self.clients.matchAll({
@@ -50,59 +59,83 @@ async function comunicarClientes(mensagem) {
 /**
  * Instalação
  *
- * Não executamos self.skipWaiting() automaticamente.
+ * Não utilizamos self.skipWaiting() automaticamente.
  *
- * Quando existir uma nova versão, ela permanecerá em waiting até que:
- * - o usuário clique em "Atualizar agora"; ou
- * - o Version Manager aplique a atualização no próximo acesso.
+ * Quando uma nova versão for encontrada, ela permanecerá em waiting até:
+ * - o usuário clicar em "Atualizar agora"; ou
+ * - o Version Manager determinar sua aplicação em um novo acesso.
  */
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    Promise.resolve().then(() => {
+    (async () => {
       console.info(
-        `[Sistema Chegou!] Service Worker instalado: ${SERVICE_WORKER_VERSION}`
+        "[Sistema Chegou!] Service Worker instalado.",
+        {
+          serviceWorkerVersion: SERVICE_WORKER_VERSION,
+          releaseId: RELEASE_ID,
+          appVersion: APP_VERSION,
+        }
       );
-    })
+
+      await comunicarClientes({
+        type: "SW_INSTALLED",
+        serviceWorkerVersion: SERVICE_WORKER_VERSION,
+        releaseId: RELEASE_ID,
+        appVersion: APP_VERSION,
+        schemaVersion: SERVICE_WORKER_SCHEMA_VERSION,
+        installedAt: new Date().toISOString(),
+      });
+    })()
   );
 });
 
 /**
  * Ativação
  *
- * Remove somente caches antigos cujo nome comece com "chegou-".
- * Não interfere em caches de outros sistemas, sites ou extensões.
+ * Remove somente caches cujo nome comece com "chegou-".
+ *
+ * Nenhum cache de outro site, sistema ou extensão será removido.
  */
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       try {
-        const cacheNames = await caches.keys();
+        const nomesDosCaches = await caches.keys();
 
-        const cachesAntigos = cacheNames.filter(
-          (cacheName) =>
-            cacheName.startsWith(CACHE_PREFIX) &&
-            cacheName !== SERVICE_WORKER_VERSION
+        const cachesAntigos = nomesDosCaches.filter(
+          (nomeDoCache) =>
+            nomeDoCache.startsWith(CACHE_PREFIX) &&
+            nomeDoCache !== SERVICE_WORKER_VERSION
         );
 
         await Promise.all(
-          cachesAntigos.map((cacheName) => caches.delete(cacheName))
+          cachesAntigos.map((nomeDoCache) =>
+            caches.delete(nomeDoCache)
+          )
         );
 
         await self.clients.claim();
 
         await comunicarClientes({
           type: "SW_ACTIVATED",
-          version: SERVICE_WORKER_VERSION,
+          serviceWorkerVersion: SERVICE_WORKER_VERSION,
+          releaseId: RELEASE_ID,
+          appVersion: APP_VERSION,
           schemaVersion: SERVICE_WORKER_SCHEMA_VERSION,
           activatedAt: new Date().toISOString(),
         });
 
         console.info(
-          `[Sistema Chegou!] Service Worker ativado: ${SERVICE_WORKER_VERSION}`
+          "[Sistema Chegou!] Service Worker ativado.",
+          {
+            serviceWorkerVersion: SERVICE_WORKER_VERSION,
+            releaseId: RELEASE_ID,
+            appVersion: APP_VERSION,
+          }
         );
       } catch (error) {
         console.error(
-          "[Sistema Chegou!] Erro ao ativar o Service Worker:",
+          "[Sistema Chegou!] Erro durante a ativação do Service Worker:",
           error
         );
 
@@ -121,7 +154,10 @@ self.addEventListener("activate", (event) => {
  * Autoriza o Service Worker em espera a assumir o controle.
  *
  * GET_SW_VERSION
- * Retorna a identificação da versão atual.
+ * Retorna a identificação da versão atual do Service Worker.
+ *
+ * PING
+ * Confirma que o Service Worker está respondendo.
  */
 self.addEventListener("message", (event) => {
   const mensagem = event.data;
@@ -133,10 +169,28 @@ self.addEventListener("message", (event) => {
   switch (mensagem.type) {
     case "SKIP_WAITING": {
       console.info(
-        "[Sistema Chegou!] Ativação da nova versão autorizada."
+        "[Sistema Chegou!] Ativação da nova versão autorizada.",
+        {
+          releaseId: RELEASE_ID,
+          requestedReleaseId:
+            mensagem.releaseId || null,
+        }
       );
 
-      event.waitUntil(self.skipWaiting());
+      event.waitUntil(
+        (async () => {
+          await comunicarClientes({
+            type: "SW_ACTIVATION_AUTHORIZED",
+            serviceWorkerVersion: SERVICE_WORKER_VERSION,
+            releaseId: RELEASE_ID,
+            appVersion: APP_VERSION,
+            authorizedAt: new Date().toISOString(),
+          });
+
+          await self.skipWaiting();
+        })()
+      );
+
       break;
     }
 
@@ -149,6 +203,27 @@ self.addEventListener("message", (event) => {
       }
 
       event.source?.postMessage?.(resposta);
+
+      break;
+    }
+
+    case "PING": {
+      const resposta = {
+        type: "PONG",
+        serviceWorkerVersion: SERVICE_WORKER_VERSION,
+        releaseId: RELEASE_ID,
+        appVersion: APP_VERSION,
+        schemaVersion: SERVICE_WORKER_SCHEMA_VERSION,
+        respondedAt: new Date().toISOString(),
+      };
+
+      if (event.ports?.[0]) {
+        event.ports[0].postMessage(resposta);
+        return;
+      }
+
+      event.source?.postMessage?.(resposta);
+
       break;
     }
 
@@ -185,10 +260,11 @@ self.addEventListener("unhandledrejection", (event) => {
  * Portanto:
  * - nenhuma resposta da aplicação é armazenada;
  * - chamadas ao Supabase não são interceptadas;
- * - tokens e sessões não são armazenados;
+ * - sessões e tokens não são armazenados;
  * - RPCs não são armazenadas;
  * - imagens de encomendas não são armazenadas;
+ * - anexos não são armazenados;
  * - APIs externas não são armazenadas;
  * - não existe funcionamento offline;
- * - o comportamento atual da aplicação não é alterado.
+ * - o comportamento das requisições atuais não é alterado.
  */
