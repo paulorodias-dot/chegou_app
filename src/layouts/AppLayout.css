@@ -1068,9 +1068,10 @@ body.modo-escuro .content-footer-brand img,
 }
 
 .profile-menu-separator {
-  height: 1px;
-  margin: 7px 6px;
-  background: #e2e8f0;
+    height: 1px;
+    margin: 10px 6px;
+    background: #64748b;
+    opacity: .35;
 }
 
 .profile-menu-options .profile-menu-logout {
@@ -1217,9 +1218,9 @@ body.modo-escuro .pwa-install-ios-steps {
     position: fixed;
     inset: 0;
     z-index: -1;
-    background: rgba(15, 23, 42, 0.54);
-    backdrop-filter: blur(6px);
-  }
+    background: rgba(59, 130, 246, 0.12);
+    backdrop-filter: blur(8px);
+}
 
   @keyframes profile-drawer-enter {
     from {
@@ -1439,58 +1440,90 @@ body.modo-escuro .pwa-install-ios-steps {
   transform: translateY(-1px);
 }
 
-.sobre-sistema-brand {
+
+
+/* =========================================================
+   SOBRE O SISTEMA — CABEÇALHO OFICIAL
+========================================================= */
+
+.sobre-sistema-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 18px;
 
-  padding-right: 46px;
+  padding: 6px 58px 0;
   margin-bottom: 24px;
+
+  text-align: center;
 }
 
-.sobre-sistema-brand img {
-  width: 92px;
-  height: auto;
-  object-fit: contain;
-}
-
-.sobre-sistema-brand > div {
-  min-width: 0;
-}
-
-.sobre-sistema-brand > div > span {
+.sobre-sistema-logo {
   display: block;
 
-  color: #64748b;
+  width: min(100%, 400px);
+  max-height: 126px;
 
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  margin: 0 auto 18px;
+
+  object-fit: contain;
+  object-position: center;
 }
 
-.sobre-sistema-brand h2 {
-  margin: 1px 0 2px;
-
-  color: #1d4ed8;
-
-  font-family: "Poppins", "Inter", system-ui, sans-serif;
-  font-size: 30px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.sobre-sistema-brand h2 span {
-  color: #f97316;
-}
-
-.sobre-sistema-brand p {
+.sobre-sistema-title {
   margin: 0;
 
-  color: #64748b;
+  color: #374151;
 
-  font-size: 12px;
-  line-height: 1.4;
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+  font-size: clamp(18px, 3vw, 22px);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  text-align: center;
+}
+
+.sobre-sistema-title > span {
+  color: #f97316;
+  font-weight: 850;
+}
+
+.sobre-sistema-title-decoration {
+  position: relative;
+
+  display: block;
+
+  width: 124px;
+  height: 2px;
+
+  margin-top: 17px;
+
+  border-radius: 999px;
+
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #fdba74 22%,
+    #f97316 50%,
+    #fdba74 78%,
+    transparent 100%
+  );
+}
+
+.sobre-sistema-title-decoration::after {
+  content: "";
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 999px;
+
+  background: #f97316;
+
+  transform: translate(-50%, -50%);
 }
 
 .sobre-sistema-content {
@@ -1509,17 +1542,17 @@ body.modo-escuro .pwa-install-ios-steps {
 
 .sobre-sistema-version-card,
 .sobre-sistema-module {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
 
-  min-height: 58px;
-  padding: 14px 16px;
+    min-height: 58px;
+    padding: 14px 16px;
 
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 14px;
 }
 
 .sobre-sistema-version-card > span,
@@ -1635,19 +1668,28 @@ body.modo-escuro .pwa-install-ios-steps {
     border-radius: 24px 24px 18px 18px;
   }
 
-  .sobre-sistema-brand {
-    align-items: flex-start;
-    gap: 14px;
+  .sobre-sistema-header {
+    padding: 6px 42px 0;
+    margin-bottom: 22px;
   }
 
-  .sobre-sistema-brand img {
-    width: 78px;
+  .sobre-sistema-logo {
+    width: min(100%, 315px);
+    max-height: 98px;
+    margin-bottom: 16px;
   }
 
-  .sobre-sistema-brand h2 {
-    font-size: 27px;
+  .sobre-sistema-title {
+    font-size: 18px;
+    line-height: 1.3;
   }
 
+  .sobre-sistema-title-decoration {
+    width: 94px;
+    margin-top: 12px;
+  }
+
+  
   .sobre-sistema-version-card,
   .sobre-sistema-module {
     align-items: flex-start;
@@ -1678,5 +1720,21 @@ body.modo-escuro .pwa-install-ios-steps {
   .sobre-sistema-close,
   .sobre-sistema-actions button {
     transition: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .sobre-sistema-header {
+    padding-right: 34px;
+    padding-left: 34px;
+  }
+
+  .sobre-sistema-logo {
+    width: min(100%, 270px);
+    max-height: 86px;
+  }
+
+  .sobre-sistema-title {
+    font-size: 17px;
   }
 }

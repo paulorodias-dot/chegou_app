@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.01.001",
+  "releaseId": "2026.08.01.002",
   "appVersion": "1.0.0",
   "scope": "GLOBAL",
   "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-08-01T18:45:00-03:00",
+  "publishedAt": "2026-08-01T19:40:00-03:00",
   "title": "Nova versão disponível",
-  "message": "Atualizamos o Sistema Chegou! com melhorias de experiência, estabilidade e segurança."
+  "message": "Atualizamos a interface do Sistema Chegou! com melhorias visuais no menu de perfil e na organização dos atalhos de notificações e chat."
 }

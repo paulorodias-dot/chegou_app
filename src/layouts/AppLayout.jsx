@@ -1566,25 +1566,32 @@ export default function AppLayout({
             <X size={21} />
           </button>
 
-          <div className="sobre-sistema-brand">
+          <header className="sobre-sistema-header">
             <img
               src={logoFooterClaro}
               alt="Sistema Chegou! — Gestão inteligente da sua encomenda"
+              className="sobre-sistema-logo"
             />
 
             <h2
               id="sobre-sistema-title"
-              className="sr-only"
+              className="sobre-sistema-title"
             >
-              Sobre o Sistema Chegou!
+              Sobre o Sistema Chegou
+              <span aria-hidden="true">!</span>
             </h2>
-          </div>
+
+            <span
+              className="sobre-sistema-title-decoration"
+              aria-hidden="true"
+            />
+          </header>
 
           <div
             className="sobre-sistema-content"
             id="sobre-sistema-description"
           >
-            <p>
+            <p className="sobre-sistema-description">
               Plataforma de gestão condominial desenvolvida para oferecer
               mais organização, segurança e eficiência na operação de
               encomendas e serviços do condomínio.
@@ -1666,16 +1673,7 @@ export default function AppLayout({
           />
         </div>
 
-        <div className="topbar-actions">
-          <button
-            type="button"
-            className="topbar-chat"
-            onClick={abrirChat}
-            aria-label="Abrir chat"
-            title="Chat"
-          >
-            <MessageSquare size={20} />
-          </button>
+        <div className="topbar-actions">          
 
           <button
             type="button"
@@ -1689,6 +1687,16 @@ export default function AppLayout({
             {Number(notificacoesNaoLidas || 0) > 0 ? (
               <b>{notificacoesNaoLidas}</b>
             ) : null}
+          </button>
+
+          <button
+            type="button"
+            className="topbar-chat"
+            onClick={abrirChat}
+            aria-label="Abrir chat"
+            title="Chat"
+          >
+            <MessageSquare size={20} />
           </button>
 
           <div
