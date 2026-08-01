@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.07.30.001",
+  "releaseId": "2026.08.01.001",
   "appVersion": "1.0.0",
   "scope": "GLOBAL",
   "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-07-30T23:00:00-03:00",
+  "publishedAt": "2026-08-01T18:45:00-03:00",
   "title": "Nova versão disponível",
   "message": "Atualizamos o Sistema Chegou! com melhorias de experiência, estabilidade e segurança."
 }
