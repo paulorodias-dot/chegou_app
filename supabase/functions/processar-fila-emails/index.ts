@@ -469,6 +469,7 @@ serve(async (req) => {
     const payload = item.payload || {};
 
     let htmlContent = payload.html_content || "";
+    const textContent = payload.text_content || "";
 
     if (!htmlContent && item.tipo_email === "CONVITE_ACESSO_FUNCIONARIO") {
       htmlContent = gerarHtmlConviteAcessoFuncionario({ item, payload });
@@ -499,8 +500,11 @@ serve(async (req) => {
                 : item.nome_destino || "Morador",
           },
         ],
-        subject: item.assunto || "Complete seu cadastro no Chegou!",
+        subject:
+          item.assunto ||
+          "Complete seu cadastro no Sistema Chegou!",
         htmlContent,
+        ...(textContent ? { textContent } : {}),
       }),
     });
 

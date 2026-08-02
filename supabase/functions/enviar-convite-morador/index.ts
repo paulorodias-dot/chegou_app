@@ -1,5 +1,10 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  escapeHtml,
+  escapeHtmlAttribute,
+  renderConviteMoradorEmail,
+} from "../_shared/email-system/index.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -101,7 +106,7 @@ function detectarNavegador(userAgent = "") {
   return "Não identificado";
 }
 
-function montarHtmlConviteMorador({
+function montarHtmlLegadoReenvioMorador({
   nome,
   nomeCondominio,
   linkWizard,
@@ -112,6 +117,12 @@ function montarHtmlConviteMorador({
   linkWizard: string;
   empresaEndereco: string;
 }) {
+  const nomeSeguro = escapeHtml(nome);
+  const nomeCondominioSeguro = escapeHtml(nomeCondominio);
+  const linkWizardSeguro = escapeHtmlAttribute(linkWizard);
+  const linkWizardTextoSeguro = escapeHtml(linkWizard);
+  const empresaEnderecoSeguro = escapeHtml(empresaEndereco);
+
   return `
 <div style="background:#f4f7fb;padding:20px;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
   <div style="max-width:540px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
@@ -125,12 +136,12 @@ function montarHtmlConviteMorador({
     </div>
 
     <div style="padding:22px">
-      <p>Olá <strong>${nome}</strong>,</p>
+      <p>Olá <strong>${nomeSeguro}</strong>,</p>
 
       <p>
         Você recebeu um convite para completar seu cadastro no sistema
         Chegou<span style="color:#ff7900">!</span> do condomínio
-        <strong>${nomeCondominio}</strong>.
+        <strong>${nomeCondominioSeguro}</strong>.
       </p>
 
       <p>
@@ -145,7 +156,7 @@ function montarHtmlConviteMorador({
       </div>
 
       <div style="text-align:center;margin:26px 0">
-        <a href="${linkWizard}"
+        <a href="${linkWizardSeguro}"
           style="background:#003fbd;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">
           Completar meu cadastro
         </a>
@@ -155,7 +166,7 @@ function montarHtmlConviteMorador({
         Caso o botão acima não funcione, copie e cole o link abaixo no navegador:
       </p>
 
-      <p style="word-break:break-all;color:#003fbd;font-size:12px">${linkWizard}</p>
+      <p style="word-break:break-all;color:#003fbd;font-size:12px">${linkWizardTextoSeguro}</p>
 
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0">
 
@@ -170,7 +181,7 @@ function montarHtmlConviteMorador({
 
     <div style="background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#64748b">
       <p style="margin:0">Este é um e-mail automático. Não responda esta mensagem.</p>
-      <p style="margin:6px 0">${empresaEndereco}</p>
+      <p style="margin:6px 0">${empresaEnderecoSeguro}</p>
       <p style="margin:6px 0">© 2026 Chegou<span style="color:#ff7900">!</span> Todos os direitos reservados.</p>
     </div>
   </div>
@@ -433,7 +444,7 @@ serve(async (req) => {
       tipo_morador: "morador",
       origem_cadastro,
       status_cadastro: "aguardando_preenchimento",
-      status_convite: enviar_agora ? "enviado" : "aguardando_envio",
+      status_convite: enviar_agora ? "processando" : "aguardando_envio",
       status_auditoria: "nao_enviado",
       percentual_preenchimento: 0,
       possui_divergencia: possuiDivergencia,
@@ -484,17 +495,89 @@ serve(async (req) => {
       "http://localhost:5173",
       "http://127.0.0.1:5173",
       "https://chegou-app.vercel.app",
+      "https://sistemachegou.com.br",
     ];
 
     const siteUrl =
       siteUrlRecebido && origensPermitidas.includes(siteUrlRecebido)
         ? siteUrlRecebido
-        : (Deno.env.get("SITE_URL") || "https://chegou-app.vercel.app").replace(/\/$/, "");
+        : (Deno.env.get("SITE_URL") || "https://sistemachegou.com.br").replace(/\/$/, "");
 
     const linkWizard = `${siteUrl}/wizard-morador?token=${token}`;
 
     const tipoEnvioFinal = tipo_envio || "individual";
-    const statusEnvio = enviar_agora ? "enviado" : "aguardando_envio";
+    const statusEnvio = enviar_agora ? "processando" : "aguardando_envio";
+
+    const nomeCondominio =
+      condominio.nome_fantasia ||
+      condominio.razao_social ||
+      "Condomínio";
+
+    const empresaEndereco =
+      Deno.env.get("EMPRESA_ENDERECO") ||
+      "[Endereço físico da empresa — definir no módulo institucional]";
+
+    const emailAssetsBaseUrl = (
+      Deno.env.get("EMAIL_ASSETS_BASE_URL") ||
+      "https://sistemachegou.com.br"
+    ).replace(/\/$/, "");
+
+    const usarTemplatePremium = tipoEnvioFinal !== "reenvio";
+
+    const renderedEmail = usarTemplatePremium
+      ? renderConviteMoradorEmail({
+          templateId: "convite_morador_premium_v1",
+          theme: "light",
+          language: "pt-BR",
+          currentYear: new Date().getFullYear(),
+          sender: {
+            name: "Sistema Chegou!",
+            origin: "sistema_chegou",
+            condominiumName: nomeCondominio,
+          },
+          assets: {
+            baseUrl: emailAssetsBaseUrl,
+          },
+          recipientName: nomeFormatado || "Morador",
+          condominiumName: nomeCondominio,
+          invitationUrl: linkWizard,
+          validityDays: 7,
+          companyAddress: empresaEndereco,
+        })
+      : {
+          templateId: "reenvio_convite_morador_premium_v1" as const,
+          subject: "Complete seu cadastro no Chegou!",
+          preheader:
+            "Você recebeu novamente o link para completar seu cadastro no Sistema Chegou!.",
+          html: montarHtmlLegadoReenvioMorador({
+            nome: nomeFormatado || "Morador",
+            nomeCondominio,
+            linkWizard,
+            empresaEndereco,
+          }),
+          text: [
+            `Olá, ${nomeFormatado || "Morador"}!`,
+            "",
+            `Você recebeu novamente o convite para completar seu cadastro no Sistema Chegou! do condomínio ${nomeCondominio}.`,
+            "",
+            "Completar meu cadastro:",
+            linkWizard,
+            "",
+            "Este link é pessoal, seguro e de uso único.",
+            "Não compartilhe com outras pessoas.",
+            "",
+            "Este convite é válido por 7 dias.",
+            "",
+            "Equipe Sistema Chegou!",
+          ].join("\n"),
+        };
+
+    const assunto = renderedEmail.subject;
+    const htmlContent = renderedEmail.html;
+    const textContent = renderedEmail.text;
+    const templateEmail = usarTemplatePremium
+      ? "convite_morador_premium_v1"
+      : "convite_morador_v2";
 
     let convitesAnterioresAtivos: Array<{
       id: string;
@@ -534,17 +617,21 @@ serve(async (req) => {
         token_utilizado: false,
         token_revogado: false,
         token_expira_em: expiraEm,
-        enviado_em: enviar_agora ? agora.toISOString() : null,
-        quantidade_tentativas: enviar_agora ? 1 : 0,
+        enviado_em: null,
+        quantidade_tentativas: 0,
         ultimo_reenvio_em: preCadastroExistente ? agora.toISOString() : null,
-        assunto_email: "Complete seu cadastro no Chegou!",
-        template_email: "convite_morador_v2",
+        assunto_email: assunto,
+        template_email: templateEmail,
         payload_envio: {
           nome: nomeFormatado,
           email: emailNormalizado,
           telefone: telefoneNormalizado,
           nome_condominio: condominio.nome_fantasia || condominio.razao_social,
           link_wizard: linkWizard,
+          validade_dias: 7,
+          tema: "light",
+          template_id: templateEmail,
+          preheader: renderedEmail.preheader,
         },
         enviado_por,
       })
@@ -552,19 +639,6 @@ serve(async (req) => {
       .single();
 
     if (conviteError) throw conviteError;
-
-    const nomeCondominio = condominio.nome_fantasia || condominio.razao_social || "Condomínio";
-    const empresaEndereco =
-      Deno.env.get("EMPRESA_ENDERECO") ||
-      "[Endereço físico da empresa — definir no módulo institucional]";
-
-    const assunto = "Complete seu cadastro no Chegou!";
-    const htmlContent = montarHtmlConviteMorador({
-      nome: nomeFormatado || "Morador",
-      nomeCondominio,
-      linkWizard,
-      empresaEndereco,
-    });
 
     const { data: filaEmail, error: filaError } = await supabaseAdmin
       .from("fila_emails")
@@ -581,12 +655,18 @@ serve(async (req) => {
         email_destino: emailNormalizado,
         nome_destino: nomeFormatado,
         assunto,
-        template_email: "convite_morador_v2",
+        template_email: templateEmail,
         payload: {
           nome: nomeFormatado,
           nome_condominio: nomeCondominio,
           link_wizard: linkWizard,
+          validade_dias: 7,
+          tema: "light",
+          template_id: templateEmail,
+          subject: renderedEmail.subject,
+          preheader: renderedEmail.preheader,
           html_content: htmlContent,
+          text_content: textContent,
         },
         prioridade,
         peso_envio: prioridade,
@@ -636,15 +716,37 @@ serve(async (req) => {
         emailStatus = "erro";
         brevoErrorMessage = "BREVO_API_KEY não configurada.";
 
-        await supabaseAdmin
-          .from("fila_emails")
-          .update({
-            status_envio: "erro_envio",
-            erro_em: new Date().toISOString(),
-            mensagem_erro: brevoErrorMessage,
-            processado: false,
-          })
-          .eq("id", filaEmail.id);
+        const erroEm = new Date().toISOString();
+
+        await Promise.all([
+          supabaseAdmin
+            .from("fila_emails")
+            .update({
+              status_envio: "erro_envio",
+              erro_em: erroEm,
+              mensagem_erro: brevoErrorMessage,
+              quantidade_tentativas: 1,
+              processado: false,
+            })
+            .eq("id", filaEmail.id),
+
+          supabaseAdmin
+            .from("convites_morador")
+            .update({
+              status_envio: "erro_envio",
+              erro_envio_em: erroEm,
+              mensagem_erro: brevoErrorMessage,
+            })
+            .eq("id", convite.id),
+
+          supabaseAdmin
+            .from("pre_cadastro_moradores")
+            .update({
+              status_convite: "erro_envio",
+              atualizado_em: erroEm,
+            })
+            .eq("id", preCadastro.id),
+        ]);
       } else {
         try {
           const brevoResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -667,6 +769,7 @@ serve(async (req) => {
               ],
               subject: assunto,
               htmlContent,
+              textContent,
             }),
           });
 
@@ -698,6 +801,14 @@ serve(async (req) => {
                 resposta_brevo: brevoResult,
               })
               .eq("id", convite.id);
+
+            await supabaseAdmin
+              .from("pre_cadastro_moradores")
+              .update({
+                status_convite: "erro_envio",
+                atualizado_em: new Date().toISOString(),
+              })
+              .eq("id", preCadastro.id);
           } else {
             emailStatus = "enviado";
             brevoMessageId = brevoResult?.messageId || null;
@@ -736,15 +847,37 @@ serve(async (req) => {
           brevoErrorMessage =
             error instanceof Error ? error.message : "Erro inesperado ao enviar e-mail.";
 
-          await supabaseAdmin
-            .from("fila_emails")
-            .update({
-              status_envio: "erro_envio",
-              erro_em: new Date().toISOString(),
-              mensagem_erro: brevoErrorMessage,
-              processado: false,
-            })
-            .eq("id", filaEmail.id);
+          const erroEm = new Date().toISOString();
+
+          await Promise.all([
+            supabaseAdmin
+              .from("fila_emails")
+              .update({
+                status_envio: "erro_envio",
+                erro_em: erroEm,
+                mensagem_erro: brevoErrorMessage,
+                quantidade_tentativas: 1,
+                processado: false,
+              })
+              .eq("id", filaEmail.id),
+
+            supabaseAdmin
+              .from("convites_morador")
+              .update({
+                status_envio: "erro_envio",
+                erro_envio_em: erroEm,
+                mensagem_erro: brevoErrorMessage,
+              })
+              .eq("id", convite.id),
+
+            supabaseAdmin
+              .from("pre_cadastro_moradores")
+              .update({
+                status_convite: "erro_envio",
+                atualizado_em: erroEm,
+              })
+              .eq("id", preCadastro.id),
+          ]);
         }
       }
     }

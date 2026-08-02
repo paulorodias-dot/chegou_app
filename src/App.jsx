@@ -47,6 +47,8 @@ import PaginaPreparando from "./pages/PaginaPreparando";
 import WizardCondominio from "./pages/wizardCondominio";
 import WizardMorador from "./pages/WizardMorador";
 
+import EmailPreview from "./pages/dev/EmailPreview";
+
 import "./App.css";
 
 function App() {
@@ -844,6 +846,17 @@ function App() {
         <Route
           path="/wizard-morador"
           element={<WizardMorador />}
+        />
+
+        <Route
+          path="/dev/email-preview"
+          element={
+            import.meta.env.DEV ? (
+              <EmailPreview />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
         />
 
         <Route
