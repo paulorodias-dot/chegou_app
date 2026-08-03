@@ -5,7 +5,7 @@ import {
 } from "../core/escape-html";
 import { emailThemes } from "../tokens/themes";
 import { emailTypography } from "../tokens/typography";
-import { emailColors } from "../tokens/colors";
+import { renderBrandName } from "./email-brand";
 
 export interface EmailFooterProps {
   theme?: EmailTheme;
@@ -13,6 +13,7 @@ export interface EmailFooterProps {
   currentYear: number;
   condominiumName?: string;
   helpText?: string;
+  companyAddress?: string;
 }
 
 export function renderEmailFooter({
@@ -20,16 +21,33 @@ export function renderEmailFooter({
   logoUrl,
   currentYear,
   condominiumName,
-  helpText = "Fale com o administrativo do seu condomínio.",
+  helpText =
+    "Fale com o administrativo do seu condomínio.",
+  companyAddress,
 }: EmailFooterProps): string {
   const selectedTheme = emailThemes[theme];
 
-  const safeLogoUrl = escapeHtmlAttribute(logoUrl);
-  const safeCondominiumName = condominiumName
-    ? escapeHtml(condominiumName)
-    : null;
-  const safeHelpText = escapeHtml(helpText);
-  const safeCurrentYear = escapeHtml(currentYear);
+  const safeLogoUrl =
+    escapeHtmlAttribute(logoUrl);
+
+  const safeCondominiumName =
+    condominiumName
+      ? escapeHtml(condominiumName)
+      : null;
+
+  const safeHelpText =
+    escapeHtml(helpText);
+
+  const safeCurrentYear =
+    escapeHtml(currentYear);
+
+  const safeCompanyAddress =
+    companyAddress
+      ? escapeHtml(companyAddress)
+      : null;
+
+  const brandName =
+    renderBrandName({ theme });
 
   return `
     <table
@@ -40,7 +58,10 @@ export function renderEmailFooter({
       border="0"
       style="
         width:100%;
+        margin:0;
+        padding:0;
         border-collapse:collapse;
+        border-spacing:0;
         background-color:${selectedTheme.surfaceSecondary};
       "
       bgcolor="${selectedTheme.surfaceSecondary}"
@@ -59,7 +80,13 @@ export function renderEmailFooter({
             cellpadding="0"
             cellspacing="0"
             border="0"
-            style="width:100%;border-collapse:collapse;"
+            style="
+              width:100%;
+              margin:0;
+              padding:0;
+              border-collapse:collapse;
+              border-spacing:0;
+            "
           >
             <tr class="email-footer-row">
               <td
@@ -85,6 +112,7 @@ export function renderEmailFooter({
                     border:0;
                     outline:none;
                     text-decoration:none;
+                    -ms-interpolation-mode:bicubic;
                   "
                 />
               </td>
@@ -145,12 +173,20 @@ export function renderEmailFooter({
                 ${
                   safeCondominiumName
                     ? `
-                      ${safeCondominiumName}<br />
-                      <span style="color:${emailColors.brand.blueAction};">
-                        Enviado através do Sistema Chegou!
-                      </span>
+                      <strong
+                        style="
+                          color:${selectedTheme.textPrimary};
+                          font-weight:700;
+                        "
+                      >
+                        ${safeCondominiumName}
+                      </strong>
+                      <br />
+
+                      Enviado através do
+                      ${brandName}
                     `
-                    : "Sistema Chegou!"
+                    : brandName
                 }
               </td>
 
@@ -184,13 +220,51 @@ export function renderEmailFooter({
             </tr>
           </table>
 
+          ${
+            safeCompanyAddress
+              ? `
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                  style="
+                    width:100%;
+                    border-collapse:collapse;
+                    border-spacing:0;
+                  "
+                >
+                  <tr>
+                    <td
+                      align="center"
+                      style="
+                        padding:2px 0 6px;
+                        color:${selectedTheme.textMuted};
+                        font-family:${emailTypography.fontFamily};
+                        font-size:11px;
+                        line-height:17px;
+                      "
+                    >
+                      ${safeCompanyAddress}
+                    </td>
+                  </tr>
+                </table>
+              `
+              : ""
+          }
+
           <table
             role="presentation"
             width="100%"
             cellpadding="0"
             cellspacing="0"
             border="0"
-            style="width:100%;border-collapse:collapse;"
+            style="
+              width:100%;
+              border-collapse:collapse;
+              border-spacing:0;
+            "
           >
             <tr>
               <td
@@ -203,7 +277,8 @@ export function renderEmailFooter({
                   line-height:18px;
                 "
               >
-                © ${safeCurrentYear} Sistema Chegou!. Todos os direitos reservados.
+                © ${safeCurrentYear} Sistema Chegou!.
+                Todos os direitos reservados.
               </td>
             </tr>
           </table>

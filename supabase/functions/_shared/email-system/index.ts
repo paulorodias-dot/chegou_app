@@ -21,3 +21,5 @@ export * from "./components/email-validity.ts";
 export * from "./components/email-welcome-card.ts";
 
 export * from "./templates/convite-morador.ts";
+
+export * from "./components/email-brand.ts";

@@ -1,4 +1,6 @@
-import type { EmailTheme } from "../core/email-types.ts";
+import type {
+  EmailTheme,
+} from "../core/email-types.ts";
 
 import {
   escapeHtml,
@@ -7,7 +9,10 @@ import {
 
 import { emailThemes } from "../tokens/themes.ts";
 import { emailTypography } from "../tokens/typography.ts";
-import { emailColors } from "../tokens/colors.ts";
+
+import {
+  renderBrandName,
+} from "./email-brand.ts";
 
 export interface EmailFooterProps {
   theme?: EmailTheme;
@@ -48,6 +53,9 @@ export function renderEmailFooter({
     companyAddress
       ? escapeHtml(companyAddress)
       : null;
+
+  const brandName =
+    renderBrandName({ theme });
 
   return `
     <table
@@ -90,10 +98,7 @@ export function renderEmailFooter({
           >
             <tr class="email-footer-row">
               <td
-                class="
-                  email-footer-column
-                  email-footer-brand
-                "
+                class="email-footer-column email-footer-brand"
                 width="34%"
                 valign="top"
                 style="
@@ -129,6 +134,7 @@ export function renderEmailFooter({
                   padding:0 18px 20px 0;
                   vertical-align:top;
                   color:${selectedTheme.textSecondary};
+                  font-family:${emailTypography.fontFamily};
                   font-size:12px;
                   line-height:19px;
                 "
@@ -157,6 +163,7 @@ export function renderEmailFooter({
                   padding:0 18px 20px 0;
                   vertical-align:top;
                   color:${selectedTheme.textSecondary};
+                  font-family:${emailTypography.fontFamily};
                   font-size:12px;
                   line-height:19px;
                 "
@@ -176,17 +183,21 @@ export function renderEmailFooter({
                 ${
                   safeCondominiumName
                     ? `
-                      ${safeCondominiumName}<br />
-
-                      <span
+                      <strong
                         style="
-                          color:${emailColors.brand.blueAction};
+                          color:${selectedTheme.textPrimary};
+                          font-weight:700;
                         "
                       >
-                        Enviado através do Sistema Chegou!
-                      </span>
+                        ${safeCondominiumName}
+                      </strong>
+
+                      <br />
+
+                      Enviado através do
+                      ${brandName}
                     `
-                    : "Sistema Chegou!"
+                    : brandName
                 }
               </td>
 
@@ -199,6 +210,7 @@ export function renderEmailFooter({
                   padding:0 0 20px;
                   vertical-align:top;
                   color:${selectedTheme.textSecondary};
+                  font-family:${emailTypography.fontFamily};
                   font-size:12px;
                   line-height:19px;
                 "

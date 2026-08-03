@@ -1,4 +1,6 @@
-import { createEmailAssetUrl } from "../core/asset-url.ts";
+import {
+  createEmailAssetUrl,
+} from "../core/asset-url.ts";
 
 import type {
   EmailInvitationData,
@@ -6,6 +8,7 @@ import type {
 } from "../core/email-types.ts";
 
 import {
+  formatCondominiumReference,
   normalizeCondominiumName,
   normalizeRecipientName,
 } from "../core/formatters.ts";
@@ -67,6 +70,11 @@ export function renderConviteMoradorEmail(
       data.condominiumName,
     );
 
+  const condominiumReference =
+    formatCondominiumReference(
+      condominiumName,
+    );
+
   const theme = data.theme;
 
   const logoHeroUrl =
@@ -111,9 +119,12 @@ export function renderConviteMoradorEmail(
 
   const content = `
     ${renderEmailHero({
-      logoUrl: logoHeroUrl,
-      mascotUrl: heroMascotUrl,
-      curveUrl: heroCurveUrl,
+      logoUrl:
+        logoHeroUrl,
+      mascotUrl:
+        heroMascotUrl,
+      curveUrl:
+        heroCurveUrl,
       mascotAlt:
         "Mascote do Sistema Chegou! dando boas-vindas.",
     })}
@@ -126,7 +137,8 @@ export function renderConviteMoradorEmail(
 
     ${renderEmailActionCard({
       theme,
-      actionUrl: data.invitationUrl,
+      actionUrl:
+        data.invitationUrl,
       illustrationUrl:
         registrationIllustrationUrl,
       title:
@@ -147,7 +159,8 @@ export function renderConviteMoradorEmail(
 
     ${renderEmailLinkFallback({
       theme,
-      url: data.invitationUrl,
+      url:
+        data.invitationUrl,
     })}
 
     ${renderEmailValidity({
@@ -160,14 +173,10 @@ export function renderConviteMoradorEmail(
       theme,
       mascotUrl:
         welcomeMascotUrl,
-      title:
-        "Bem-vindo ao Sistema Chegou!",
       description:
         "Estamos felizes por ter você com a gente.",
       helpText:
         "Em caso de dúvidas, fale com o administrativo do seu condomínio.",
-      signature:
-        "Equipe Sistema Chegou!",
     })}
 
     ${renderEmailDivider({
@@ -194,25 +203,29 @@ export function renderConviteMoradorEmail(
   const preheader =
     `Olá, ${recipientName}. ` +
     `Complete seu cadastro para acessar ` +
-    `o Sistema Chegou! do condomínio ` +
-    `${condominiumName}.`;
+    `o Sistema Chegou! ${condominiumReference}.`;
 
   const html =
     renderEmailDocument({
-      title: subject,
+      title:
+        subject,
       preheader,
       theme,
       senderLabel:
-        renderEmailSenderLabel(),
+        renderEmailSenderLabel({
+          theme,
+        }),
       content,
     });
 
   const text = [
     `Olá, ${recipientName}!`,
     "",
-    `Você recebeu um convite para acessar o Sistema Chegou! do condomínio ${condominiumName}.`,
+    `Você recebeu um convite para acessar o Sistema Chegou! ${condominiumReference}.`,
     "",
     "Complete seu cadastro para acompanhar suas encomendas, receber avisos importantes e aproveitar os recursos disponíveis para você.",
+    "",
+    "O cadastro pode ser realizado em qualquer aparelho com acesso à internet. Para preencher as informações com mais conforto, recomendamos utilizar um computador ou notebook.",
     "",
     "Completar meu cadastro:",
     data.invitationUrl,

@@ -1,8 +1,12 @@
 import { escapeHtml } from "../core/escape-html";
 import type { EmailTheme } from "../core/email-types";
+import {
+  condominiumNameAlreadyContainsType,
+} from "../core/formatters";
 import { emailColors } from "../tokens/colors";
 import { emailThemes } from "../tokens/themes";
 import { emailTypography } from "../tokens/typography";
+import { renderBrandName } from "./email-brand";
 
 export interface EmailGreetingProps {
   recipientName: string;
@@ -10,29 +14,12 @@ export interface EmailGreetingProps {
   theme?: EmailTheme;
 }
 
-function normalizeTextForComparison(value: string): string {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLocaleLowerCase("pt-BR");
-}
-
-function condominiumNameAlreadyContainsType(
+function resolveCondominiumReference(
   condominiumName: string,
-): boolean {
-  const normalizedName =
-    normalizeTextForComparison(condominiumName);
-
-  return /^(condominio|cond\.?)\b/.test(
-    normalizedName,
-  );
-}
-
-function formatCondominiumReference(
-  condominiumName: string,
-): string {
+): {
+  prefix: string;
+  name: string;
+} {
   const normalizedName = String(
     condominiumName || "",
   )
@@ -40,7 +27,10 @@ function formatCondominiumReference(
     .trim();
 
   if (!normalizedName) {
-    return "do seu condomínio";
+    return {
+      prefix: "do",
+      name: "seu condomínio",
+    };
   }
 
   if (
@@ -48,10 +38,16 @@ function formatCondominiumReference(
       normalizedName,
     )
   ) {
-    return `do ${normalizedName}`;
+    return {
+      prefix: "do",
+      name: normalizedName,
+    };
   }
 
-  return `do condomínio ${normalizedName}`;
+  return {
+    prefix: "do condomínio",
+    name: normalizedName,
+  };
 }
 
 export function renderEmailGreeting({
@@ -65,12 +61,22 @@ export function renderEmailGreeting({
     escapeHtml(recipientName) || "Morador";
 
   const condominiumReference =
-    formatCondominiumReference(
+    resolveCondominiumReference(
       condominiumName,
     );
 
-  const safeCondominiumReference =
-    escapeHtml(condominiumReference);
+  const safeCondominiumPrefix =
+    escapeHtml(
+      condominiumReference.prefix,
+    );
+
+  const safeCondominiumName =
+    escapeHtml(
+      condominiumReference.name,
+    );
+
+  const brandName =
+    renderBrandName({ theme });
 
   return `
     <table
@@ -135,21 +141,22 @@ export function renderEmailGreeting({
             "
           >
             Você recebeu um convite para acessar o
+            ${brandName}
+            ${safeCondominiumPrefix}
             <strong
               style="
-                color:${emailColors.brand.orange};
-                font-weight:700;
+                color:${selectedTheme.textPrimary};
+                font-weight:800;
               "
             >
-              Sistema Chegou!
-            </strong>
-            ${safeCondominiumReference}.
+              ${safeCondominiumName}
+            </strong>.
           </p>
 
           <p
             class="email-body-text"
             style="
-              margin:0;
+              margin:0 0 18px;
               padding:0;
               color:${selectedTheme.textSecondary};
               font-family:${emailTypography.fontFamily};
@@ -161,6 +168,31 @@ export function renderEmailGreeting({
             Complete seu cadastro para acompanhar suas encomendas,
             receber avisos importantes e aproveitar os recursos
             disponíveis para você.
+          </p>
+
+          <p
+            class="email-body-text"
+            style="
+              margin:0;
+              padding:0;
+              color:${selectedTheme.textSecondary};
+              font-family:${emailTypography.fontFamily};
+              font-size:15px;
+              line-height:24px;
+              font-weight:400;
+            "
+          >
+            O cadastro pode ser realizado em qualquer aparelho com
+            acesso à internet. Para preencher as informações com mais
+            conforto, recomendamos utilizar um
+            <strong
+              style="
+                color:${selectedTheme.textPrimary};
+                font-weight:700;
+              "
+            >
+              computador ou notebook.
+            </strong>
           </p>
         </td>
       </tr>

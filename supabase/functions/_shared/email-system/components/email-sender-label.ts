@@ -1,17 +1,23 @@
-import { escapeHtml } from "../core/escape-html.ts";
-import { emailColors } from "../tokens/colors.ts";
+import type {
+  EmailTheme,
+} from "../core/email-types.ts";
+
+import { emailThemes } from "../tokens/themes.ts";
 import { emailTypography } from "../tokens/typography.ts";
 
+import {
+  renderBrandName,
+} from "./email-brand.ts";
+
 export interface EmailSenderLabelProps {
-  senderName?: string;
+  theme?: EmailTheme;
 }
 
 export function renderEmailSenderLabel({
-  senderName = "Sistema Chegou!",
+  theme = "light",
 }: EmailSenderLabelProps = {}): string {
-  const safeSenderName = escapeHtml(
-    senderName,
-  );
+  const selectedTheme =
+    emailThemes[theme];
 
   return `
     <table
@@ -37,18 +43,11 @@ export function renderEmailSenderLabel({
             font-size:13px;
             line-height:20px;
             font-weight:400;
-            color:${emailColors.light.textMuted};
+            color:${selectedTheme.textMuted};
           "
         >
           Este e-mail foi enviado pelo
-          <strong
-            style="
-              color:${emailColors.brand.orange};
-              font-weight:700;
-            "
-          >
-            ${safeSenderName}
-          </strong>
+          ${renderBrandName({ theme })}
         </td>
       </tr>
     </table>

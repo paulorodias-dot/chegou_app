@@ -28,3 +28,5 @@ export * from "./components/email-validity";
 export * from "./components/email-welcome-card";
 
 export * from "./templates/convite-morador";
+
+export * from "./components/email-brand";

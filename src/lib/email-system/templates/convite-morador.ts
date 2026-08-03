@@ -4,6 +4,7 @@ import type {
   EmailRenderResult,
 } from "../core/email-types";
 import {
+  formatCondominiumReference,
   normalizeCondominiumName,
   normalizeRecipientName,
 } from "../core/formatters";
@@ -23,40 +24,50 @@ import { renderEmailWelcomeCard } from "../components/email-welcome-card";
 export function renderConviteMoradorEmail(
   data: EmailInvitationData,
 ): EmailRenderResult {
-  const recipientName = normalizeRecipientName(
-    data.recipientName,
-  );
+  const recipientName =
+    normalizeRecipientName(
+      data.recipientName,
+    );
 
   const condominiumName =
     normalizeCondominiumName(
       data.condominiumName,
     );
 
+  const condominiumReference =
+    formatCondominiumReference(
+      condominiumName,
+    );
+
   const theme = data.theme;
 
-  const logoHeroUrl = createEmailAssetUrl(
-    data.assets,
-    "brand/logo_branco.png",
-  );
+  const logoHeroUrl =
+    createEmailAssetUrl(
+      data.assets,
+      "brand/logo_branco.png",
+    );
 
-  const logoFooterUrl = createEmailAssetUrl(
-    data.assets,
-    theme === "dark"
-      ? "brand/logo_branco.png"
-      : "brand/logo_azulroyal.png",
-  );
+  const logoFooterUrl =
+    createEmailAssetUrl(
+      data.assets,
+      theme === "dark"
+        ? "brand/logo_branco.png"
+        : "brand/logo_azulroyal.png",
+    );
 
-  const heroMascotUrl = createEmailAssetUrl(
-    data.assets,
-    "convite-morador/mascot-convite-morador-hero.png",
-  );
+  const heroMascotUrl =
+    createEmailAssetUrl(
+      data.assets,
+      "convite-morador/mascot-convite-morador-hero.png",
+    );
 
-  const heroCurveUrl = createEmailAssetUrl(
-    data.assets,
-    theme === "dark"
-      ? "hero/email-hero-curve-dark.png"
-      : "hero/email-hero-curve-light.png",
-  );
+  const heroCurveUrl =
+    createEmailAssetUrl(
+      data.assets,
+      theme === "dark"
+        ? "hero/email-hero-curve-dark.png"
+        : "hero/email-hero-curve-light.png",
+    );
 
   const registrationIllustrationUrl =
     createEmailAssetUrl(
@@ -90,10 +101,12 @@ export function renderConviteMoradorEmail(
       actionUrl: data.invitationUrl,
       illustrationUrl:
         registrationIllustrationUrl,
-      title: "Completar meu cadastro",
+      title:
+        "Completar meu cadastro",
       description:
         "Use o botão abaixo para finalizar seu cadastro e ativar seu acesso.",
-      buttonLabel: "Completar meu cadastro",
+      buttonLabel:
+        "Completar meu cadastro",
     })}
 
     ${renderEmailSecurityCard({
@@ -111,29 +124,35 @@ export function renderConviteMoradorEmail(
 
     ${renderEmailValidity({
       theme,
-      validityDays: data.validityDays,
+      validityDays:
+        data.validityDays,
     })}
 
     ${renderEmailWelcomeCard({
       theme,
-      mascotUrl: welcomeMascotUrl,
-      title: "Bem-vindo ao Sistema Chegou!",
+      mascotUrl:
+        welcomeMascotUrl,
       description:
         "Estamos felizes por ter você com a gente.",
       helpText:
         "Em caso de dúvidas, fale com o administrativo do seu condomínio.",
-      signature: "Equipe Sistema Chegou!",
     })}
 
-    ${renderEmailDivider({ theme })}
+    ${renderEmailDivider({
+      theme,
+    })}
 
     ${renderEmailFooter({
       theme,
-      logoUrl: logoFooterUrl,
-      currentYear: data.currentYear,
+      logoUrl:
+        logoFooterUrl,
+      currentYear:
+        data.currentYear,
       condominiumName,
       helpText:
         "Fale com o administrativo do seu condomínio.",
+      companyAddress:
+        data.companyAddress,
     })}
   `;
 
@@ -141,28 +160,34 @@ export function renderConviteMoradorEmail(
     "Complete seu cadastro no Sistema Chegou!";
 
   const preheader =
-    `Olá, ${recipientName}. Complete seu cadastro ` +
-    `para acessar o Sistema Chegou! do condomínio ${condominiumName}.`;
+    `Olá, ${recipientName}. ` +
+    `Complete seu cadastro para acessar ` +
+    `o Sistema Chegou! ${condominiumReference}.`;
 
-  const html = renderEmailDocument({
-    title: subject,
-    preheader,
-    theme,
-    senderLabel: renderEmailSenderLabel(),
-    content,
-  });
+  const html =
+    renderEmailDocument({
+      title: subject,
+      preheader,
+      theme,
+      senderLabel:
+        renderEmailSenderLabel({ theme }),
+      content,
+    });
 
   const text = [
     `Olá, ${recipientName}!`,
     "",
-    `Você recebeu um convite para acessar o Sistema Chegou! do condomínio ${condominiumName}.`,
+    `Você recebeu um convite para acessar o Sistema Chegou! ${condominiumReference}.`,
     "",
     "Complete seu cadastro para acompanhar suas encomendas, receber avisos importantes e aproveitar os recursos disponíveis para você.",
+    "",
+    "O cadastro pode ser realizado em qualquer aparelho com acesso à internet. Para preencher as informações com mais conforto, recomendamos utilizar um computador ou notebook.",
     "",
     "Completar meu cadastro:",
     data.invitationUrl,
     "",
-    "Este link é pessoal, seguro e de uso único. Não compartilhe este convite com outras pessoas.",
+    "Este link é pessoal, seguro e de uso único.",
+    "Não compartilhe este convite com outras pessoas.",
     "",
     data.validityDays === 1
       ? "Este convite é válido por 1 dia."
@@ -175,7 +200,8 @@ export function renderConviteMoradorEmail(
   ].join("\n");
 
   return {
-    templateId: data.templateId,
+    templateId:
+      data.templateId,
     subject,
     preheader,
     html,

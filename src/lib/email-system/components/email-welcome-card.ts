@@ -3,9 +3,12 @@ import {
   escapeHtmlAttribute,
 } from "../core/escape-html";
 import type { EmailTheme } from "../core/email-types";
-import { emailColors } from "../tokens/colors";
 import { emailThemes } from "../tokens/themes";
 import { emailTypography } from "../tokens/typography";
+import {
+  renderBrandName,
+  renderBrandTeam,
+} from "./email-brand";
 
 export interface EmailWelcomeCardProps {
   mascotUrl: string;
@@ -20,11 +23,14 @@ export interface EmailWelcomeCardProps {
 export function renderEmailWelcomeCard({
   mascotUrl,
   theme = "light",
-  title = "Bem-vindo ao Sistema Chegou!",
-  description = "Estamos felizes por ter você com a gente.",
-  helpText = "Em caso de dúvidas, fale com o administrativo do seu condomínio.",
-  signature = "Equipe Sistema Chegou!",
-  mascotAlt = "Mascote do Sistema Chegou! segurando uma encomenda.",
+  title,
+  description =
+    "Estamos felizes por ter você com a gente.",
+  helpText =
+    "Em caso de dúvidas, fale com o administrativo do seu condomínio.",
+  signature,
+  mascotAlt =
+    "Mascote do Sistema Chegou! segurando uma encomenda.",
 }: EmailWelcomeCardProps): string {
   const selectedTheme = emailThemes[theme];
 
@@ -34,10 +40,19 @@ export function renderEmailWelcomeCard({
   const safeMascotAlt =
     escapeHtmlAttribute(mascotAlt);
 
-  const safeTitle = escapeHtml(title);
-  const safeDescription = escapeHtml(description);
-  const safeHelpText = escapeHtml(helpText);
-  const safeSignature = escapeHtml(signature);
+  const renderedTitle = title
+    ? escapeHtml(title)
+    : `Bem-vindo ao ${renderBrandName({ theme })}`;
+
+  const renderedSignature = signature
+    ? escapeHtml(signature)
+    : renderBrandTeam({ theme });
+
+  const safeDescription =
+    escapeHtml(description);
+
+  const safeHelpText =
+    escapeHtml(helpText);
 
   return `
     <table
@@ -143,7 +158,7 @@ export function renderEmailWelcomeCard({
                     font-weight:800;
                   "
                 >
-                  ${safeTitle}
+                  ${renderedTitle}
                 </h2>
 
                 <p
@@ -185,14 +200,7 @@ export function renderEmailWelcomeCard({
                     font-weight:800;
                   "
                 >
-                  ${safeSignature}
-                  <span
-                    style="
-                      color:${emailColors.brand.orange};
-                    "
-                  >
-                    !
-                  </span>
+                  ${renderedSignature}
                 </p>
               </td>
             </tr>
