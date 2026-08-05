@@ -1,9 +1,8 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
-  escapeHtml,
-  escapeHtmlAttribute,
   renderConviteMoradorEmail,
+  renderReenvioConviteMoradorEmail,
 } from "../_shared/email-system/index.ts";
 
 const corsHeaders = {
@@ -104,89 +103,6 @@ function detectarNavegador(userAgent = "") {
   if (ua.includes("safari/") && !ua.includes("chrome/")) return "Safari";
 
   return "Não identificado";
-}
-
-function montarHtmlLegadoReenvioMorador({
-  nome,
-  nomeCondominio,
-  linkWizard,
-  empresaEndereco,
-}: {
-  nome: string;
-  nomeCondominio: string;
-  linkWizard: string;
-  empresaEndereco: string;
-}) {
-  const nomeSeguro = escapeHtml(nome);
-  const nomeCondominioSeguro = escapeHtml(nomeCondominio);
-  const linkWizardSeguro = escapeHtmlAttribute(linkWizard);
-  const linkWizardTextoSeguro = escapeHtml(linkWizard);
-  const empresaEnderecoSeguro = escapeHtml(empresaEndereco);
-
-  return `
-<div style="background:#f4f7fb;padding:20px;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
-  <div style="max-width:540px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
-    <div style="background:#003fbd;padding:20px;text-align:center">
-      <h1 style="margin:0;color:#fff;font-size:24px">
-        Chegou<span style="color:#ff7900">!</span>
-      </h1>
-      <p style="margin:5px 0 0;color:#dbeafe;font-size:13px">
-        Gestão Inteligente de Encomendas
-      </p>
-    </div>
-
-    <div style="padding:22px">
-      <p>Olá <strong>${nomeSeguro}</strong>,</p>
-
-      <p>
-        Você recebeu um convite para completar seu cadastro no sistema
-        Chegou<span style="color:#ff7900">!</span> do condomínio
-        <strong>${nomeCondominioSeguro}</strong>.
-      </p>
-
-      <p>
-        O cadastro é necessário para liberar o acompanhamento, recebimento
-        e notificações das suas encomendas.
-      </p>
-
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin:18px 0">
-        <p style="margin:0;color:#475569;font-size:13px">
-          Este link é pessoal, seguro e de uso único. Não compartilhe com terceiros.
-        </p>
-      </div>
-
-      <div style="text-align:center;margin:26px 0">
-        <a href="${linkWizardSeguro}"
-          style="background:#003fbd;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">
-          Completar meu cadastro
-        </a>
-      </div>
-
-      <p style="font-size:13px;color:#64748b;margin-top:20px">
-        Caso o botão acima não funcione, copie e cole o link abaixo no navegador:
-      </p>
-
-      <p style="word-break:break-all;color:#003fbd;font-size:12px">${linkWizardTextoSeguro}</p>
-
-      <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0">
-
-      <p style="font-size:12px;color:#64748b">
-        Após o envio do cadastro, os dados serão analisados pelo responsável autorizado do condomínio.
-      </p>
-
-      <p style="margin-top:18px">
-        <strong>Equipe Chegou<span style="color:#ff7900">!</span></strong>
-      </p>
-    </div>
-
-    <div style="background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#64748b">
-      <p style="margin:0">Este é um e-mail automático. Não responda esta mensagem.</p>
-      <p style="margin:6px 0">${empresaEnderecoSeguro}</p>
-      <p style="margin:6px 0">© 2026 Chegou<span style="color:#ff7900">!</span> Todos os direitos reservados.</p>
-    </div>
-  </div>
-</div>
-`;
 }
 
 async function registrarLog({
@@ -522,62 +438,46 @@ serve(async (req) => {
       "https://sistemachegou.com.br"
     ).replace(/\/$/, "");
 
-    const usarTemplatePremium = tipoEnvioFinal !== "reenvio";
+    const emailBaseData = {
+      theme: "light" as const,
+      language: "pt-BR" as const,
+      currentYear: new Date().getFullYear(),
+      sender: {
+        name: "Sistema Chegou!",
+        origin: "sistema_chegou" as const,
+        condominiumName: nomeCondominio,
+      },
+      assets: {
+        baseUrl: emailAssetsBaseUrl,
+      },
+      recipientName: nomeFormatado || "Morador",
+      condominiumName: nomeCondominio,
+      invitationUrl: linkWizard,
+      validityDays: 7,
+      companyAddress: empresaEndereco,
+    };
 
-    const renderedEmail = usarTemplatePremium
-      ? renderConviteMoradorEmail({
-          templateId: "convite_morador_premium_v1",
-          theme: "light",
-          language: "pt-BR",
-          currentYear: new Date().getFullYear(),
-          sender: {
-            name: "Sistema Chegou!",
-            origin: "sistema_chegou",
-            condominiumName: nomeCondominio,
-          },
-          assets: {
-            baseUrl: emailAssetsBaseUrl,
-          },
-          recipientName: nomeFormatado || "Morador",
-          condominiumName: nomeCondominio,
-          invitationUrl: linkWizard,
-          validityDays: 7,
-          companyAddress: empresaEndereco,
-        })
-      : {
-          templateId: "reenvio_convite_morador_premium_v1" as const,
-          subject: "Complete seu cadastro no Chegou!",
-          preheader:
-            "Você recebeu novamente o link para completar seu cadastro no Sistema Chegou!.",
-          html: montarHtmlLegadoReenvioMorador({
-            nome: nomeFormatado || "Morador",
-            nomeCondominio,
-            linkWizard,
-            empresaEndereco,
-          }),
-          text: [
-            `Olá, ${nomeFormatado || "Morador"}!`,
-            "",
-            `Você recebeu novamente o convite para completar seu cadastro no Sistema Chegou! do condomínio ${nomeCondominio}.`,
-            "",
-            "Completar meu cadastro:",
-            linkWizard,
-            "",
-            "Este link é pessoal, seguro e de uso único.",
-            "Não compartilhe com outras pessoas.",
-            "",
-            "Este convite é válido por 7 dias.",
-            "",
-            "Equipe Sistema Chegou!",
-          ].join("\n"),
-        };
+    const renderedEmail =
+      tipoEnvioFinal === "reenvio"
+        ? renderReenvioConviteMoradorEmail({
+            ...emailBaseData,
+            templateId:
+              "reenvio_convite_morador_premium_v1",
+          })
+        : renderConviteMoradorEmail({
+            ...emailBaseData,
+            templateId:
+              "convite_morador_premium_v1",
+          });
 
     const assunto = renderedEmail.subject;
     const htmlContent = renderedEmail.html;
     const textContent = renderedEmail.text;
-    const templateEmail = usarTemplatePremium
-      ? "convite_morador_premium_v1"
-      : "convite_morador_v2";
+
+    const templateEmail =
+      tipoEnvioFinal === "reenvio"
+        ? "reenvio_convite_morador_premium_v1"
+        : "convite_morador_premium_v1";
 
     let convitesAnterioresAtivos: Array<{
       id: string;

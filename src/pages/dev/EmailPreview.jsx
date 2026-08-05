@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 
-import { renderConviteMoradorEmail } from "../../lib/email-system";
+import {
+  renderConviteMoradorEmail,
+  renderReenvioConviteMoradorEmail,
+} from "../../lib/email-system";
 
 const DEVICES = {
   desktop: {
@@ -23,6 +26,7 @@ const DEVICES = {
 
 function EmailPreview() {
   const [theme, setTheme] = useState("light");
+  const [template, setTemplate] = useState("convite");
   const [device, setDevice] = useState("desktop");
 
   const [recipientName, setRecipientName] =
@@ -51,9 +55,11 @@ function EmailPreview() {
   }, []);
 
   const renderedEmail = useMemo(() => {
-    return renderConviteMoradorEmail({
+    const emailData = {
       templateId:
-        "convite_morador_premium_v1",
+        template === "convite"
+          ? "convite_morador_premium_v1"
+          : "reenvio_convite_morador_premium_v1",
 
       theme,
 
@@ -78,12 +84,19 @@ function EmailPreview() {
       invitationUrl,
 
       validityDays: 7,
-    });
+    };
+
+    return template === "convite"
+      ? renderConviteMoradorEmail(emailData)
+      : renderReenvioConviteMoradorEmail(
+          emailData
+        );
   }, [
     baseUrl,
     condominiumName,
     invitationUrl,
     recipientName,
+    template,
     theme,
   ]);
 
@@ -127,7 +140,11 @@ function EmailPreview() {
 
     anchor.href = objectUrl;
     anchor.download =
-      `convite-morador-${theme}.html`;
+      `${
+        template === "convite"
+          ? "convite-morador"
+          : "reenvio-convite-morador"
+      }-${theme}.html`;
 
     document.body.appendChild(anchor);
     anchor.click();
@@ -149,7 +166,9 @@ function EmailPreview() {
 
     anchor.href = objectUrl;
     anchor.download =
-      "convite-morador-texto.txt";
+      template === "convite"
+        ? "convite-morador-texto.txt"
+        : "reenvio-convite-morador-texto.txt";
 
     document.body.appendChild(anchor);
     anchor.click();
@@ -167,7 +186,9 @@ function EmailPreview() {
           </span>
 
           <h1 style={styles.title}>
-            Convite Inicial para Morador
+            {template === "convite"
+              ? "Convite Inicial para Morador"
+              : "Reenvio de Convite para Morador"}
           </h1>
 
           <p style={styles.description}>
@@ -276,6 +297,50 @@ function EmailPreview() {
 
         <fieldset style={styles.fieldset}>
           <legend style={styles.legend}>
+            Template
+          </legend>
+
+          <div style={styles.buttonGroup}>
+            <button
+              type="button"
+              onClick={() =>
+                setTemplate("convite")
+              }
+              style={{
+                ...styles.optionButton,
+                ...(template === "convite"
+                  ? styles.optionButtonActive
+                  : {}),
+              }}
+              aria-pressed={
+                template === "convite"
+              }
+            >
+              Convite Inicial
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                setTemplate("reenvio")
+              }
+              style={{
+                ...styles.optionButton,
+                ...(template === "reenvio"
+                  ? styles.optionButtonActive
+                  : {}),
+              }}
+              aria-pressed={
+                template === "reenvio"
+              }
+            >
+              Reenvio
+            </button>
+          </div>
+        </fieldset>
+
+        <fieldset style={styles.fieldset}>
+          <legend style={styles.legend}>
             Tema
           </legend>
 
@@ -377,8 +442,14 @@ function EmailPreview() {
             }}
           >
             <iframe
-              key={`${theme}-${device}-${recipientName}-${condominiumName}`}
-              title={`Convite para Morador — ${selectedDevice.label}`}
+              key={`${template}-${theme}-${device}-${recipientName}-${condominiumName}`}
+              title={`${
+                template === "convite"
+                  ? "Convite Inicial"
+                  : "Reenvio de Convite"
+              } para Morador — ${
+                selectedDevice.label
+              }`}
               srcDoc={emailHtml}
               sandbox="allow-popups allow-popups-to-escape-sandbox"
               style={styles.iframe}
