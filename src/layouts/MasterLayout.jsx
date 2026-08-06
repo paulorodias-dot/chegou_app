@@ -326,7 +326,7 @@ function MasterLayout({
       ultimo_acesso_em: new Date().toISOString(),
       atualizado_em: new Date().toISOString(),
       metadata: {
-        app_version: import.meta.env.VITE_APP_VERSION || "1.0.0",
+        app_version: import.meta.env.VITE_APP_VERSION || "1.1.0",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         idioma: navigator.language,
       },

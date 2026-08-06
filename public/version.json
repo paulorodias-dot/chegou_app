@@ -1,11 +1,13 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.01.002",
-  "appVersion": "1.0.0",
+  "releaseId": "2026.08.06.001",
+  "appVersion": "1.1.0",
   "scope": "GLOBAL",
-  "modules": [],
+  "modules": [
+    "autenticacao"
+  ],
   "mandatory": false,
-  "publishedAt": "2026-08-01T19:40:00-03:00",
-  "title": "Nova versão disponível",
-  "message": "Atualizamos a interface do Sistema Chegou! com melhorias visuais no menu de perfil e na organização dos atalhos de notificações e chat."
+  "publishedAt": "2026-08-06T12:30:00-03:00",
+  "title": "Recuperação segura de senha",
+  "message": "O Sistema Chegou! agora possui uma nova experiência Premium para recuperação e redefinição segura de senha, com proteção contra tentativas indevidas, envio prioritário e auditoria completa."
 }

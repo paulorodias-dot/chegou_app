@@ -151,9 +151,14 @@ max_indexes = 5
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "http://127.0.0.1:3000"
-# A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+site_url = "http://localhost:5173"
+# A list of URLs that auth providers are permitted to redirect to post authentication.
+additional_redirect_urls = [
+  "http://localhost:5173/**",
+  "http://127.0.0.1:5173/**",
+  "https://sistemachegou.com.br/**",
+  "https://chegou-app.vercel.app/criar-senha-responsavel"
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to the local API URL (http://127.0.0.1:<port>/auth/v1).
@@ -172,10 +177,10 @@ enable_anonymous_sign_ins = false
 # Allow/disallow testing manual linking of accounts
 enable_manual_linking = false
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
-minimum_password_length = 6
+minimum_password_length = 8
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
 # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
-password_requirements = ""
+password_requirements = "lower_upper_letters_digits_symbols"
 
 # Configure passkey sign-ins.
 # [auth.passkey]
@@ -611,8 +616,8 @@ entrypoint = "./functions/solicitar-recuperacao-senha/index.ts"
 # static_files = [ "./functions/solicitar-recuperacao-senha/*.html" ]
 
 [functions.notificar-senha-alterada]
-enabled = true
-verify_jwt = false
+enabled = false
+verify_jwt = true
 import_map = "./functions/notificar-senha-alterada/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx

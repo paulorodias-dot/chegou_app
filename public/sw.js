@@ -23,7 +23,7 @@
  */
 const SERVICE_WORKER_VERSION = "chegou-sw-2026.08.01.002";
 const RELEASE_ID = "2026.08.01.002";
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.1.0";
 const SERVICE_WORKER_SCHEMA_VERSION = 1;
 
 const CACHE_PREFIX = "chegou-";
