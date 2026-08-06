@@ -23,3 +23,4 @@ export * from "./components/email-welcome-card.ts";
 
 export * from "./templates/convite-morador.ts";
 export * from "./templates/reenvio-convite-morador.ts";
+export * from "./templates/recuperacao-senha.ts";

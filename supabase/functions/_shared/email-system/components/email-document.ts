@@ -1,16 +1,9 @@
 import type { EmailTheme } from "../core/email-types.ts";
-
-import {
-  escapeHtml,
-} from "../core/escape-html.ts";
-
+import { escapeHtmlAttribute } from "../core/escape-html.ts";
 import { emailColors } from "../tokens/colors.ts";
 import { emailThemes } from "../tokens/themes.ts";
 import { emailTypography } from "../tokens/typography.ts";
-
-import {
-  renderEmailPreheader,
-} from "./email-preheader.ts";
+import { renderEmailPreheader } from "./email-preheader.ts";
 
 export interface EmailDocumentProps {
   title: string;
@@ -27,35 +20,20 @@ export function renderEmailDocument({
   senderLabel = "",
   content,
 }: EmailDocumentProps): string {
-  const selectedTheme =
-    emailThemes[theme];
-
-  const safeTitle =
-    escapeHtml(title);
+  const selectedTheme = emailThemes[theme];
+  const safeTitle = escapeHtmlAttribute(title);
 
   return `<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-
   <meta
     name="viewport"
     content="width=device-width,initial-scale=1"
   />
-
-  <meta
-    name="x-apple-disable-message-reformatting"
-  />
-
-  <meta
-    name="color-scheme"
-    content="light dark"
-  />
-
-  <meta
-    name="supported-color-schemes"
-    content="light dark"
-  />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="supported-color-schemes" content="light dark" />
 
   <title>${safeTitle}</title>
 
@@ -63,9 +41,7 @@ export function renderEmailDocument({
     <noscript>
       <xml>
         <o:OfficeDocumentSettings>
-          <o:PixelsPerInch>
-            96
-          </o:PixelsPerInch>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
         </o:OfficeDocumentSettings>
       </xml>
     </noscript>
@@ -85,9 +61,12 @@ export function renderEmailDocument({
     table,
     td {
       border-collapse: collapse !important;
+      mso-table-lspace: 0 !important;
+      mso-table-rspace: 0 !important;
     }
 
     img {
+      display: block;
       border: 0;
       outline: none;
       text-decoration: none;
@@ -98,9 +77,19 @@ export function renderEmailDocument({
       text-decoration: none;
     }
 
+    .email-page-background {
+      width: 100%;
+      background-color: ${selectedTheme.background};
+    }
+
     .email-container {
       width: 640px;
       max-width: 640px;
+    }
+
+    .email-container-inner {
+      border-radius: 18px;
+      overflow: hidden;
     }
 
     .email-content-padding {
@@ -108,19 +97,40 @@ export function renderEmailDocument({
     }
 
     .email-preview-title {
+      margin: 0 0 14px !important;
       font-size: 26px !important;
       line-height: 33px !important;
+      font-weight: 800 !important;
+    }
+
+    .email-hero-content {
+      height: 220px;
+    }
+
+    .email-hero-logo-cell,
+    .email-hero-mascot-cell {
+      height: 220px;
+    }
+
+    .email-footer-column {
+      vertical-align: top;
     }
 
     @media screen and (max-width: 640px) {
       .email-outer-padding {
-        padding-left: 12px !important;
+        padding-top: 12px !important;
         padding-right: 12px !important;
+        padding-bottom: 24px !important;
+        padding-left: 12px !important;
       }
 
       .email-container {
         width: 100% !important;
         max-width: 100% !important;
+        border-radius: 16px !important;
+      }
+
+      .email-container-inner {
         border-radius: 16px !important;
       }
 
@@ -143,6 +153,7 @@ export function renderEmailDocument({
       .email-hero-logo {
         width: 185px !important;
         max-width: 185px !important;
+        height: auto !important;
         margin: 0 auto 10px !important;
       }
 
@@ -153,7 +164,37 @@ export function renderEmailDocument({
       .email-hero-mascot {
         width: 230px !important;
         max-width: none !important;
+        height: auto !important;
         margin: 0 auto -125px !important;
+      }
+
+      /* Variante exclusiva: Recuperação de Senha.
+         Reduz o vazio entre logo, mascote e curva no mobile/tablet vertical. */
+      .email-hero--password-recovery .email-hero-content {
+        padding-top: 16px !important;
+      }
+
+      .email-hero--password-recovery .email-hero-logo {
+        width: 176px !important;
+        max-width: 176px !important;
+        margin-bottom: 0 !important;
+      }
+
+      .email-hero--password-recovery .email-hero-mascot-cell {
+        height: 218px !important;
+        overflow: hidden !important;
+      }
+
+      .email-hero--password-recovery .email-hero-mascot {
+        width: 222px !important;
+        max-width: 222px !important;
+        height: auto !important;
+        margin: -12px auto 0 !important;
+      }
+
+      .email-hero--password-recovery .email-hero-curve-cell {
+        line-height: 0 !important;
+        font-size: 0 !important;
       }
 
       .email-content-padding {
@@ -163,6 +204,29 @@ export function renderEmailDocument({
       .email-preview-title {
         font-size: 22px !important;
         line-height: 28px !important;
+      }
+
+      .email-footer-padding {
+        padding: 24px 20px !important;
+      }
+
+      .email-footer-row,
+      .email-footer-column {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      .email-footer-column {
+        padding: 0 0 22px !important;
+        text-align: center !important;
+      }
+
+      .email-footer-brand img {
+        width: 160px !important;
+        max-width: 160px !important;
+        height: auto !important;
+        margin: 0 auto !important;
       }
 
       .email-main-content-padding {
@@ -260,31 +324,69 @@ export function renderEmailDocument({
         max-width: 125px !important;
         margin: 0 auto !important;
       }
+    }
 
-      .email-footer-padding {
+    @media screen and (max-width: 420px) {
+      .email-outer-padding {
+        padding-right: 8px !important;
+        padding-left: 8px !important;
+      }
+
+      .email-hero-content {
+        padding-right: 14px !important;
+        padding-left: 14px !important;
+      }
+
+      .email-hero-logo {
+        width: 175px !important;
+        max-width: 175px !important;
+      }
+
+      .email-hero-mascot-cell {
+        height: 230px !important;
+      }
+
+      .email-hero-mascot {
+        width: 215px !important;
+        margin-bottom: -118px !important;
+      }
+
+      .email-hero--password-recovery .email-hero-content {
+        padding-top: 14px !important;
+      }
+
+      .email-hero--password-recovery .email-hero-logo {
+        width: 166px !important;
+        max-width: 166px !important;
+        margin-bottom: 0 !important;
+      }
+
+      .email-hero--password-recovery .email-hero-mascot-cell {
+        height: 202px !important;
+        overflow: hidden !important;
+      }
+
+      .email-hero--password-recovery .email-hero-mascot {
+        width: 206px !important;
+        max-width: 206px !important;
+        height: auto !important;
+        margin: -8px auto 0 !important;
+      }
+
+      .email-content-padding {
         padding: 24px 20px !important;
       }
 
-      .email-footer-column {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 0 20px !important;
-        text-align: center !important;
-      }
-
-      .email-footer-brand img {
-        width: 160px !important;
-        max-width: 160px !important;
-        margin: 0 auto !important;
+      .email-preview-title {
+        font-size: 21px !important;
+        line-height: 27px !important;
       }
     }
 
     @media (prefers-color-scheme: dark) {
       body,
       .email-page-background {
-        background-color:
-          ${emailColors.dark.background} !important;
+        background-color: ${emailColors.dark.background} !important;
       }
     }
   </style>
@@ -298,6 +400,8 @@ export function renderEmailDocument({
     min-width:100%;
     background-color:${selectedTheme.background};
     font-family:${emailTypography.fontFamily};
+    -webkit-text-size-adjust:100%;
+    -ms-text-size-adjust:100%;
   "
 >
   ${renderEmailPreheader(preheader)}
@@ -322,7 +426,9 @@ export function renderEmailDocument({
         align="center"
         style="
           padding:24px 12px 32px;
+          background-color:${selectedTheme.background};
         "
+        bgcolor="${selectedTheme.background}"
       >
         ${senderLabel}
 
@@ -362,11 +468,14 @@ export function renderEmailDocument({
         >
           <tr>
             <td
+              class="email-container-inner"
               style="
                 padding:0;
+                background-color:${selectedTheme.surface};
                 border-radius:18px;
                 overflow:hidden;
               "
+              bgcolor="${selectedTheme.surface}"
             >
               ${content}
             </td>

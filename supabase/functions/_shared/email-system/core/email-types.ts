@@ -2,7 +2,9 @@ export type EmailTheme = "light" | "dark";
 
 export type EmailTemplateId =
   | "convite_morador_premium_v1"
-  | "reenvio_convite_morador_premium_v1";
+  | "reenvio_convite_morador_premium_v1"
+  | "recuperacao_senha_premium_v1"
+  | "senha_alterada_premium_v1";
 
 export type EmailCommunicationOrigin =
   | "sistema_chegou"
@@ -11,12 +13,6 @@ export type EmailCommunicationOrigin =
   | "fornecedor";
 
 export interface EmailAssetConfiguration {
-  /**
-   * Origem pública sem /email-assets no final.
-   *
-   * Exemplo:
-   * https://sistemachegou.com.br
-   */
   baseUrl: string;
 }
 
@@ -40,6 +36,20 @@ export interface EmailInvitationData extends EmailBaseData {
   condominiumName: string;
   invitationUrl: string;
   validityDays: number;
+  companyAddress?: string;
+}
+
+export interface EmailPasswordRecoveryData extends EmailBaseData {
+  recipientName: string;
+  recoveryUrl: string;
+  validityMinutes: number;
+  companyAddress?: string;
+}
+
+export interface EmailPasswordChangedData extends EmailBaseData {
+  recipientName: string;
+  changedAt: string;
+  deviceDescription?: string;
   companyAddress?: string;
 }
 

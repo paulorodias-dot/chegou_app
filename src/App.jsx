@@ -8,6 +8,8 @@ import {
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import RecuperarSenha from "./pages/RecuperarSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import CriarSenhaResponsavel from "./pages/CriarSenhaResponsavel";
 
 import {
@@ -810,6 +812,16 @@ function App() {
           element={
             <Login onLogin={handleLogin} />
           }
+        />
+
+        <Route
+          path="/recuperar-senha"
+          element={<RecuperarSenha />}
+        />
+
+        <Route
+          path="/redefinir-senha"
+          element={<RedefinirSenha />}
         />
 
         <Route

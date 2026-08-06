@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import {
   renderConviteMoradorEmail,
+  renderRecuperacaoSenhaEmail,
   renderReenvioConviteMoradorEmail,
 } from "../../lib/email-system";
 
@@ -54,53 +55,102 @@ function EmailPreview() {
     return previewUrl.toString();
   }, []);
 
+  const recoveryUrl = useMemo(() => {
+    const previewUrl = new URL(
+      "/redefinir-senha",
+      window.location.origin
+    );
+
+    previewUrl.searchParams.set(
+      "token",
+      "recuperacao-preview-segura"
+    );
+
+    return previewUrl.toString();
+  }, []);
+
   const renderedEmail = useMemo(() => {
-    const emailData = {
+    const commonData = {
+      theme,
+      language: "pt-BR",
+      currentYear: new Date().getFullYear(),
+      sender: {
+        name: "Sistema Chegou!",
+        origin: "sistema_chegou",
+        condominiumName:
+          template === "recuperacao"
+            ? undefined
+            : condominiumName,
+      },
+      assets: {
+        baseUrl,
+      },
+      recipientName,
+    };
+
+    if (template === "recuperacao") {
+      return renderRecuperacaoSenhaEmail({
+        ...commonData,
+        templateId:
+          "recuperacao_senha_premium_v1",
+        recoveryUrl,
+        validityMinutes: 30,
+      });
+    }
+
+    const invitationData = {
+      ...commonData,
       templateId:
         template === "convite"
           ? "convite_morador_premium_v1"
           : "reenvio_convite_morador_premium_v1",
-
-      theme,
-
-      language: "pt-BR",
-
-      currentYear: new Date().getFullYear(),
-
-      sender: {
-        name: "Sistema Chegou!",
-        origin: "sistema_chegou",
-        condominiumName,
-      },
-
-      assets: {
-        baseUrl,
-      },
-
-      recipientName,
-
       condominiumName,
-
       invitationUrl,
-
       validityDays: 7,
     };
 
     return template === "convite"
-      ? renderConviteMoradorEmail(emailData)
+      ? renderConviteMoradorEmail(
+          invitationData
+        )
       : renderReenvioConviteMoradorEmail(
-          emailData
+          invitationData
         );
   }, [
     baseUrl,
     condominiumName,
     invitationUrl,
     recipientName,
+    recoveryUrl,
     template,
     theme,
   ]);
 
   const emailHtml = renderedEmail.html;
+
+  const templateConfiguration = {
+    convite: {
+      pageTitle:
+        "Convite Inicial para Morador",
+      fileBase: "convite-morador",
+      frameTitle: "Convite Inicial",
+    },
+    reenvio: {
+      pageTitle:
+        "Reenvio de Convite para Morador",
+      fileBase:
+        "reenvio-convite-morador",
+      frameTitle:
+        "Reenvio de Convite",
+    },
+    recuperacao: {
+      pageTitle:
+        "Recuperação de Senha",
+      fileBase: "recuperacao-senha",
+      frameTitle:
+        "Recuperação de Senha",
+    },
+  }[template];
 
   function openPreviewInNewTab() {
     const blob = new Blob([emailHtml], {
@@ -140,11 +190,7 @@ function EmailPreview() {
 
     anchor.href = objectUrl;
     anchor.download =
-      `${
-        template === "convite"
-          ? "convite-morador"
-          : "reenvio-convite-morador"
-      }-${theme}.html`;
+      `${templateConfiguration.fileBase}-${theme}.html`;
 
     document.body.appendChild(anchor);
     anchor.click();
@@ -166,9 +212,7 @@ function EmailPreview() {
 
     anchor.href = objectUrl;
     anchor.download =
-      template === "convite"
-        ? "convite-morador-texto.txt"
-        : "reenvio-convite-morador-texto.txt";
+      `${templateConfiguration.fileBase}-texto.txt`;
 
     document.body.appendChild(anchor);
     anchor.click();
@@ -186,9 +230,7 @@ function EmailPreview() {
           </span>
 
           <h1 style={styles.title}>
-            {template === "convite"
-              ? "Convite Inicial para Morador"
-              : "Reenvio de Convite para Morador"}
+            {templateConfiguration.pageTitle}
           </h1>
 
           <p style={styles.description}>
@@ -278,20 +320,22 @@ function EmailPreview() {
               />
             </label>
 
-            <label style={styles.label}>
-              Condomínio
+            {template !== "recuperacao" && (
+              <label style={styles.label}>
+                Condomínio
 
-              <input
-                type="text"
-                value={condominiumName}
-                onChange={(event) =>
-                  setCondominiumName(
-                    event.target.value
-                  )
-                }
-                style={styles.input}
-              />
-            </label>
+                <input
+                  type="text"
+                  value={condominiumName}
+                  onChange={(event) =>
+                    setCondominiumName(
+                      event.target.value
+                    )
+                  }
+                  style={styles.input}
+                />
+              </label>
+            )}
           </div>
         </fieldset>
 
@@ -300,43 +344,26 @@ function EmailPreview() {
             Template
           </legend>
 
-          <div style={styles.buttonGroup}>
-            <button
-              type="button"
-              onClick={() =>
-                setTemplate("convite")
-              }
-              style={{
-                ...styles.optionButton,
-                ...(template === "convite"
-                  ? styles.optionButtonActive
-                  : {}),
-              }}
-              aria-pressed={
-                template === "convite"
-              }
-            >
+          <select
+            value={template}
+            onChange={(event) =>
+              setTemplate(event.target.value)
+            }
+            style={styles.select}
+            aria-label="Selecionar template de e-mail"
+          >
+            <option value="convite">
               Convite Inicial
-            </button>
+            </option>
 
-            <button
-              type="button"
-              onClick={() =>
-                setTemplate("reenvio")
-              }
-              style={{
-                ...styles.optionButton,
-                ...(template === "reenvio"
-                  ? styles.optionButtonActive
-                  : {}),
-              }}
-              aria-pressed={
-                template === "reenvio"
-              }
-            >
-              Reenvio
-            </button>
-          </div>
+            <option value="reenvio">
+              Reenvio de Convite
+            </option>
+
+            <option value="recuperacao">
+              Recuperação de Senha
+            </option>
+          </select>
         </fieldset>
 
         <fieldset style={styles.fieldset}>
@@ -443,13 +470,7 @@ function EmailPreview() {
           >
             <iframe
               key={`${template}-${theme}-${device}-${recipientName}-${condominiumName}`}
-              title={`${
-                template === "convite"
-                  ? "Convite Inicial"
-                  : "Reenvio de Convite"
-              } para Morador — ${
-                selectedDevice.label
-              }`}
+              title={`${templateConfiguration.frameTitle} — ${selectedDevice.label}`}
               srcDoc={emailHtml}
               sandbox="allow-popups allow-popups-to-escape-sandbox"
               style={styles.iframe}
@@ -639,6 +660,20 @@ const styles = {
     color: "#0f172a",
     fontSize: "14px",
     outline: "none",
+  },
+
+  select: {
+    minWidth: "240px",
+    minHeight: "40px",
+    padding: "0 38px 0 12px",
+    border: "1px solid #cbd5e1",
+    borderRadius: "9px",
+    background: "#ffffff",
+    color: "#0f172a",
+    fontSize: "14px",
+    fontWeight: 600,
+    outline: "none",
+    cursor: "pointer",
   },
 
   buttonGroup: {

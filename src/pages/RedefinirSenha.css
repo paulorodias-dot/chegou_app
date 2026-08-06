@@ -1,0 +1,138 @@
+.password-reset-page {
+  --reset-bg: #f3f7ff;
+  --reset-surface: #ffffff;
+  --reset-soft: #f8fbff;
+  --reset-text: #0f2a5c;
+  --reset-muted: #52627a;
+  --reset-border: #d8e4f3;
+  --reset-primary: #0f3f8f;
+  --reset-bright: #2563eb;
+  --reset-orange: #f97316;
+  --reset-success: #15803d;
+  --reset-danger: #b42318;
+  min-height: 100vh;
+  padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  display: grid;
+  place-items: center;
+  color: var(--reset-text);
+  background: radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.13), transparent 32%), radial-gradient(circle at 92% 90%, rgba(249, 115, 22, 0.09), transparent 26%), var(--reset-bg);
+  font-family: "Inter", Arial, Helvetica, sans-serif;
+  color-scheme: light dark;
+  animation: password-reset-enter 260ms ease-out both;
+}
+
+@keyframes password-reset-enter { from { opacity: 0; } to { opacity: 1; } }
+
+.password-reset-shell {
+  width: min(1180px, 100%);
+  min-height: 720px;
+  display: grid;
+  grid-template-columns: minmax(390px, 0.95fr) minmax(460px, 1.05fr);
+  grid-template-rows: 1fr auto;
+  overflow: hidden;
+  border: 1px solid rgba(15, 63, 143, 0.1);
+  border-radius: 28px;
+  background: var(--reset-surface);
+  box-shadow: 0 24px 70px rgba(15, 63, 143, 0.16);
+}
+
+.password-reset-visual {
+  min-height: 650px;
+  padding: 64px 58px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  background: radial-gradient(circle at 82% 15%, rgba(255,255,255,.15), transparent 25%), linear-gradient(150deg, #eef5ff 0%, #dbeaff 52%, #86b8ff 100%);
+}
+
+.password-reset-copy { max-width: 390px; }
+.password-reset-eyebrow { display: inline-block; margin-bottom: 18px; color: var(--reset-primary); font-size: 13px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.password-reset-copy h1 { margin: 0; color: var(--reset-text); font-size: clamp(34px, 4vw, 48px); line-height: 1.08; letter-spacing: -.035em; font-weight: 900; }
+.password-reset-copy h1 span { display: block; margin-top: 4px; color: var(--reset-orange); }
+.password-reset-copy p { max-width: 350px; margin: 24px 0 0; color: #29466f; font-size: 16px; line-height: 1.65; }
+.password-reset-art { min-height: 360px; display: grid; place-items: end center; }
+.password-reset-art img { display: block; width: min(430px, 100%); max-height: 410px; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 24px 24px rgba(15,63,143,.2)); animation: password-reset-art-enter 300ms ease-out 40ms both; }
+@keyframes password-reset-art-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.password-reset-form-panel { min-height: 650px; padding: 44px 66px; display: grid; place-items: center; background: radial-gradient(circle at 50% 18%, rgba(37,99,235,.055), transparent 26%), var(--reset-surface); }
+.password-reset-mobile-brand { display: none; }
+.password-reset-card { width: min(500px, 100%); text-align: center; }
+.password-reset-icon { width: 72px; height: 72px; margin: 0 auto 22px; display: grid; place-items: center; border-radius: 50%; color: var(--reset-bright); background: #edf4ff; box-shadow: inset 0 0 0 1px rgba(37,99,235,.08); }
+.password-reset-header h2, .password-reset-state h2 { margin: 0; color: var(--reset-text); font-size: clamp(29px, 3vw, 38px); line-height: 1.15; letter-spacing: -.025em; font-weight: 900; }
+.password-reset-header > span { width: 50px; height: 4px; display: block; margin: 17px auto 20px; border-radius: 999px; background: var(--reset-orange); }
+.password-reset-header p, .password-reset-state p { margin: 0 auto; color: var(--reset-muted); font-size: 15px; line-height: 1.6; }
+.password-reset-form { margin-top: 28px; text-align: left; }
+.password-reset-form label { display: block; margin: 18px 0 8px; color: var(--reset-text); font-size: 14px; font-weight: 800; }
+.password-reset-input { min-height: 54px; padding: 0 16px; display: flex; align-items: center; gap: 12px; border: 1px solid #a9c4ea; border-radius: 12px; color: #557096; background: var(--reset-surface); transition: border-color 160ms ease, box-shadow 160ms ease; }
+.password-reset-input:focus-within { border-color: var(--reset-bright); box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
+.password-reset-input.has-error { border-color: #f04438; }
+.password-reset-input input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--reset-text); background: transparent; font-size: 16px; -webkit-appearance: none; appearance: none; }
+.password-reset-input button { width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 auto; border: 0; border-radius: 9px; color: #557096; background: transparent; cursor: pointer; }
+.password-reset-input button:hover:not(:disabled) { background: rgba(37,99,235,.08); }
+.password-reset-rules { margin: 15px 0 3px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.password-reset-rules div { display: flex; align-items: center; gap: 7px; color: var(--reset-muted); font-size: 12px; line-height: 1.35; }
+.password-reset-rules div svg { flex: 0 0 auto; color: #94a3b8; }
+.password-reset-rules div.is-valid, .password-reset-rules div.is-valid svg { color: var(--reset-success); }
+.password-reset-primary { width: 100%; min-height: 56px; margin-top: 24px; padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; gap: 11px; border: 0; border-radius: 12px; color: #fff; background: linear-gradient(100deg, var(--reset-bright), #0755dc); box-shadow: 0 14px 28px rgba(37,99,235,.24); font-size: 16px; font-weight: 800; cursor: pointer; transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease; }
+.password-reset-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 18px 34px rgba(37,99,235,.3); }
+.password-reset-primary:active:not(:disabled) { transform: translateY(1px); }
+.password-reset-primary:disabled { opacity: .58; cursor: not-allowed; box-shadow: none; }
+.password-reset-secondary { margin: 16px auto 0; padding: 9px 13px; border: 0; color: #0755dc; background: transparent; font-size: 14px; font-weight: 750; cursor: pointer; }
+.password-reset-primary:focus-visible, .password-reset-secondary:focus-visible, .password-reset-input button:focus-visible { outline: 3px solid rgba(37,99,235,.28); outline-offset: 3px; }
+.password-reset-error { margin-top: 13px; padding: 11px 13px; border: 1px solid #fecdca; border-radius: 10px; color: var(--reset-danger); background: #fff1f0; font-size: 13px; font-weight: 700; }
+.password-reset-note { margin-top: 24px; padding: 15px 17px; display: flex; align-items: center; gap: 12px; border: 1px solid #d9e7fa; border-radius: 13px; color: var(--reset-primary); background: #f2f7ff; text-align: left; }
+.password-reset-note svg { flex: 0 0 auto; color: var(--reset-bright); }
+.password-reset-note p { margin: 0; font-size: 13px; line-height: 1.45; }
+.password-reset-state { padding: 18px 8px; animation: password-reset-state-enter 260ms ease-out both; }
+@keyframes password-reset-state-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.password-reset-invalid .password-reset-icon { color: #d97706; background: #fff7ed; }
+.password-reset-success .password-reset-icon { color: var(--reset-success); background: #ecfdf3; }
+.password-reset-spinner { animation: password-reset-spin 800ms linear infinite; }
+@keyframes password-reset-spin { to { transform: rotate(360deg); } }
+.password-reset-footer { grid-column: 1 / -1; min-height: 92px; padding: 18px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; border-top: 1px solid var(--reset-border); background: var(--reset-soft); }
+.password-reset-footer img { width: 125px; height: auto; }
+.password-reset-footer p { margin: 0; color: var(--reset-muted); font-size: 12px; text-align: center; }
+
+@media (prefers-color-scheme: dark) {
+  .password-reset-page { --reset-bg: #07111f; --reset-surface: #0d1a2d; --reset-soft: #101f34; --reset-text: #f5f8ff; --reset-muted: #a9b8ce; --reset-border: #213854; }
+  .password-reset-shell { border-color: #1f3654; }
+  .password-reset-visual { background: radial-gradient(circle at 82% 15%, rgba(255,255,255,.08), transparent 25%), linear-gradient(150deg, #10284a 0%, #0f3f8f 58%, #0a2755 100%); }
+  .password-reset-copy p { color: #d7e5f9; }
+  .password-reset-icon { background: #132b4d; }
+  .password-reset-input { border-color: #385574; }
+  .password-reset-note { border-color: #294766; background: #102641; }
+  .password-reset-error { border-color: rgba(240,68,56,.4); background: rgba(180,35,24,.16); }
+  .password-reset-mobile-brand img, .password-reset-footer img { filter: brightness(0) invert(1); }
+}
+
+@media (max-width: 850px) {
+  .password-reset-page { min-height: 100dvh; padding: 0; display: block; }
+  .password-reset-shell { width: 100%; min-height: 100dvh; display: flex; flex-direction: column; border: 0; border-radius: 0; box-shadow: none; }
+  .password-reset-visual { min-height: 300px; padding: 18px 18px 0; order: 1; }
+  .password-reset-copy { display: none; }
+  .password-reset-art { min-height: 280px; }
+  .password-reset-art img { width: min(300px, 82vw); max-height: 278px; }
+  .password-reset-form-panel { min-height: auto; padding: 0 18px 30px; display: block; order: 2; }
+  .password-reset-mobile-brand { min-height: 82px; margin: 0 -18px; display: grid; place-items: center; background: var(--reset-surface); }
+  .password-reset-mobile-brand img { width: 145px; }
+  .password-reset-card { position: relative; width: 100%; padding: 36px 20px 24px; border: 1px solid var(--reset-border); border-radius: 24px; background: var(--reset-surface); box-shadow: 0 18px 45px rgba(15,63,143,.13); }
+  .password-reset-icon { width: 62px; height: 62px; margin-top: -68px; border: 8px solid var(--reset-surface); box-sizing: content-box; }
+  .password-reset-header h2, .password-reset-state h2 { font-size: 27px; }
+  .password-reset-rules { grid-template-columns: 1fr; }
+  .password-reset-footer { min-height: 105px; order: 3; }
+}
+
+@media (max-width: 420px) {
+  .password-reset-visual { min-height: 272px; }
+  .password-reset-art { min-height: 250px; }
+  .password-reset-art img { max-height: 248px; }
+  .password-reset-form-panel { padding-inline: 12px; }
+  .password-reset-mobile-brand { margin-inline: -12px; }
+  .password-reset-card { padding-inline: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .password-reset-page, .password-reset-art img, .password-reset-state, .password-reset-spinner { animation: none !important; }
+  .password-reset-primary { transition: none !important; }
+}

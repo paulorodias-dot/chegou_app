@@ -2,37 +2,41 @@ import { escapeHtmlAttribute } from "../core/escape-html.ts";
 import { emailColors } from "../tokens/colors.ts";
 import { emailTypography } from "../tokens/typography.ts";
 
+export type EmailHeroVariant =
+  | "default"
+  | "password-recovery";
+
 export interface EmailHeroProps {
   logoUrl: string;
   mascotUrl: string;
   curveUrl?: string;
   logoAlt?: string;
   mascotAlt?: string;
+  variant?: EmailHeroVariant;
 }
 
 export function renderEmailHero({
   logoUrl,
   mascotUrl,
   curveUrl,
-  logoAlt =
-    "Sistema Chegou! — Gestão Inteligente da sua Encomenda",
+  logoAlt = "Sistema Chegou! — Gestão Inteligente da sua Encomenda",
   mascotAlt = "",
+  variant = "default",
 }: EmailHeroProps): string {
-  const safeLogoUrl =
-    escapeHtmlAttribute(logoUrl);
-
-  const safeMascotUrl =
-    escapeHtmlAttribute(mascotUrl);
+  const safeLogoUrl = escapeHtmlAttribute(logoUrl);
+  const safeMascotUrl = escapeHtmlAttribute(mascotUrl);
 
   const safeCurveUrl = curveUrl
     ? escapeHtmlAttribute(curveUrl)
     : null;
 
-  const safeLogoAlt =
-    escapeHtmlAttribute(logoAlt);
+  const safeLogoAlt = escapeHtmlAttribute(logoAlt);
+  const safeMascotAlt = escapeHtmlAttribute(mascotAlt);
 
-  const safeMascotAlt =
-    escapeHtmlAttribute(mascotAlt);
+  const variantClass =
+    variant === "password-recovery"
+      ? "email-hero--password-recovery"
+      : "email-hero--default";
 
   return `
     <table
@@ -41,6 +45,7 @@ export function renderEmailHero({
       cellpadding="0"
       cellspacing="0"
       border="0"
+      class="email-hero ${variantClass}"
       style="
         width:100%;
         margin:0;

@@ -598,3 +598,25 @@ entrypoint = "./functions/gerenciar-acesso-usuario/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/gerenciar-acesso-usuario/*.html" ]
+
+[functions.solicitar-recuperacao-senha]
+enabled = true
+verify_jwt = false
+import_map = "./functions/solicitar-recuperacao-senha/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/solicitar-recuperacao-senha/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/solicitar-recuperacao-senha/*.html" ]
+
+[functions.notificar-senha-alterada]
+enabled = true
+verify_jwt = false
+import_map = "./functions/notificar-senha-alterada/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/notificar-senha-alterada/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/notificar-senha-alterada/*.html" ]

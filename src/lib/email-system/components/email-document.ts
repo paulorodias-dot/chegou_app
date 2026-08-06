@@ -168,6 +168,35 @@ export function renderEmailDocument({
         margin: 0 auto -125px !important;
       }
 
+      /* Variante exclusiva: Recuperação de Senha.
+         Reduz o vazio entre logo, mascote e curva no mobile/tablet vertical. */
+      .email-hero--password-recovery .email-hero-content {
+        padding-top: 16px !important;
+      }
+
+      .email-hero--password-recovery .email-hero-logo {
+        width: 176px !important;
+        max-width: 176px !important;
+        margin-bottom: 0 !important;
+      }
+
+      .email-hero--password-recovery .email-hero-mascot-cell {
+        height: 218px !important;
+        overflow: hidden !important;
+      }
+
+      .email-hero--password-recovery .email-hero-mascot {
+        width: 222px !important;
+        max-width: 222px !important;
+        height: auto !important;
+        margin: -12px auto 0 !important;
+      }
+
+      .email-hero--password-recovery .email-hero-curve-cell {
+        line-height: 0 !important;
+        font-size: 0 !important;
+      }
+
       .email-content-padding {
         padding: 28px 24px !important;
       }
@@ -320,6 +349,28 @@ export function renderEmailDocument({
       .email-hero-mascot {
         width: 215px !important;
         margin-bottom: -118px !important;
+      }
+
+      .email-hero--password-recovery .email-hero-content {
+        padding-top: 14px !important;
+      }
+
+      .email-hero--password-recovery .email-hero-logo {
+        width: 166px !important;
+        max-width: 166px !important;
+        margin-bottom: 0 !important;
+      }
+
+      .email-hero--password-recovery .email-hero-mascot-cell {
+        height: 202px !important;
+        overflow: hidden !important;
+      }
+
+      .email-hero--password-recovery .email-hero-mascot {
+        width: 206px !important;
+        max-width: 206px !important;
+        height: auto !important;
+        margin: -8px auto 0 !important;
       }
 
       .email-content-padding {

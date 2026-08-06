@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   BriefcaseBusiness,
@@ -84,6 +85,7 @@ function salvarSessaoLocal(perfil, lembrar) {
 }
 
 function Login({ onLogin }) {
+  const navigate = useNavigate();
   const [tipoAcesso, setTipoAcesso] = useState("morador");
   const [emailCpf, setEmailCpf] = useState("");
   const [codigoCondominio, setCodigoCondominio] = useState("");
@@ -343,7 +345,13 @@ function Login({ onLogin }) {
                   Lembrar-me
                 </label>
 
-                <button type="button" className="forgot-button-new">
+                <button
+                  type="button"
+                  className="forgot-button-new"
+                  onClick={() =>
+                    navigate("/recuperar-senha")
+                  }
+                >
                   Esqueci minha senha
                 </button>
               </div>
