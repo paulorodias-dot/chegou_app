@@ -3,9 +3,7 @@
   "releaseId": "2026.08.06.001",
   "appVersion": "1.1.0",
   "scope": "GLOBAL",
-  "modules": [
-    "autenticacao"
-  ],
+  "modules": []
   "mandatory": false,
   "publishedAt": "2026-08-06T12:30:00-03:00",
   "title": "Recuperação segura de senha",
