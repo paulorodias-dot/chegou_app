@@ -1577,6 +1577,164 @@ body.modo-escuro .pwa-install-ios-steps {
   font-size: 12px;
 }
 
+/* =========================================================
+   SOBRE O SISTEMA — NOVIDADES DA VERSÃO
+========================================================= */
+
+.sobre-sistema-novidades {
+  padding: 18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8fbff 0%,
+      #eff6ff 100%
+    );
+
+  border: 1px solid #bfdbfe;
+  border-radius: 16px;
+}
+
+.sobre-sistema-novidades-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.sobre-sistema-novidades-icone {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+
+  display: grid;
+  place-items: center;
+
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 11px;
+
+  font-size: 16px;
+  line-height: 1;
+}
+
+.sobre-sistema-novidades-header > div {
+  min-width: 0;
+}
+
+.sobre-sistema-novidades-header strong {
+  display: block;
+
+  color: #1e293b;
+
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.sobre-sistema-novidades-header p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.sobre-sistema-novidades-lista {
+  display: grid;
+  gap: 10px;
+
+  margin: 15px 0 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.sobre-sistema-novidades-lista li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  color: #334155;
+
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.sobre-sistema-novidade-check {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+
+  display: grid;
+  place-items: center;
+
+  margin-top: 1px;
+
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.sobre-sistema-novidades-loading {
+  min-height: 118px;
+}
+
+.sobre-sistema-novidades-skeleton {
+  display: grid;
+  gap: 9px;
+
+  margin-top: 15px;
+}
+
+.sobre-sistema-novidades-skeleton span {
+  display: block;
+
+  height: 10px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #e2e8f0 25%,
+      #f1f5f9 50%,
+      #e2e8f0 75%
+    );
+
+  background-size: 200% 100%;
+  border-radius: 999px;
+
+  animation: sobreSistemaSkeleton 1.3s linear infinite;
+}
+
+.sobre-sistema-novidades-skeleton span:nth-child(1) {
+  width: 94%;
+}
+
+.sobre-sistema-novidades-skeleton span:nth-child(2) {
+  width: 82%;
+}
+
+.sobre-sistema-novidades-skeleton span:nth-child(3) {
+  width: 70%;
+}
+
+@keyframes sobreSistemaSkeleton {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
 .sobre-sistema-content > small {
   display: block;
 
@@ -1709,6 +1867,30 @@ body.modo-escuro .pwa-install-ios-steps {
   .sobre-sistema-actions button {
     width: 100%;
   }
+
+  .sobre-sistema-novidades {
+    padding: 16px;
+  }
+
+  .sobre-sistema-novidades-header {
+    gap: 10px;
+  }
+
+  .sobre-sistema-novidades-header strong {
+    font-size: 13.5px;
+  }
+
+  .sobre-sistema-novidades-header p {
+    font-size: 12px;
+  }
+
+  .sobre-sistema-novidades-lista {
+    gap: 9px;
+  }
+
+  .sobre-sistema-novidades-lista li {
+    font-size: 12px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1720,6 +1902,10 @@ body.modo-escuro .pwa-install-ios-steps {
   .sobre-sistema-close,
   .sobre-sistema-actions button {
     transition: none;
+  }
+
+  .sobre-sistema-novidades-skeleton span {
+    animation: none;
   }
 }
 

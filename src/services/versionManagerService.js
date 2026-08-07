@@ -117,6 +117,33 @@ function normalizarModulos(modulos) {
 }
 
 /**
+ * Normaliza a lista pública de novidades da versão.
+ *
+ * Regras:
+ * - aceita somente array;
+ * - mantém somente textos válidos;
+ * - remove espaços excedentes;
+ * - remove itens duplicados;
+ * - limita a quantidade para evitar conteúdo excessivo na interface;
+ * - nunca aceita objetos ou conteúdo técnico arbitrário.
+ */
+function normalizarHighlights(highlights) {
+  if (!Array.isArray(highlights)) {
+    return [];
+  }
+
+  return [
+    ...new Set(
+      highlights
+        .filter((item) => typeof item === "string")
+        .map((item) => item.trim().replace(/\s+/g, " "))
+        .filter(Boolean)
+        .slice(0, 10)
+    ),
+  ];
+}
+
+/**
  * Normaliza o escopo informado pelo manifesto.
  */
 function normalizarEscopo(scope) {
@@ -151,23 +178,43 @@ export function normalizarManifestoVersao(dados) {
 
   const manifesto = {
     schemaVersion: Number(dados.schemaVersion),
-    releaseId: normalizarTexto(dados.releaseId),
-    appVersion: normalizarTexto(dados.appVersion),
-    scope: normalizarEscopo(dados.scope),
-    modules: normalizarModulos(dados.modules),
+
+    releaseId: normalizarTexto(
+      dados.releaseId
+    ),
+
+    appVersion: normalizarTexto(
+      dados.appVersion
+    ),
+
+    scope: normalizarEscopo(
+      dados.scope
+    ),
+
+    modules: normalizarModulos(
+      dados.modules
+    ),
+
     mandatory: normalizarObrigatoriedade(
       dados.mandatory
     ),
+
     publishedAt: normalizarTexto(
       dados.publishedAt
     ),
+
     title: normalizarTexto(
       dados.title,
       "Nova versão disponível"
     ),
+
     message: normalizarTexto(
       dados.message,
       "Uma nova versão do Sistema Chegou! está disponível."
+    ),
+
+    highlights: normalizarHighlights(
+      dados.highlights
     ),
   };
 

@@ -26,6 +26,7 @@ import { menusByRole } from "../config/menusByRole";
 
 import NotificationCenter from "../components/NotificationCenter";
 import SystemVersion from "../components/SystemVersion";
+import { obterVersaoPublicada } from "../services/versionManagerService";
 import "./AppLayout.css";
 
 const COPYRIGHT_YEAR = new Date().getFullYear();
@@ -268,6 +269,10 @@ export default function AppLayout({
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [sobreSistemaOpen, setSobreSistemaOpen] = useState(false);
+
+  const [versaoSobreSistema, setVersaoSobreSistema] = useState(null);
+  const [carregandoSobreSistema, setCarregandoSobreSistema] = useState(false);
+
   const [menusNovosVistos, setMenusNovosVistos] = useState([]);
   const [modalOuDrawerAberto, setModalOuDrawerAberto] = useState(false);
 
@@ -903,9 +908,26 @@ export default function AppLayout({
     navegar(obterRotaConfiguracoes(role));
   }
 
-  function abrirSobreSistema() {
+  async function abrirSobreSistema() {
     setProfileMenuOpen(false);
     setSobreSistemaOpen(true);
+
+    setCarregandoSobreSistema(true);
+
+    try {
+      const manifesto = await obterVersaoPublicada();
+
+      setVersaoSobreSistema(manifesto);
+    } catch (error) {
+      console.warn(
+        "[Sistema Chegou!] Não foi possível carregar as novidades da versão:",
+        error
+      );
+
+      setVersaoSobreSistema(null);
+    } finally {
+      setCarregandoSobreSistema(false);
+    }
   }
 
   function fecharSobreSistema() {
@@ -1538,6 +1560,13 @@ export default function AppLayout({
       return null;
     }
 
+    const novidades =
+      Array.isArray(versaoSobreSistema?.highlights)
+        ? versaoSobreSistema.highlights
+        : [];
+
+    const possuiNovidades = novidades.length > 0;
+
     return (
       <div
         className="sobre-sistema-overlay"
@@ -1608,6 +1637,61 @@ export default function AppLayout({
 
               <strong>{getBadgeTitulo()}</strong>
             </div>
+
+            {carregandoSobreSistema ? (
+              <section
+                className="sobre-sistema-novidades sobre-sistema-novidades-loading"
+                aria-label="Carregando novidades"
+              >
+                <div className="sobre-sistema-novidades-header">
+                  <strong>Novidades desta versão</strong>
+                </div>
+
+                <div className="sobre-sistema-novidades-skeleton">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </section>
+            ) : null}
+
+            {!carregandoSobreSistema && possuiNovidades ? (
+              <section
+                className="sobre-sistema-novidades"
+                aria-labelledby="sobre-sistema-novidades-title"
+              >
+                <div className="sobre-sistema-novidades-header">
+                  <span className="sobre-sistema-novidades-icone">
+                    ✨
+                  </span>
+
+                  <div>
+                    <strong id="sobre-sistema-novidades-title">
+                      Novidades desta versão
+                    </strong>
+
+                    {versaoSobreSistema?.message ? (
+                      <p>{versaoSobreSistema.message}</p>
+                    ) : null}
+                  </div>
+                </div>
+
+                <ul className="sobre-sistema-novidades-lista">
+                  {novidades.map((novidade, index) => (
+                    <li key={`${novidade}-${index}`}>
+                      <span
+                        className="sobre-sistema-novidade-check"
+                        aria-hidden="true"
+                      >
+                        ✓
+                      </span>
+
+                      <span>{novidade}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
 
             <small>
               © {COPYRIGHT_YEAR} Sistema Chegou!. Todos os direitos reservados.

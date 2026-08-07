@@ -1,11 +1,17 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.07.001",
+  "releaseId": "2026.08.07.002",
   "appVersion": "1.1.0",
   "scope": "GLOBAL",
   "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-08-07T07:30:00-03:00",
-  "title": "Atualização do aplicativo",
-  "message": "Atualizamos o Sistema Chegou! com melhorias na experiência do aplicativo instalado, novo ícone oficial e abertura direta na tela de acesso."
+  "publishedAt": "2026-08-07T08:00:00-03:00",
+  "title": "Novidades no Sistema Chegou!",
+  "message": "Atualizamos o Sistema Chegou! para deixar sua experiência ainda mais simples, prática e segura.",
+  "highlights": [
+    "Nova experiência para recuperação segura de senha.",
+    "O aplicativo instalado agora abre direto na tela de acesso.",
+    "Novo ícone oficial do Sistema Chegou!.",
+    "Melhorias visuais no perfil e na área Sobre."
+  ]
 }
