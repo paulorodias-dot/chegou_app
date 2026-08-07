@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.06.001",
+  "releaseId": "2026.08.07.001",
   "appVersion": "1.1.0",
   "scope": "GLOBAL",
-  "modules": []
+  "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-08-06T12:30:00-03:00",
-  "title": "Recuperação segura de senha",
-  "message": "O Sistema Chegou! agora possui uma nova experiência Premium para recuperação e redefinição segura de senha, com proteção contra tentativas indevidas, envio prioritário e auditoria completa."
+  "publishedAt": "2026-08-07T07:30:00-03:00",
+  "title": "Atualização do aplicativo",
+  "message": "Atualizamos o Sistema Chegou! com melhorias na experiência do aplicativo instalado, novo ícone oficial e abertura direta na tela de acesso."
 }
