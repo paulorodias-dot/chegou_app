@@ -53,6 +53,17 @@ import EmailPreview from "./pages/dev/EmailPreview";
 
 import "./App.css";
 
+function isStandalonePWA() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return (
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.navigator.standalone === true
+  );
+}
+
 function App() {
   const navigate = useNavigate();
 
@@ -804,7 +815,13 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={<Landing />}
+          element={
+            isStandalonePWA() ? (
+              <Navigate to="/login" replace />
+            ) : (
+              <Landing />
+            )
+          }
         />
 
         <Route
