@@ -27,7 +27,7 @@ import VersionManager from "./components/VersionManager";
 import CargosFuncoes from "./pages/master/CargosFuncoes";
 import Transportadoras from "./pages/master/Transportadoras";
 import AcessoAssistidoMaster from "./pages/master/AcessoAssistidoMaster";
-import DashboardMaster from "./pages/master/DashboardMaster";
+import DashboardMaster from './pages/master/dashboard/DashboardMaster'
 import CadastroCondominio from "./pages/master/CadastroCondominio";
 import AuditoriaCondominios from "./pages/master/AuditoriaCondominios";
 
