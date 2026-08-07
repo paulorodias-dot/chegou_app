@@ -1,0 +1,307 @@
+/*
+ * Dashboard Premium Oficial — Módulo Master
+ *
+ * Estrutura principal baseada na referência visual da tela
+ * Transportadoras — Módulo Master.
+ */
+
+.dashboard-master-page {
+  width: 100%;
+  min-width: 0;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 32px 24px 40px;
+  box-sizing: border-box;
+}
+
+/*
+ * Grid estrutural principal
+ *
+ * A Sidebar começa no topo da página, alinhada ao Header,
+ * seguindo o mesmo padrão visual da tela Transportadoras.
+ */
+.dashboard-master-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  align-items: start;
+  gap: 20px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+/*
+ * Coluna analítica principal
+ *
+ * Header, seletor de análises e conteúdo são organizados
+ * dentro da mesma coluna.
+ */
+.dashboard-master-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+/*
+ * Sidebar Direita Premium
+ *
+ * Mantém alinhamento no topo, acompanha a viewport e recebe
+ * rolagem própria somente quando o conteúdo exceder a altura
+ * disponível.
+ */
+.dashboard-master-sidebar {
+  position: sticky;
+  top: 18px;
+
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+  max-height: calc(100vh - 36px);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  border-radius: 14px;
+
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgba(100, 116, 139, 0.28)
+    transparent;
+}
+
+/*
+ * O componente interno da Sidebar ocupa toda a largura
+ * da coluna oficial.
+ */
+.dashboard-master-sidebar > * {
+  width: 100%;
+  min-width: 0;
+}
+
+/*
+ * Scrollbar discreta da Sidebar.
+ */
+.dashboard-master-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dashboard-master-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-master-sidebar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.28);
+}
+
+.dashboard-master-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.42);
+}
+
+/*
+ * Proteção contra estouro horizontal.
+ */
+.dashboard-master-page,
+.dashboard-master-page *,
+.dashboard-master-page *::before,
+.dashboard-master-page *::after {
+  box-sizing: border-box;
+}
+
+.dashboard-master-page img,
+.dashboard-master-page svg,
+.dashboard-master-page canvas,
+.dashboard-master-page video {
+  max-width: 100%;
+}
+
+.dashboard-master-page img,
+.dashboard-master-page video {
+  height: auto;
+}
+
+.dashboard-master-page button,
+.dashboard-master-page input,
+.dashboard-master-page select,
+.dashboard-master-page textarea {
+  max-width: 100%;
+  font-family: inherit;
+}
+
+/*
+ * Estados de foco acessíveis dentro do Dashboard.
+ */
+.dashboard-master-page button:focus-visible,
+.dashboard-master-page input:focus-visible,
+.dashboard-master-page select:focus-visible,
+.dashboard-master-page textarea:focus-visible,
+.dashboard-master-page a:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.2);
+  outline-offset: 2px;
+}
+
+/*
+ * Desktop intermediário
+ *
+ * Redução oficial da Sidebar para aproximadamente 330px.
+ */
+@media (max-width: 1360px) {
+  .dashboard-master-page {
+    padding: 28px 20px 36px;
+  }
+
+  .dashboard-master-grid {
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 18px;
+  }
+}
+
+/*
+ * Tablet horizontal e desktops compactos
+ *
+ * A Sidebar deixa a lateral e passa para baixo do conteúdo.
+ */
+@media (max-width: 1120px) {
+  .dashboard-master-page {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .dashboard-master-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .dashboard-master-sidebar {
+    position: static;
+
+    width: 100%;
+    max-height: none;
+
+    overflow: visible;
+    border-radius: 0;
+  }
+
+  /*
+   * O conteúdo interno da Sidebar poderá organizar seus
+   * componentes em duas colunas nesta largura.
+   */
+  .dashboard-master-sidebar > * {
+    width: 100%;
+  }
+}
+
+/*
+ * Tablet vertical e mobile amplo.
+ */
+@media (max-width: 900px) {
+  .dashboard-master-page {
+    padding-top: 24px;
+    padding-right: max(
+      14px,
+      env(safe-area-inset-right)
+    );
+    padding-bottom: max(
+      96px,
+      calc(80px + env(safe-area-inset-bottom))
+    );
+    padding-left: max(
+      14px,
+      env(safe-area-inset-left)
+    );
+  }
+
+  .dashboard-master-grid {
+    gap: 16px;
+  }
+
+  .dashboard-master-main {
+    gap: 16px;
+  }
+
+  /*
+   * Evita zoom automático em campos no Safari/iOS.
+   */
+  .dashboard-master-page input,
+  .dashboard-master-page select,
+  .dashboard-master-page textarea {
+    font-size: 16px;
+  }
+}
+
+/*
+ * Mobile.
+ */
+@media (max-width: 680px) {
+  .dashboard-master-page {
+    padding-top: 18px;
+    padding-right: max(
+      14px,
+      env(safe-area-inset-right)
+    );
+    padding-bottom: max(
+      96px,
+      calc(80px + env(safe-area-inset-bottom))
+    );
+    padding-left: max(
+      14px,
+      env(safe-area-inset-left)
+    );
+  }
+
+  .dashboard-master-grid {
+    gap: 14px;
+  }
+
+  .dashboard-master-main {
+    gap: 14px;
+  }
+}
+
+/*
+ * Mobile compacto.
+ */
+@media (max-width: 430px) {
+  .dashboard-master-page {
+    padding-top: 16px;
+    padding-right: max(
+      12px,
+      env(safe-area-inset-right)
+    );
+    padding-bottom: max(
+      96px,
+      calc(80px + env(safe-area-inset-bottom))
+    );
+    padding-left: max(
+      12px,
+      env(safe-area-inset-left)
+    );
+  }
+
+  .dashboard-master-grid {
+    gap: 12px;
+  }
+
+  .dashboard-master-main {
+    gap: 14px;
+  }
+}
+
+/*
+ * Preferência por redução de movimento.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-master-page *,
+  .dashboard-master-page *::before,
+  .dashboard-master-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

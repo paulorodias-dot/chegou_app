@@ -1,0 +1,279 @@
+.calendar-day-modal-body-locked {
+  overflow: hidden;
+}
+
+.calendar-day-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(15, 23, 42, 0.58);
+
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.calendar-day-modal {
+  width: min(760px, 100%);
+  max-height: calc(100vh - 48px);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 28px 72px rgba(15, 23, 42, 0.25);
+}
+
+.calendar-day-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 20px 22px;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.calendar-day-modal__header span {
+  color: #f97316;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.calendar-day-modal__header h2 {
+  margin: 5px 0 0;
+
+  color: #0f172a;
+
+  font-family: Poppins, Inter, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.calendar-day-modal__header p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.calendar-day-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+
+  background: #ffffff;
+  color: #0f172a;
+
+  font-size: 23px;
+
+  cursor: pointer;
+}
+
+.calendar-day-modal__content {
+  padding: 18px 22px;
+}
+
+.calendar-day-modal__events {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calendar-day-modal__event {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 14px;
+
+  padding: 15px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+
+  background: #ffffff;
+}
+
+.calendar-day-modal__event-time {
+  color: #f97316;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.calendar-day-modal__event-content {
+  min-width: 0;
+}
+
+.calendar-day-modal__event-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.calendar-day-modal__event-badges span {
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
+  background: #f1f5f9;
+  color: #475569;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.calendar-day-modal__event h3 {
+  margin: 9px 0 0;
+
+  color: #0f172a;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.calendar-day-modal__event p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.calendar-day-modal__empty {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+  padding: 36px 20px;
+
+  text-align: center;
+}
+
+.calendar-day-modal__empty > span {
+  font-size: 30px;
+}
+
+.calendar-day-modal__empty strong {
+  margin-top: 12px;
+
+  color: #0f172a;
+
+  font-size: 14px;
+}
+
+.calendar-day-modal__empty p {
+  max-width: 360px;
+  margin: 6px 0 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.calendar-day-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  padding: 16px 22px;
+
+  border-top: 1px solid #e2e8f0;
+
+  background: #f8fafc;
+}
+
+.calendar-day-modal__footer span {
+  color: #64748b;
+
+  font-size: 10px;
+}
+
+.calendar-day-modal__footer button {
+  min-height: 40px;
+  padding: 0 16px;
+
+  border: 1px solid #f97316;
+  border-radius: 10px;
+
+  background: #f97316;
+  color: #ffffff;
+
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.calendar-day-modal__footer button:disabled {
+  border-color: #cbd5e1;
+
+  background: #e2e8f0;
+  color: #94a3b8;
+
+  cursor: not-allowed;
+}
+
+@media (max-width: 680px) {
+  .calendar-day-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .calendar-day-modal {
+    width: 100%;
+    max-height: 92vh;
+
+    border-radius: 18px 18px 0 0;
+  }
+
+  .calendar-day-modal__header,
+  .calendar-day-modal__content,
+  .calendar-day-modal__footer {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .calendar-day-modal__event {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .calendar-day-modal__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .calendar-day-modal__footer button {
+    width: 100%;
+    min-height: 46px;
+  }
+}

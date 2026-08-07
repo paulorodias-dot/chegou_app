@@ -1,0 +1,381 @@
+.partner-ad-card {
+  position: relative;
+
+  width: 100%;
+  min-width: 0;
+
+  overflow: hidden;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+
+  background: var(--surface-card, #ffffff);
+
+  box-shadow:
+    0 8px 22px rgba(15, 23, 42, 0.055);
+}
+
+.partner-ad-card__media {
+  position: relative;
+
+  width: 100%;
+  min-width: 0;
+
+  overflow: hidden;
+
+  background: #f8fafc;
+}
+
+.partner-ad-card__image-link {
+  display: block;
+
+  width: 100%;
+
+  color: inherit;
+  text-decoration: none;
+}
+
+.partner-ad-card__image {
+  display: block;
+
+  width: 100%;
+  aspect-ratio: 16 / 9;
+
+  object-fit: cover;
+  object-position: center;
+
+  background: #f1f5f9;
+
+  transition:
+    transform 220ms ease,
+    filter 220ms ease;
+}
+
+.partner-ad-card__image-link:hover
+  .partner-ad-card__image {
+  transform: scale(1.015);
+  filter: saturate(1.03);
+}
+
+.partner-ad-card__label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 24px;
+  padding: 4px 9px;
+
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: 999px;
+
+  background: rgba(15, 23, 42, 0.72);
+  color: #ffffff;
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.025em;
+
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+
+  pointer-events: none;
+}
+
+.partner-ad-card__content {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 7px;
+
+  padding: 14px 16px 16px;
+}
+
+.partner-ad-card__title {
+  margin: 0;
+
+  color: var(--text-primary, #0f172a);
+
+  font-family: Poppins, Inter, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.38;
+}
+
+.partner-ad-card__description {
+  margin: 0;
+
+  color: var(--text-secondary, #64748b);
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.partner-ad-card__validity {
+  margin: 1px 0 0;
+
+  color: var(--text-secondary, #64748b);
+
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.partner-ad-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  min-height: 36px;
+  margin-top: 5px;
+  padding: 0 13px;
+
+  border: 1px solid rgba(249, 115, 22, 0.38);
+  border-radius: 10px;
+
+  background: rgba(249, 115, 22, 0.055);
+  color: #ea580c;
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+
+  text-decoration: none;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.partner-ad-card__cta:hover {
+  border-color: #f97316;
+  background: rgba(249, 115, 22, 0.1);
+
+  box-shadow:
+    0 6px 14px rgba(249, 115, 22, 0.12);
+
+  transform: translateY(-1px);
+}
+
+.partner-ad-card__cta:active {
+  transform: translateY(0);
+}
+
+.partner-ad-card__cta:focus-visible,
+.partner-ad-card__image-link:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.2);
+  outline-offset: 2px;
+}
+
+.partner-ad-card__cta-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/*
+ * Variação oficial para Sidebar Direita.
+ */
+.partner-ad-card--sidebar {
+  width: 100%;
+}
+
+/*
+ * Variação horizontal preparada para outras superfícies.
+ */
+.partner-ad-card--horizontal {
+  display: grid;
+  grid-template-columns: minmax(220px, 42%) minmax(0, 1fr);
+}
+
+.partner-ad-card--horizontal .partner-ad-card__media,
+.partner-ad-card--horizontal .partner-ad-card__image-link,
+.partner-ad-card--horizontal .partner-ad-card__image {
+  height: 100%;
+}
+
+.partner-ad-card--horizontal .partner-ad-card__image {
+  aspect-ratio: auto;
+  min-height: 180px;
+}
+
+/*
+ * Variação compacta para superfícies reduzidas.
+ */
+.partner-ad-card--compact .partner-ad-card__content {
+  padding: 12px;
+}
+
+.partner-ad-card--compact .partner-ad-card__title {
+  font-size: 14px;
+}
+
+.partner-ad-card--compact .partner-ad-card__description {
+  font-size: 11px;
+}
+
+/*
+ * Transição entre as peças publicitárias.
+ */
+.partner-ad-card--carousel .partner-ad-card__image {
+  animation:
+    partner-ad-card-image-enter
+    320ms ease both;
+}
+
+@keyframes partner-ad-card-image-enter {
+  from {
+    opacity: 0.72;
+    transform: scale(1.008);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/*
+ * Indicadores do carrossel.
+ */
+.partner-ad-card__indicators {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  z-index: 3;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  min-height: 24px;
+  padding: 5px 7px;
+
+  border-radius: 999px;
+
+  background: rgba(15, 23, 42, 0.64);
+
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+.partner-ad-card__indicator {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.34);
+
+  cursor: pointer;
+
+  transition:
+    width 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.partner-ad-card__indicator:hover {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.partner-ad-card__indicator.is-active {
+  width: 20px;
+  border-color: #f97316;
+  background: #f97316;
+}
+
+.partner-ad-card__indicator:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.42);
+  outline-offset: 2px;
+}
+
+.partner-ad-card__screen-reader-status {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+
+  border: 0;
+
+  white-space: nowrap;
+}
+
+/*
+ * Compatibilidade básica com tema escuro.
+ */
+@media (prefers-color-scheme: dark) {
+  .partner-ad-card {
+    border-color: var(
+      --partner-ad-card-border-dark,
+      rgba(148, 163, 184, 0.22)
+    );
+
+    background: var(
+      --partner-ad-card-background-dark,
+      var(--surface-card, #ffffff)
+    );
+  }
+}
+
+@media (max-width: 680px) {
+  .partner-ad-card__content {
+    padding: 14px;
+  }
+
+  .partner-ad-card__title {
+    font-size: 15px;
+  }
+
+  .partner-ad-card__description {
+    font-size: 13px;
+  }
+
+  .partner-ad-card__cta {
+    min-height: 44px;
+    padding: 0 16px;
+  }
+
+  .partner-ad-card--horizontal {
+    display: block;
+  }
+
+  .partner-ad-card--horizontal .partner-ad-card__image {
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-ad-card__image,
+  .partner-ad-card__cta,
+  .partner-ad-card__indicator {
+    transition: none;
+  }
+
+  .partner-ad-card--carousel
+    .partner-ad-card__image {
+    animation: none;
+  }
+
+  .partner-ad-card__image-link:hover
+    .partner-ad-card__image {
+    transform: none;
+  }
+}

@@ -1,0 +1,193 @@
+.condominios-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.condominios-kpi-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 18px;
+  background: var(--surface-card, #ffffff);
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.condominios-kpi-card span,
+.condominios-kpi-card strong,
+.condominios-kpi-card small {
+  display: block;
+}
+
+.condominios-kpi-card span {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.condominios-kpi-card strong {
+  margin-top: 10px;
+  color: var(--text-primary, #0f172a);
+  font-family: Poppins, Inter, sans-serif;
+  font-size: 1.65rem;
+}
+
+.condominios-kpi-card small {
+  margin-top: 5px;
+  color: var(--text-secondary, #64748b);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.condominios-panels-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
+  gap: 16px;
+}
+
+.condominios-panel {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 20px;
+  background: var(--surface-card, #ffffff);
+  box-shadow:
+    0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+.condominios-panel header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.condominios-panel header span {
+  color: var(--primary-color, #2563eb);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.condominios-panel h3 {
+  margin: 5px 0 0;
+  color: var(--text-primary, #0f172a);
+  font-size: 0.96rem;
+}
+
+.condominios-panel button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--primary-color, #2563eb);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.condominios-chart-placeholder {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 190px;
+  margin-top: 24px;
+  padding: 0 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.condominios-chart-placeholder div {
+  flex: 1;
+  min-width: 12px;
+  border-radius: 8px 8px 2px 2px;
+  background:
+    linear-gradient(
+      180deg,
+      var(--primary-color, #2563eb),
+      rgba(37, 99, 235, 0.28)
+    );
+}
+
+.condominios-panel > p {
+  margin: 14px 0 0;
+  color: var(--text-secondary, #64748b);
+  font-size: 0.74rem;
+}
+
+.condominios-status-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 150px;
+  margin: 24px auto;
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle,
+      var(--surface-card, #ffffff) 52%,
+      transparent 53%
+    ),
+    conic-gradient(
+      var(--primary-color, #2563eb) 0 64%,
+      #f97316 64% 82%,
+      #cbd5e1 82% 100%
+    );
+}
+
+.condominios-status-placeholder div {
+  text-align: center;
+}
+
+.condominios-status-placeholder strong,
+.condominios-status-placeholder span {
+  display: block;
+}
+
+.condominios-status-placeholder strong {
+  color: var(--text-primary, #0f172a);
+  font-size: 1.35rem;
+}
+
+.condominios-status-placeholder span {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.65rem;
+}
+
+.condominios-panel ul {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.condominios-panel li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary, #64748b);
+  font-size: 0.75rem;
+}
+
+.condominios-panel li strong {
+  color: var(--text-primary, #0f172a);
+}
+
+@media (max-width: 1180px) {
+  .condominios-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .condominios-panels-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .condominios-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
