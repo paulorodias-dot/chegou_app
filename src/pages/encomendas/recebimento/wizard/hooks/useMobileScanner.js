@@ -10,26 +10,22 @@ import {
 // SISTEMA CHEGOU!
 // MOBILE SCANNER HOOK
 //
-// Versão funcional: 2026.08.11.003
+// Versão funcional: 2026.08.11.004
 //
 // Estratégia:
-// 1. solicita acesso inicial à câmera traseira;
-// 2. obtém permissão e labels disponíveis;
-// 3. enumera as câmeras;
-// 4. tenta identificar a câmera traseira principal;
-// 5. reabre usando deviceId específico;
-// 6. solicita resolução alta compatível;
-// 7. ativa foco contínuo quando disponível;
-// 8. NÃO aplica zoom digital automaticamente;
-// 9. estabiliza o código em frames consecutivos;
-// 10. mantém scanner aberto após cada leitura.
-//
-// NÃO:
-// - cria Volume;
-// - acessa Supabase;
-// - faz matching com Morador;
-// - normaliza rastreio oficialmente;
-// - decide duplicidade operacional.
+// - obter permissão para câmera;
+// - enumerar câmeras disponíveis;
+// - priorizar câmera traseira principal;
+// - abrir a câmera pelo deviceId;
+// - solicitar resolução alta compatível;
+// - NÃO aplicar zoom digital automático;
+// - executar autofocus inicial;
+// - priorizar o centro da área de leitura;
+// - manter autofocus contínuo quando confirmado;
+// - solicitar novo autofocus quando a leitura não evoluir;
+// - detectar códigos automaticamente;
+// - estabilizar leitura em frames consecutivos;
+// - manter câmera aberta após cada captura.
 // ============================================================
 
 
@@ -37,7 +33,8 @@ import {
 // SCANNER
 // ============================================================
 
-const INTERVALO_DETECCAO_MS = 110;
+const INTERVALO_DETECCAO_MS =
+  110;
 
 const TEMPO_BLOQUEIO_MESMO_CODIGO_MS =
   1800;
@@ -46,29 +43,53 @@ const DETECCOES_CONSECUTIVAS_NECESSARIAS =
   2;
 
 const TEMPO_ESTABILIZACAO_CAMERA_MS =
-  850;
+  900;
+
+
+// ============================================================
+// AUTOFOCUS
+// ============================================================
+
+const TEMPO_SINGLE_SHOT_MS =
+  450;
+
+/*
+ * Se o detector ficar este período sem conseguir encontrar
+ * um código válido, solicitamos novo autofocus.
+ */
+const TEMPO_SEM_LEITURA_PARA_REFOCO_MS =
+  1800;
+
+/*
+ * Evita ficar solicitando autofocus continuamente.
+ */
+const INTERVALO_MINIMO_REFOCO_MS =
+  1800;
 
 
 // ============================================================
 // RESOLUÇÃO
-//
-// Não pedimos "50 MP" porque getUserMedia trabalha com
-// modos de vídeo disponibilizados pelo navegador/driver.
-//
-// Pedimos resolução alta de vídeo e deixamos o browser
-// negociar o melhor modo suportado.
 // ============================================================
 
 const RESOLUCAO_PREFERENCIAL =
   Object.freeze({
-    widthIdeal: 2560,
-    heightIdeal: 1440,
+    widthIdeal:
+      2560,
 
-    widthMin: 1280,
-    heightMin: 720,
+    heightIdeal:
+      1440,
 
-    frameRateIdeal: 30,
-    frameRateMax: 60,
+    widthMin:
+      1280,
+
+    heightMin:
+      720,
+
+    frameRateIdeal:
+      30,
+
+    frameRateMax:
+      60,
   });
 
 
@@ -78,11 +99,30 @@ const RESOLUCAO_PREFERENCIAL =
 
 const AREA_LEITURA =
   Object.freeze({
-    xMin: 0.07,
-    xMax: 0.93,
+    xMin:
+      0.07,
 
-    yMin: 0.22,
-    yMax: 0.78,
+    xMax:
+      0.93,
+
+    yMin:
+      0.22,
+
+    yMax:
+      0.78,
+  });
+
+
+// ============================================================
+// PONTO DE INTERESSE
+//
+// Centro do quadro visual / linha vermelha.
+// ============================================================
+
+const PONTO_INTERESSE_CENTRAL =
+  Object.freeze({
+    x: 0.5,
+    y: 0.5,
   });
 
 
@@ -112,10 +152,7 @@ const FORMATOS_DESEJADOS =
 
 
 // ============================================================
-// PALAVRAS PARA CLASSIFICAÇÃO DE CÂMERA
-//
-// Labels não são padronizados.
-// Portanto isto é heurística auxiliar, nunca autoridade.
+// CLASSIFICAÇÃO AUXILIAR DE CÂMERAS
 // ============================================================
 
 const CAMERA_LABEL_POSITIVOS =
@@ -139,6 +176,7 @@ const CAMERA_LABEL_NEGATIVOS =
     "ultra wide",
     "ultrawide",
     "ultra-wide",
+
     "0.5x",
     "0,5x",
 
@@ -146,7 +184,6 @@ const CAMERA_LABEL_NEGATIVOS =
 
     "telephoto",
     "tele",
-    "zoom",
 
     "depth",
     "tof",
@@ -154,42 +191,24 @@ const CAMERA_LABEL_NEGATIVOS =
 
 
 // ============================================================
-// SUPORTE
+// UTIL
 // ============================================================
 
-function possuiSuporteCamera() {
-  return Boolean(
-    typeof navigator !== "undefined" &&
-    navigator.mediaDevices &&
-    typeof navigator.mediaDevices
-      .getUserMedia === "function"
+function esperar(ms) {
+  return new Promise(
+    (resolve) => {
+      window.setTimeout(
+        resolve,
+        ms
+      );
+    }
   );
 }
 
 
-function possuiEnumeracaoCamera() {
-  return Boolean(
-    typeof navigator !== "undefined" &&
-    navigator.mediaDevices &&
-    typeof navigator.mediaDevices
-      .enumerateDevices === "function"
-  );
-}
-
-
-function possuiBarcodeDetector() {
-  return Boolean(
-    typeof window !== "undefined" &&
-    "BarcodeDetector" in window
-  );
-}
-
-
-// ============================================================
-// NORMALIZAÇÃO AUXILIAR
-// ============================================================
-
-function normalizarTexto(valor) {
+function normalizarTexto(
+  valor
+) {
   return String(
     valor || ""
   )
@@ -204,18 +223,74 @@ function normalizarTexto(valor) {
 
 
 // ============================================================
-// FORMATOS SUPORTADOS
+// SUPORTE
+// ============================================================
+
+function possuiSuporteCamera() {
+  return Boolean(
+    typeof navigator !==
+      "undefined" &&
+    navigator.mediaDevices &&
+    typeof navigator
+      .mediaDevices
+      .getUserMedia ===
+      "function"
+  );
+}
+
+
+function possuiEnumeracaoCamera() {
+  return Boolean(
+    typeof navigator !==
+      "undefined" &&
+    navigator.mediaDevices &&
+    typeof navigator
+      .mediaDevices
+      .enumerateDevices ===
+      "function"
+  );
+}
+
+
+function possuiBarcodeDetector() {
+  return Boolean(
+    typeof window !==
+      "undefined" &&
+    "BarcodeDetector" in window
+  );
+}
+
+
+function obterConstraintsSuportados() {
+  try {
+    return (
+      navigator
+        ?.mediaDevices
+        ?.getSupportedConstraints?.() ||
+      {}
+    );
+  } catch {
+    return {};
+  }
+}
+
+
+// ============================================================
+// BARCODE FORMATS
 // ============================================================
 
 async function obterFormatosSuportados() {
-  if (!possuiBarcodeDetector()) {
+  if (
+    !possuiBarcodeDetector()
+  ) {
     return [];
   }
 
 
   try {
     if (
-      typeof window.BarcodeDetector
+      typeof window
+        .BarcodeDetector
         .getSupportedFormats !==
       "function"
     ) {
@@ -226,7 +301,8 @@ async function obterFormatosSuportados() {
 
 
     const suportados =
-      await window.BarcodeDetector
+      await window
+        .BarcodeDetector
         .getSupportedFormats();
 
 
@@ -238,9 +314,10 @@ async function obterFormatosSuportados() {
     );
   } catch (error) {
     console.warn(
-      "[MobileScanner] Não foi possível consultar formatos suportados:",
+      "[MobileScanner] Falha ao consultar formatos:",
       error
     );
+
 
     return [];
   }
@@ -252,10 +329,15 @@ async function obterFormatosSuportados() {
 // ============================================================
 
 async function criarDetector() {
-  if (!possuiBarcodeDetector()) {
+  if (
+    !possuiBarcodeDetector()
+  ) {
     return {
-      detector: null,
-      formatos: [],
+      detector:
+        null,
+
+      formatos:
+        [],
     };
   }
 
@@ -267,10 +349,13 @@ async function criarDetector() {
 
     const detector =
       formatos.length > 0
-        ? new window.BarcodeDetector({
-            formats,
-          })
-        : new window.BarcodeDetector();
+        ? new window
+            .BarcodeDetector({
+              formats:
+                formatos,
+            })
+        : new window
+            .BarcodeDetector();
 
 
     return {
@@ -285,8 +370,11 @@ async function criarDetector() {
 
 
     return {
-      detector: null,
-      formatos: [],
+      detector:
+        null,
+
+      formatos:
+        [],
     };
   }
 }
@@ -300,24 +388,14 @@ function obterCapabilitiesTrack(
   track
 ) {
   try {
-    if (
-      typeof track?.getCapabilities ===
-      "function"
-    ) {
-      return (
-        track.getCapabilities() ||
-        {}
-      );
-    }
-  } catch (error) {
-    console.warn(
-      "[MobileScanner] getCapabilities indisponível:",
-      error
+    return (
+      track
+        ?.getCapabilities?.() ||
+      {}
     );
+  } catch {
+    return {};
   }
-
-
-  return {};
 }
 
 
@@ -325,24 +403,14 @@ function obterSettingsTrack(
   track
 ) {
   try {
-    if (
-      typeof track?.getSettings ===
-      "function"
-    ) {
-      return (
-        track.getSettings() ||
-        {}
-      );
-    }
-  } catch (error) {
-    console.warn(
-      "[MobileScanner] getSettings indisponível:",
-      error
+    return (
+      track
+        ?.getSettings?.() ||
+      {}
     );
+  } catch {
+    return {};
   }
-
-
-  return {};
 }
 
 
@@ -350,29 +418,19 @@ function obterConstraintsTrack(
   track
 ) {
   try {
-    if (
-      typeof track?.getConstraints ===
-      "function"
-    ) {
-      return (
-        track.getConstraints() ||
-        {}
-      );
-    }
-  } catch (error) {
-    console.warn(
-      "[MobileScanner] getConstraints indisponível:",
-      error
+    return (
+      track
+        ?.getConstraints?.() ||
+      {}
     );
+  } catch {
+    return {};
   }
-
-
-  return {};
 }
 
 
 // ============================================================
-// PARAR STREAM AUXILIAR
+// STREAM
 // ============================================================
 
 function encerrarStream(
@@ -394,18 +452,21 @@ function encerrarStream(
 
 
 // ============================================================
-// ENUMERAR CÂMERAS
+// CÂMERAS DISPONÍVEIS
 // ============================================================
 
 async function listarCamerasDisponiveis() {
-  if (!possuiEnumeracaoCamera()) {
+  if (
+    !possuiEnumeracaoCamera()
+  ) {
     return [];
   }
 
 
   try {
     const dispositivos =
-      await navigator.mediaDevices
+      await navigator
+        .mediaDevices
         .enumerateDevices();
 
 
@@ -416,7 +477,10 @@ async function listarCamerasDisponiveis() {
           "videoinput"
       )
       .map(
-        (device, index) => ({
+        (
+          device,
+          index
+        ) => ({
           deviceId:
             device.deviceId,
 
@@ -438,7 +502,7 @@ async function listarCamerasDisponiveis() {
       );
   } catch (error) {
     console.warn(
-      "[MobileScanner] Não foi possível enumerar câmeras:",
+      "[MobileScanner] Falha ao enumerar câmeras:",
       error
     );
 
@@ -450,13 +514,11 @@ async function listarCamerasDisponiveis() {
 
 // ============================================================
 // SCORE DE CÂMERA
-//
-// Tentamos selecionar a lente principal traseira.
 // ============================================================
 
 function calcularScoreCamera(
   camera,
-  deviceIdCameraInicial = null
+  deviceIdCameraInicial
 ) {
   const label =
     normalizarTexto(
@@ -478,7 +540,8 @@ function calcularScoreCamera(
           )
         )
       ) {
-        score += 20;
+        score +=
+          20;
       }
     }
   );
@@ -493,34 +556,29 @@ function calcularScoreCamera(
           )
         )
       ) {
-        score -= 45;
+        score -=
+          45;
       }
     }
   );
 
 
-  /*
-   * A câmera inicialmente escolhida pelo browser para
-   * environment recebe peso positivo como fallback.
-   */
   if (
     deviceIdCameraInicial &&
     camera.deviceId ===
       deviceIdCameraInicial
   ) {
-    score += 15;
+    score +=
+      15;
   }
 
 
-  /*
-   * Labels vazios ou genéricos não são penalizados.
-   */
   return score;
 }
 
 
 // ============================================================
-// ESCOLHER CÂMERA PRINCIPAL
+// CÂMERA PRINCIPAL
 // ============================================================
 
 function selecionarCameraPrincipal({
@@ -528,14 +586,16 @@ function selecionarCameraPrincipal({
   deviceIdCameraInicial,
 } = {}) {
   if (
-    !Array.isArray(cameras) ||
+    !Array.isArray(
+      cameras
+    ) ||
     cameras.length === 0
   ) {
     return null;
   }
 
 
-  const ordenadas =
+  const classificadas =
     cameras
       .map(
         (camera) => ({
@@ -547,7 +607,6 @@ function selecionarCameraPrincipal({
               deviceIdCameraInicial
             ),
         })
-      )
       .sort(
         (a, b) =>
           b.score -
@@ -556,24 +615,20 @@ function selecionarCameraPrincipal({
 
 
   return (
-    ordenadas[0] ||
+    classificadas[0] ||
     null
   );
 }
 
 
 // ============================================================
-// CONSTRAINTS INICIAIS
-//
-// Primeiro acesso serve para:
-// - obter permissão;
-// - descobrir labels;
-// - identificar deviceId traseiro inicial.
+// GET USER MEDIA — BOOTSTRAP
 // ============================================================
 
 function obterConstraintsBootstrap() {
   return {
-    audio: false,
+    audio:
+      false,
 
     video: {
       facingMode: {
@@ -601,14 +656,15 @@ function obterConstraintsBootstrap() {
 
 
 // ============================================================
-// CONSTRAINTS DA CÂMERA PRINCIPAL
+// GET USER MEDIA — PRINCIPAL
 // ============================================================
 
 function obterConstraintsCameraPrincipal(
   deviceId
 ) {
   return {
-    audio: false,
+    audio:
+      false,
 
     video: {
       ...(deviceId
@@ -659,15 +715,12 @@ function obterConstraintsCameraPrincipal(
 }
 
 
-// ============================================================
-// FALLBACK DA CÂMERA PRINCIPAL
-// ============================================================
-
 function obterConstraintsFallback(
   deviceId
 ) {
   return {
-    audio: false,
+    audio:
+      false,
 
     video: {
       ...(deviceId
@@ -703,28 +756,26 @@ function obterConstraintsFallback(
 }
 
 
-// ============================================================
-// ABRIR CÂMERA ESPECÍFICA
-// ============================================================
-
 async function abrirCameraSelecionada(
   deviceId
 ) {
   try {
-    return await navigator.mediaDevices
+    return await navigator
+      .mediaDevices
       .getUserMedia(
         obterConstraintsCameraPrincipal(
           deviceId
         )
       );
-  } catch (primeiroErro) {
+  } catch (error) {
     console.warn(
-      "[MobileScanner] Resolução preferencial não aceita; tentando 1080p:",
-      primeiroErro
+      "[MobileScanner] Resolução preferencial recusada; tentando fallback.",
+      error
     );
 
 
-    return navigator.mediaDevices
+    return navigator
+      .mediaDevices
       .getUserMedia(
         obterConstraintsFallback(
           deviceId
@@ -735,27 +786,96 @@ async function abrirCameraSelecionada(
 
 
 // ============================================================
-// CONFIGURAÇÃO PARA LEITURA
-//
-// Importante:
-// NÃO aplicamos zoom automático.
-//
-// Barcode ocupa área suficiente no quadro e zoom digital pode
-// ampliar desfoque/interpolação.
+// PRESERVAR RESOLUÇÃO DURANTE AJUSTES
 // ============================================================
 
-async function configurarCameraParaLeitura(
+function criarConstraintsPreservacao(
   track
 ) {
+  const settings =
+    obterSettingsTrack(
+      track
+    );
+
+
+  const constraints =
+    {};
+
+
+  if (
+    Number.isFinite(
+      settings?.width
+    )
+  ) {
+    constraints.width =
+      settings.width;
+  }
+
+
+  if (
+    Number.isFinite(
+      settings?.height
+    )
+  ) {
+    constraints.height =
+      settings.height;
+  }
+
+
+  if (
+    Number.isFinite(
+      settings?.frameRate
+    )
+  ) {
+    constraints.frameRate =
+      settings.frameRate;
+  }
+
+
+  return constraints;
+}
+
+
+// ============================================================
+// SUPORTE DE FOCUS MODE
+// ============================================================
+
+function suportaModoFoco(
+  capabilities,
+  modo
+) {
+  return Boolean(
+    Array.isArray(
+      capabilities?.focusMode
+    ) &&
+    capabilities
+      .focusMode
+      .includes(
+        modo
+      )
+  );
+}
+
+
+// ============================================================
+// APLICAR FOCO
+// ============================================================
+
+async function aplicarFoco({
+  track,
+  modo,
+  usarPontoInteresse = true,
+} = {}) {
   if (!track) {
     return {
-      capabilities: {},
-      settingsAntes: {},
-      constraintsAntes: {},
-      settingsDepois: {},
-
-      focoContinuoAtivo:
+      aplicado:
         false,
+
+      confirmado:
+        false,
+
+      settings:
+        {},
     };
   }
 
@@ -766,14 +886,133 @@ async function configurarCameraParaLeitura(
     );
 
 
-  const settingsAntes =
+  if (
+    !suportaModoFoco(
+      capabilities,
+      modo
+    )
+  ) {
+    return {
+      aplicado:
+        false,
+
+      confirmado:
+        false,
+
+      settings:
+        obterSettingsTrack(
+          track
+        ),
+    };
+  }
+
+
+  const suportados =
+    obterConstraintsSuportados();
+
+
+  const advanced = {
+    focusMode:
+      modo,
+  };
+
+
+  /*
+   * O ponto de interesse é centralizado exatamente onde
+   * está o quadro de leitura / linha vermelha.
+   */
+  if (
+    usarPontoInteresse &&
+    suportados
+      ?.pointsOfInterest ===
+      true
+  ) {
+    advanced.pointsOfInterest =
+      [
+        PONTO_INTERESSE_CENTRAL,
+      ];
+  }
+
+
+  const base =
+    criarConstraintsPreservacao(
+      track
+    );
+
+
+  try {
+    await track.applyConstraints({
+      ...base,
+
+      advanced: [
+        advanced,
+      ],
+    });
+  } catch (error) {
+    console.warn(
+      `[MobileScanner] Não foi possível aplicar foco ${modo}:`,
+      error
+    );
+
+
+    return {
+      aplicado:
+        false,
+
+      confirmado:
+        false,
+
+      settings:
+        obterSettingsTrack(
+          track
+        ),
+    };
+  }
+
+
+  await esperar(
+    80
+  );
+
+
+  const settings =
     obterSettingsTrack(
       track
     );
 
 
-  const constraintsAntes =
-    obterConstraintsTrack(
+  return {
+    aplicado:
+      true,
+
+    /*
+     * Só tratamos como confirmado quando getSettings()
+     * realmente informa o modo solicitado.
+     */
+    confirmado:
+      settings
+        ?.focusMode ===
+      modo,
+
+    settings,
+  };
+}
+
+
+// ============================================================
+// EXPOSIÇÃO / WHITE BALANCE
+// ============================================================
+
+async function configurarMedicaoAutomatica(
+  track
+) {
+  if (!track) {
+    return;
+  }
+
+
+  const capabilities =
+    obterCapabilitiesTrack(
       track
     );
 
@@ -782,43 +1021,21 @@ async function configurarCameraParaLeitura(
     {};
 
 
-  // ----------------------------------------------------------
-  // AUTOFOCUS
-  // ----------------------------------------------------------
-
   if (
     Array.isArray(
-      capabilities?.focusMode
+      capabilities
+        ?.exposureMode
     ) &&
-    capabilities.focusMode.includes(
-      "continuous"
-    )
-  ) {
-    advanced.focusMode =
-      "continuous";
-  }
-
-
-  // ----------------------------------------------------------
-  // AUTO EXPOSURE
-  // ----------------------------------------------------------
-
-  if (
-    Array.isArray(
-      capabilities?.exposureMode
-    ) &&
-    capabilities.exposureMode.includes(
-      "continuous"
-    )
+    capabilities
+      .exposureMode
+      .includes(
+        "continuous"
+      )
   ) {
     advanced.exposureMode =
       "continuous";
   }
 
-
-  // ----------------------------------------------------------
-  // WHITE BALANCE
-  // ----------------------------------------------------------
 
   if (
     Array.isArray(
@@ -836,60 +1053,227 @@ async function configurarCameraParaLeitura(
   }
 
 
-  // ----------------------------------------------------------
-  // APPLY
-  // ----------------------------------------------------------
-
   if (
     Object.keys(
       advanced
-    ).length > 0
+    ).length === 0
   ) {
-    try {
-      await track.applyConstraints({
-        advanced: [
-          advanced,
-        ],
-      });
-    } catch (error) {
-      console.warn(
-        "[MobileScanner] Ajustes de foco/exposição parcialmente recusados:",
-        error
-      );
-    }
+    return;
   }
 
 
-  const settingsDepois =
-    obterSettingsTrack(
+  try {
+    await track.applyConstraints({
+      ...criarConstraintsPreservacao(
+        track
+      ),
+
+      advanced: [
+        advanced,
+      ],
+    });
+  } catch (error) {
+    console.warn(
+      "[MobileScanner] Ajustes automáticos de exposição não aplicados:",
+      error
+    );
+  }
+}
+
+
+// ============================================================
+// AUTOFOCUS INICIAL
+//
+// Estratégia:
+// 1. single-shot no centro, quando disponível;
+// 2. espera varredura;
+// 3. continuous no centro, quando disponível.
+// ============================================================
+
+async function prepararAutofocus(
+  track
+) {
+  if (!track) {
+    return {
+      focoContinuoAtivo:
+        false,
+
+      modoFinal:
+        null,
+
+      settings:
+        {},
+    };
+  }
+
+
+  const capabilities =
+    obterCapabilitiesTrack(
       track
     );
 
 
-  const focoContinuoAtivo =
-    settingsDepois
-      ?.focusMode ===
-      "continuous" ||
-    advanced.focusMode ===
-      "continuous";
+  const possuiSingleShot =
+    suportaModoFoco(
+      capabilities,
+      "single-shot"
+    );
 
 
+  const possuiContinuous =
+    suportaModoFoco(
+      capabilities,
+      "continuous"
+    );
+
+
+  if (
+    possuiSingleShot
+  ) {
+    await aplicarFoco({
+      track,
+
+      modo:
+        "single-shot",
+
+      usarPontoInteresse:
+        true,
+    });
+
+
+    await esperar(
+      TEMPO_SINGLE_SHOT_MS
+    );
+  }
+
+
+  if (
+    possuiContinuous
+  ) {
+    const resultado =
+      await aplicarFoco({
+        track,
+
+        modo:
+          "continuous",
+
+        usarPontoInteresse:
+          true,
+      });
+
+
+    return {
+      focoContinuoAtivo:
+        resultado.confirmado,
+
+      modoFinal:
+        resultado
+          .settings
+          ?.focusMode ||
+        null,
+
+      settings:
+        resultado.settings,
+    };
+  }
+
+
+  /*
+   * Alguns aparelhos só expõem single-shot.
+   * Nesse caso mantemos esse modo.
+   */
   return {
-    capabilities,
+    focoContinuoAtivo:
+      false,
 
-    settingsAntes,
+    modoFinal:
+      obterSettingsTrack(
+        track
+      )?.focusMode ||
+      (
+        possuiSingleShot
+          ? "single-shot"
+          : null
+      ),
 
-    constraintsAntes,
-
-    settingsDepois,
-
-    focoContinuoAtivo,
+    settings:
+      obterSettingsTrack(
+        track
+      ),
   };
 }
 
 
 // ============================================================
-// ÁREA CENTRAL
+// REFOCO AUTOMÁTICO
+// ============================================================
+
+async function executarRefoco(
+  track
+) {
+  if (!track) {
+    return;
+  }
+
+
+  const capabilities =
+    obterCapabilitiesTrack(
+      track
+    );
+
+
+  const possuiSingleShot =
+    suportaModoFoco(
+      capabilities,
+      "single-shot"
+    );
+
+
+  const possuiContinuous =
+    suportaModoFoco(
+      capabilities,
+      "continuous"
+    );
+
+
+  if (
+    possuiSingleShot
+  ) {
+    await aplicarFoco({
+      track,
+
+      modo:
+        "single-shot",
+
+      usarPontoInteresse:
+        true,
+    });
+
+
+    await esperar(
+      TEMPO_SINGLE_SHOT_MS
+    );
+  }
+
+
+  if (
+    possuiContinuous
+  ) {
+    await aplicarFoco({
+      track,
+
+      modo:
+        "continuous",
+
+      usarPontoInteresse:
+        true,
+    });
+  }
+}
+
+
+// ============================================================
+// ÁREA DE LEITURA
 // ============================================================
 
 function resultadoEstaNaAreaCentral(
@@ -991,17 +1375,25 @@ function escolherMelhorResultado(
     .sort(
       (a, b) => {
         const areaA =
-          (a?.boundingBox
-            ?.width || 0) *
-          (a?.boundingBox
-            ?.height || 0);
+          (a
+            ?.boundingBox
+            ?.width ||
+            0) *
+          (a
+            ?.boundingBox
+            ?.height ||
+            0);
 
 
         const areaB =
-          (b?.boundingBox
-            ?.width || 0) *
-          (b?.boundingBox
-            ?.height || 0);
+          (b
+            ?.boundingBox
+            ?.width ||
+            0) *
+          (b
+            ?.boundingBox
+            ?.height ||
+            0);
 
 
         return (
@@ -1086,6 +1478,9 @@ export default function useMobileScanner({
   const streamRef =
     useRef(null);
 
+  const trackRef =
+    useRef(null);
+
   const detectorRef =
     useRef(null);
 
@@ -1096,6 +1491,9 @@ export default function useMobileScanner({
     useRef(null);
 
   const processandoRef =
+    useRef(false);
+
+  const refocandoRef =
     useRef(false);
 
   const cameraAtivaRef =
@@ -1110,7 +1508,8 @@ export default function useMobileScanner({
 
   const ultimoCodigoRef =
     useRef({
-      codigo: null,
+      codigo:
+        null,
 
       registradoEm:
         0,
@@ -1119,7 +1518,8 @@ export default function useMobileScanner({
 
   const candidatoRef =
     useRef({
-      codigo: null,
+      codigo:
+        null,
 
       formato:
         null,
@@ -1127,6 +1527,20 @@ export default function useMobileScanner({
       quantidade:
         0,
     });
+
+
+  /*
+   * Último momento em que o detector conseguiu pelo menos
+   * encontrar um código.
+   */
+  const ultimaDeteccaoVisualRef =
+    useRef(
+      Date.now()
+    );
+
+
+  const ultimoRefocoEmRef =
+    useRef(0);
 
 
   // ==========================================================
@@ -1167,12 +1581,14 @@ export default function useMobileScanner({
       };
 
 
-      setLendo(false);
+      setLendo(
+        false
+      );
     }, []);
 
 
   // ==========================================================
-  // PARAR
+  // PARAR CÂMERA
   // ==========================================================
 
   const pararCamera =
@@ -1188,19 +1604,19 @@ export default function useMobileScanner({
           timerRef.current
         );
 
+
         timerRef.current =
           null;
       }
 
 
       if (
-        timerEstabilizacaoRef
-          .current
+        timerEstabilizacaoRef.current
       ) {
         window.clearTimeout(
-          timerEstabilizacaoRef
-            .current
+          timerEstabilizacaoRef.current
         );
+
 
         timerEstabilizacaoRef.current =
           null;
@@ -1214,6 +1630,7 @@ export default function useMobileScanner({
           streamRef.current
         );
 
+
         streamRef.current =
           null;
       }
@@ -1222,19 +1639,22 @@ export default function useMobileScanner({
       if (
         videoRef?.current
       ) {
-        videoRef.current
-          .srcObject =
+        videoRef.current.srcObject =
           null;
       }
 
 
-      detectorRef.current =
+      trackRef.current =
         null;
 
+      detectorRef.current =
+        null;
 
       processandoRef.current =
         false;
 
+      refocandoRef.current =
+        false;
 
       cameraAtivaRef.current =
         false;
@@ -1285,7 +1705,89 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // ESTABILIZAÇÃO DO CÓDIGO
+  // REFOCO AUTOMÁTICO CONTROLADO
+  // ==========================================================
+
+  const tentarRefocoAutomatico =
+    useCallback(
+      async () => {
+        const track =
+          trackRef.current;
+
+
+        if (
+          !track ||
+          refocandoRef.current
+        ) {
+          return;
+        }
+
+
+        const agora =
+          Date.now();
+
+
+        const semLeituraHa =
+          agora -
+          ultimaDeteccaoVisualRef.current;
+
+
+        const desdeUltimoRefoco =
+          agora -
+          ultimoRefocoEmRef.current;
+
+
+        if (
+          semLeituraHa <
+            TEMPO_SEM_LEITURA_PARA_REFOCO_MS ||
+          desdeUltimoRefoco <
+            INTERVALO_MINIMO_REFOCO_MS
+        ) {
+          return;
+        }
+
+
+        refocandoRef.current =
+          true;
+
+
+        ultimoRefocoEmRef.current =
+          agora;
+
+
+        try {
+          await executarRefoco(
+            track
+          );
+
+
+          const settings =
+            obterSettingsTrack(
+              track
+            );
+
+
+          setFocoContinuoAtivo(
+            settings
+              ?.focusMode ===
+              "continuous"
+          );
+        } catch (error) {
+          console.warn(
+            "[MobileScanner] Refoco automático falhou:",
+            error
+          );
+        } finally {
+          refocandoRef.current =
+            false;
+        }
+      },
+      []
+    );
+
+
+  // ==========================================================
+  // ESTABILIZAÇÃO
   // ==========================================================
 
   const registrarCandidato =
@@ -1341,7 +1843,9 @@ export default function useMobileScanner({
         }
 
 
-        setLendo(true);
+        setLendo(
+          true
+        );
 
 
         return (
@@ -1357,7 +1861,7 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // EMITIR DETECÇÃO
+  // EMITIR
   // ==========================================================
 
   const emitirDeteccao =
@@ -1409,6 +1913,10 @@ export default function useMobileScanner({
         };
 
 
+        ultimaDeteccaoVisualRef.current =
+          agora;
+
+
         resetarCandidato();
 
 
@@ -1448,134 +1956,151 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // DETECÇÃO
+  // LOOP
   // ==========================================================
 
   const detectarFrame =
-    useCallback(async () => {
-      if (
-        !ativoRef.current ||
-        !cameraAtivaRef.current ||
-        !liberadoParaDetectarRef.current ||
-        !detectorRef.current ||
-        !videoRef?.current
-      ) {
-        return;
-      }
-
-
-      if (
-        processandoRef.current
-      ) {
-        timerRef.current =
-          window.setTimeout(
-            detectarFrame,
-            INTERVALO_DETECCAO_MS
-          );
-
-
-        return;
-      }
-
-
-      const video =
-        videoRef.current;
-
-
-      if (
-        video.readyState < 2 ||
-        video.videoWidth === 0 ||
-        video.videoHeight === 0
-      ) {
-        timerRef.current =
-          window.setTimeout(
-            detectarFrame,
-            INTERVALO_DETECCAO_MS
-          );
-
-
-        return;
-      }
-
-
-      processandoRef.current =
-        true;
-
-
-      try {
-        const resultados =
-          await detectorRef.current
-            .detect(
-              video
-            );
-
-
-        const melhor =
-          escolherMelhorResultado(
-            resultados,
-            video
-          );
-
-
-        if (!melhor) {
-          resetarCandidato();
-        } else {
-          const centralizado =
-            resultadoEstaNaAreaCentral(
-              melhor,
-              video
-            );
-
-
-          if (!centralizado) {
-            resetarCandidato();
-          } else {
-            const estabilizado =
-              registrarCandidato(
-                melhor
-              );
-
-
-            if (
-              estabilizado
-            ) {
-              emitirDeteccao(
-                melhor
-              );
-            }
-          }
+    useCallback(
+      async () => {
+        if (
+          !ativoRef.current ||
+          !cameraAtivaRef.current ||
+          !liberadoParaDetectarRef.current ||
+          !detectorRef.current ||
+          !videoRef?.current
+        ) {
+          return;
         }
-      } catch (error) {
-        console.warn(
-          "[MobileScanner] Falha na detecção:",
-          error
-        );
-
-
-        resetarCandidato();
-      } finally {
-        processandoRef.current =
-          false;
 
 
         if (
-          ativoRef.current &&
-          cameraAtivaRef.current &&
-          liberadoParaDetectarRef.current
+          processandoRef.current
         ) {
           timerRef.current =
             window.setTimeout(
               detectarFrame,
               INTERVALO_DETECCAO_MS
             );
+
+
+          return;
         }
-      }
-    }, [
-      emitirDeteccao,
-      registrarCandidato,
-      resetarCandidato,
-      videoRef,
-    ]);
+
+
+        const video =
+          videoRef.current;
+
+
+        if (
+          video.readyState < 2 ||
+          video.videoWidth === 0 ||
+          video.videoHeight === 0
+        ) {
+          timerRef.current =
+            window.setTimeout(
+              detectarFrame,
+              INTERVALO_DETECCAO_MS
+            );
+
+
+          return;
+        }
+
+
+        processandoRef.current =
+          true;
+
+
+        try {
+          const resultados =
+            await detectorRef.current
+              .detect(
+                video
+              );
+
+
+          const melhor =
+            escolherMelhorResultado(
+              resultados,
+              video
+            );
+
+
+          if (!melhor) {
+            resetarCandidato();
+
+
+            /*
+             * Nenhum código foi reconhecido.
+             * Pode ser falta de foco.
+             */
+            void tentarRefocoAutomatico();
+          } else {
+            ultimaDeteccaoVisualRef.current =
+              Date.now();
+
+
+            const centralizado =
+              resultadoEstaNaAreaCentral(
+                melhor,
+                video
+              );
+
+
+            if (
+              !centralizado
+            ) {
+              resetarCandidato();
+            } else {
+              const estabilizado =
+                registrarCandidato(
+                  melhor
+                );
+
+
+              if (
+                estabilizado
+              ) {
+                emitirDeteccao(
+                  melhor
+                );
+              }
+            }
+          }
+        } catch (error) {
+          console.warn(
+            "[MobileScanner] Falha na detecção:",
+            error
+          );
+
+
+          resetarCandidato();
+        } finally {
+          processandoRef.current =
+            false;
+
+
+          if (
+            ativoRef.current &&
+            cameraAtivaRef.current &&
+            liberadoParaDetectarRef.current
+          ) {
+            timerRef.current =
+              window.setTimeout(
+                detectarFrame,
+                INTERVALO_DETECCAO_MS
+              );
+          }
+        }
+      },
+      [
+        emitirDeteccao,
+        registrarCandidato,
+        resetarCandidato,
+        tentarRefocoAutomatico,
+        videoRef,
+      ]
+    );
 
 
   // ==========================================================
@@ -1585,14 +2110,6 @@ export default function useMobileScanner({
   const descobrirCameraPrincipal =
     useCallback(
       async () => {
-        /*
-         * Primeiro abrimos a traseira padrão.
-         *
-         * Isso:
-         * - solicita permissão;
-         * - permite revelar labels;
-         * - informa o deviceId escolhido inicialmente.
-         */
         const bootstrapStream =
           await navigator
             .mediaDevices
@@ -1637,10 +2154,6 @@ export default function useMobileScanner({
           });
 
 
-        /*
-         * Encerramos o bootstrap ANTES de abrir a câmera
-         * definitiva, evitando conflito de hardware.
-         */
         encerrarStream(
           bootstrapStream
         );
@@ -1697,7 +2210,7 @@ export default function useMobileScanner({
 
         try {
           // --------------------------------------------------
-          // 1. DESCOBRIR CÂMERA PRINCIPAL
+          // 1. DESCOBRIR CÂMERA
           // --------------------------------------------------
 
           const descoberta =
@@ -1705,8 +2218,7 @@ export default function useMobileScanner({
 
 
           const principal =
-            descoberta
-              .principal;
+            descoberta.principal;
 
 
           setCameraPrincipal(
@@ -1744,27 +2256,8 @@ export default function useMobileScanner({
           }
 
 
-          // --------------------------------------------------
-          // 3. CONFIGURAR
-          // --------------------------------------------------
-
-          const configuracao =
-            await configurarCameraParaLeitura(
-              track
-            );
-
-
-          const settings =
-            configuracao
-              .settingsDepois;
-
-
-          setFocoContinuoAtivo(
-            Boolean(
-              configuracao
-                .focoContinuoAtivo
-            )
-          );
+          trackRef.current =
+            track;
 
 
           setCameraLabel(
@@ -1774,95 +2267,8 @@ export default function useMobileScanner({
           );
 
 
-          setResolucaoAtual({
-            width:
-              settings
-                ?.width ||
-              null,
-
-            height:
-              settings
-                ?.height ||
-              null,
-
-            frameRate:
-              settings
-                ?.frameRate ||
-              null,
-          });
-
-
           // --------------------------------------------------
-          // 4. DIAGNÓSTICO
-          // --------------------------------------------------
-
-          const diagnostico = {
-            cameraSelecionada: {
-              deviceId:
-                principal
-                  ?.deviceId ||
-                settings
-                  ?.deviceId ||
-                null,
-
-              label:
-                track.label ||
-                principal
-                  ?.label ||
-                null,
-
-              score:
-                principal
-                  ?.score ??
-                null,
-            },
-
-            camerasEnumeradas:
-              descoberta.cameras,
-
-            deviceIdInicial:
-              descoberta
-                .deviceIdInicial,
-
-            bootstrapSettings:
-              descoberta
-                .bootstrapSettings,
-
-            capabilities:
-              configuracao
-                .capabilities,
-
-            settingsAntes:
-              configuracao
-                .settingsAntes,
-
-            constraintsAntes:
-              configuracao
-                .constraintsAntes,
-
-            settingsDepois:
-              configuracao
-                .settingsDepois,
-
-            focoContinuoAtivo:
-              configuracao
-                .focoContinuoAtivo,
-          };
-
-
-          setDiagnosticoCamera(
-            diagnostico
-          );
-
-
-          console.info(
-            "[MobileScanner] Diagnóstico câmera principal:",
-            diagnostico
-          );
-
-
-          // --------------------------------------------------
-          // 5. VIDEO
+          // 3. VIDEO PRIMEIRO
           // --------------------------------------------------
 
           const video =
@@ -1893,8 +2299,161 @@ export default function useMobileScanner({
           await video.play();
 
 
+          /*
+           * Deixa a câmera começar a produzir frames antes
+           * de solicitar a primeira varredura de foco.
+           */
+          await esperar(
+            250
+          );
+
+
           // --------------------------------------------------
-          // 6. DETECTOR
+          // 4. EXPOSIÇÃO AUTOMÁTICA
+          // --------------------------------------------------
+
+          await configurarMedicaoAutomatica(
+            track
+          );
+
+
+          // --------------------------------------------------
+          // 5. AUTOFOCUS INICIAL
+          // --------------------------------------------------
+
+          const autofocus =
+            await prepararAutofocus(
+              track
+            );
+
+
+          setFocoContinuoAtivo(
+            autofocus
+              .focoContinuoAtivo
+          );
+
+
+          // --------------------------------------------------
+          // 6. SETTINGS REAIS
+          // --------------------------------------------------
+
+          const settingsDepois =
+            obterSettingsTrack(
+              track
+            );
+
+
+          const capabilities =
+            obterCapabilitiesTrack(
+              track
+            );
+
+
+          const constraints =
+            obterConstraintsTrack(
+              track
+            );
+
+
+          setResolucaoAtual({
+            width:
+              settingsDepois
+                ?.width ||
+              null,
+
+            height:
+              settingsDepois
+                ?.height ||
+              null,
+
+            frameRate:
+              settingsDepois
+                ?.frameRate ||
+              null,
+          });
+
+
+          // --------------------------------------------------
+          // 7. DIAGNÓSTICO
+          // --------------------------------------------------
+
+          const diagnostico = {
+            cameraSelecionada: {
+              deviceId:
+                settingsDepois
+                  ?.deviceId ||
+                principal
+                  ?.deviceId ||
+                null,
+
+              label:
+                track.label ||
+                principal
+                  ?.label ||
+                null,
+
+              score:
+                principal
+                  ?.score ??
+                null,
+            },
+
+            camerasEnumeradas:
+              descoberta
+                .cameras,
+
+            bootstrapSettings:
+              descoberta
+                .bootstrapSettings,
+
+            capabilities,
+
+            constraints,
+
+            settingsDepois,
+
+            autofocus: {
+              focusModeSuportados:
+                capabilities
+                  ?.focusMode ||
+                [],
+
+              focusModeAtual:
+                settingsDepois
+                  ?.focusMode ||
+                null,
+
+              pointsOfInterest:
+                settingsDepois
+                  ?.pointsOfInterest ||
+                null,
+
+              focusDistance:
+                settingsDepois
+                  ?.focusDistance ??
+                null,
+
+              focoContinuoConfirmado:
+                settingsDepois
+                  ?.focusMode ===
+                  "continuous",
+            },
+          };
+
+
+          setDiagnosticoCamera(
+            diagnostico
+          );
+
+
+          console.info(
+            "[MobileScanner] Diagnóstico completo:",
+            diagnostico
+          );
+
+
+          // --------------------------------------------------
+          // 8. DETECTOR
           // --------------------------------------------------
 
           const {
@@ -1921,7 +2480,7 @@ export default function useMobileScanner({
 
 
           // --------------------------------------------------
-          // 7. LIBERAR
+          // 9. ATIVAR
           // --------------------------------------------------
 
           cameraAtivaRef.current =
@@ -1931,6 +2490,14 @@ export default function useMobileScanner({
           setCameraAtiva(
             true
           );
+
+
+          ultimaDeteccaoVisualRef.current =
+            Date.now();
+
+
+          ultimoRefocoEmRef.current =
+            Date.now();
 
 
           timerEstabilizacaoRef.current =
@@ -2025,7 +2592,7 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // FECHAMENTO
+  // FECHOU
   // ==========================================================
 
   useEffect(() => {
@@ -2059,7 +2626,9 @@ export default function useMobileScanner({
 
   return {
     cameraAtiva,
+
     iniciando,
+
     erroCamera,
 
     detectorDisponivel,
@@ -2069,10 +2638,8 @@ export default function useMobileScanner({
     focoContinuoAtivo,
 
     /*
-     * Mantido por compatibilidade temporária com o
-     * MobileScanner.jsx atual.
-     *
-     * Agora não existe zoom automático.
+     * Compatibilidade com versões anteriores.
+     * Zoom automático continua desativado.
      */
     zoomAtual:
       null,
@@ -2090,6 +2657,7 @@ export default function useMobileScanner({
     diagnosticoCamera,
 
     iniciarCamera,
+
     pararCamera,
 
     possuiSuporteCamera:
