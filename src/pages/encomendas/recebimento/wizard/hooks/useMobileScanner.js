@@ -456,56 +456,41 @@ function encerrarStream(
 // ============================================================
 
 async function listarCamerasDisponiveis() {
-  if (
-    !possuiEnumeracaoCamera()
-  ) {
+  if (!possuiEnumeracaoCamera()) {
     return [];
   }
 
-
   try {
     const dispositivos =
-      await navigator
-        .mediaDevices
-        .enumerateDevices();
-
+      await navigator.mediaDevices.enumerateDevices();
 
     return dispositivos
       .filter(
         (device) =>
-          device.kind ===
-          "videoinput"
+          device.kind === "videoinput"
       )
-      .map(
-        (
-          device,
-          index
-        ) => ({
-          deviceId:
-            device.deviceId,
+      .map((device, index) => ({
+        deviceId:
+          device.deviceId,
 
-          groupId:
-            device.groupId ||
-            null,
+        groupId:
+          device.groupId || null,
 
-          label:
-            device.label ||
-            `Câmera ${index + 1}`,
+        label:
+          device.label ||
+          `Câmera ${index + 1}`,
 
-          labelOriginal:
-            device.label ||
-            "",
+        labelOriginal:
+          device.label || "",
 
-          indice:
-            index,
-        })
-      );
+        indice:
+          index,
+      }));
   } catch (error) {
     console.warn(
       "[MobileScanner] Falha ao enumerar câmeras:",
       error
     );
-
 
     return [];
   }
@@ -586,33 +571,27 @@ function selecionarCameraPrincipal({
   deviceIdCameraInicial,
 } = {}) {
   if (
-    !Array.isArray(
-      cameras
-    ) ||
+    !Array.isArray(cameras) ||
     cameras.length === 0
   ) {
     return null;
   }
 
-
   const classificadas =
     cameras
-      .map(
-        (camera) => ({
-          ...camera,
+      .map((camera) => ({
+        ...camera,
 
-          score:
-            calcularScoreCamera(
-              camera,
-              deviceIdCameraInicial
-            ),
-        })
+        score:
+          calcularScoreCamera(
+            camera,
+            deviceIdCameraInicial
+          ),
+      }))
       .sort(
         (a, b) =>
-          b.score -
-          a.score
+          b.score - a.score
       );
-
 
   return (
     classificadas[0] ||
