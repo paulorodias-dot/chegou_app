@@ -1,19 +1,17 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.11.001",
+  "releaseId": "2026.08.11.002",
   "appVersion": "1.2.0",
   "scope": "GLOBAL",
   "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-08-11T17:00:00-03:00",
-  "title": "Novidades no Sistema Chegou!",
-  "message": "Atualizamos o Sistema Chegou! com novas estruturas operacionais e melhorias para tornar o recebimento de encomendas mais ágil, seguro e preparado para diferentes dispositivos.",
+  "publishedAt": "2026-08-11T18:20:00-03:00",
+  "title": "Melhorias no Recebimento de Encomendas",
+  "message": "Aprimoramos a captura de volumes no Recebimento de Encomendas para oferecer leitura mais rápida e estável em dispositivos móveis.",
   "highlights": [
-    "Nova estrutura de Recebimento de Encomendas no Módulo Portaria.",
-    "Novo Wizard de Recebimento com identificação, captura de volumes e conferência final.",
-    "Recebimentos em andamento agora contam com recuperação local para maior proteção contra interrupções.",
-    "Nova captura preparada para leitores, digitação e câmera em dispositivos móveis.",
-    "Leitura por câmera preparada para códigos de barras, QR Code, Data Matrix e PDF417.",
-    "Melhorias de usabilidade, responsividade e segurança operacional no fluxo de recebimento."
+    "Melhorias no foco automático da câmera durante a leitura de códigos.",
+    "Ajuste adaptativo de zoom conforme as capacidades do dispositivo.",
+    "Leitura otimizada para códigos de barras, QR Code, Data Matrix e PDF417.",
+    "Maior estabilidade antes da captura automática dos volumes."
   ]
 }

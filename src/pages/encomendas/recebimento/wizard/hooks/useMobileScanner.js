@@ -10,10 +10,14 @@ import {
 // SISTEMA CHEGOU!
 // MOBILE SCANNER HOOK
 //
+// Versão funcional: 2026.08.11.002
+//
 // Responsabilidades:
 // - solicitar câmera;
 // - preferir câmera traseira;
-// - aplicar foco contínuo quando suportado;
+// - inspecionar configuração real da câmera;
+// - aplicar autofocus contínuo quando suportado;
+// - aplicar zoom inicial adaptativo quando suportado;
 // - controlar MediaStream;
 // - detectar códigos suportados pelo BarcodeDetector;
 // - priorizar códigos dentro da área central;
@@ -33,25 +37,46 @@ const INTERVALO_DETECCAO_MS = 120;
 const TEMPO_BLOQUEIO_MESMO_CODIGO_MS =
   1800;
 
-/*
- * Exige o mesmo código em pelo menos dois frames
- * para reduzir leituras ocasionais/falsas.
- */
 const DETECCOES_CONSECUTIVAS_NECESSARIAS =
   2;
 
+
 /*
- * Área aproximada correspondente ao quadro visual
- * central do scanner.
+ * Pequena espera depois da abertura da câmera.
  *
- * Valores relativos ao frame do vídeo.
+ * Ajuda o hardware a estabilizar exposição/foco antes de
+ * começarmos a exigir leituras consecutivas.
  */
-const AREA_LEITURA = Object.freeze({
-  xMin: 0.07,
-  xMax: 0.93,
-  yMin: 0.22,
-  yMax: 0.78,
-});
+const TEMPO_ESTABILIZACAO_CAMERA_MS =
+  650;
+
+
+/*
+ * Não aplicamos um zoom fixo absoluto.
+ *
+ * O valor é calculado dentro da faixa real exposta pela
+ * câmera daquele dispositivo.
+ */
+const FRACAO_ZOOM_INICIAL =
+  0.2;
+
+
+/*
+ * Limite adicional para evitar zoom excessivo mesmo em
+ * aparelhos que exponham uma faixa muito grande.
+ */
+const ZOOM_INICIAL_MAXIMO =
+  2.0;
+
+
+const AREA_LEITURA =
+  Object.freeze({
+    xMin: 0.08,
+    xMax: 0.92,
+
+    yMin: 0.24,
+    yMax: 0.76,
+  });
 
 
 const FORMATOS_DESEJADOS =
@@ -79,8 +104,8 @@ function possuiSuporteCamera() {
   return Boolean(
     typeof navigator !== "undefined" &&
     navigator.mediaDevices &&
-    typeof navigator.mediaDevices.getUserMedia ===
-      "function"
+    typeof navigator.mediaDevices
+      .getUserMedia === "function"
   );
 }
 
@@ -94,13 +119,14 @@ function possuiBarcodeDetector() {
 
 
 // ============================================================
-// FORMATOS SUPORTADOS
+// FORMATOS
 // ============================================================
 
 async function obterFormatosSuportados() {
   if (!possuiBarcodeDetector()) {
     return [];
   }
+
 
   try {
     if (
@@ -113,9 +139,11 @@ async function obterFormatosSuportados() {
       ];
     }
 
+
     const suportados =
       await window.BarcodeDetector
         .getSupportedFormats();
+
 
     return FORMATOS_DESEJADOS.filter(
       (formato) =>
@@ -155,8 +183,7 @@ async function criarDetector() {
     const detector =
       formatos.length > 0
         ? new window.BarcodeDetector({
-            formats:
-              formatos,
+            formats: formatos,
           })
         : new window.BarcodeDetector();
 
@@ -180,7 +207,355 @@ async function criarDetector() {
 
 
 // ============================================================
-// ÁREA DE LEITURA
+// CÂMERA — LEITURA SEGURA DE ESTADO
+// ============================================================
+
+function obterCapabilitiesTrack(track) {
+  try {
+    if (
+      typeof track?.getCapabilities ===
+      "function"
+    ) {
+      return (
+        track.getCapabilities() ||
+        {}
+      );
+    }
+  } catch (error) {
+    console.warn(
+      "[MobileScanner] getCapabilities indisponível:",
+      error
+    );
+  }
+
+
+  return {};
+}
+
+
+function obterSettingsTrack(track) {
+  try {
+    if (
+      typeof track?.getSettings ===
+      "function"
+    ) {
+      return (
+        track.getSettings() ||
+        {}
+      );
+    }
+  } catch (error) {
+    console.warn(
+      "[MobileScanner] getSettings indisponível:",
+      error
+    );
+  }
+
+
+  return {};
+}
+
+
+function obterConstraintsTrack(track) {
+  try {
+    if (
+      typeof track?.getConstraints ===
+      "function"
+    ) {
+      return (
+        track.getConstraints() ||
+        {}
+      );
+    }
+  } catch (error) {
+    console.warn(
+      "[MobileScanner] getConstraints indisponível:",
+      error
+    );
+  }
+
+
+  return {};
+}
+
+
+// ============================================================
+// ZOOM ADAPTATIVO
+// ============================================================
+
+function calcularZoomInicial(
+  capabilities,
+  settings
+) {
+  const zoom =
+    capabilities?.zoom;
+
+
+  if (
+    !zoom ||
+    typeof zoom.min !== "number" ||
+    typeof zoom.max !== "number"
+  ) {
+    return null;
+  }
+
+
+  if (
+    zoom.max <= zoom.min
+  ) {
+    return null;
+  }
+
+
+  const atual =
+    typeof settings?.zoom === "number"
+      ? settings.zoom
+      : zoom.min;
+
+
+  /*
+   * Calcula um pequeno avanço dentro da faixa disponível.
+   */
+  const amplitude =
+    zoom.max - zoom.min;
+
+
+  let desejado =
+    zoom.min +
+    amplitude *
+      FRACAO_ZOOM_INICIAL;
+
+
+  /*
+   * Nunca reduzimos um zoom que o aparelho já escolheu.
+   */
+  desejado =
+    Math.max(
+      desejado,
+      atual
+    );
+
+
+  /*
+   * Não queremos começar excessivamente aproximado.
+   */
+  desejado =
+    Math.min(
+      desejado,
+      ZOOM_INICIAL_MAXIMO,
+      zoom.max
+    );
+
+
+  desejado =
+    Math.max(
+      desejado,
+      zoom.min
+    );
+
+
+  /*
+   * Ajusta ao step quando informado.
+   */
+  if (
+    typeof zoom.step === "number" &&
+    zoom.step > 0
+  ) {
+    const passos =
+      Math.round(
+        (desejado - zoom.min) /
+          zoom.step
+      );
+
+
+    desejado =
+      zoom.min +
+      passos *
+        zoom.step;
+  }
+
+
+  return Number(
+    desejado.toFixed(3)
+  );
+}
+
+
+// ============================================================
+// OTIMIZAÇÃO DA CÂMERA
+// ============================================================
+
+async function configurarCameraParaLeitura(
+  track
+) {
+  if (!track) {
+    return {
+      capabilities: {},
+      settingsAntes: {},
+      constraintsAntes: {},
+      settingsDepois: {},
+      focoContinuoAtivo: false,
+      zoomAplicado: null,
+    };
+  }
+
+
+  const capabilities =
+    obterCapabilitiesTrack(
+      track
+    );
+
+
+  const settingsAntes =
+    obterSettingsTrack(
+      track
+    );
+
+
+  const constraintsAntes =
+    obterConstraintsTrack(
+      track
+    );
+
+
+  const advanced = {};
+
+
+  // ----------------------------------------------------------
+  // FOCO
+  // ----------------------------------------------------------
+
+  if (
+    Array.isArray(
+      capabilities?.focusMode
+    ) &&
+    capabilities.focusMode.includes(
+      "continuous"
+    )
+  ) {
+    advanced.focusMode =
+      "continuous";
+  }
+
+
+  // ----------------------------------------------------------
+  // EXPOSIÇÃO
+  // ----------------------------------------------------------
+
+  if (
+    Array.isArray(
+      capabilities?.exposureMode
+    ) &&
+    capabilities.exposureMode.includes(
+      "continuous"
+    )
+  ) {
+    advanced.exposureMode =
+      "continuous";
+  }
+
+
+  // ----------------------------------------------------------
+  // WHITE BALANCE
+  // ----------------------------------------------------------
+
+  if (
+    Array.isArray(
+      capabilities?.whiteBalanceMode
+    ) &&
+    capabilities.whiteBalanceMode.includes(
+      "continuous"
+    )
+  ) {
+    advanced.whiteBalanceMode =
+      "continuous";
+  }
+
+
+  // ----------------------------------------------------------
+  // ZOOM
+  // ----------------------------------------------------------
+
+  const zoomInicial =
+    calcularZoomInicial(
+      capabilities,
+      settingsAntes
+    );
+
+
+  if (
+    zoomInicial !== null
+  ) {
+    advanced.zoom =
+      zoomInicial;
+  }
+
+
+  // ----------------------------------------------------------
+  // APPLY CONSTRAINTS
+  // ----------------------------------------------------------
+
+  if (
+    Object.keys(
+      advanced
+    ).length > 0
+  ) {
+    try {
+      await track.applyConstraints({
+        advanced: [
+          advanced,
+        ],
+      });
+    } catch (error) {
+      /*
+       * Não bloqueia o scanner.
+       *
+       * Alguns navegadores expõem uma capability, mas podem
+       * recusar sua aplicação dependendo da câmera ativa.
+       */
+      console.warn(
+        "[MobileScanner] Ajustes avançados da câmera parcialmente recusados:",
+        error
+      );
+    }
+  }
+
+
+  const settingsDepois =
+    obterSettingsTrack(
+      track
+    );
+
+
+  const focoContinuoAtivo =
+    settingsDepois?.focusMode ===
+      "continuous" ||
+    advanced.focusMode ===
+      "continuous";
+
+
+  const zoomAplicado =
+    typeof settingsDepois?.zoom ===
+      "number"
+      ? settingsDepois.zoom
+      : zoomInicial;
+
+
+  return {
+    capabilities,
+    settingsAntes,
+    constraintsAntes,
+    settingsDepois,
+
+    focoContinuoAtivo,
+
+    zoomAplicado,
+  };
+}
+
+
+// ============================================================
+// ÁREA CENTRAL
 // ============================================================
 
 function resultadoEstaNaAreaCentral(
@@ -190,15 +565,12 @@ function resultadoEstaNaAreaCentral(
   const box =
     resultado?.boundingBox;
 
+
   if (
     !box ||
     !video?.videoWidth ||
     !video?.videoHeight
   ) {
-    /*
-     * Alguns detectores podem não fornecer boundingBox.
-     * Nesse caso não bloqueamos a leitura.
-     */
     return true;
   }
 
@@ -206,6 +578,7 @@ function resultadoEstaNaAreaCentral(
   const centroX =
     box.x +
     box.width / 2;
+
 
   const centroY =
     box.y +
@@ -215,6 +588,7 @@ function resultadoEstaNaAreaCentral(
   const xRelativo =
     centroX /
     video.videoWidth;
+
 
   const yRelativo =
     centroY /
@@ -236,10 +610,6 @@ function resultadoEstaNaAreaCentral(
 
 // ============================================================
 // ESCOLHER MELHOR RESULTADO
-//
-// Quando houver mais de um código no frame:
-// 1. prioriza os localizados na região central;
-// 2. entre eles, prioriza o maior boundingBox.
 // ============================================================
 
 function escolherMelhorResultado(
@@ -255,7 +625,9 @@ function escolherMelhorResultado(
     );
 
 
-  if (validos.length === 0) {
+  if (
+    validos.length === 0
+  ) {
     return null;
   }
 
@@ -278,26 +650,33 @@ function escolherMelhorResultado(
 
   return candidatos
     .slice()
-    .sort((a, b) => {
-      const areaA =
-        (a?.boundingBox?.width ||
-          0) *
-        (a?.boundingBox?.height ||
-          0);
+    .sort(
+      (a, b) => {
+        const areaA =
+          (a?.boundingBox?.width ||
+            0) *
+          (a?.boundingBox?.height ||
+            0);
 
-      const areaB =
-        (b?.boundingBox?.width ||
-          0) *
-        (b?.boundingBox?.height ||
-          0);
 
-      return areaB - areaA;
-    })[0];
+        const areaB =
+          (b?.boundingBox?.width ||
+            0) *
+          (b?.boundingBox?.height ||
+            0);
+
+
+        return (
+          areaB -
+          areaA
+        );
+      }
+    )[0];
 }
 
 
 // ============================================================
-// CONSTRAINTS DA CÂMERA
+// CONSTRAINTS INICIAIS
 // ============================================================
 
 function obterConstraintsPreferenciais() {
@@ -306,24 +685,26 @@ function obterConstraintsPreferenciais() {
 
     video: {
       facingMode: {
-        ideal: "environment",
+        ideal:
+          "environment",
       },
 
       width: {
-        ideal: 1920,
+        ideal:
+          1920,
       },
 
       height: {
-        ideal: 1080,
+        ideal:
+          1080,
       },
 
-      /*
-       * Ajuda browsers que utilizam isso na escolha
-       * da câmera/configuração.
-       */
       frameRate: {
-        ideal: 30,
-        max: 60,
+        ideal:
+          30,
+
+        max:
+          60,
       },
     },
   };
@@ -336,120 +717,10 @@ function obterConstraintsFallback() {
 
     video: {
       facingMode: {
-        ideal: "environment",
+        ideal:
+          "environment",
       },
     },
-  };
-}
-
-
-// ============================================================
-// APLICAR FOCO CONTÍNUO
-//
-// As capacidades dependem do navegador + câmera.
-//
-// Nunca bloquear o scanner caso o aparelho não exponha
-// focusMode / exposureMode / whiteBalanceMode.
-// ============================================================
-
-async function configurarCameraParaLeitura(
-  track
-) {
-  if (!track) {
-    return {
-      focoContinuoAtivo: false,
-      capabilities: null,
-    };
-  }
-
-
-  let capabilities =
-    null;
-
-
-  try {
-    capabilities =
-      typeof track.getCapabilities ===
-      "function"
-        ? track.getCapabilities()
-        : null;
-  } catch {
-    capabilities = null;
-  }
-
-
-  const advanced = {};
-
-
-  if (
-    Array.isArray(
-      capabilities?.focusMode
-    ) &&
-    capabilities.focusMode.includes(
-      "continuous"
-    )
-  ) {
-    advanced.focusMode =
-      "continuous";
-  }
-
-
-  if (
-    Array.isArray(
-      capabilities?.exposureMode
-    ) &&
-    capabilities.exposureMode.includes(
-      "continuous"
-    )
-  ) {
-    advanced.exposureMode =
-      "continuous";
-  }
-
-
-  if (
-    Array.isArray(
-      capabilities?.whiteBalanceMode
-    ) &&
-    capabilities.whiteBalanceMode.includes(
-      "continuous"
-    )
-  ) {
-    advanced.whiteBalanceMode =
-      "continuous";
-  }
-
-
-  if (
-    Object.keys(advanced).length >
-    0
-  ) {
-    try {
-      await track.applyConstraints({
-        advanced: [
-          advanced,
-        ],
-      });
-    } catch (error) {
-      /*
-       * Não bloqueia a câmera.
-       * Alguns browsers expõem capability mas recusam
-       * determinada constraint em runtime.
-       */
-      console.warn(
-        "[MobileScanner] Não foi possível aplicar todos os ajustes automáticos:",
-        error
-      );
-    }
-  }
-
-
-  return {
-    focoContinuoAtivo:
-      advanced.focusMode ===
-      "continuous",
-
-    capabilities,
   };
 }
 
@@ -494,6 +765,11 @@ export default function useMobileScanner({
   ] = useState(false);
 
   const [
+    zoomAtual,
+    setZoomAtual,
+  ] = useState(null);
+
+  const [
     cameraLabel,
     setCameraLabel,
   ] = useState(null);
@@ -502,6 +778,11 @@ export default function useMobileScanner({
     lendo,
     setLendo,
   ] = useState(false);
+
+  const [
+    diagnosticoCamera,
+    setDiagnosticoCamera,
+  ] = useState(null);
 
 
   const streamRef =
@@ -522,10 +803,10 @@ export default function useMobileScanner({
   const ativoRef =
     useRef(ativo);
 
+  const liberadoParaDetectarRef =
+    useRef(false);
 
-  /*
-   * Evita recaptura imediata do mesmo código.
-   */
+
   const ultimoCodigoRef =
     useRef({
       codigo: null,
@@ -533,10 +814,6 @@ export default function useMobileScanner({
     });
 
 
-  /*
-   * Estabilização:
-   * mesmo código precisa aparecer em frames consecutivos.
-   */
   const candidatoRef =
     useRef({
       codigo: null,
@@ -562,7 +839,7 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // RESET DA ESTABILIZAÇÃO
+  // RESET
   // ==========================================================
 
   const resetarCandidato =
@@ -578,21 +855,28 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // PARAR CÂMERA
+  // PARAR
   // ==========================================================
 
   const pararCamera =
     useCallback(() => {
+      liberadoParaDetectarRef.current =
+        false;
+
+
       if (timerRef.current) {
         window.clearTimeout(
           timerRef.current
         );
 
-        timerRef.current = null;
+        timerRef.current =
+          null;
       }
 
 
-      if (streamRef.current) {
+      if (
+        streamRef.current
+      ) {
         streamRef.current
           .getTracks()
           .forEach(
@@ -601,12 +885,15 @@ export default function useMobileScanner({
             }
           );
 
+
         streamRef.current =
           null;
       }
 
 
-      if (videoRef?.current) {
+      if (
+        videoRef?.current
+      ) {
         videoRef.current.srcObject =
           null;
       }
@@ -615,8 +902,10 @@ export default function useMobileScanner({
       detectorRef.current =
         null;
 
+
       processandoRef.current =
         false;
+
 
       cameraAtivaRef.current =
         false;
@@ -626,10 +915,26 @@ export default function useMobileScanner({
 
 
       setCameraAtiva(false);
-      setDetectorDisponivel(false);
-      setFormatosSuportados([]);
-      setFocoContinuoAtivo(false);
+
+      setDetectorDisponivel(
+        false
+      );
+
+      setFormatosSuportados(
+        []
+      );
+
+      setFocoContinuoAtivo(
+        false
+      );
+
+      setZoomAtual(null);
+
       setCameraLabel(null);
+
+      setDiagnosticoCamera(
+        null
+      );
     }, [
       resetarCandidato,
       videoRef,
@@ -637,7 +942,7 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // VALIDAR ESTABILIDADE DO CÓDIGO
+  // ESTABILIZAÇÃO
   // ==========================================================
 
   const registrarCandidato =
@@ -646,7 +951,7 @@ export default function useMobileScanner({
         const codigo =
           String(
             resultado?.rawValue ||
-            ""
+              ""
           ).trim();
 
 
@@ -667,20 +972,24 @@ export default function useMobileScanner({
 
 
         if (
-          atual.codigo === codigo &&
-          atual.formato === formato
+          atual.codigo ===
+            codigo &&
+          atual.formato ===
+            formato
         ) {
           candidatoRef.current = {
             ...atual,
 
             quantidade:
-              atual.quantidade + 1,
+              atual.quantidade +
+              1,
           };
         } else {
           candidatoRef.current = {
             codigo,
             formato,
-            quantidade: 1,
+            quantidade:
+              1,
           };
         }
 
@@ -701,7 +1010,7 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // EMITIR DETECÇÃO
+  // EMITIR
   // ==========================================================
 
   const emitirDeteccao =
@@ -710,7 +1019,7 @@ export default function useMobileScanner({
         const codigo =
           String(
             resultado?.rawValue ||
-            ""
+              ""
           ).trim();
 
 
@@ -728,13 +1037,16 @@ export default function useMobileScanner({
 
 
         const mesmoCodigoRecente =
-          ultimo.codigo === codigo &&
+          ultimo.codigo ===
+            codigo &&
           agora -
             ultimo.registradoEm <
             TEMPO_BLOQUEIO_MESMO_CODIGO_MS;
 
 
-        if (mesmoCodigoRecente) {
+        if (
+          mesmoCodigoRecente
+        ) {
           resetarCandidato();
 
           return;
@@ -743,6 +1055,7 @@ export default function useMobileScanner({
 
         ultimoCodigoRef.current = {
           codigo,
+
           registradoEm:
             agora,
         };
@@ -784,7 +1097,7 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // DETECÇÃO CONTÍNUA
+  // LOOP
   // ==========================================================
 
   const detectarFrame =
@@ -792,6 +1105,7 @@ export default function useMobileScanner({
       if (
         !ativoRef.current ||
         !cameraAtivaRef.current ||
+        !liberadoParaDetectarRef.current ||
         !detectorRef.current ||
         !videoRef?.current
       ) {
@@ -799,7 +1113,9 @@ export default function useMobileScanner({
       }
 
 
-      if (processandoRef.current) {
+      if (
+        processandoRef.current
+      ) {
         timerRef.current =
           window.setTimeout(
             detectarFrame,
@@ -835,9 +1151,8 @@ export default function useMobileScanner({
 
       try {
         const resultados =
-          await detectorRef.current.detect(
-            video
-          );
+          await detectorRef.current
+            .detect(video);
 
 
         const melhor =
@@ -850,14 +1165,14 @@ export default function useMobileScanner({
         if (!melhor) {
           resetarCandidato();
         } else {
-          const estaCentralizado =
+          const centralizado =
             resultadoEstaNaAreaCentral(
               melhor,
               video
             );
 
 
-          if (!estaCentralizado) {
+          if (!centralizado) {
             resetarCandidato();
           } else {
             const estabilizado =
@@ -879,6 +1194,7 @@ export default function useMobileScanner({
           error
         );
 
+
         resetarCandidato();
       } finally {
         processandoRef.current =
@@ -887,7 +1203,8 @@ export default function useMobileScanner({
 
         if (
           ativoRef.current &&
-          cameraAtivaRef.current
+          cameraAtivaRef.current &&
+          liberadoParaDetectarRef.current
         ) {
           timerRef.current =
             window.setTimeout(
@@ -906,78 +1223,98 @@ export default function useMobileScanner({
 
   // ==========================================================
   // SOLICITAR STREAM
-  //
-  // Primeiro tenta resolução/fps ideais.
-  // Se o aparelho recusar, tenta configuração simples.
   // ==========================================================
 
   const solicitarStream =
-    useCallback(async () => {
-      try {
-        return await navigator.mediaDevices
-          .getUserMedia(
-            obterConstraintsPreferenciais()
-          );
-      } catch (primeiroErro) {
-        console.warn(
-          "[MobileScanner] Constraints preferenciais recusadas; tentando fallback.",
+    useCallback(
+      async () => {
+        try {
+          return await navigator
+            .mediaDevices
+            .getUserMedia(
+              obterConstraintsPreferenciais()
+            );
+        } catch (
           primeiroErro
-        );
-
-
-        return navigator.mediaDevices
-          .getUserMedia(
-            obterConstraintsFallback()
+        ) {
+          console.warn(
+            "[MobileScanner] Constraints preferenciais recusadas; usando fallback.",
+            primeiroErro
           );
-      }
-    }, []);
+
+
+          return navigator
+            .mediaDevices
+            .getUserMedia(
+              obterConstraintsFallback()
+            );
+        }
+      },
+      []
+    );
 
 
   // ==========================================================
-  // INICIAR CÂMERA
+  // INICIAR
   // ==========================================================
 
   const iniciarCamera =
-    useCallback(async () => {
-      if (!possuiSuporteCamera()) {
-        setErroCamera(
-          "A câmera não está disponível neste navegador."
-        );
-
-        return false;
-      }
-
-
-      if (streamRef.current) {
-        return true;
-      }
-
-
-      setIniciando(true);
-      setErroCamera(null);
-
-
-      try {
-        const stream =
-          await solicitarStream();
-
-
-        streamRef.current =
-          stream;
-
-
-        const track =
-          stream
-            .getVideoTracks?.()[0] ||
-          null;
-
-
-        if (track) {
-          setCameraLabel(
-            track.label ||
-            null
+    useCallback(
+      async () => {
+        if (
+          !possuiSuporteCamera()
+        ) {
+          setErroCamera(
+            "A câmera não está disponível neste navegador."
           );
 
+          return false;
+        }
+
+
+        if (
+          streamRef.current
+        ) {
+          return true;
+        }
+
+
+        setIniciando(true);
+
+        setErroCamera(null);
+
+
+        try {
+          const stream =
+            await solicitarStream();
+
+
+          streamRef.current =
+            stream;
+
+
+          const track =
+            stream
+              .getVideoTracks?.()[0] ||
+            null;
+
+
+          if (!track) {
+            throw new Error(
+              "Nenhuma faixa de vídeo foi disponibilizada."
+            );
+          }
+
+
+          setCameraLabel(
+            track.label ||
+              null
+          );
+
+
+          // --------------------------------------------------
+          // DIAGNÓSTICO ANTES
+          // --------------------------------------------------
 
           const configuracao =
             await configurarCameraParaLeitura(
@@ -991,131 +1328,216 @@ export default function useMobileScanner({
                 .focoContinuoAtivo
             )
           );
-        }
 
 
-        const video =
-          videoRef?.current;
-
-
-        if (!video) {
-          throw new Error(
-            "Área de vídeo não encontrada."
+          setZoomAtual(
+            configuracao
+              .zoomAplicado ??
+              null
           );
+
+
+          const diagnostico = {
+            label:
+              track.label ||
+              null,
+
+            capabilities:
+              configuracao
+                .capabilities,
+
+            settingsAntes:
+              configuracao
+                .settingsAntes,
+
+            constraintsAntes:
+              configuracao
+                .constraintsAntes,
+
+            settingsDepois:
+              configuracao
+                .settingsDepois,
+
+            focoContinuoAtivo:
+              configuracao
+                .focoContinuoAtivo,
+
+            zoomAplicado:
+              configuracao
+                .zoomAplicado,
+          };
+
+
+          setDiagnosticoCamera(
+            diagnostico
+          );
+
+
+          /*
+           * Temporário para homologação no aparelho real.
+           *
+           * Depois de validarmos os celulares, podemos
+           * retirar ou condicionar ao modo de desenvolvimento.
+           */
+          console.info(
+            "[MobileScanner] Diagnóstico da câmera ativa:",
+            diagnostico
+          );
+
+
+          // --------------------------------------------------
+          // VIDEO
+          // --------------------------------------------------
+
+          const video =
+            videoRef?.current;
+
+
+          if (!video) {
+            throw new Error(
+              "Área de vídeo não encontrada."
+            );
+          }
+
+
+          video.srcObject =
+            stream;
+
+
+          video.setAttribute(
+            "playsinline",
+            "true"
+          );
+
+
+          video.muted =
+            true;
+
+
+          await video.play();
+
+
+          // --------------------------------------------------
+          // DETECTOR
+          // --------------------------------------------------
+
+          const {
+            detector,
+            formatos,
+          } =
+            await criarDetector();
+
+
+          detectorRef.current =
+            detector;
+
+
+          setDetectorDisponivel(
+            Boolean(detector)
+          );
+
+
+          setFormatosSuportados(
+            formatos
+          );
+
+
+          cameraAtivaRef.current =
+            true;
+
+
+          setCameraAtiva(true);
+
+
+          /*
+           * Permite foco/exposição estabilizarem antes do
+           * primeiro ciclo de leitura automática.
+           */
+          window.setTimeout(
+            () => {
+              if (
+                ativoRef.current &&
+                cameraAtivaRef.current
+              ) {
+                liberadoParaDetectarRef.current =
+                  true;
+              }
+            },
+            TEMPO_ESTABILIZACAO_CAMERA_MS
+          );
+
+
+          return true;
+        } catch (error) {
+          console.error(
+            "[MobileScanner] Não foi possível iniciar câmera:",
+            error
+          );
+
+
+          pararCamera();
+
+
+          let mensagem =
+            "Não foi possível acessar a câmera.";
+
+
+          if (
+            error?.name ===
+            "NotAllowedError"
+          ) {
+            mensagem =
+              "Permissão da câmera não concedida.";
+          }
+
+
+          if (
+            error?.name ===
+            "NotFoundError"
+          ) {
+            mensagem =
+              "Nenhuma câmera compatível foi encontrada.";
+          }
+
+
+          if (
+            error?.name ===
+            "NotReadableError"
+          ) {
+            mensagem =
+              "A câmera está sendo utilizada por outro aplicativo.";
+          }
+
+
+          if (
+            error?.name ===
+            "OverconstrainedError"
+          ) {
+            mensagem =
+              "A câmera não suporta a configuração solicitada.";
+          }
+
+
+          setErroCamera(
+            mensagem
+          );
+
+
+          return false;
+        } finally {
+          setIniciando(false);
         }
-
-
-        video.srcObject =
-          stream;
-
-        video.setAttribute(
-          "playsinline",
-          "true"
-        );
-
-        video.muted =
-          true;
-
-
-        await video.play();
-
-
-        const {
-          detector,
-          formatos,
-        } =
-          await criarDetector();
-
-
-        detectorRef.current =
-          detector;
-
-
-        setDetectorDisponivel(
-          Boolean(detector)
-        );
-
-
-        setFormatosSuportados(
-          formatos
-        );
-
-
-        cameraAtivaRef.current =
-          true;
-
-        setCameraAtiva(true);
-
-
-        return true;
-      } catch (error) {
-        console.error(
-          "[MobileScanner] Não foi possível iniciar câmera:",
-          error
-        );
-
-
-        pararCamera();
-
-
-        let mensagem =
-          "Não foi possível acessar a câmera.";
-
-
-        if (
-          error?.name ===
-          "NotAllowedError"
-        ) {
-          mensagem =
-            "Permissão da câmera não concedida.";
-        }
-
-
-        if (
-          error?.name ===
-          "NotFoundError"
-        ) {
-          mensagem =
-            "Nenhuma câmera compatível foi encontrada.";
-        }
-
-
-        if (
-          error?.name ===
-          "NotReadableError"
-        ) {
-          mensagem =
-            "A câmera está sendo utilizada por outro aplicativo.";
-        }
-
-
-        if (
-          error?.name ===
-          "OverconstrainedError"
-        ) {
-          mensagem =
-            "A câmera não suporta a configuração solicitada.";
-        }
-
-
-        setErroCamera(
-          mensagem
-        );
-
-
-        return false;
-      } finally {
-        setIniciando(false);
-      }
-    }, [
-      pararCamera,
-      solicitarStream,
-      videoRef,
-    ]);
+      },
+      [
+        pararCamera,
+        solicitarStream,
+        videoRef,
+      ]
+    );
 
 
   // ==========================================================
-  // INICIAR LOOP
+  // LOOP INICIAL
   // ==========================================================
 
   useEffect(() => {
@@ -1128,18 +1550,37 @@ export default function useMobileScanner({
     }
 
 
-    timerRef.current =
+    const timerInicial =
       window.setTimeout(
-        detectarFrame,
-        INTERVALO_DETECCAO_MS
+        () => {
+          if (
+            ativoRef.current &&
+            cameraAtivaRef.current
+          ) {
+            liberadoParaDetectarRef.current =
+              true;
+
+
+            detectarFrame();
+          }
+        },
+        TEMPO_ESTABILIZACAO_CAMERA_MS
       );
 
 
     return () => {
-      if (timerRef.current) {
+      window.clearTimeout(
+        timerInicial
+      );
+
+
+      if (
+        timerRef.current
+      ) {
         window.clearTimeout(
           timerRef.current
         );
+
 
         timerRef.current =
           null;
@@ -1153,7 +1594,7 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // FECHOU SCANNER
+  // FECHOU
   // ==========================================================
 
   useEffect(() => {
@@ -1181,7 +1622,7 @@ export default function useMobileScanner({
 
 
   // ==========================================================
-  // API PÚBLICA
+  // API
   // ==========================================================
 
   return {
@@ -1195,9 +1636,13 @@ export default function useMobileScanner({
 
     focoContinuoAtivo,
 
+    zoomAtual,
+
     cameraLabel,
 
     lendo,
+
+    diagnosticoCamera,
 
     iniciarCamera,
     pararCamera,

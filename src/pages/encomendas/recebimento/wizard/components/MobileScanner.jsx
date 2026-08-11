@@ -246,21 +246,27 @@ export default function MobileScanner({
 
 
   const {
-    cameraAtiva,
-    iniciando,
-    erroCamera,
+  cameraAtiva,
+  iniciando,
+  erroCamera,
 
-    detectorDisponivel,
+  detectorDisponivel,
 
-    formatosSuportados,
+  formatosSuportados,
 
-    focoContinuoAtivo,
+  focoContinuoAtivo,
 
-    lendo,
+  zoomAtual,
 
-    iniciarCamera,
-    pararCamera,
-  } = useMobileScanner({
+  cameraLabel,
+
+  lendo,
+
+  diagnosticoCamera,
+
+  iniciarCamera,
+  pararCamera,
+} = useMobileScanner({
     ativo:
       open,
 
@@ -694,6 +700,16 @@ export default function MobileScanner({
 
             <span>
               Foco automático ativo
+            </span>
+          </div>
+        )}
+
+        {zoomAtual !== null && (
+          <div className="mobile-scanner__status">
+            <ScanLine size={14} />
+
+            <span>
+              Zoom otimizado: {Number(zoomAtual).toFixed(1)}x
             </span>
           </div>
         )}
