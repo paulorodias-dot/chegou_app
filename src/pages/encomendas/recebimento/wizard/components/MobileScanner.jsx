@@ -24,15 +24,26 @@ import {
 // SISTEMA CHEGOU!
 // MOBILE SCANNER
 //
+// Versão funcional: 2026.08.11.003
+//
 // Superfície Premium de captura contínua para:
 // - códigos de barras;
 // - QR Code;
 // - Data Matrix;
 // - PDF417.
 //
-// A câmera permanece aberta após cada captura.
+// A câmera:
+// - permanece aberta após cada captura;
+// - prioriza a câmera principal definida pelo hook;
+// - apresenta a resolução realmente negociada;
+// - utiliza autofocus quando suportado;
+// - mantém contador operacional visível.
 // ============================================================
 
+
+// ============================================================
+// FORMATO INTERNO
+// ============================================================
 
 function mapearFormatoDetector(
   formato
@@ -83,6 +94,10 @@ function mapearFormatoDetector(
 }
 
 
+// ============================================================
+// NOME VISUAL DO FORMATO
+// ============================================================
+
 function nomeFormatoDetector(
   formato
 ) {
@@ -132,6 +147,10 @@ function nomeFormatoDetector(
 }
 
 
+// ============================================================
+// COMPONENTE
+// ============================================================
+
 export default function MobileScanner({
   open,
 
@@ -144,6 +163,10 @@ export default function MobileScanner({
 }) {
   const videoRef =
     useRef(null);
+
+  const mensagemTimerRef =
+    useRef(null);
+
 
   const [
     flashAtivo,
@@ -159,6 +182,52 @@ export default function MobileScanner({
     mensagem,
     setMensagem,
   ] = useState(null);
+
+
+  // ==========================================================
+  // FEEDBACK TEMPORÁRIO
+  // ==========================================================
+
+  const mostrarMensagem =
+    useCallback(
+      (
+        proximaMensagem,
+        duracao = 1000
+      ) => {
+        if (
+          mensagemTimerRef.current
+        ) {
+          window.clearTimeout(
+            mensagemTimerRef.current
+          );
+
+          mensagemTimerRef.current =
+            null;
+        }
+
+
+        setMensagem(
+          proximaMensagem
+        );
+
+
+        if (
+          duracao > 0
+        ) {
+          mensagemTimerRef.current =
+            window.setTimeout(
+              () => {
+                setMensagem(null);
+
+                mensagemTimerRef.current =
+                  null;
+              },
+              duracao
+            );
+        }
+      },
+      []
+    );
 
 
   // ==========================================================
@@ -191,6 +260,10 @@ export default function MobileScanner({
           });
 
 
+        // ------------------------------------------------------
+        // FALHA
+        // ------------------------------------------------------
+
         if (
           resposta?.ok === false
         ) {
@@ -198,75 +271,89 @@ export default function MobileScanner({
             resposta.motivo ===
             "CODIGO_DUPLICADO_LOCAL"
           ) {
-            setMensagem({
-              tipo:
-                "warning",
+            mostrarMensagem(
+              {
+                tipo:
+                  "warning",
 
-              texto:
-                "Este volume já foi capturado.",
-            });
+                texto:
+                  "Este volume já foi capturado.",
+              },
+              1400
+            );
+
 
             return;
           }
 
 
-          setMensagem({
-            tipo:
-              "danger",
+          mostrarMensagem(
+            {
+              tipo:
+                "danger",
 
-            texto:
-              "Não foi possível registrar esta leitura.",
-          });
+              texto:
+                "Não foi possível registrar esta leitura.",
+            },
+            1600
+          );
+
 
           return;
         }
 
 
-        setMensagem({
-          tipo:
-            "success",
+        // ------------------------------------------------------
+        // SUCESSO
+        // ------------------------------------------------------
 
-          texto:
-            resultado.formato
-              ? `${nomeFormatoDetector(
-                  resultado.formato
-                )} capturado.`
-              : "Volume capturado.",
-        });
+        mostrarMensagem(
+          {
+            tipo:
+              "success",
 
-
-        window.setTimeout(() => {
-          setMensagem(null);
-        }, 1000);
+            texto:
+              resultado.formato
+                ? `${nomeFormatoDetector(
+                    resultado.formato
+                  )} capturado.`
+                : "Volume capturado.",
+          },
+          1000
+        );
       },
       [
+        mostrarMensagem,
         onDetected,
       ]
     );
 
 
+  // ==========================================================
+  // HOOK DE CÂMERA
+  // ==========================================================
+
   const {
-  cameraAtiva,
-  iniciando,
-  erroCamera,
+    cameraAtiva,
 
-  detectorDisponivel,
+    iniciando,
 
-  formatosSuportados,
+    erroCamera,
 
-  focoContinuoAtivo,
+    detectorDisponivel,
 
-  zoomAtual,
+    formatosSuportados,
 
-  cameraLabel,
+    focoContinuoAtivo,
 
-  lendo,
+    resolucaoAtual,
 
-  diagnosticoCamera,
+    lendo,
 
-  iniciarCamera,
-  pararCamera,
-} = useMobileScanner({
+    iniciarCamera,
+
+    pararCamera,
+  } = useMobileScanner({
     ativo:
       open,
 
@@ -294,17 +381,12 @@ export default function MobileScanner({
       }
 
 
-      const prioritarios =
-        formatosSuportados
-          .map(
-            nomeFormatoDetector
-          )
-          .filter(Boolean);
-
-
-      return prioritarios.join(
-        " • "
-      );
+      return formatosSuportados
+        .map(
+          nomeFormatoDetector
+        )
+        .filter(Boolean)
+        .join(" • ");
     }, [
       formatosSuportados,
     ]);
@@ -328,7 +410,28 @@ export default function MobileScanner({
 
 
   // ==========================================================
-  // TORCH
+  // LIMPEZA DE MENSAGEM
+  // ==========================================================
+
+  useEffect(
+    () => () => {
+      if (
+        mensagemTimerRef.current
+      ) {
+        window.clearTimeout(
+          mensagemTimerRef.current
+        );
+
+        mensagemTimerRef.current =
+          null;
+      }
+    },
+    []
+  );
+
+
+  // ==========================================================
+  // TORCH / FLASH
   // ==========================================================
 
   useEffect(() => {
@@ -344,6 +447,7 @@ export default function MobileScanner({
       setFlashAtivo(
         false
       );
+
 
       return;
     }
@@ -383,6 +487,10 @@ export default function MobileScanner({
     cameraAtiva,
   ]);
 
+
+  // ==========================================================
+  // ALTERNAR FLASH
+  // ==========================================================
 
   async function alternarFlash() {
     const stream =
@@ -447,10 +555,18 @@ export default function MobileScanner({
   }
 
 
+  // ==========================================================
+  // FECHADO
+  // ==========================================================
+
   if (!open) {
     return null;
   }
 
+
+  // ==========================================================
+  // UI
+  // ==========================================================
 
   return (
     <div className="mobile-scanner">
@@ -490,9 +606,14 @@ export default function MobileScanner({
 
 
         <div className="mobile-scanner__header-action">
+
+          {/* CONTADOR */}
+
           <div
             className="mobile-scanner__counter"
-            aria-label={`${quantidadeBipada} volumes capturados`}
+            aria-label={
+              `${quantidadeBipada} volumes capturados`
+            }
           >
             <strong>
               {quantidadeBipada}
@@ -518,6 +639,8 @@ export default function MobileScanner({
           </div>
 
 
+          {/* FLASH */}
+
           {flashDisponivel ? (
             <button
               type="button"
@@ -534,10 +657,12 @@ export default function MobileScanner({
               {flashAtivo ? (
                 <ZapOff
                   size={18}
+                  aria-hidden="true"
                 />
               ) : (
                 <Zap
                   size={18}
+                  aria-hidden="true"
                 />
               )}
             </button>
@@ -552,7 +677,7 @@ export default function MobileScanner({
 
 
       {/* ====================================================
-          CAMERA
+          CÂMERA
       ==================================================== */}
 
       <div className="mobile-scanner__camera">
@@ -566,6 +691,8 @@ export default function MobileScanner({
           playsInline
         />
 
+
+        {/* SOMBREAMENTO */}
 
         <div
           className="
@@ -600,6 +727,8 @@ export default function MobileScanner({
         />
 
 
+        {/* ÁREA DE LEITURA */}
+
         <div
           className={
             `mobile-scanner__target${
@@ -626,6 +755,7 @@ export default function MobileScanner({
             <div className="mobile-scanner__focus-indicator">
               <Focus
                 size={18}
+                aria-hidden="true"
               />
 
               <span>
@@ -636,10 +766,13 @@ export default function MobileScanner({
         </div>
 
 
+        {/* INICIALIZAÇÃO */}
+
         {iniciando && (
           <div className="mobile-scanner__loading">
             <Camera
               size={28}
+              aria-hidden="true"
             />
 
             <span>
@@ -649,10 +782,13 @@ export default function MobileScanner({
         )}
 
 
+        {/* ERRO */}
+
         {erroCamera && (
           <div className="mobile-scanner__error">
             <Camera
               size={28}
+              aria-hidden="true"
             />
 
             <strong>
@@ -672,6 +808,9 @@ export default function MobileScanner({
       ==================================================== */}
 
       <footer className="mobile-scanner__footer">
+
+        {/* ORIENTAÇÃO */}
+
         <div className="mobile-scanner__instruction">
           <ScanLine
             size={20}
@@ -692,10 +831,13 @@ export default function MobileScanner({
         </div>
 
 
+        {/* FOCO */}
+
         {focoContinuoAtivo && (
           <div className="mobile-scanner__status">
             <Focus
               size={14}
+              aria-hidden="true"
             />
 
             <span>
@@ -704,16 +846,34 @@ export default function MobileScanner({
           </div>
         )}
 
-        {zoomAtual !== null && (
-          <div className="mobile-scanner__status">
-            <ScanLine size={14} />
 
-            <span>
-              Zoom otimizado: {Number(zoomAtual).toFixed(1)}x
-            </span>
-          </div>
-        )}
+        {/* RESOLUÇÃO REAL */}
 
+        {resolucaoAtual?.width &&
+          resolucaoAtual?.height && (
+            <div className="mobile-scanner__status">
+              <ScanLine
+                size={14}
+                aria-hidden="true"
+              />
+
+              <span>
+                {resolucaoAtual.width}
+                {" × "}
+                {resolucaoAtual.height}
+
+                {resolucaoAtual
+                  ?.frameRate
+                  ? ` • ${Math.round(
+                      resolucaoAtual.frameRate
+                    )} fps`
+                  : ""}
+              </span>
+            </div>
+          )}
+
+
+        {/* FORMATOS */}
 
         {detectorDisponivel &&
           formatosTexto && (
@@ -722,6 +882,8 @@ export default function MobileScanner({
             </div>
           )}
 
+
+        {/* DETECTOR NÃO DISPONÍVEL */}
 
         {!detectorDisponivel &&
           cameraAtiva && (
@@ -733,10 +895,18 @@ export default function MobileScanner({
           )}
 
 
+        {/* FEEDBACK */}
+
         {mensagem && (
           <div
             className={
               `mobile-scanner__feedback mobile-scanner__feedback--${mensagem.tipo}`
+            }
+            role={
+              mensagem.tipo ===
+              "danger"
+                ? "alert"
+                : "status"
             }
           >
             {mensagem.texto}
