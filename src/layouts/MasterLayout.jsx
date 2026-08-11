@@ -24,6 +24,18 @@ const preferenciasPadrao = {
   permissoesSolicitadas: false,
 };
 
+/**
+ * @legacy notifications
+ *
+ * Regras atuais do fluxo de notificações do Master.
+ *
+ * Permanecem operacionais nesta etapa.
+ * Serão auditadas e migradas posteriormente para a
+ * Central de Notificações global.
+ *
+ * Não expandir esta implementação com novas regras.
+ */
+
 const rotasNotificacaoMaster = [
   {
     page: "condominios-auditoria",

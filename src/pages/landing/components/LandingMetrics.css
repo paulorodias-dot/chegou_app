@@ -1,0 +1,203 @@
+/* ==========================================================
+   SISTEMA CHEGOU!
+   LANDING PAGE PREMIUM — MÉTRICAS
+========================================================== */
+
+.landing-metrics {
+  position: relative;
+  z-index: 5;
+
+  width: 100%;
+
+  margin-top: -18px;
+
+  padding:
+    0
+    max(24px, env(safe-area-inset-right))
+    0
+    max(24px, env(safe-area-inset-left));
+}
+
+.landing-metrics__container {
+  width: 100%;
+  max-width: 1320px;
+
+  margin: 0 auto;
+
+  padding: 16px 22px 18px;
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #0d2f68 0%,
+      #0b3d86 55%,
+      #08285a 100%
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 18px 40px rgba(15, 47, 102, 0.18);
+}
+
+.landing-metrics__title {
+  margin: 0 0 14px;
+
+  color: #ffffff;
+
+  text-align: center;
+
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.landing-metrics__grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr))
+    minmax(150px, 0.82fr);
+
+  align-items: stretch;
+}
+
+.landing-metrics__item,
+.landing-metrics__rating {
+  min-width: 0;
+
+  padding: 8px 18px;
+
+  border-right:
+    1px solid rgba(255, 255, 255, 0.17);
+}
+
+.landing-metrics__item {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.landing-metrics__item svg {
+  flex: 0 0 auto;
+
+  color: #f59e0b;
+}
+
+.landing-metrics__content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.landing-metrics__item strong,
+.landing-metrics__rating strong {
+  color: #ffffff;
+
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.landing-metrics__item span,
+.landing-metrics__rating span {
+  margin-top: 4px;
+
+  color: rgba(255, 255, 255, 0.76);
+
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.landing-metrics__rating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  border-right: 0;
+
+  text-align: center;
+}
+
+.landing-metrics__stars {
+  display: flex;
+
+  gap: 2px;
+
+  color: #f59e0b;
+}
+
+
+/* ==========================================================
+   NOTEBOOK
+========================================================== */
+
+@media (max-width: 1120px) {
+  .landing-metrics__grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .landing-metrics__item,
+  .landing-metrics__rating {
+    border-right: 0;
+    border-bottom:
+      1px solid rgba(255, 255, 255, 0.11);
+  }
+
+  .landing-metrics__rating {
+    border-bottom: 0;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 680px) {
+  .landing-metrics {
+    margin-top: 0;
+
+    padding:
+      0
+      max(14px, env(safe-area-inset-right))
+      0
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .landing-metrics__container {
+    padding: 18px;
+
+    border-radius: 14px;
+  }
+
+  .landing-metrics__title {
+    margin-bottom: 12px;
+
+    font-size: 13px;
+  }
+
+  .landing-metrics__grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-metrics__item {
+    align-items: flex-start;
+
+    padding: 14px 10px;
+  }
+
+  .landing-metrics__item strong,
+  .landing-metrics__rating strong {
+    font-size: 20px;
+  }
+}

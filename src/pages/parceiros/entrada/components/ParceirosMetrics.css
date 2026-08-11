@@ -1,0 +1,460 @@
+.parceiros-metrics {
+  width: 100%;
+  min-width: 0;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--partner-navy-950) 0%,
+      var(--partner-navy-900) 55%,
+      #0a3159 100%
+    );
+}
+
+.parceiros-metrics__inner {
+  width:
+    min(
+      calc(100% - 56px),
+      var(--partner-container)
+    );
+
+  margin: 0 auto;
+
+  padding:
+    30px
+    0
+    28px;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.parceiros-metrics__header {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-bottom: 22px;
+
+  text-align: center;
+}
+
+.parceiros-metrics__header > div {
+  width: 100%;
+  max-width: 720px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.parceiros-metrics__eyebrow {
+  display: inline-flex;
+
+  margin-bottom: 6px;
+
+  color:
+    var(--partner-gold-400);
+
+  font-size: 9.5px;
+
+  font-weight: 800;
+
+  line-height: 1.2;
+
+  letter-spacing: 0.11em;
+
+  text-transform: uppercase;
+}
+
+.parceiros-metrics__title {
+  max-width: 620px;
+
+  margin: 0 auto;
+
+  color: #ffffff;
+
+  font-size:
+    clamp(
+      20px,
+      1.8vw,
+      25px
+    );
+
+  font-weight: 760;
+
+  line-height: 1.23;
+
+  letter-spacing:
+    -0.025em;
+
+  text-align: center;
+}
+
+/* Badge de Preview permanece discreto */
+.parceiros-metrics__preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    5px
+    9px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.76
+    );
+
+  border:
+    1px solid
+    rgba(
+      229,
+      187,
+      88,
+      0.28
+    );
+
+  border-radius: 999px;
+
+  background:
+    rgba(
+      229,
+      187,
+      88,
+      0.07
+    );
+
+  font-size: 8.5px;
+
+  font-weight: 700;
+}
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.parceiros-metrics__grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 12px;
+}
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+.parceiros-metrics__card {
+  min-width: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    auto
+    minmax(0, 1fr);
+
+  gap: 12px;
+
+  padding:
+    16px
+    15px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
+  border-radius:
+    var(--partner-radius-lg);
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.055
+    );
+
+  box-shadow:
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      0.035
+    );
+
+  backdrop-filter:
+    blur(8px);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  transition:
+    transform
+      var(--partner-transition),
+    border-color
+      var(--partner-transition),
+    background
+      var(--partner-transition);
+}
+
+.parceiros-metrics__card:hover {
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(
+      229,
+      187,
+      88,
+      0.22
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.075
+    );
+}
+
+/* =========================================================
+   ÍCONE
+   ========================================================= */
+
+.parceiros-metrics__icon {
+  width: 38px;
+  height: 38px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  color:
+    var(--partner-gold-400);
+
+  border:
+    1px solid
+    rgba(
+      229,
+      187,
+      88,
+      0.2
+    );
+
+  border-radius: 11px;
+
+  background:
+    rgba(
+      229,
+      187,
+      88,
+      0.055
+    );
+}
+
+/* =========================================================
+   CONTEÚDO
+   ========================================================= */
+
+.parceiros-metrics__content {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+}
+
+.parceiros-metrics__value {
+  color: #ffffff;
+
+  font-size: 22px;
+
+  font-weight: 800;
+
+  line-height: 1.05;
+
+  letter-spacing:
+    -0.025em;
+}
+
+.parceiros-metrics__label {
+  margin-top: 3px;
+
+  color:
+    var(--partner-gold-300);
+
+  font-size: 10.5px;
+
+  font-weight: 700;
+
+  line-height: 1.3;
+}
+
+.parceiros-metrics__description {
+  margin:
+    5px
+    0
+    0;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.58
+    );
+
+  font-size: 8.8px;
+
+  line-height: 1.42;
+}
+
+/* =========================================================
+   NOTA
+   ========================================================= */
+
+.parceiros-metrics__footnote {
+  margin:
+    14px
+    0
+    0;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.43
+    );
+
+  font-size: 8.5px;
+
+  line-height: 1.45;
+
+  text-align: center;
+}
+
+/* =========================================================
+   TABLET / NOTEBOOK
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .parceiros-metrics__grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .parceiros-metrics__inner {
+    width:
+      min(
+        calc(100% - 32px),
+        var(--partner-container)
+      );
+
+    padding:
+      27px
+      0
+      26px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .parceiros-metrics__inner {
+    width:
+      calc(
+        100% - 28px
+      );
+  }
+
+  .parceiros-metrics__header {
+    align-items: center;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    text-align: center;
+  }
+
+  .parceiros-metrics__title {
+    font-size: 20px;
+  }
+
+  .parceiros-metrics__grid {
+    grid-template-columns: 1fr;
+
+    gap: 9px;
+  }
+
+  .parceiros-metrics__card {
+    padding:
+      14px
+      13px;
+  }
+
+  .parceiros-metrics__description {
+    max-width: 440px;
+  }
+}
+
+/* =========================================================
+   MOBILE COMPACTO
+   ========================================================= */
+
+@media (max-width: 430px) {
+  .parceiros-metrics__inner {
+    width:
+      calc(
+        100% - 24px
+      );
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .parceiros-metrics__card {
+    transition: none;
+  }
+}

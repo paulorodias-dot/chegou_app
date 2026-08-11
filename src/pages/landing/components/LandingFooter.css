@@ -1,0 +1,421 @@
+/* ==========================================================
+   SISTEMA CHEGOU!
+   LANDING PAGE PREMIUM — FOOTER OFICIAL
+   Composição alinhada à referência homologada
+========================================================== */
+
+.landing-footer {
+  width: 100%;
+
+  padding:
+    24px
+    max(24px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom))
+    max(24px, env(safe-area-inset-left));
+
+  background:
+    linear-gradient(
+      115deg,
+      #082650 0%,
+      #071f43 58%,
+      #061a38 100%
+    );
+
+  color: #ffffff;
+}
+
+.landing-footer__container {
+  width: 100%;
+  max-width: 1320px;
+
+  margin: 0 auto;
+}
+
+
+/* ==========================================================
+   CONTEÚDO PRINCIPAL
+========================================================== */
+
+.landing-footer__main {
+  display: grid;
+
+  grid-template-columns:
+    minmax(220px, 1.15fr)
+    minmax(120px, 0.65fr)
+    minmax(140px, 0.72fr)
+    minmax(135px, 0.72fr)
+    minmax(220px, 1fr);
+
+  align-items: start;
+
+  gap: 28px;
+}
+
+
+/* ==========================================================
+   MARCA
+========================================================== */
+
+.landing-footer__brand {
+  min-width: 0;
+
+  max-width: 260px;
+}
+
+.landing-footer__logo {
+  display: block;
+
+  width: auto;
+  height: 38px;
+  max-width: 165px;
+
+  object-fit: contain;
+  object-position: left center;
+}
+
+.landing-footer__brand > p {
+  max-width: 230px;
+
+  margin: 10px 0 0;
+
+  color:
+    rgba(255, 255, 255, 0.68);
+
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+
+
+
+
+/* ==========================================================
+   COLUNAS
+========================================================== */
+
+.landing-footer__column {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: 2px;
+}
+
+.landing-footer__column h2,
+.landing-footer__security h2 {
+  margin: 0 0 7px;
+
+  color: #ffffff;
+
+  font-size: 10px;
+  line-height: 1.3;
+
+  font-weight: 800;
+
+  letter-spacing: 0.02em;
+}
+
+.landing-footer__column button,
+.landing-footer__column a {
+  min-height: 23px;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color:
+    rgba(255, 255, 255, 0.68);
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 9.5px;
+  line-height: 1.35;
+
+  text-decoration: none;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    transform 150ms ease;
+}
+
+.landing-footer__column button:hover,
+.landing-footer__column a:hover {
+  color: #ffffff;
+
+  transform: translateX(2px);
+}
+
+
+/* ==========================================================
+   SEGURANÇA / CONFORMIDADE
+========================================================== */
+
+.landing-footer__security {
+  min-width: 0;
+}
+
+.landing-footer__security-content {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  max-width: 235px;
+}
+
+.landing-footer__security-icon {
+  width: 34px;
+  height: 38px;
+
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+}
+
+.landing-footer__security-content p {
+  margin: 0;
+
+  color:
+    rgba(255, 255, 255, 0.68);
+
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
+
+/* ==========================================================
+   SELO LGPD
+========================================================== */
+
+.landing-footer__lgpd-badge {
+  width: fit-content;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 10px;
+  padding: 6px 10px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.24);
+
+  border-radius: 7px;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  color: #ffffff;
+}
+
+.landing-footer__lgpd-badge > svg {
+  flex: 0 0 auto;
+
+  color: #f59e0b;
+}
+
+.landing-footer__lgpd-badge > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0;
+}
+
+.landing-footer__lgpd-badge strong {
+  color: #ffffff;
+
+  font-size: 9px;
+  line-height: 1.1;
+
+  font-weight: 800;
+}
+
+.landing-footer__lgpd-badge span {
+  margin-top: 2px;
+
+  color:
+    rgba(255, 255, 255, 0.58);
+
+  font-size: 6px;
+  line-height: 1;
+
+  font-weight: 700;
+
+  letter-spacing: 0.05em;
+}
+
+
+/* ==========================================================
+   FOCO
+========================================================== */
+
+.landing-footer__column button:focus-visible,
+.landing-footer__column a:focus-visible,
+.landing-footer__social a:focus-visible {
+  outline:
+    2px solid rgba(255, 255, 255, 0.42);
+
+  outline-offset: 2px;
+}
+
+
+/* ==========================================================
+   COPYRIGHT
+========================================================== */
+
+.landing-footer__bottom {
+  margin-top: 16px;
+  padding-top: 10px;
+
+  border-top:
+    1px solid rgba(255, 255, 255, 0.10);
+
+  color:
+    rgba(255, 255, 255, 0.50);
+
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+
+/* ==========================================================
+   DESKTOP INTERMEDIÁRIO
+========================================================== */
+
+@media (max-width: 1120px) {
+  .landing-footer__main {
+    grid-template-columns:
+      minmax(200px, 1fr)
+      repeat(3, minmax(115px, 0.65fr))
+      minmax(200px, 0.9fr);
+
+    gap: 20px;
+  }
+}
+
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width: 900px) {
+  .landing-footer {
+    padding:
+      28px
+      max(20px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom))
+      max(20px, env(safe-area-inset-left));
+  }
+
+  .landing-footer__main {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 26px 24px;
+  }
+
+  .landing-footer__brand {
+    max-width: 300px;
+  }
+
+  .landing-footer__security {
+    max-width: 300px;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 680px) {
+  .landing-footer {
+    padding:
+      26px
+      max(14px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .landing-footer__main {
+    grid-template-columns: 1fr;
+
+    gap: 22px;
+  }
+
+  .landing-footer__brand {
+    max-width: 100%;
+  }
+
+  .landing-footer__logo {
+    height: 34px;
+  }
+
+  .landing-footer__brand > p {
+    max-width: 320px;
+
+    font-size: 10px;
+  }
+
+  .landing-footer__column {
+    gap: 1px;
+  }
+
+  .landing-footer__column h2,
+  .landing-footer__security h2 {
+    font-size: 11px;
+  }
+
+  .landing-footer__column button,
+  .landing-footer__column a {
+    min-height: 32px;
+
+    font-size: 12px;
+  }
+
+  .landing-footer__security-content {
+    max-width: 340px;
+  }
+
+  .landing-footer__security-content p {
+    font-size: 11px;
+  }
+
+  .landing-footer__bottom {
+    margin-top: 20px;
+
+    font-size: 9px;
+  }
+}
+
+
+/* ==========================================================
+   REDUÇÃO DE MOVIMENTO
+========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-footer__column button,
+  .landing-footer__column a,
+  .landing-footer__social a {
+    transition: none;
+  }
+}

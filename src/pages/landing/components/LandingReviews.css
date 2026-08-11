@@ -1,0 +1,441 @@
+/* ==========================================================
+   SISTEMA CHEGOU!
+   LANDING PAGE PREMIUM — AVALIAÇÕES / RECOMENDAÇÕES
+   Versão compacta alinhada à referência aprovada
+========================================================== */
+
+
+/* ==========================================================
+   SEÇÃO
+========================================================== */
+
+.landing-reviews {
+  width: 100%;
+
+  padding:
+    38px
+    max(24px, env(safe-area-inset-right))
+    38px
+    max(24px, env(safe-area-inset-left));
+
+  background: #ffffff;
+
+  scroll-margin-top:
+    calc(var(--lp-header-height) + 20px);
+}
+
+.landing-reviews__container {
+  width: 100%;
+  max-width: 1320px;
+
+  margin: 0 auto;
+}
+
+
+/* ==========================================================
+   TÍTULO
+========================================================== */
+
+.landing-reviews__heading {
+  margin-bottom: 16px;
+
+  text-align: center;
+}
+
+.landing-reviews__heading h2 {
+  margin: 0;
+
+  color: var(--lp-text);
+
+  font-family:
+    Poppins,
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size:
+    clamp(22px, 2.1vw, 28px);
+
+  line-height: 1.2;
+
+  font-weight: 700;
+
+  letter-spacing: -0.02em;
+}
+
+
+/* ==========================================================
+   GRID
+========================================================== */
+
+.landing-reviews__grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(190px, 0.72fr)
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+
+/* ==========================================================
+   CARD BASE
+========================================================== */
+
+.landing-reviews__rating-card,
+.landing-reviews__testimonial {
+  min-width: 0;
+
+  border:
+    1px solid var(--lp-border);
+
+  border-radius: 13px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 7px 20px rgba(15, 23, 42, 0.035);
+}
+
+
+/* ==========================================================
+   NOTA GERAL
+========================================================== */
+
+.landing-reviews__rating-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 16px;
+
+  text-align: center;
+}
+
+.landing-reviews__rating-value {
+  color: var(--lp-text);
+
+  font-family:
+    Poppins,
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 32px;
+  line-height: 1;
+
+  font-weight: 800;
+}
+
+.landing-reviews__stars {
+  display: flex;
+
+  gap: 2px;
+
+  color: #f59e0b;
+}
+
+.landing-reviews__stars--large {
+  margin-top: 7px;
+}
+
+.landing-reviews__rating-label {
+  margin-top: 4px;
+
+  color: var(--lp-text);
+
+  font-size: 10px;
+  line-height: 1.3;
+
+  font-weight: 600;
+}
+
+.landing-reviews__rating-card > p {
+  max-width: 170px;
+
+  margin: 10px 0 0;
+
+  color: var(--lp-text-secondary);
+
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+
+/* ==========================================================
+   LINK AVALIAÇÕES
+========================================================== */
+
+.landing-reviews__all {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  min-height: 30px;
+
+  margin-top: 6px;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: var(--lp-primary);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    gap 150ms ease;
+}
+
+.landing-reviews__all:hover {
+  color: var(--lp-primary-dark);
+
+  gap: 8px;
+}
+
+
+/* ==========================================================
+   DEPOIMENTOS
+========================================================== */
+
+.landing-reviews__testimonial {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  min-height: 185px;
+
+  padding: 16px;
+}
+
+.landing-reviews__quote {
+  height: 22px;
+
+  color: var(--lp-primary);
+
+  font-family: Georgia, serif;
+
+  font-size: 32px;
+  line-height: 1;
+
+  font-weight: 700;
+}
+
+.landing-reviews__testimonial-text {
+  margin: 5px 0 16px;
+
+  color: var(--lp-text-secondary);
+
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+
+/* ==========================================================
+   AUTOR
+========================================================== */
+
+.landing-reviews__author {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: auto;
+}
+
+.landing-reviews__avatar {
+  width: 32px;
+  height: 32px;
+
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #eff6ff 0%,
+      #e2e8f0 100%
+    );
+
+  border:
+    1px solid var(--lp-border);
+
+  color: var(--lp-primary);
+}
+
+.landing-reviews__author > div:last-child {
+  display: flex;
+  flex-direction: column;
+
+  gap: 1px;
+}
+
+.landing-reviews__author strong {
+  color: var(--lp-text);
+
+  font-size: 10px;
+  line-height: 1.3;
+
+  font-weight: 700;
+}
+
+.landing-reviews__author span {
+  color: var(--lp-text-soft);
+
+  font-size: 8px;
+  line-height: 1.3;
+}
+
+
+/* ==========================================================
+   HOVER
+========================================================== */
+
+.landing-reviews__rating-card,
+.landing-reviews__testimonial {
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.landing-reviews__rating-card:hover,
+.landing-reviews__testimonial:hover {
+  border-color:
+    rgba(37, 99, 235, 0.18);
+
+  box-shadow:
+    0 11px 26px rgba(15, 23, 42, 0.06);
+
+  transform: translateY(-2px);
+}
+
+
+/* ==========================================================
+   DESKTOP INTERMEDIÁRIO
+========================================================== */
+
+@media (max-width: 1120px) {
+  .landing-reviews {
+    padding-top: 34px;
+    padding-bottom: 34px;
+  }
+
+  .landing-reviews__grid {
+    grid-template-columns:
+      minmax(180px, 0.68fr)
+      repeat(3, minmax(0, 1fr));
+
+    gap: 10px;
+  }
+
+  .landing-reviews__testimonial {
+    padding: 14px;
+  }
+}
+
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width: 900px) {
+  .landing-reviews {
+    padding:
+      34px
+      max(20px, env(safe-area-inset-right))
+      34px
+      max(20px, env(safe-area-inset-left));
+  }
+
+  .landing-reviews__grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-reviews__rating-card {
+    min-height: 185px;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 680px) {
+  .landing-reviews {
+    padding:
+      30px
+      max(14px, env(safe-area-inset-right))
+      30px
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .landing-reviews__heading {
+    margin-bottom: 14px;
+  }
+
+  .landing-reviews__heading h2 {
+    font-size:
+      clamp(22px, 7vw, 26px);
+  }
+
+  .landing-reviews__grid {
+    grid-template-columns: 1fr;
+
+    gap: 9px;
+  }
+
+  .landing-reviews__rating-card,
+  .landing-reviews__testimonial {
+    min-height: auto;
+
+    padding: 15px;
+  }
+
+  .landing-reviews__rating-value {
+    font-size: 30px;
+  }
+
+  .landing-reviews__testimonial-text {
+    font-size: 12px;
+  }
+
+  .landing-reviews__author strong {
+    font-size: 11px;
+  }
+
+  .landing-reviews__author span {
+    font-size: 9px;
+  }
+}
+
+
+/* ==========================================================
+   REDUÇÃO DE MOVIMENTO
+========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-reviews__rating-card,
+  .landing-reviews__testimonial,
+  .landing-reviews__all {
+    transition: none;
+  }
+}

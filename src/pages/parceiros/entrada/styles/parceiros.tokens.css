@@ -1,0 +1,56 @@
+:root {
+  /* =========================================================
+     SISTEMA CHEGOU! — PARCEIROS
+     Tokens visuais oficiais do contexto Parceiros
+     ========================================================= */
+
+  --partner-navy-950: #041427;
+  --partner-navy-900: #061a33;
+  --partner-navy-850: #08213f;
+  --partner-navy-800: #0b2d54;
+  --partner-navy-700: #103c6d;
+
+  --partner-gold-600: #bf8e27;
+  --partner-gold-500: #d6a63a;
+  --partner-gold-400: #e5bb58;
+  --partner-gold-300: #efd17f;
+  --partner-gold-100: #f8ebc8;
+
+  --partner-orange-chegou: #f97316;
+
+  --partner-text-primary: #0f172a;
+  --partner-text-secondary: #64748b;
+  --partner-text-muted: #94a3b8;
+
+  --partner-bg-page: #f8fafc;
+  --partner-bg-card: #ffffff;
+  --partner-bg-soft: #fffaf0;
+
+  --partner-border: #e2e8f0;
+  --partner-border-soft: #edf2f7;
+
+  --partner-success: #16a34a;
+  --partner-warning: #d97706;
+  --partner-danger: #dc2626;
+
+  --partner-radius-sm: 8px;
+  --partner-radius-md: 10px;
+  --partner-radius-lg: 14px;
+  --partner-radius-xl: 18px;
+  --partner-radius-2xl: 24px;
+
+  --partner-shadow-sm:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 1px 3px rgba(15, 23, 42, 0.06);
+
+  --partner-shadow-md:
+    0 8px 24px rgba(15, 23, 42, 0.08);
+
+  --partner-shadow-lg:
+    0 18px 48px rgba(2, 18, 38, 0.16);
+
+  --partner-container: 1280px;
+
+  --partner-transition:
+    180ms ease;
+}

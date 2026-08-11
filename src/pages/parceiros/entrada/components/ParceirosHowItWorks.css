@@ -1,0 +1,602 @@
+.parceiros-how {
+  width: 100%;
+  min-width: 0;
+
+  background: #ffffff;
+}
+
+.parceiros-how__inner {
+  width:
+    min(
+      calc(100% - 56px),
+      var(--partner-container)
+    );
+
+  margin: 0 auto;
+
+  padding:
+    8px
+    0
+    36px;
+}
+
+/* =========================================================
+   CABEÇALHO
+   ========================================================= */
+
+.parceiros-how__header {
+  max-width: 680px;
+
+  margin:
+    0
+    auto
+    22px;
+
+  text-align: center;
+}
+
+.parceiros-how__title {
+  margin: 0;
+
+  color:
+    var(--partner-navy-900);
+
+  font-size:
+    clamp(
+      23px,
+      2vw,
+      28px
+    );
+
+  font-weight: 760;
+
+  line-height: 1.2;
+
+  letter-spacing:
+    -0.025em;
+}
+
+.parceiros-how__subtitle {
+  margin:
+    4px
+    0
+    0;
+
+  color:
+    var(--partner-text-secondary);
+
+  font-size: 12.5px;
+
+  line-height: 1.45;
+}
+
+/* =========================================================
+   FLUXO
+   ========================================================= */
+
+.parceiros-how__flow {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(0, 1fr)
+    );
+
+  gap: 0;
+
+  border:
+    1px solid
+    var(--partner-border-soft);
+
+  border-radius:
+    var(--partner-radius-xl);
+
+  background: #ffffff;
+
+  box-shadow:
+    0
+    8px
+    28px
+    rgba(
+      15,
+      23,
+      42,
+      0.045
+    );
+
+  overflow: hidden;
+}
+
+/* =========================================================
+   WRAPPER DE CADA ETAPA
+   ========================================================= */
+
+.parceiros-how__step-wrapper {
+  position: relative;
+
+  min-width: 0;
+}
+
+/* =========================================================
+   CARD DA ETAPA
+   ========================================================= */
+
+.parceiros-how__step {
+  min-height: 205px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  padding:
+    21px
+    18px
+    18px;
+
+  text-align: center;
+
+  background: #ffffff;
+
+  transition:
+    background
+      var(--partner-transition),
+    transform
+      var(--partner-transition);
+}
+
+.parceiros-how__step:hover {
+  background:
+    #fffdfa;
+}
+
+/* =========================================================
+   TOPO DA ETAPA
+   ========================================================= */
+
+.parceiros-how__step-top {
+  position: relative;
+
+  width: 100%;
+
+  min-height: 50px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 11px;
+}
+
+/* =========================================================
+   NÚMERO
+   ========================================================= */
+
+.parceiros-how__number {
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  width: 24px;
+  height: 24px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  background:
+    var(--partner-navy-900);
+
+  font-size: 10.5px;
+
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+/* =========================================================
+   ÍCONE
+   ========================================================= */
+
+.parceiros-how__icon {
+  width: 48px;
+  height: 48px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  color:
+    var(--partner-gold-500);
+}
+
+/* =========================================================
+   TEXTO
+   ========================================================= */
+
+.parceiros-how__step-title {
+  margin: 0;
+
+  color:
+    var(--partner-navy-900);
+
+  font-size: 12.5px;
+
+  font-weight: 760;
+
+  line-height: 1.3;
+}
+
+.parceiros-how__step-description {
+  max-width: 180px;
+
+  margin:
+    8px
+    auto
+    0;
+
+  color:
+    var(--partner-text-secondary);
+
+  font-size: 10.5px;
+
+  line-height: 1.5;
+}
+
+/* =========================================================
+   CONECTOR ENTRE ETAPAS
+   ========================================================= */
+
+.parceiros-how__connector {
+  position: absolute;
+
+  z-index: 4;
+
+  top: 50%;
+
+  right: -10px;
+
+  width: 20px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  transform:
+    translateY(-50%);
+
+  pointer-events: none;
+}
+
+.parceiros-how__connector span {
+  position: absolute;
+
+  width: 16px;
+  height: 1px;
+
+  background:
+    rgba(
+      214,
+      166,
+      58,
+      0.5
+    );
+}
+
+.parceiros-how__connector b {
+  position: relative;
+
+  right: -8px;
+
+  color:
+    var(--partner-gold-500);
+
+  background: #ffffff;
+
+  font-size: 21px;
+
+  font-weight: 400;
+
+  line-height: 1;
+}
+
+/* =========================================================
+   DIVISORES
+   ========================================================= */
+
+.parceiros-how__step-wrapper:not(:last-child)
+  .parceiros-how__step {
+  border-right:
+    1px solid
+    var(--partner-border-soft);
+}
+
+/* =========================================================
+   NOTEBOOK
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .parceiros-how__flow {
+    grid-template-columns:
+      repeat(
+        5,
+        minmax(0, 1fr)
+      );
+  }
+
+  .parceiros-how__step {
+    min-height: 215px;
+
+    padding:
+      19px
+      12px
+      16px;
+  }
+
+  .parceiros-how__step-description {
+    max-width: 155px;
+
+    font-size: 10px;
+  }
+
+  .parceiros-how__step-title {
+    font-size: 12px;
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .parceiros-how__inner {
+    width:
+      min(
+        calc(100% - 32px),
+        var(--partner-container)
+      );
+
+    padding-bottom: 30px;
+  }
+
+  .parceiros-how__flow {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap: 0;
+  }
+
+  .parceiros-how__step {
+    min-height: 190px;
+  }
+
+  .parceiros-how__step-wrapper
+    .parceiros-how__step {
+    border-right:
+      1px solid
+      var(--partner-border-soft);
+
+    border-bottom:
+      1px solid
+      var(--partner-border-soft);
+  }
+
+  .parceiros-how__step-wrapper:nth-child(2n)
+    .parceiros-how__step {
+    border-right: 0;
+  }
+
+  .parceiros-how__step-wrapper:nth-last-child(-n + 2)
+    .parceiros-how__step {
+    border-bottom: 0;
+  }
+
+  .parceiros-how__step-wrapper:last-child {
+    grid-column:
+      1 / -1;
+  }
+
+  .parceiros-how__step-wrapper:last-child
+    .parceiros-how__step {
+    max-width: 50%;
+
+    margin: 0 auto;
+
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .parceiros-how__connector {
+    display: none;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .parceiros-how__inner {
+    width:
+      calc(
+        100% - 28px
+      );
+
+    padding:
+      4px
+      0
+      27px;
+  }
+
+  .parceiros-how__header {
+    margin-bottom: 18px;
+  }
+
+  .parceiros-how__title {
+    font-size: 21px;
+  }
+
+  .parceiros-how__flow {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    border: 0;
+
+    border-radius: 0;
+
+    background: transparent;
+
+    box-shadow: none;
+
+    overflow: visible;
+  }
+
+  .parceiros-how__step-wrapper {
+    width: 100%;
+  }
+
+  .parceiros-how__step {
+    min-height: 0;
+
+    display: grid;
+
+    grid-template-columns:
+      54px
+      minmax(0, 1fr);
+
+    grid-template-areas:
+      "top title"
+      "top description";
+
+    align-items: start;
+
+    column-gap: 12px;
+
+    padding:
+      14px
+      14px;
+
+    text-align: left;
+
+    border:
+      1px solid
+      var(--partner-border-soft) !important;
+
+    border-radius:
+      var(--partner-radius-lg);
+
+    background: #ffffff;
+
+    box-shadow:
+      0
+      5px
+      18px
+      rgba(
+        15,
+        23,
+        42,
+        0.035
+      );
+  }
+
+  .parceiros-how__step-wrapper:last-child
+    .parceiros-how__step {
+    max-width: none;
+
+    margin: 0;
+  }
+
+  .parceiros-how__step-top {
+    grid-area: top;
+
+    width: 54px;
+    min-height: 54px;
+
+    margin: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+  }
+
+  .parceiros-how__number {
+    left: -3px;
+    top: -3px;
+
+    width: 21px;
+    height: 21px;
+
+    font-size: 9px;
+  }
+
+  .parceiros-how__icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .parceiros-how__step-title {
+    grid-area: title;
+
+    align-self: end;
+
+    margin-top: 4px;
+
+    font-size: 12.5px;
+  }
+
+  .parceiros-how__step-description {
+    grid-area: description;
+
+    max-width: none;
+
+    margin:
+      5px
+      0
+      0;
+
+    font-size: 10.5px;
+  }
+}
+
+/* =========================================================
+   MOBILE COMPACTO
+   ========================================================= */
+
+@media (max-width: 430px) {
+  .parceiros-how__inner {
+    width:
+      calc(
+        100% - 24px
+      );
+  }
+}
+
+/* =========================================================
+   REDUÇÃO DE MOVIMENTO
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .parceiros-how__step {
+    transition: none;
+  }
+}

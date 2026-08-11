@@ -1,0 +1,198 @@
+.dashboard-portaria-sidebar {
+  position: sticky;
+  top: 18px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  min-width: 0;
+  max-height: calc(100vh - 36px);
+
+  overflow-y: auto;
+
+  padding-right: 2px;
+
+  scrollbar-width: thin;
+  scrollbar-color:
+    var(--dp-border-strong)
+    transparent;
+}
+
+/* =========================================================
+   COMUNICAÇÃO
+   Único card com apresentação controlada localmente
+   pela Sidebar da Portaria nesta fase.
+   ========================================================= */
+
+.dashboard-portaria-communication-card {
+  min-width: 0;
+
+  padding: 17px;
+
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(249, 115, 22, 0.16),
+      transparent 40%
+    ),
+    var(--dp-bg-orange-soft);
+
+  box-shadow: var(--dp-shadow-soft);
+}
+
+.dashboard-portaria-sidebar-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dashboard-portaria-sidebar-card-top > span {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 24px;
+
+  padding: 0 9px;
+
+  border-radius: 999px;
+
+  color: var(--dp-orange-dark);
+  background: rgba(249, 115, 22, 0.11);
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dashboard-portaria-sidebar-card-top > div {
+  display: grid;
+  place-items: center;
+
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+
+  border-radius: 11px;
+
+  color: var(--dp-orange);
+  background: rgba(249, 115, 22, 0.1);
+}
+
+.dashboard-portaria-communication-card h2 {
+  margin: 12px 0 7px;
+
+  color: var(--dp-text);
+
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.dashboard-portaria-communication-card p {
+  margin: 0;
+
+  color: var(--dp-text-secondary);
+
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.dashboard-portaria-communication-card small {
+  display: block;
+
+  margin-top: 13px;
+
+  color: var(--dp-orange-dark);
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   COMPONENTES GLOBAIS
+   Não aplicar layout visual interno aqui.
+   PartnerAdCard e CalendarSidebarCard controlam
+   seus próprios estilos.
+   ========================================================= */
+
+.dashboard-portaria-partner-slot,
+.dashboard-portaria-calendar-slot {
+  width: 100%;
+  min-width: 0;
+}
+
+/*
+ * Evita que um componente global ultrapasse
+ * a largura disponível da Sidebar.
+ */
+.dashboard-portaria-partner-slot > *,
+.dashboard-portaria-calendar-slot > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* =========================================================
+   DARK MODE
+   Apenas Comunicação.
+   Os componentes globais tratam seus próprios temas.
+   ========================================================= */
+
+html.modo-escuro
+  .dashboard-portaria-communication-card,
+body.modo-escuro
+  .dashboard-portaria-communication-card {
+  border-color: rgba(249, 115, 22, 0.3);
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(249, 115, 22, 0.18),
+      transparent 42%
+    ),
+    #1d1b1b;
+}
+
+/* =========================================================
+   RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .dashboard-portaria-sidebar {
+    position: static;
+
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    max-height: none;
+    overflow: visible;
+
+    padding-right: 0;
+  }
+
+  .dashboard-portaria-communication-card {
+    grid-column: 1 / -1;
+  }
+
+  .dashboard-portaria-partner-slot,
+  .dashboard-portaria-calendar-slot {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-portaria-sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-portaria-communication-card,
+  .dashboard-portaria-partner-slot,
+  .dashboard-portaria-calendar-slot {
+    grid-column: auto;
+  }
+}

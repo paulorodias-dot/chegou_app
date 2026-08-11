@@ -1,0 +1,566 @@
+.parceiros-final-cta {
+  width: 100%;
+  min-width: 0;
+
+  background: #ffffff;
+}
+
+.parceiros-final-cta__inner {
+  width:
+    min(
+      calc(100% - 56px),
+      var(--partner-container)
+    );
+
+  margin: 0 auto;
+
+  padding:
+    8px
+    0
+    34px;
+}
+
+/* =========================================================
+   PAINEL
+   ========================================================= */
+
+.parceiros-final-cta__panel {
+  position: relative;
+
+  min-height: 250px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.25fr)
+    minmax(260px, 0.75fr);
+
+  align-items: center;
+
+  gap: 18px;
+
+  padding:
+    28px
+    34px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(
+      229,
+      187,
+      88,
+      0.2
+    );
+
+  border-radius:
+    var(--partner-radius-xl);
+
+  background:
+    radial-gradient(
+      circle at 82% 48%,
+      rgba(
+        24,
+        79,
+        147,
+        0.28
+      ),
+      transparent 27%
+    ),
+    linear-gradient(
+      125deg,
+      var(--partner-navy-950) 0%,
+      var(--partner-navy-900) 58%,
+      #0a3159 100%
+    );
+
+  box-shadow:
+    0
+    16px
+    40px
+    rgba(
+      15,
+      23,
+      42,
+      0.12
+    );
+}
+
+/* =========================================================
+   CONTEÚDO
+   ========================================================= */
+
+.parceiros-final-cta__content {
+  position: relative;
+  z-index: 5;
+
+  max-width: 660px;
+}
+
+.parceiros-final-cta__eyebrow {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  margin-bottom: 8px;
+
+  color:
+    var(--partner-gold-400);
+
+  font-size: 9.5px;
+
+  font-weight: 800;
+
+  line-height: 1.2;
+
+  letter-spacing: 0.1em;
+
+  text-transform: uppercase;
+}
+
+.parceiros-final-cta__title {
+  max-width: 610px;
+
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size:
+    clamp(
+      25px,
+      2.35vw,
+      34px
+    );
+
+  font-weight: 780;
+
+  line-height: 1.15;
+
+  letter-spacing:
+    -0.03em;
+}
+
+.parceiros-final-cta__description {
+  max-width: 580px;
+
+  margin:
+    11px
+    0
+    0;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.72
+    );
+
+  font-size: 12.5px;
+
+  line-height: 1.55;
+}
+
+/* =========================================================
+   AÇÕES
+   ========================================================= */
+
+.parceiros-final-cta__actions {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+.parceiros-final-cta__button {
+  min-height: 41px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding:
+    0
+    16px;
+
+  border-radius: 9px;
+
+  font-size: 11.5px;
+
+  font-weight: 750;
+
+  line-height: 1;
+
+  text-decoration: none;
+
+  transition:
+    transform
+      var(--partner-transition),
+    background
+      var(--partner-transition),
+    border-color
+      var(--partner-transition),
+    box-shadow
+      var(--partner-transition);
+}
+
+.parceiros-final-cta__button:hover {
+  transform:
+    translateY(-1px);
+}
+
+.parceiros-final-cta__button:focus-visible {
+  outline:
+    2px solid
+    var(--partner-gold-400);
+
+  outline-offset: 3px;
+}
+
+.parceiros-final-cta__button--primary {
+  color:
+    var(--partner-navy-950);
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--partner-gold-400),
+      var(--partner-gold-500)
+    );
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.14
+    );
+
+  box-shadow:
+    0
+    8px
+    20px
+    rgba(
+      214,
+      166,
+      58,
+      0.2
+    );
+}
+
+.parceiros-final-cta__button--primary:hover {
+  box-shadow:
+    0
+    10px
+    25px
+    rgba(
+      214,
+      166,
+      58,
+      0.28
+    );
+}
+
+.parceiros-final-cta__button--secondary {
+  color: #ffffff;
+
+  border:
+    1px solid
+    rgba(
+      229,
+      187,
+      88,
+      0.42
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.025
+    );
+}
+
+.parceiros-final-cta__button--secondary:hover {
+  background:
+    rgba(
+      229,
+      187,
+      88,
+      0.07
+    );
+}
+
+.parceiros-final-cta__notice {
+  margin:
+    11px
+    0
+    0;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.46
+    );
+
+  font-size: 8.8px;
+
+  line-height: 1.4;
+}
+
+/* =========================================================
+   VISUAL
+   ========================================================= */
+
+.parceiros-final-cta__visual {
+  position: relative;
+
+  min-height: 190px;
+
+  align-self: stretch;
+
+  pointer-events: none;
+}
+
+.parceiros-final-cta__glow {
+  position: absolute;
+
+  left: 50%;
+  bottom: -40px;
+
+  width: 260px;
+  height: 260px;
+
+  transform:
+    translateX(-50%);
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(
+        36,
+        101,
+        184,
+        0.24
+      ) 0%,
+      rgba(
+        36,
+        101,
+        184,
+        0.07
+      ) 50%,
+      transparent 72%
+    );
+}
+
+.parceiros-final-cta__mascot {
+  position: absolute;
+
+  z-index: 2;
+
+  left: 50%;
+  bottom: -56px;
+
+  width: auto;
+  height: 245px;
+
+  max-width: none;
+
+  transform:
+    translateX(-50%);
+
+  object-fit: contain;
+
+  filter:
+    drop-shadow(
+      0
+      14px
+      24px
+      rgba(
+        0,
+        0,
+        0,
+        0.3
+      )
+    );
+}
+
+/* =========================================================
+   NOTEBOOK
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .parceiros-final-cta__panel {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(220px, 0.55fr);
+
+    padding:
+      26px
+      28px;
+  }
+
+  .parceiros-final-cta__mascot {
+    height: 225px;
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .parceiros-final-cta__inner {
+    width:
+      min(
+        calc(
+          100% - 32px
+        ),
+        var(
+          --partner-container
+        )
+      );
+
+    padding-bottom: 30px;
+  }
+
+  .parceiros-final-cta__panel {
+    grid-template-columns: 1fr;
+
+    min-height: auto;
+
+    padding:
+      25px
+      24px
+      0;
+
+    text-align: center;
+  }
+
+  .parceiros-final-cta__content {
+    max-width: 660px;
+
+    margin: 0 auto;
+  }
+
+  .parceiros-final-cta__eyebrow {
+    justify-content: center;
+  }
+
+  .parceiros-final-cta__title,
+  .parceiros-final-cta__description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .parceiros-final-cta__actions {
+    justify-content: center;
+  }
+
+  .parceiros-final-cta__visual {
+    min-height: 190px;
+  }
+
+  .parceiros-final-cta__mascot {
+    bottom: -66px;
+
+    height: 225px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .parceiros-final-cta__inner {
+    width:
+      calc(
+        100% - 28px
+      );
+
+    padding-bottom: 27px;
+  }
+
+  .parceiros-final-cta__panel {
+    padding:
+      22px
+      16px
+      0;
+
+    border-radius:
+      var(--partner-radius-lg);
+  }
+
+  .parceiros-final-cta__title {
+    font-size: 22px;
+  }
+
+  .parceiros-final-cta__description {
+    font-size: 12px;
+  }
+
+  .parceiros-final-cta__actions {
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    width: 100%;
+  }
+
+  .parceiros-final-cta__button {
+    width: 100%;
+
+    min-height: 43px;
+  }
+
+  .parceiros-final-cta__visual {
+    min-height: 175px;
+  }
+
+  .parceiros-final-cta__mascot {
+    height: 205px;
+  }
+}
+
+/* =========================================================
+   MOBILE COMPACTO
+   ========================================================= */
+
+@media (max-width: 430px) {
+  .parceiros-final-cta__inner {
+    width:
+      calc(
+        100% - 24px
+      );
+  }
+
+  .parceiros-final-cta__mascot {
+    height: 195px;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .parceiros-final-cta__button {
+    transition: none;
+  }
+}

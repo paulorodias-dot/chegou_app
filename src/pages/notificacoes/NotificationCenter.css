@@ -1,0 +1,791 @@
+/* =========================================================
+   CENTRAL DE NOTIFICAÇÕES — SISTEMA CHEGOU!
+   Tela Global Oficial
+
+   Referência visual:
+   Transportadoras — Módulo Master
+
+   Requisitos:
+   - Design System Premium
+   - Inter
+   - Claro / Escuro / Sistema
+   - Safe Areas
+   - Mobile / Tablet / Desktop / PWA
+   - Proteção contra zoom automático Safari/iPhone
+   - Namespace isolado do legado
+========================================================= */
+
+
+/* =========================================================
+   1. TOKENS E ESTRUTURA DA PÁGINA
+========================================================= */
+
+.chegou-notification-center-page {
+  --nc-bg-page: #f8fafc;
+  --nc-bg-card: #ffffff;
+  --nc-bg-soft: #f1f5f9;
+  --nc-bg-blue-soft: #eff6ff;
+  --nc-bg-orange-soft: #fff7ed;
+
+  --nc-text: #0f172a;
+  --nc-text-secondary: #64748b;
+  --nc-text-muted: #94a3b8;
+
+  --nc-border: #e2e8f0;
+  --nc-border-strong: #cbd5e1;
+
+  --nc-blue: #2563eb;
+  --nc-blue-dark: #1d4ed8;
+  --nc-blue-royal: #0f3f8f;
+
+  --nc-orange: #f97316;
+  --nc-orange-dark: #ea580c;
+
+  --nc-green: #16a34a;
+  --nc-amber: #d97706;
+  --nc-red: #dc2626;
+
+  --nc-shadow-card: 0 8px 24px rgba(15, 23, 42, 0.05);
+  --nc-shadow-soft: 0 4px 16px rgba(15, 23, 42, 0.04);
+
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  padding: 28px 24px 40px;
+
+  color: var(--nc-text);
+  background: transparent;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.chegou-notification-center-page *,
+.chegou-notification-center-page *::before,
+.chegou-notification-center-page *::after {
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   2. HEADER
+========================================================= */
+
+.chegou-notification-center-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  width: 100%;
+  max-width: 1600px;
+
+  min-height: 86px;
+
+  margin: 0 auto;
+  gap: 24px;
+}
+
+.chegou-notification-center-page__heading {
+  display: flex;
+  align-items: flex-start;
+
+  min-width: 0;
+  max-width: 780px;
+
+  gap: 14px;
+}
+
+.chegou-notification-center-page__heading-icon {
+  display: grid;
+  place-items: center;
+
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  flex: 0 0 44px;
+
+  border-radius: 12px;
+
+  color: var(--nc-blue);
+  background: var(--nc-bg-blue-soft);
+}
+
+.chegou-notification-center-page__heading-copy {
+  min-width: 0;
+}
+
+.chegou-notification-center-page__heading-copy h1 {
+  margin: 0;
+
+  color: var(--nc-text);
+
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.chegou-notification-center-page__heading-copy p {
+  max-width: 760px;
+
+  margin: 7px 0 0;
+
+  color: var(--nc-text-secondary);
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   3. WORKSPACE PRINCIPAL
+========================================================= */
+
+.chegou-notification-center-page__workspace {
+  width: 100%;
+  max-width: 1600px;
+  min-width: 0;
+
+  margin: 0 auto;
+
+  overflow: hidden;
+
+  border: 1px solid var(--nc-border);
+  border-radius: 14px;
+
+  background: var(--nc-bg-card);
+
+  box-shadow: var(--nc-shadow-card);
+}
+
+
+/* =========================================================
+   4. TOOLBAR
+========================================================= */
+
+.chegou-notification-center-page__toolbar {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+
+  gap: 12px;
+  padding: 16px;
+
+  border-bottom: 1px solid var(--nc-border);
+
+  background: var(--nc-bg-card);
+}
+
+
+/* =========================================================
+   5. CAMPO DE BUSCA
+========================================================= */
+
+.chegou-notification-center-page__search {
+  display: flex;
+  align-items: center;
+
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+
+  gap: 10px;
+  padding: 0 13px;
+
+  border: 1px solid var(--nc-border);
+  border-radius: 10px;
+
+  color: var(--nc-text-secondary);
+  background: var(--nc-bg-card);
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.chegou-notification-center-page__search:hover {
+  border-color: var(--nc-border-strong);
+}
+
+.chegou-notification-center-page__search:focus-within {
+  border-color: var(--nc-blue);
+
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.chegou-notification-center-page__search > svg {
+  flex: 0 0 auto;
+  color: var(--nc-text-muted);
+}
+
+.chegou-notification-center-page__search input {
+  width: 100%;
+  min-width: 0;
+
+  padding: 0;
+
+  border: 0;
+  outline: 0;
+
+  color: var(--nc-text);
+  background: transparent;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.chegou-notification-center-page__search input::placeholder {
+  color: var(--nc-text-muted);
+  opacity: 1;
+}
+
+.chegou-notification-center-page__search input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   6. BOTÃO FILTROS
+========================================================= */
+
+.chegou-notification-center-page__filter-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 42px;
+
+  gap: 8px;
+  padding: 0 16px;
+
+  border: 1px solid var(--nc-border);
+  border-radius: 10px;
+
+  color: var(--nc-text);
+  background: var(--nc-bg-card);
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    transform 160ms ease,
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+
+.chegou-notification-center-page__filter-button:hover {
+  border-color: var(--nc-border-strong);
+  background: var(--nc-bg-soft);
+
+  transform: translateY(-1px);
+}
+
+.chegou-notification-center-page__filter-button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.22);
+  outline-offset: 2px;
+}
+
+.chegou-notification-center-page__filter-button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.55;
+  transform: none;
+}
+
+
+/* =========================================================
+   7. TABS
+========================================================= */
+
+.chegou-notification-center-page__tabs {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+
+  gap: 6px;
+  padding: 12px 16px;
+
+  border-bottom: 1px solid var(--nc-border);
+
+  background: var(--nc-bg-card);
+}
+
+.chegou-notification-center-page__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 36px;
+
+  padding: 0 13px;
+
+  border: 1px solid transparent;
+  border-radius: 9px;
+
+  color: var(--nc-text-secondary);
+  background: transparent;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.chegou-notification-center-page__tab:hover {
+  color: var(--nc-text);
+  background: var(--nc-bg-soft);
+}
+
+.chegou-notification-center-page__tab:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.22);
+  outline-offset: 2px;
+}
+
+.chegou-notification-center-page__tab--active {
+  color: var(--nc-blue-dark);
+
+  border-color: rgba(37, 99, 235, 0.12);
+
+  background: var(--nc-bg-blue-soft);
+}
+
+
+/* =========================================================
+   8. CONTEÚDO
+========================================================= */
+
+.chegou-notification-center-page__content {
+  min-height: 360px;
+
+  padding: 16px;
+
+  color: var(--nc-text);
+  background: var(--nc-bg-card);
+}
+
+
+/* =========================================================
+   9. PLACEHOLDER TEMPORÁRIO
+========================================================= */
+
+.chegou-notification-center-page__placeholder {
+  display: flex;
+  align-items: flex-start;
+
+  min-height: 112px;
+
+  gap: 12px;
+  padding: 16px;
+
+  border: 1px dashed var(--nc-border-strong);
+  border-radius: 12px;
+
+  color: var(--nc-text-secondary);
+  background: var(--nc-bg-soft);
+}
+
+.chegou-notification-center-page__placeholder > svg {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+
+  color: var(--nc-blue);
+}
+
+.chegou-notification-center-page__placeholder strong {
+  display: block;
+
+  margin: 0 0 5px;
+
+  color: var(--nc-text);
+
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.chegou-notification-center-page__placeholder p {
+  margin: 0;
+
+  color: var(--nc-text-secondary);
+
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   10. MODO ESCURO MANUAL
+
+   Compatibilidade com padrões existentes:
+   - html/body .modo-escuro
+   - data-theme="dark"
+   - data-chegou-theme="dark"
+========================================================= */
+
+html.modo-escuro .chegou-notification-center-page,
+body.modo-escuro .chegou-notification-center-page,
+html[data-theme="dark"] .chegou-notification-center-page,
+body[data-theme="dark"] .chegou-notification-center-page,
+html[data-chegou-theme="dark"] .chegou-notification-center-page,
+body[data-chegou-theme="dark"] .chegou-notification-center-page {
+  --nc-bg-page: #0f172a;
+  --nc-bg-card: #111c2e;
+  --nc-bg-soft: #18243a;
+  --nc-bg-blue-soft: rgba(37, 99, 235, 0.15);
+  --nc-bg-orange-soft: rgba(154, 52, 18, 0.18);
+
+  --nc-text: #f8fafc;
+  --nc-text-secondary: #cbd5e1;
+  --nc-text-muted: #94a3b8;
+
+  --nc-border: #263449;
+  --nc-border-strong: #3b4b61;
+
+  --nc-shadow-card: 0 10px 26px rgba(0, 0, 0, 0.22);
+  --nc-shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+html.modo-escuro
+  .chegou-notification-center-page__search,
+body.modo-escuro
+  .chegou-notification-center-page__search,
+html[data-theme="dark"]
+  .chegou-notification-center-page__search,
+body[data-theme="dark"]
+  .chegou-notification-center-page__search,
+html[data-chegou-theme="dark"]
+  .chegou-notification-center-page__search,
+body[data-chegou-theme="dark"]
+  .chegou-notification-center-page__search {
+  color-scheme: dark;
+}
+
+html.modo-escuro
+  .chegou-notification-center-page__search input,
+body.modo-escuro
+  .chegou-notification-center-page__search input,
+html[data-theme="dark"]
+  .chegou-notification-center-page__search input,
+body[data-theme="dark"]
+  .chegou-notification-center-page__search input,
+html[data-chegou-theme="dark"]
+  .chegou-notification-center-page__search input,
+body[data-chegou-theme="dark"]
+  .chegou-notification-center-page__search input {
+  color-scheme: dark;
+}
+
+
+/* =========================================================
+   11. MODO CLARO MANUAL
+
+   Garante que a preferência clara prevaleça sobre
+   prefers-color-scheme: dark.
+========================================================= */
+
+html.modo-claro .chegou-notification-center-page,
+body.modo-claro .chegou-notification-center-page,
+html[data-theme="light"] .chegou-notification-center-page,
+body[data-theme="light"] .chegou-notification-center-page,
+html[data-chegou-theme="light"] .chegou-notification-center-page,
+body[data-chegou-theme="light"] .chegou-notification-center-page {
+  --nc-bg-page: #f8fafc;
+  --nc-bg-card: #ffffff;
+  --nc-bg-soft: #f1f5f9;
+  --nc-bg-blue-soft: #eff6ff;
+  --nc-bg-orange-soft: #fff7ed;
+
+  --nc-text: #0f172a;
+  --nc-text-secondary: #64748b;
+  --nc-text-muted: #94a3b8;
+
+  --nc-border: #e2e8f0;
+  --nc-border-strong: #cbd5e1;
+
+  --nc-shadow-card: 0 8px 24px rgba(15, 23, 42, 0.05);
+  --nc-shadow-soft: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+
+/* =========================================================
+   12. MODO SISTEMA
+
+   Só aplica o tema escuro do dispositivo quando não
+   existir preferência manual explícita.
+========================================================= */
+
+@media (prefers-color-scheme: dark) {
+  html:not(.modo-claro):not(.modo-escuro):not([data-theme="light"]):not(
+      [data-theme="dark"]
+    ):not([data-chegou-theme="light"]):not([data-chegou-theme="dark"])
+    .chegou-notification-center-page,
+  body:not(.modo-claro):not(.modo-escuro):not([data-theme="light"]):not(
+      [data-theme="dark"]
+    ):not([data-chegou-theme="light"]):not([data-chegou-theme="dark"])
+    .chegou-notification-center-page {
+    --nc-bg-page: #0f172a;
+    --nc-bg-card: #111c2e;
+    --nc-bg-soft: #18243a;
+    --nc-bg-blue-soft: rgba(37, 99, 235, 0.15);
+    --nc-bg-orange-soft: rgba(154, 52, 18, 0.18);
+
+    --nc-text: #f8fafc;
+    --nc-text-secondary: #cbd5e1;
+    --nc-text-muted: #94a3b8;
+
+    --nc-border: #263449;
+    --nc-border-strong: #3b4b61;
+
+    --nc-shadow-card: 0 10px 26px rgba(0, 0, 0, 0.22);
+    --nc-shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.18);
+  }
+
+  html:not(.modo-claro):not(.modo-escuro):not([data-theme="light"]):not(
+      [data-theme="dark"]
+    ):not([data-chegou-theme="light"]):not([data-chegou-theme="dark"])
+    .chegou-notification-center-page__search,
+  body:not(.modo-claro):not(.modo-escuro):not([data-theme="light"]):not(
+      [data-theme="dark"]
+    ):not([data-chegou-theme="light"]):not([data-chegou-theme="dark"])
+    .chegou-notification-center-page__search {
+    color-scheme: dark;
+  }
+}
+
+
+/* =========================================================
+   13. RESPONSIVIDADE — DESKTOP INTERMEDIÁRIO
+========================================================= */
+
+@media (max-width: 1360px) {
+  .chegou-notification-center-page {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+}
+
+
+/* =========================================================
+   14. RESPONSIVIDADE — TABLET / MOBILE / PWA
+========================================================= */
+
+@media (max-width: 900px) {
+  .chegou-notification-center-page {
+    padding:
+      18px
+      max(14px, env(safe-area-inset-right))
+      calc(92px + env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .chegou-notification-center-page__header {
+    min-height: 0;
+
+    gap: 14px;
+  }
+
+  .chegou-notification-center-page__heading {
+    gap: 12px;
+  }
+
+  .chegou-notification-center-page__toolbar {
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .chegou-notification-center-page__filter-button {
+    min-height: 44px;
+  }
+
+  /*
+   * IMPORTANTE — Safari / iPhone
+   *
+   * O Safari iOS pode aplicar zoom automático ao focar
+   * inputs com font-size inferior a 16px.
+   *
+   * Segue o mesmo padrão oficial utilizado em Transportadoras.
+   */
+  .chegou-notification-center-page__search input {
+    font-size: 16px;
+  }
+}
+
+
+/* =========================================================
+   15. RESPONSIVIDADE — CELULAR
+========================================================= */
+
+@media (max-width: 680px) {
+  .chegou-notification-center-page {
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+
+  .chegou-notification-center-page__header {
+    margin-bottom: 16px;
+  }
+
+  .chegou-notification-center-page__heading-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    flex-basis: 40px;
+
+    border-radius: 11px;
+  }
+
+  .chegou-notification-center-page__heading-copy h1 {
+    font-size: 21px;
+  }
+
+  .chegou-notification-center-page__heading-copy p {
+    font-size: 13px;
+  }
+
+  .chegou-notification-center-page__workspace {
+    border-radius: 12px;
+  }
+
+  .chegou-notification-center-page__toolbar {
+    padding: 12px;
+  }
+
+  .chegou-notification-center-page__filter-button {
+    width: 44px;
+    min-width: 44px;
+    flex: 0 0 44px;
+
+    padding: 0;
+  }
+
+  .chegou-notification-center-page__filter-button span {
+    display: none;
+  }
+
+  .chegou-notification-center-page__tabs {
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    padding: 10px 12px;
+
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chegou-notification-center-page__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chegou-notification-center-page__tab {
+    flex: 0 0 auto;
+  }
+
+  .chegou-notification-center-page__content {
+    min-height: 300px;
+
+    padding: 12px;
+  }
+
+  .chegou-notification-center-page__placeholder {
+    min-height: 104px;
+
+    padding: 14px;
+  }
+}
+
+
+/* =========================================================
+   16. TELAS MUITO PEQUENAS
+========================================================= */
+
+@media (max-width: 420px) {
+  .chegou-notification-center-page__heading {
+    align-items: flex-start;
+  }
+
+  .chegou-notification-center-page__heading-copy h1 {
+    font-size: 20px;
+  }
+
+  .chegou-notification-center-page__search {
+    min-width: 0;
+  }
+
+  .chegou-notification-center-page__filter-button {
+    width: 42px;
+    min-width: 42px;
+    flex-basis: 42px;
+  }
+}
+
+
+/* =========================================================
+   17. ACESSIBILIDADE — REDUÇÃO DE MOVIMENTO
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .chegou-notification-center-page *,
+  .chegou-notification-center-page *::before,
+  .chegou-notification-center-page *::after {
+    scroll-behavior: auto !important;
+
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

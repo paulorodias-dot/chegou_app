@@ -27,6 +27,10 @@ import './CalendarSidebarCard.css'
 function CalendarSidebarCard({
   events = [],
   initialDate = new Date(),
+
+  eyebrow = "Agenda",
+  title = "Calendário",
+
   onOpenCalendar,
   onDateSelect,
   onDateDoubleClick,
@@ -99,8 +103,8 @@ function CalendarSidebarCard({
       <article className="calendar-sidebar-card">
         <header className="calendar-sidebar-card__header">
           <div>
-            <span>Agenda Master</span>
-            <h2>Calendário</h2>
+            <span>{eyebrow}</span>
+            <h2>{title}</h2> 
           </div>
 
           <button

@@ -12,6 +12,7 @@ import {
   Mail,
   Clock,
   Package,
+  PackageSearch,
   Car,
   User,
   HelpCircle,
@@ -216,7 +217,7 @@ export const menusByRole = {
         {
           id: "morador-encomendas-rastreio",
           label: "Rastreio",
-          icon: Package,
+          icon: PackageSearch,
           visible: true,
         },
         {

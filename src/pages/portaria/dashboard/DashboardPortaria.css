@@ -1,0 +1,275 @@
+.dashboard-portaria-page {
+  --dp-bg-page: #f8fafc;
+  --dp-bg-card: #ffffff;
+  --dp-bg-soft: #f1f5f9;
+  --dp-bg-blue-soft: #eff6ff;
+  --dp-bg-orange-soft: #fff7ed;
+
+  --dp-text: #0f172a;
+  --dp-text-secondary: #64748b;
+  --dp-text-muted: #94a3b8;
+
+  --dp-border: #e2e8f0;
+  --dp-border-strong: #cbd5e1;
+
+  --dp-blue: #2563eb;
+  --dp-blue-dark: #1d4ed8;
+
+  --dp-orange: #f97316;
+  --dp-orange-dark: #ea580c;
+
+  --dp-green: #16a34a;
+  --dp-amber: #d97706;
+  --dp-red: #dc2626;
+
+  --dp-shadow-card:
+    0 8px 24px rgba(15, 23, 42, 0.05);
+
+  --dp-shadow-soft:
+    0 4px 16px rgba(15, 23, 42, 0.04);
+
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 28px 24px 40px;
+  color: var(--dp-text);
+  background: transparent;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.dashboard-portaria-page *,
+.dashboard-portaria-page *::before,
+.dashboard-portaria-page *::after {
+  box-sizing: border-box;
+}
+
+.dashboard-portaria-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.dashboard-portaria-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.dashboard-portaria-operational-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+  gap: 12px;
+}
+
+.dashboard-portaria-context-error {
+  max-width: 760px;
+  margin: 30px auto;
+  padding: 20px;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+.dashboard-portaria-context-error strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.dashboard-portaria-context-error p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.girando {
+  animation: dashboard-portaria-spin 0.8s linear infinite;
+}
+
+/* =========================================================
+   MODO ESCURO
+   ========================================================= */
+
+html.modo-escuro .dashboard-portaria-page,
+body.modo-escuro .dashboard-portaria-page {
+  --dp-bg-page: #0f172a;
+  --dp-bg-card: #111c2e;
+  --dp-bg-soft: #18243a;
+  --dp-bg-blue-soft: rgba(37, 99, 235, 0.15);
+  --dp-bg-orange-soft: rgba(154, 52, 18, 0.18);
+
+  --dp-text: #f8fafc;
+  --dp-text-secondary: #cbd5e1;
+  --dp-text-muted: #94a3b8;
+
+  --dp-border: #263449;
+  --dp-border-strong: #3b4b61;
+
+  --dp-shadow-card:
+    0 10px 26px rgba(0, 0, 0, 0.22);
+
+  --dp-shadow-soft:
+    0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+html.modo-escuro
+  .dashboard-portaria-communication-card,
+body.modo-escuro
+  .dashboard-portaria-communication-card {
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(249, 115, 22, 0.18),
+      transparent 42%
+    ),
+    #1d1b1b;
+}
+
+/* =========================================================
+   MODO SISTEMA
+   ========================================================= */
+
+@media (prefers-color-scheme: dark) {
+  html:not(.modo-claro):not(.modo-escuro)
+    .dashboard-portaria-page,
+  body:not(.modo-claro):not(.modo-escuro)
+    .dashboard-portaria-page {
+    --dp-bg-page: #0f172a;
+    --dp-bg-card: #111c2e;
+    --dp-bg-soft: #18243a;
+    --dp-bg-blue-soft:
+      rgba(37, 99, 235, 0.15);
+    --dp-bg-orange-soft:
+      rgba(154, 52, 18, 0.18);
+
+    --dp-text: #f8fafc;
+    --dp-text-secondary: #cbd5e1;
+    --dp-text-muted: #94a3b8;
+
+    --dp-border: #263449;
+    --dp-border-strong: #3b4b61;
+
+    --dp-shadow-card:
+      0 10px 26px rgba(0, 0, 0, 0.22);
+
+    --dp-shadow-soft:
+      0 6px 20px rgba(0, 0, 0, 0.18);
+  }
+}
+
+/* =========================================================
+   RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 1360px) {
+  .dashboard-portaria-page {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .dashboard-portaria-grid {
+    grid-template-columns:
+      minmax(0, 1fr)
+      330px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .dashboard-portaria-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-portaria-page {
+    padding:
+      18px
+      14px
+      calc(92px + env(safe-area-inset-bottom));
+  }
+
+  .dashboard-portaria-content {
+    gap: 14px;
+  }
+
+  .dashboard-portaria-operational-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .dashboard-portaria-page {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}
+
+@supports (padding: max(0px)) {
+  @media (max-width: 900px) {
+    .dashboard-portaria-page {
+      padding-right: max(
+        14px,
+        env(safe-area-inset-right)
+      );
+
+      padding-bottom: max(
+        92px,
+        calc(
+          76px +
+            env(safe-area-inset-bottom)
+        )
+      );
+
+      padding-left: max(
+        14px,
+        env(safe-area-inset-left)
+      );
+    }
+  }
+}
+
+/* =========================================================
+   ANIMAÇÕES
+   ========================================================= */
+
+@keyframes dashboard-portaria-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dashboard-portaria-skeleton {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-portaria-page *,
+  .dashboard-portaria-page *::before,
+  .dashboard-portaria-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

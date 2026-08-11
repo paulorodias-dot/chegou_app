@@ -1,0 +1,134 @@
+.portaria-alerts-card {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid var(--dp-border);
+  border-radius: 14px;
+  background: var(--dp-bg-card);
+  box-shadow: var(--dp-shadow-soft);
+}
+
+.portaria-alerts-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--dp-border);
+}
+
+.portaria-alerts-header > div > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--dp-orange);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+}
+
+.portaria-alerts-header h2 {
+  margin: 0;
+  color: var(--dp-text);
+  font-size: 15px;
+}
+
+.portaria-alerts-header > svg {
+  color: var(--dp-orange);
+}
+
+.portaria-alerts-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 18px 2px 2px;
+  color: var(--dp-text-secondary);
+}
+
+.portaria-alerts-state > svg {
+  min-width: 20px;
+  color: var(--dp-blue);
+}
+
+.portaria-alerts-state.is-error > svg {
+  color: var(--dp-red);
+}
+
+.portaria-alerts-state strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--dp-text);
+  font-size: 13px;
+}
+
+.portaria-alerts-state p {
+  margin: 0;
+  color: var(--dp-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.portaria-alerts-loading {
+  display: grid;
+  gap: 9px;
+  padding-top: 15px;
+}
+
+.portaria-alerts-loading span {
+  display: block;
+  height: 43px;
+  border-radius: 9px;
+  background: linear-gradient(
+    90deg,
+    #f1f5f9 25%,
+    #e2e8f0 50%,
+    #f1f5f9 75%
+  );
+  background-size: 200% 100%;
+  animation: dashboard-portaria-skeleton 1.4s infinite;
+}
+
+.portaria-alerts-list {
+  display: grid;
+}
+
+.portaria-alert-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 57px;
+  padding: 10px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--dp-border);
+  color: var(--dp-text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.portaria-alert-item:last-child {
+  border-bottom: 0;
+}
+
+.portaria-alert-item > span {
+  min-width: 0;
+}
+
+.portaria-alert-item strong,
+.portaria-alert-item small {
+  display: block;
+}
+
+.portaria-alert-item strong {
+  font-size: 12px;
+}
+
+.portaria-alert-item small {
+  margin-top: 3px;
+  color: var(--dp-text-secondary);
+  font-size: 11px;
+}
+
+.portaria-alert-item > svg {
+  min-width: 17px;
+  color: var(--dp-text-muted);
+}

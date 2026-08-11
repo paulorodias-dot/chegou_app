@@ -1,0 +1,59 @@
+.dashboard-morador-header {
+  width: 100%;
+  min-width: 0;
+
+  margin: 0 0 24px;
+}
+
+.dashboard-morador-header__eyebrow {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--dm-orange);
+
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 700;
+
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.dashboard-morador-header h1 {
+  margin: 0;
+
+  color: var(--dm-text);
+
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 700;
+
+  letter-spacing: -0.02em;
+}
+
+.dashboard-morador-header p {
+  max-width: 760px;
+
+  margin: 6px 0 0;
+
+  color: var(--dm-muted);
+
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+@media (max-width: 680px) {
+  .dashboard-morador-header {
+    margin-bottom: 20px;
+  }
+
+  .dashboard-morador-header h1 {
+    font-size: 20px;
+  }
+
+  .dashboard-morador-header p {
+    font-size: 13px;
+  }
+}

@@ -1,36 +1,81 @@
-import divulgueNegocioImage from '../partner-chegou-divulgue-negocio.png'
-import novosClientesImage from '../partner-chegou-novos-clientes.png'
-import sejaParceiroImage from '../partner-chegou-seja-parceiro.png'
+import partnerSejaParceiro from "../partner-chegou-seja-parceiro.png";
+import partnerNovosClientes from "../partner-chegou-novos-clientes.png";
+import partnerDivulgueNegocio from "../partner-chegou-divulgue-negocio.png";
 
-export const TEMPORARY_PARTNER_AD_SLIDES = [
-  {
-    id: 'partner-chegou-seja-parceiro',
-    campaignId: 'PARTNER_CAMPAIGN_TEMP_001',
-    partnerId: 'SISTEMA_CHEGOU',
-    imageSrc: sejaParceiroImage,
+/**
+ * SISTEMA CHEGOU!
+ * PUBLICIDADE INSTITUCIONAL TEMPORÁRIA
+ *
+ * Uso:
+ * - preview visual enquanto o backend de Parceiros/Publicidade
+ *   ainda não estiver disponível;
+ * - reutilização exclusiva pelo PartnerAdCard oficial.
+ *
+ * NÃO representa campanhas reais de produção.
+ *
+ * Quando o resolvedor real de campanhas estiver disponível,
+ * este arquivo deverá deixar de ser utilizado.
+ */
+
+export const TEMPORARY_PARTNER_AD_SLIDES = Object.freeze([
+  Object.freeze({
+    id: "partner-preview-seja-parceiro",
+    campaignId: "partner-preview-seja-parceiro",
+
+    imageSrc: partnerSejaParceiro,
+    imageAlt: "Seja um Parceiro Chegou!",
+
+    label: "Parceiro",
+
+    title: "",
+    description: "",
+
+    href: "",
+    ctaLabel: "",
+
+    validFrom: null,
+    validUntil: null,
+  }),
+
+  Object.freeze({
+    id: "partner-preview-novos-clientes",
+    campaignId: "partner-preview-novos-clientes",
+
+    imageSrc: partnerNovosClientes,
     imageAlt:
-      'Seja um Parceiro Chegou! Sua marca dentro dos condomínios.',
-    label: 'Publicidade',
-    status: 'active',
-  },
-  {
-    id: 'partner-chegou-novos-clientes',
-    campaignId: 'PARTNER_CAMPAIGN_TEMP_002',
-    partnerId: 'SISTEMA_CHEGOU',
-    imageSrc: novosClientesImage,
+      "Sistema Chegou! Parceiros — conecte-se a novos clientes",
+
+    label: "Parceiro",
+
+    title: "",
+    description: "",
+
+    href: "",
+    ctaLabel: "",
+
+    validFrom: null,
+    validUntil: null,
+  }),
+
+  Object.freeze({
+    id: "partner-preview-divulgue-negocio",
+    campaignId: "partner-preview-divulgue-negocio",
+
+    imageSrc: partnerDivulgueNegocio,
     imageAlt:
-      'Quer novos clientes? Anuncie no Sistema Chegou!',
-    label: 'Publicidade',
-    status: 'active',
-  },
-  {
-    id: 'partner-chegou-divulgue-negocio',
-    campaignId: 'PARTNER_CAMPAIGN_TEMP_003',
-    partnerId: 'SISTEMA_CHEGOU',
-    imageSrc: divulgueNegocioImage,
-    imageAlt:
-      'Divulgue seu negócio no Sistema Chegou! Alcance moradores, síndicos e administradores.',
-    label: 'Publicidade',
-    status: 'active',
-  },
-]
+      "Sistema Chegou! Parceiros — divulgue seu negócio",
+
+    label: "Parceiro",
+
+    title: "",
+    description: "",
+
+    href: "",
+    ctaLabel: "",
+
+    validFrom: null,
+    validUntil: null,
+  }),
+]);
+
+export default TEMPORARY_PARTNER_AD_SLIDES;

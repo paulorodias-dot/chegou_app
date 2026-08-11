@@ -1,3 +1,18 @@
+/**
+ * @legacy
+ *
+ * LEGADO OPERACIONAL — NÃO UTILIZAR EM NOVAS IMPLEMENTAÇÕES.
+ *
+ * Este componente permanece temporariamente em funcionamento
+ * até a migração para a Central global oficial localizada em:
+ *
+ * src/components/notifications/
+ * src/pages/notificacoes/
+ *
+ * Não adicionar novas funcionalidades de negócio neste arquivo.
+ * Não remover sem auditoria e homologação dos consumidores atuais.
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import {
   Bell,

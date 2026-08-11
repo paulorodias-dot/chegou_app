@@ -1,0 +1,110 @@
+.portaria-encomendas-summary {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid var(--dp-border);
+  border-radius: 14px;
+  background: var(--dp-bg-card);
+  box-shadow: var(--dp-shadow-soft);
+}
+
+.portaria-encomendas-summary-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--dp-border);
+}
+
+.portaria-encomendas-summary-header span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--dp-orange);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+}
+
+.portaria-encomendas-summary-header h2 {
+  margin: 0;
+  color: var(--dp-text);
+  font-size: 15px;
+}
+
+.portaria-encomendas-summary-header svg {
+  color: var(--dp-blue);
+}
+
+.portaria-encomendas-empty {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  min-height: 143px;
+  padding: 25px 14px 10px;
+  color: var(--dp-text-secondary);
+  text-align: center;
+}
+
+.portaria-encomendas-empty svg {
+  color: var(--dp-blue);
+}
+
+.portaria-encomendas-empty strong {
+  color: var(--dp-text);
+  font-size: 13px;
+}
+
+.portaria-encomendas-empty p {
+  max-width: 440px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.portaria-encomendas-loading {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+  padding-top: 15px;
+}
+
+.portaria-encomendas-loading span {
+  min-height: 88px;
+  border-radius: 10px;
+  background: var(--dp-bg-soft);
+}
+
+.portaria-encomendas-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  padding-top: 14px;
+}
+
+.portaria-encomendas-flow article {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 11px;
+  background: var(--dp-bg-soft);
+}
+
+.portaria-encomendas-flow svg {
+  color: var(--dp-blue);
+}
+
+.portaria-encomendas-flow span {
+  color: var(--dp-text-secondary);
+  font-size: 10px;
+}
+
+.portaria-encomendas-flow strong {
+  color: var(--dp-text);
+  font-size: 18px;
+}
+
+@media (max-width: 680px) {
+  .portaria-encomendas-flow {
+    grid-template-columns: 1fr;
+  }
+}

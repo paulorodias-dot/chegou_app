@@ -7,7 +7,11 @@ import {
 } from "react-router-dom";
 
 import Landing from "./pages/Landing";
+import LandingPremium from "./pages/landing/LandingPremium";
 import Login from "./pages/Login";
+
+import ParceirosEntrada from "./pages/parceiros/entrada";
+
 import RecuperarSenha from "./pages/RecuperarSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
 import CriarSenhaResponsavel from "./pages/CriarSenhaResponsavel";
@@ -31,7 +35,7 @@ import DashboardMaster from './pages/master/dashboard/DashboardMaster'
 import CadastroCondominio from "./pages/master/CadastroCondominio";
 import AuditoriaCondominios from "./pages/master/AuditoriaCondominios";
 
-import DashboardAdmin from "./pages/admin/DashboardAdmin";
+import DashboardAdmin from "./pages/admin/dashboard/DashboardAdmin";
 import CadastroMorador from "./pages/admin/CadastroMorador";
 import ImportacaoMoradoresDivergencias from "./pages/admin/ImportacaoMoradoresDivergencias";
 import AuditoriaMoradoresConvite from "./pages/auditoria/AuditoriaMoradoresConvite";
@@ -42,8 +46,12 @@ import Funcionarios from "./pages/admin/cadastro/Funcionarios";
 import AdminCargosFuncoes from "./pages/admin/AdminCargosFuncoes";
 import CadastroFornecedores from "./pages/admin/CadastroFornecedores";
 
-import MoradorDashboard from "./pages/morador/MoradorDashboard";
-import PortariaInicio from "./pages/portaria/PortariaInicio";
+import DashboardMorador from "./pages/morador/dashboard/DashboardMorador";
+import MoradorRastreio from "./pages/morador/encomendas/rastreio";
+import MoradorNotifications from "./pages/morador/notifications";
+
+import DashboardPortaria from "./pages/portaria/dashboard/DashboardPortaria";
+import RecebimentoEncomendas from "./pages/encomendas/recebimento";
 
 import PaginaPreparando from "./pages/PaginaPreparando";
 import WizardCondominio from "./pages/wizardCondominio";
@@ -544,9 +552,10 @@ function App() {
       paginaAtual === "morador-dashboard"
     ) {
       return (
-        <MoradorDashboard
+        <DashboardMorador
           perfil={perfil}
           usuario={perfil}
+          onNavigate={navegarPara}
         />
       );
     }
@@ -565,7 +574,10 @@ function App() {
       "morador-encomendas-rastreio"
     ) {
       return (
-        <PaginaPreparando titulo="Rastreio de Encomendas" />
+        <MoradorRastreio
+          perfil={perfil}
+          onNavigate={navegarPara}
+        />
       );
     }
 
@@ -614,6 +626,16 @@ function App() {
       );
     }
 
+    if (
+      paginaAtual === "morador-servicos"
+    ) {
+      return (
+        <PaginaPreparando
+          titulo="Serviços"
+        />
+      );
+    }
+
     if (paginaAtual === "morador-perfil") {
       return (
         <PaginaPreparando titulo="Perfil do Morador" />
@@ -625,7 +647,10 @@ function App() {
       "morador-notificacoes"
     ) {
       return (
-        <PaginaPreparando titulo="Notificações do Morador" />
+        <MoradorNotifications
+          perfil={perfil}
+          onNavigate={navegarPara}
+        />
       );
     }
 
@@ -659,11 +684,20 @@ function App() {
   }
 
   function renderizarPaginaPortaria() {
-    if (
-      paginaAtual === "portaria-inicio"
-    ) {
+    if (paginaAtual === "portaria-inicio") {
       return (
-        <PortariaInicio perfil={perfil} />
+        <DashboardPortaria
+          perfil={perfil}
+          onNavigate={navegarPara}
+        />
+      );
+    }
+
+    if (paginaAtual === "receber-encomenda") {
+      return (
+        <RecebimentoEncomendas
+          perfil={perfil}
+        />
       );
     }
 
@@ -822,6 +856,16 @@ function App() {
               <Landing />
             )
           }
+        />
+
+        <Route
+          path="/preview/landing"
+          element={<LandingPremium />}
+        />
+
+        <Route
+          path="/parceiros"
+          element={<ParceirosEntrada />}
         />
 
         <Route

@@ -1,0 +1,212 @@
+.dashboard-morador-page {
+  --dm-bg: #f8fafc;
+
+  --dm-card: #ffffff;
+
+  --dm-text: #0f172a;
+
+  --dm-muted: #64748b;
+
+  --dm-border: #e2e8f0;
+
+  --dm-border-soft: #edf2f7;
+
+  --dm-border-hover: #cbd5e1;
+
+  --dm-soft-bg: #f8fafc;
+
+  --dm-blue: #0f3f8f;
+
+  --dm-orange: #f97316;
+
+  --dm-shadow-card:
+    0 8px 24px
+    rgba(15, 23, 42, 0.055);
+
+  --dm-shadow-hover:
+    0 12px 30px
+    rgba(15, 23, 42, 0.08);
+
+  width: 100%;
+
+  min-width: 0;
+
+  max-width: 1600px;
+
+  margin: 0 auto;
+
+  padding: 28px 24px 40px;
+
+  box-sizing: border-box;
+
+  color: var(--dm-text);
+
+  background: var(--dm-bg);
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.dashboard-morador-page *,
+.dashboard-morador-page *::before,
+.dashboard-morador-page *::after {
+  box-sizing: border-box;
+}
+
+.dashboard-morador-grid {
+  width: 100%;
+
+  min-width: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr) 360px;
+
+  gap: 20px;
+
+  align-items: start;
+}
+
+.dashboard-morador-main {
+  width: 100%;
+
+  min-width: 0;
+}
+
+.dashboard-morador-sidebar {
+  width: 360px;
+
+  min-width: 0;
+
+  position: sticky;
+
+  top: 20px;
+
+  align-self: start;
+
+  max-height:
+    calc(100vh - 40px);
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
+
+  scrollbar-width: thin;
+}
+
+/* DARK */
+
+.dark .dashboard-morador-page,
+body.dark .dashboard-morador-page,
+[data-theme="dark"]
+  .dashboard-morador-page {
+  --dm-bg: #07111f;
+
+  --dm-card: #0f1b2d;
+
+  --dm-text: #e5e7eb;
+
+  --dm-muted: #94a3b8;
+
+  --dm-border:
+    rgba(148, 163, 184, 0.2);
+
+  --dm-border-soft:
+    rgba(148, 163, 184, 0.12);
+
+  --dm-border-hover:
+    rgba(148, 163, 184, 0.34);
+
+  --dm-soft-bg: #111f33;
+
+  --dm-shadow-card:
+    0 12px 30px
+    rgba(0, 0, 0, 0.2);
+
+  --dm-shadow-hover:
+    0 16px 38px
+    rgba(0, 0, 0, 0.27);
+}
+
+/* 1360 */
+
+@media (max-width: 1360px) {
+  .dashboard-morador-grid {
+    grid-template-columns:
+      minmax(0, 1fr) 330px;
+
+    gap: 18px;
+  }
+
+  .dashboard-morador-sidebar {
+    width: 330px;
+  }
+}
+
+/* 1120 */
+
+@media (max-width: 1120px) {
+  .dashboard-morador-grid {
+    grid-template-columns: 1fr;
+
+    gap: 24px;
+  }
+
+  .dashboard-morador-sidebar {
+    position: static;
+
+    width: 100%;
+
+    max-height: none;
+
+    overflow: visible;
+  }
+}
+
+/* 900 */
+
+@media (max-width: 900px) {
+  .dashboard-morador-page {
+    padding:
+      24px
+      20px
+      104px;
+  }
+}
+
+/* 680 */
+
+@media (max-width: 680px) {
+  .dashboard-morador-page {
+    padding:
+      20px
+      14px
+      calc(
+        104px +
+        env(
+          safe-area-inset-bottom,
+          0px
+        )
+      );
+  }
+
+  .dashboard-morador-grid {
+    gap: 20px;
+  }
+}
+
+/* 430 */
+
+@media (max-width: 430px) {
+  .dashboard-morador-page {
+    padding-left: 12px;
+
+    padding-right: 12px;
+  }
+}

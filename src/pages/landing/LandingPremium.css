@@ -1,0 +1,116 @@
+/* ==========================================================
+   SISTEMA CHEGOU!
+   LANDING PAGE PREMIUM — BASE GLOBAL
+========================================================== */
+
+.landing-premium {
+  --lp-primary: #2563eb;
+  --lp-primary-dark: #1d4ed8;
+
+  --lp-accent: #f97316;
+  --lp-accent-dark: #ea580c;
+
+  --lp-text: #0f172a;
+  --lp-text-secondary: #64748b;
+  --lp-text-soft: #94a3b8;
+
+  --lp-background: #f8fafc;
+  --lp-surface: #ffffff;
+  --lp-surface-soft: #f1f5f9;
+
+  --lp-border: #e2e8f0;
+  --lp-border-strong: #cbd5e1;
+
+  --lp-success: #16a34a;
+  --lp-warning: #d97706;
+  --lp-error: #dc2626;
+  --lp-info: #2563eb;
+
+  --lp-header-height: 76px;
+
+  position: relative;
+
+  width: 100%;
+  min-height: 100dvh;
+
+  height: auto;
+
+  overflow-x: hidden;
+  overflow-y: visible;
+
+  background: var(--lp-background);
+  color: var(--lp-text);
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.landing-premium,
+.landing-premium *,
+.landing-premium *::before,
+.landing-premium *::after {
+  box-sizing: border-box;
+}
+
+.landing-premium button,
+.landing-premium a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.landing-premium button {
+  font: inherit;
+}
+
+.landing-premium img {
+  max-width: 100%;
+}
+
+.landing-premium__skip-link {
+  position: fixed;
+
+  top: 12px;
+  left: 12px;
+
+  z-index: 10000;
+
+  padding: 10px 14px;
+
+  background: var(--lp-text);
+  color: #ffffff;
+
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  text-decoration: none;
+
+  transform: translateY(-150%);
+
+  transition: transform 160ms ease;
+}
+
+.landing-premium__skip-link:focus {
+  transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+  .landing-premium {
+    --lp-header-height: 70px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-premium__skip-link {
+    transition: none;
+  }
+}

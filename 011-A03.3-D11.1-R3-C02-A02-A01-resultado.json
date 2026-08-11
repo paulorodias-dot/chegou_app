@@ -1,0 +1,261 @@
+{
+  "codigo_artefato": "011-A03.3-D11.1-R3-C02-A02-A01",
+  "status": "R3_C02_A02_A01_CALLERS_EXTERNOS_APROVADOS",
+  "root_auditado": "C:\\Users\\paulo\\OneDrive\\Documentos\\Software\\Chegou_SaaS\\chegou_saas",
+  "arquivos_auditados": 532,
+  "ocorrencias_totais": 16,
+  "total_testes": 6,
+  "testes_aprovados": 6,
+  "testes_reprovados": 0,
+  "callers_legados_bloqueantes": 0,
+  "callers_legados_por_funcao": {
+    "aprovar_cadastro_morador": 0,
+    "reprovar_cadastro_morador": 0,
+    "aprovar_arquivo_morador": 0,
+    "remover_arquivo_morador": 0,
+    "revogar_convite_morador": 0
+  },
+  "referencias_legadas_historicas_sql": 0,
+  "referencias_legadas_wrapper_interno": 0,
+  "referencias_wrappers_ativas": 0,
+  "wrappers_ativos_por_funcao": {
+    "rpc_admin_morador_auditoria_decidir_v1": 0,
+    "rpc_admin_morador_arquivo_decidir_v1": 0,
+    "rpc_admin_morador_convite_revogar_v1": 0
+  },
+  "detalhes_testes": [
+    {
+      "ordem": 1,
+      "teste": "ZERO_CALLERS_ATIVOS_DAS_CINCO_LEGADAS",
+      "aprovado": true
+    },
+    {
+      "ordem": 2,
+      "teste": "SCAN_FRONTEND_SRC_REALIZADO",
+      "aprovado": true
+    },
+    {
+      "ordem": 3,
+      "teste": "SCAN_EDGE_FUNCTIONS_REALIZADO_OU_DIRETORIO_AUSENTE",
+      "aprovado": true
+    },
+    {
+      "ordem": 4,
+      "teste": "MIGRATIONS_HISTORICAS_CLASSIFICADAS_SEPARADAMENTE",
+      "aprovado": true
+    },
+    {
+      "ordem": 5,
+      "teste": "REFERENCIAS_WRAPPER_MAPEADAS",
+      "aprovado": true
+    },
+    {
+      "ordem": 6,
+      "teste": "ZERO_ALTERACAO_DE_ARQUIVOS",
+      "aprovado": true
+    }
+  ],
+  "controles_reprovados": [],
+  "revoke_legado_autorizado_por_auditoria_externa": true,
+  "proximo_codigo_com_evidencia": "011-A03.3-D11.1-R3-C02-A03",
+  "garantias": {
+    "arquivos_modificados": false,
+    "banco_alterado": false,
+    "revoke_executado": false,
+    "grant_executado": false
+  },
+  "ocorrencias": [
+    {
+      "target": "aprovar_cadastro_morador",
+      "kind": "LEGACY",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 47,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "COMENTARIO_OU_TEXTO",
+      "blocking": false,
+      "reason": "Referência textual sem evidência suficiente de caller runtime.",
+      "excerpt": "\"aprovar_cadastro_morador\","
+    },
+    {
+      "target": "reprovar_cadastro_morador",
+      "kind": "LEGACY",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 48,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "COMENTARIO_OU_TEXTO",
+      "blocking": false,
+      "reason": "Referência textual sem evidência suficiente de caller runtime.",
+      "excerpt": "\"reprovar_cadastro_morador\","
+    },
+    {
+      "target": "aprovar_arquivo_morador",
+      "kind": "LEGACY",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 49,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "COMENTARIO_OU_TEXTO",
+      "blocking": false,
+      "reason": "Referência textual sem evidência suficiente de caller runtime.",
+      "excerpt": "\"aprovar_arquivo_morador\","
+    },
+    {
+      "target": "remover_arquivo_morador",
+      "kind": "LEGACY",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 50,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "COMENTARIO_OU_TEXTO",
+      "blocking": false,
+      "reason": "Referência textual sem evidência suficiente de caller runtime.",
+      "excerpt": "\"remover_arquivo_morador\","
+    },
+    {
+      "target": "revogar_convite_morador",
+      "kind": "LEGACY",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 51,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "COMENTARIO_OU_TEXTO",
+      "blocking": false,
+      "reason": "Referência textual sem evidência suficiente de caller runtime.",
+      "excerpt": "\"revogar_convite_morador\","
+    },
+    {
+      "target": "rpc_admin_morador_auditoria_decidir_v1",
+      "kind": "WRAPPER",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 60,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "WRAPPER_REFERENCIA",
+      "blocking": false,
+      "reason": "Referência ao wrapper sem caracterização de caller runtime.",
+      "excerpt": "\"rpc_admin_morador_auditoria_decidir_v1\","
+    },
+    {
+      "target": "rpc_admin_morador_arquivo_decidir_v1",
+      "kind": "WRAPPER",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 61,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "WRAPPER_REFERENCIA",
+      "blocking": false,
+      "reason": "Referência ao wrapper sem caracterização de caller runtime.",
+      "excerpt": "\"rpc_admin_morador_arquivo_decidir_v1\","
+    },
+    {
+      "target": "rpc_admin_morador_convite_revogar_v1",
+      "kind": "WRAPPER",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 62,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "WRAPPER_REFERENCIA",
+      "blocking": false,
+      "reason": "Referência ao wrapper sem caracterização de caller runtime.",
+      "excerpt": "\"rpc_admin_morador_convite_revogar_v1\","
+    },
+    {
+      "target": "rpc_admin_morador_auditoria_decidir_v1",
+      "kind": "WRAPPER",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 77,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "WRAPPER_REFERENCIA",
+      "blocking": false,
+      "reason": "Referência ao wrapper sem caracterização de caller runtime.",
+      "excerpt": "rpc_admin_morador_auditoria_decidir_v1:"
+    },
+    {
+      "target": "aprovar_cadastro_morador",
+      "kind": "LEGACY",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 79,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "COMENTARIO_OU_TEXTO",
+      "blocking": false,
+      "reason": "Referência textual sem evidência suficiente de caller runtime.",
+      "excerpt": "\"aprovar_cadastro_morador\","
+    },
+    {
+      "target": "reprovar_cadastro_morador",
+      "kind": "LEGACY",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 80,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "COMENTARIO_OU_TEXTO",
+      "blocking": false,
+      "reason": "Referência textual sem evidência suficiente de caller runtime.",
+      "excerpt": "\"reprovar_cadastro_morador\","
+    },
+    {
+      "target": "rpc_admin_morador_arquivo_decidir_v1",
+      "kind": "WRAPPER",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 83,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "WRAPPER_REFERENCIA",
+      "blocking": false,
+      "reason": "Referência ao wrapper sem caracterização de caller runtime.",
+      "excerpt": "rpc_admin_morador_arquivo_decidir_v1:"
+    },
+    {
+      "target": "aprovar_arquivo_morador",
+      "kind": "LEGACY",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 85,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "COMENTARIO_OU_TEXTO",
+      "blocking": false,
+      "reason": "Referência textual sem evidência suficiente de caller runtime.",
+      "excerpt": "\"aprovar_arquivo_morador\","
+    },
+    {
+      "target": "remover_arquivo_morador",
+      "kind": "LEGACY",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 86,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "COMENTARIO_OU_TEXTO",
+      "blocking": false,
+      "reason": "Referência textual sem evidência suficiente de caller runtime.",
+      "excerpt": "\"remover_arquivo_morador\","
+    },
+    {
+      "target": "rpc_admin_morador_convite_revogar_v1",
+      "kind": "WRAPPER",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 89,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "WRAPPER_REFERENCIA",
+      "blocking": false,
+      "reason": "Referência ao wrapper sem caracterização de caller runtime.",
+      "excerpt": "rpc_admin_morador_convite_revogar_v1:"
+    },
+    {
+      "target": "revogar_convite_morador",
+      "kind": "LEGACY",
+      "file": "011-A03.3-D11.1-R3-C02-A02-A01.mjs",
+      "line": 91,
+      "extension": ".mjs",
+      "area": "OUTRO",
+      "classification": "COMENTARIO_OU_TEXTO",
+      "blocking": false,
+      "reason": "Referência textual sem evidência suficiente de caller runtime.",
+      "excerpt": "\"revogar_convite_morador\","
+    }
+  ]
+}

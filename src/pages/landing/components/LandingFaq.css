@@ -1,0 +1,532 @@
+/* ==========================================================
+   SISTEMA CHEGOU!
+   LANDING PAGE PREMIUM — FAQ
+   Versão compacta alinhada às demais seções
+========================================================== */
+
+
+/* ==========================================================
+   SEÇÃO
+========================================================== */
+
+.landing-faq {
+  width: 100%;
+
+  padding:
+    44px
+    max(24px, env(safe-area-inset-right))
+    44px
+    max(24px, env(safe-area-inset-left));
+
+  background: #ffffff;
+
+  scroll-margin-top:
+    calc(var(--lp-header-height) + 20px);
+}
+
+.landing-faq__container {
+  width: 100%;
+  max-width: 1200px;
+
+  margin: 0 auto;
+}
+
+
+/* ==========================================================
+   CABEÇALHO
+========================================================== */
+
+.landing-faq__heading {
+  max-width: 720px;
+
+  margin: 0 auto 24px;
+
+  text-align: center;
+}
+
+.landing-faq__eyebrow {
+  display: inline-block;
+
+  margin-bottom: 8px;
+
+  color: var(--lp-accent);
+
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 800;
+
+  letter-spacing: 0.055em;
+}
+
+.landing-faq__heading h2 {
+  margin: 0;
+
+  color: var(--lp-text);
+
+  font-family:
+    Poppins,
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: clamp(27px, 2.6vw, 34px);
+  line-height: 1.15;
+
+  font-weight: 700;
+
+  letter-spacing: -0.025em;
+}
+
+.landing-faq__heading h2 span {
+  color: var(--lp-primary);
+}
+
+.landing-faq__heading p {
+  max-width: 620px;
+
+  margin: 12px auto 0;
+
+  color: var(--lp-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+
+/* ==========================================================
+   LAYOUT
+========================================================== */
+
+.landing-faq__layout {
+  display: grid;
+
+  grid-template-columns:
+    minmax(220px, 0.58fr)
+    minmax(0, 1.7fr);
+
+  align-items: start;
+
+  gap: 18px;
+}
+
+
+/* ==========================================================
+   CARD LATERAL
+========================================================== */
+
+.landing-faq__intro-card {
+  position: sticky;
+
+  top:
+    calc(var(--lp-header-height) + 20px);
+
+  padding: 18px;
+
+  border:
+    1px solid var(--lp-border);
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f8fafc 0%,
+      #eff6ff 100%
+    );
+
+  box-shadow:
+    0 7px 20px rgba(15, 23, 42, 0.04);
+}
+
+.landing-faq__intro-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 13px;
+
+  border-radius: 11px;
+
+  background:
+    rgba(37, 99, 235, 0.08);
+
+  color: var(--lp-primary);
+}
+
+.landing-faq__intro-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
+.landing-faq__intro-card h3 {
+  margin: 0;
+
+  color: var(--lp-text);
+
+  font-size: 15px;
+  line-height: 1.35;
+
+  font-weight: 700;
+}
+
+.landing-faq__intro-card p {
+  margin: 7px 0 0;
+
+  color: var(--lp-text-secondary);
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.landing-faq__intro-card button {
+  min-height: 34px;
+
+  margin-top: 12px;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--lp-primary);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.landing-faq__intro-card button:hover {
+  color: var(--lp-primary-dark);
+}
+
+.landing-faq__intro-card button:focus-visible {
+  outline:
+    3px solid rgba(37, 99, 235, 0.22);
+
+  outline-offset: 4px;
+
+  border-radius: 4px;
+}
+
+
+/* ==========================================================
+   LISTA
+========================================================== */
+
+.landing-faq__questions {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.landing-faq__item {
+  overflow: hidden;
+
+  border:
+    1px solid var(--lp-border);
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.landing-faq__item--open {
+  border-color:
+    rgba(37, 99, 235, 0.20);
+
+  box-shadow:
+    0 8px 22px rgba(15, 23, 42, 0.05);
+}
+
+.landing-faq__item h3 {
+  margin: 0;
+}
+
+.landing-faq__item h3 > button {
+  width: 100%;
+  min-height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  padding: 10px 14px;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--lp-text);
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.landing-faq__item h3 > button:hover {
+  background: var(--lp-surface-soft);
+}
+
+.landing-faq__item h3 > button:focus-visible {
+  outline:
+    3px solid rgba(37, 99, 235, 0.24);
+
+  outline-offset: -3px;
+}
+
+
+/* ==========================================================
+   PERGUNTA
+========================================================== */
+
+.landing-faq__question-content {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  font-weight: 700;
+}
+
+.landing-faq__question-icon {
+  width: 32px;
+  height: 32px;
+
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background:
+    rgba(37, 99, 235, 0.07);
+
+  color: var(--lp-primary);
+}
+
+.landing-faq__question-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.landing-faq__chevron {
+  width: 18px;
+  height: 18px;
+
+  flex: 0 0 auto;
+
+  color: var(--lp-text-soft);
+
+  transition: transform 180ms ease;
+}
+
+.landing-faq__chevron--open {
+  transform: rotate(180deg);
+
+  color: var(--lp-primary);
+}
+
+
+/* ==========================================================
+   RESPOSTA
+========================================================== */
+
+.landing-faq__answer {
+  display: grid;
+
+  grid-template-rows: 0fr;
+
+  visibility: hidden;
+
+  transition:
+    grid-template-rows 220ms ease,
+    visibility 220ms ease;
+}
+
+.landing-faq__answer--open {
+  grid-template-rows: 1fr;
+
+  visibility: visible;
+}
+
+.landing-faq__answer > div {
+  min-height: 0;
+
+  overflow: hidden;
+}
+
+.landing-faq__answer p {
+  margin: 0;
+
+  padding:
+    0 48px 14px 56px;
+
+  color: var(--lp-text-secondary);
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+
+/* ==========================================================
+   DESKTOP INTERMEDIÁRIO
+========================================================== */
+
+@media (max-width: 1200px) {
+  .landing-faq {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+}
+
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width: 900px) {
+  .landing-faq {
+    padding:
+      40px
+      max(20px, env(safe-area-inset-right))
+      40px
+      max(20px, env(safe-area-inset-left));
+  }
+
+  .landing-faq__layout {
+    grid-template-columns: 1fr;
+
+    gap: 14px;
+  }
+
+  .landing-faq__intro-card {
+    position: static;
+
+    max-width: 680px;
+    width: 100%;
+
+    margin: 0 auto;
+
+    text-align: center;
+  }
+
+  .landing-faq__intro-icon {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .landing-faq__questions {
+    max-width: 760px;
+    width: 100%;
+
+    margin: 0 auto;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 680px) {
+  .landing-faq {
+    padding:
+      34px
+      max(14px, env(safe-area-inset-right))
+      34px
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .landing-faq__heading {
+    margin-bottom: 20px;
+  }
+
+  .landing-faq__heading h2 {
+    font-size:
+      clamp(25px, 7.5vw, 30px);
+  }
+
+  .landing-faq__heading p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .landing-faq__intro-card {
+    padding: 16px;
+
+    border-radius: 13px;
+  }
+
+  .landing-faq__item h3 > button {
+    min-height: 54px;
+
+    padding: 10px 12px;
+  }
+
+  .landing-faq__question-content {
+    gap: 9px;
+
+    font-size: 13px;
+  }
+
+  .landing-faq__question-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .landing-faq__answer p {
+    padding:
+      0 12px 14px 53px;
+
+    font-size: 12px;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE COMPACTO
+========================================================== */
+
+@media (max-width: 430px) {
+  .landing-faq {
+    padding-top: 30px;
+    padding-bottom: 30px;
+  }
+
+  .landing-faq__heading h2 {
+    font-size: 25px;
+  }
+
+  .landing-faq__answer p {
+    padding-left: 12px;
+  }
+}
+
+
+/* ==========================================================
+   REDUÇÃO DE MOVIMENTO
+========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-faq__item,
+  .landing-faq__chevron,
+  .landing-faq__answer {
+    transition: none;
+  }
+}

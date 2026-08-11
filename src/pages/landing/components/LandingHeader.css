@@ -1,0 +1,597 @@
+/* ==========================================================
+   SISTEMA CHEGOU!
+   LANDING PAGE PREMIUM — HEADER
+========================================================== */
+
+
+/* ==========================================================
+   HEADER BASE
+========================================================== */
+
+.landing-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  width: 100%;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.landing-header__inner {
+  width: 100%;
+  max-width: 1440px;
+  min-height: var(--lp-header-height);
+
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+
+  gap: 24px;
+
+  padding:
+    max(10px, env(safe-area-inset-top))
+    max(28px, env(safe-area-inset-right))
+    10px
+    max(28px, env(safe-area-inset-left));
+}
+
+
+/* ==========================================================
+   LOGO
+========================================================== */
+
+.landing-header__brand {
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+
+  text-decoration: none;
+}
+
+.landing-header__logo {
+  display: block;
+
+  width: auto;
+  height: 42px;
+  max-width: 164px;
+
+  object-fit: contain;
+}
+
+
+/* ==========================================================
+   NAVEGAÇÃO DESKTOP
+========================================================== */
+
+.landing-header__nav {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+}
+
+.landing-header__link {
+  min-height: 40px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  padding: 0 10px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: transparent;
+  color: var(--lp-text);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.landing-header__link:hover {
+  background: var(--lp-surface-soft);
+  color: var(--lp-primary);
+}
+
+
+/* ==========================================================
+   SUBMENU — ASSINATURAS
+========================================================== */
+
+.landing-header__submenu {
+  position: relative;
+}
+
+.landing-header__link--submenu {
+  white-space: nowrap;
+}
+
+.landing-header__chevron {
+  flex: 0 0 auto;
+
+  transition: transform 160ms ease;
+}
+
+.landing-header__chevron--open {
+  transform: rotate(180deg);
+}
+
+.landing-header__submenu-panel {
+  position: absolute;
+
+  top: calc(100% + 10px);
+  left: 50%;
+
+  z-index: 20;
+
+  width: 220px;
+
+  padding: 8px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--lp-border);
+  border-radius: 14px;
+
+  box-shadow:
+    0 18px 48px rgba(15, 23, 42, 0.12);
+
+  transform: translateX(-50%);
+}
+
+.landing-header__submenu-panel::before {
+  content: "";
+
+  position: absolute;
+
+  top: -10px;
+  left: 0;
+
+  width: 100%;
+  height: 10px;
+}
+
+.landing-header__submenu-panel button {
+  width: 100%;
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 12px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+  color: var(--lp-text);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.landing-header__submenu-panel button:hover {
+  background: var(--lp-surface-soft);
+  color: var(--lp-primary);
+}
+
+
+/* ==========================================================
+   AÇÕES
+========================================================== */
+
+.landing-header__actions {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.landing-header__restricted {
+  min-height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 18px;
+
+  border: 1px solid var(--lp-accent);
+  border-radius: 10px;
+
+  background: var(--lp-accent);
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 20px rgba(249, 115, 22, 0.18);
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.landing-header__restricted:hover {
+  background: var(--lp-accent-dark);
+  border-color: var(--lp-accent-dark);
+
+  box-shadow:
+    0 10px 24px rgba(249, 115, 22, 0.24);
+}
+
+.landing-header__restricted:active {
+  transform: translateY(1px);
+}
+
+
+/* ==========================================================
+   FOCO / ACESSIBILIDADE
+========================================================== */
+
+.landing-header__link:focus-visible,
+.landing-header__restricted:focus-visible,
+.landing-header__mobile-toggle:focus-visible,
+.landing-header__mobile-nav button:focus-visible,
+.landing-header__submenu-panel button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.28);
+  outline-offset: 2px;
+}
+
+
+/* ==========================================================
+   BOTÃO MOBILE
+========================================================== */
+
+.landing-header__mobile-toggle {
+  display: none;
+
+  width: 42px;
+  height: 42px;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid var(--lp-border);
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: var(--lp-text);
+
+  cursor: pointer;
+}
+
+
+/* ==========================================================
+   MOBILE — ESTADO INICIAL
+========================================================== */
+
+.landing-header__mobile-menu,
+.landing-header__mobile-backdrop {
+  display: none;
+}
+
+
+/* ==========================================================
+   DESKTOP INTERMEDIÁRIO
+========================================================== */
+
+@media (max-width: 1360px) {
+  .landing-header__inner {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+
+/* ==========================================================
+   NOTEBOOK
+========================================================== */
+
+@media (max-width: 1120px) {
+  .landing-header__inner {
+    gap: 16px;
+
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .landing-header__nav {
+    gap: 0;
+  }
+
+  .landing-header__link {
+    padding: 0 7px;
+
+    font-size: 13px;
+  }
+
+  .landing-header__restricted {
+    padding: 0 14px;
+
+    font-size: 13px;
+  }
+}
+
+
+/* ==========================================================
+   TABLET / MENU MOBILE
+========================================================== */
+
+@media (max-width: 900px) {
+  .landing-header__inner {
+    min-height: var(--lp-header-height);
+
+    padding:
+      max(8px, env(safe-area-inset-top))
+      max(16px, env(safe-area-inset-right))
+      8px
+      max(16px, env(safe-area-inset-left));
+  }
+
+  .landing-header__logo {
+    height: 38px;
+  }
+
+  .landing-header__nav--desktop {
+    display: none;
+  }
+
+  .landing-header__restricted {
+    display: none;
+  }
+
+  .landing-header__actions {
+    margin-left: auto;
+  }
+
+  .landing-header__mobile-toggle {
+    display: inline-flex;
+  }
+
+
+  /* BACKDROP */
+
+  .landing-header__mobile-backdrop {
+    position: fixed;
+    inset: 0;
+
+    z-index: 998;
+
+    display: block;
+
+    background: rgba(15, 23, 42, 0.36);
+
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+
+  /* PAINEL */
+
+  .landing-header__mobile-menu {
+    position: fixed;
+
+    top: var(--lp-header-height);
+    right: 0;
+
+    z-index: 999;
+
+    width: min(420px, 100%);
+    height: calc(100dvh - var(--lp-header-height));
+
+    display: block;
+
+    padding:
+      20px
+      max(16px, env(safe-area-inset-right))
+      max(24px, env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
+
+    background: #ffffff;
+
+    box-shadow:
+      -18px 0 48px rgba(15, 23, 42, 0.12);
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    transform: translateX(100%);
+
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+      transform 220ms ease,
+      visibility 220ms ease;
+  }
+
+  .landing-header__mobile-menu--open {
+    transform: translateX(0);
+
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .landing-header__mobile-nav {
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+  }
+
+  .landing-header__mobile-nav > button,
+  .landing-header__mobile-submenu-trigger {
+    width: 100%;
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 14px;
+
+    border: 0;
+    border-radius: 10px;
+
+    background: transparent;
+    color: var(--lp-text);
+
+    font-size: 16px;
+    font-weight: 600;
+
+    text-align: left;
+
+    cursor: pointer;
+  }
+
+  .landing-header__mobile-nav > button:hover,
+  .landing-header__mobile-submenu-trigger:hover {
+    background: var(--lp-surface-soft);
+  }
+
+
+  /* SUBMENU MOBILE */
+
+  .landing-header__mobile-submenu {
+    width: 100%;
+  }
+
+  .landing-header__mobile-submenu-panel {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+
+    margin: 4px 0 8px;
+
+    padding-left: 12px;
+  }
+
+  .landing-header__mobile-submenu-panel button {
+    min-height: 44px;
+
+    padding: 0 14px;
+
+    border: 0;
+    border-radius: 10px;
+
+    background: var(--lp-surface-soft);
+    color: var(--lp-text-secondary);
+
+    font-size: 15px;
+    font-weight: 600;
+
+    text-align: left;
+
+    cursor: pointer;
+  }
+
+  .landing-header__mobile-submenu-panel button:hover {
+    color: var(--lp-primary);
+  }
+
+
+  /* ACESSO RESTRITO MOBILE */
+
+  .landing-header__mobile-restricted {
+    margin-top: 12px;
+
+    justify-content: center !important;
+
+    background: var(--lp-accent) !important;
+    color: #ffffff !important;
+
+    font-weight: 700 !important;
+  }
+
+  .landing-header__mobile-restricted:hover {
+    background: var(--lp-accent-dark) !important;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 680px) {
+  .landing-header__inner {
+    padding-left:
+      max(14px, env(safe-area-inset-left));
+
+    padding-right:
+      max(14px, env(safe-area-inset-right));
+  }
+
+  .landing-header__logo {
+    height: 34px;
+    max-width: 142px;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE COMPACTO
+========================================================== */
+
+@media (max-width: 430px) {
+  .landing-header__logo {
+    height: 32px;
+    max-width: 132px;
+  }
+}
+
+
+/* ==========================================================
+   REDUÇÃO DE MOVIMENTO
+========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-header__link,
+  .landing-header__restricted,
+  .landing-header__chevron,
+  .landing-header__submenu-panel button,
+  .landing-header__mobile-menu {
+    transition: none;
+  }
+}

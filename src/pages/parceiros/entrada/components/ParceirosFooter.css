@@ -1,0 +1,407 @@
+.parceiros-footer {
+  width: 100%;
+  min-width: 0;
+
+  color: #ffffff;
+
+  background:
+    var(--partner-navy-950);
+}
+
+/* =========================================================
+   CONTEÚDO PRINCIPAL
+   ========================================================= */
+
+.parceiros-footer__main {
+  width: 100%;
+
+  border-top:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.055
+    );
+}
+
+.parceiros-footer__inner {
+  width:
+    min(
+      calc(100% - 56px),
+      var(--partner-container)
+    );
+
+  margin: 0 auto;
+
+  padding:
+    27px
+    0
+    25px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(220px, 1.15fr)
+    minmax(130px, 0.58fr)
+    minmax(210px, 0.85fr)
+    minmax(210px, 0.85fr);
+
+  gap: 32px;
+}
+
+/* =========================================================
+   MARCA
+   ========================================================= */
+
+.parceiros-footer__brand {
+  min-width: 0;
+}
+
+.parceiros-footer__logo {
+  display: block;
+
+  width: auto;
+  height: auto;
+
+  max-width: 155px;
+  max-height: 54px;
+
+  object-fit: contain;
+}
+
+.parceiros-footer__brand p {
+  max-width: 280px;
+
+  margin:
+    11px
+    0
+    0;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.55
+    );
+
+  font-size: 9.5px;
+
+  line-height: 1.5;
+}
+
+/* =========================================================
+   TÍTULOS
+   ========================================================= */
+
+.parceiros-footer__nav > strong,
+.parceiros-footer__access > strong,
+.parceiros-footer__legal > strong {
+  display: block;
+
+  margin-bottom: 10px;
+
+  color:
+    var(--partner-gold-400);
+
+  font-size: 10.5px;
+
+  font-weight: 750;
+}
+
+/* =========================================================
+   NAVEGAÇÃO
+   ========================================================= */
+
+.parceiros-footer__nav {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+}
+
+.parceiros-footer__nav a {
+  margin-top: 6px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.64
+    );
+
+  font-size: 9.5px;
+
+  text-decoration: none;
+
+  transition:
+    color
+      var(--partner-transition);
+}
+
+.parceiros-footer__nav a:hover {
+  color: #ffffff;
+}
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+
+.parceiros-footer__access p,
+.parceiros-footer__legal p {
+  margin: 0;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.55
+    );
+
+  font-size: 9.2px;
+
+  line-height: 1.5;
+}
+
+.parceiros-footer__login {
+  min-height: 35px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  margin-top: 12px;
+
+  padding:
+    0
+    13px;
+
+  color: #ffffff;
+
+  border:
+    1px solid
+    rgba(
+      229,
+      187,
+      88,
+      0.45
+    );
+
+  border-radius: 8px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.025
+    );
+
+  font-size: 9.5px;
+
+  font-weight: 700;
+
+  text-decoration: none;
+
+  transition:
+    background
+      var(--partner-transition),
+    border-color
+      var(--partner-transition);
+}
+
+.parceiros-footer__login:hover {
+  border-color:
+    var(--partner-gold-400);
+
+  background:
+    rgba(
+      229,
+      187,
+      88,
+      0.07
+    );
+}
+
+/* =========================================================
+   LEGAL
+   ========================================================= */
+
+.parceiros-footer__legal-links {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap:
+    6px
+    12px;
+
+  margin-top: 11px;
+}
+
+.parceiros-footer__legal-links span {
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.48
+    );
+
+  font-size: 8.8px;
+}
+
+/* =========================================================
+   BARRA INFERIOR
+   ========================================================= */
+
+.parceiros-footer__bottom {
+  width: 100%;
+
+  border-top:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.055
+    );
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      0.1
+    );
+}
+
+.parceiros-footer__bottom-inner {
+  width:
+    min(
+      calc(100% - 56px),
+      var(--partner-container)
+    );
+
+  min-height: 42px;
+
+  margin: 0 auto;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.42
+    );
+
+  font-size: 8.5px;
+}
+
+.parceiros-footer__powered {
+  color:
+    rgba(
+      229,
+      187,
+      88,
+      0.7
+    );
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .parceiros-footer__inner {
+    width:
+      min(
+        calc(100% - 32px),
+        var(--partner-container)
+      );
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap:
+      26px
+      28px;
+  }
+
+  .parceiros-footer__bottom-inner {
+    width:
+      min(
+        calc(100% - 32px),
+        var(--partner-container)
+      );
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .parceiros-footer__inner {
+    width:
+      calc(100% - 28px);
+
+    grid-template-columns: 1fr;
+
+    gap: 22px;
+
+    padding:
+      24px
+      0;
+  }
+
+  .parceiros-footer__brand p {
+    max-width: 340px;
+  }
+
+  .parceiros-footer__bottom-inner {
+    width:
+      calc(100% - 28px);
+
+    min-height: 54px;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+    justify-content: center;
+
+    gap: 3px;
+  }
+}
+
+@media (max-width: 430px) {
+  .parceiros-footer__inner,
+  .parceiros-footer__bottom-inner {
+    width:
+      calc(100% - 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parceiros-footer__nav a,
+  .parceiros-footer__login {
+    transition: none;
+  }
+}

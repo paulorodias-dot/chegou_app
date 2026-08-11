@@ -1,0 +1,670 @@
+.parceiros-pricing {
+  width: 100%;
+
+  background: #ffffff;
+}
+
+.parceiros-pricing__inner {
+  width:
+    min(
+      calc(100% - 56px),
+      var(--partner-container)
+    );
+
+  margin: 0 auto;
+
+  padding:
+    4px
+    0
+    36px;
+}
+
+.parceiros-pricing__panel {
+  padding: 24px;
+
+  border:
+    1px solid
+    rgba(214, 166, 58, 0.12);
+
+  border-radius:
+    var(--partner-radius-xl);
+
+  background:
+    linear-gradient(
+      115deg,
+      rgba(255, 249, 233, 0.96),
+      rgba(255, 255, 255, 1) 44%,
+      rgba(249, 251, 253, 1)
+    );
+
+  box-shadow:
+    0 10px 32px
+    rgba(15, 23, 42, 0.045);
+}
+
+.parceiros-pricing__content {
+  display: grid;
+
+  grid-template-columns:
+    minmax(260px, 0.72fr)
+    minmax(0, 1.55fr);
+
+  gap: 30px;
+
+  align-items: center;
+}
+
+/* =========================================================
+   INTRODUÇÃO
+   ========================================================= */
+
+.parceiros-pricing__intro {
+  min-width: 0;
+
+  padding:
+    2px
+    0;
+}
+
+.parceiros-pricing__title {
+  margin: 0;
+
+  color:
+    var(--partner-navy-900);
+
+  font-size:
+    clamp(
+      23px,
+      2vw,
+      28px
+    );
+
+  font-weight: 780;
+
+  line-height: 1.15;
+
+  letter-spacing: -0.025em;
+}
+
+.parceiros-pricing__lead {
+  margin:
+    4px
+    0
+    18px;
+
+  color:
+    var(--partner-navy-800);
+
+  font-size: 14px;
+
+  font-weight: 500;
+}
+
+.parceiros-pricing__benefits {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+
+  margin: 0;
+
+  padding: 0;
+
+  list-style: none;
+}
+
+.parceiros-pricing__benefit {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 9px;
+
+  color:
+    var(--partner-text-secondary);
+
+  font-size: 11.5px;
+
+  line-height: 1.45;
+}
+
+.parceiros-pricing__check {
+  width: 18px;
+  height: 18px;
+
+  flex:
+    0
+    0
+    18px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 0;
+
+  color:
+    var(--partner-gold-500);
+}
+
+/* =========================================================
+   SIMULADOR
+   ========================================================= */
+
+.parceiros-pricing__simulator {
+  min-width: 0;
+
+  padding: 17px;
+
+  border:
+    1px solid
+    rgba(15, 63, 143, 0.1);
+
+  border-radius:
+    var(--partner-radius-lg);
+
+  background:
+    rgba(255, 255, 255, 0.94);
+
+  box-shadow:
+    0 8px 24px
+    rgba(15, 23, 42, 0.055);
+}
+
+.parceiros-pricing__simulator-header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  margin-bottom: 15px;
+}
+
+.parceiros-pricing__simulator-header h3 {
+  margin: 0;
+
+  color:
+    var(--partner-navy-900);
+
+  font-size: 14px;
+
+  font-weight: 760;
+}
+
+.parceiros-pricing__simulator-header p {
+  margin:
+    3px
+    0
+    0;
+
+  color:
+    var(--partner-text-secondary);
+
+  font-size: 10px;
+}
+
+.parceiros-pricing__preview-badge {
+  flex: 0 0 auto;
+
+  padding:
+    5px
+    8px;
+
+  color:
+    var(--partner-navy-700);
+
+  border-radius: 999px;
+
+  background:
+    rgba(15, 63, 143, 0.07);
+
+  font-size: 9px;
+
+  font-weight: 700;
+}
+
+/* =========================================================
+   CAMPOS
+   ========================================================= */
+
+.parceiros-pricing__simulator-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr))
+    minmax(120px, 0.8fr);
+
+  gap: 10px;
+
+  align-items: end;
+}
+
+.parceiros-pricing__field {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.parceiros-pricing__field > span,
+.parceiros-pricing__result-label {
+  color:
+    var(--partner-text-secondary);
+
+  font-size: 9.5px;
+
+  font-weight: 650;
+}
+
+.parceiros-pricing__select-wrap {
+  position: relative;
+
+  width: 100%;
+}
+
+.parceiros-pricing__select-wrap select {
+  width: 100%;
+  height: 38px;
+
+  padding:
+    0
+    32px
+    0
+    11px;
+
+  color:
+    var(--partner-navy-900);
+
+  border:
+    1px solid
+    rgba(15, 23, 42, 0.12);
+
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  font: inherit;
+
+  font-size: 11px;
+
+  appearance: none;
+
+  cursor: pointer;
+}
+
+.parceiros-pricing__select-wrap select:focus {
+  border-color:
+    var(--partner-gold-400);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(229, 187, 88, 0.11);
+}
+
+.parceiros-pricing__select-wrap svg {
+  position: absolute;
+
+  top: 50%;
+  right: 10px;
+
+  color:
+    var(--partner-text-secondary);
+
+  transform:
+    translateY(-50%);
+
+  pointer-events: none;
+}
+
+/* =========================================================
+   RESULTADO
+   ========================================================= */
+
+.parceiros-pricing__result {
+  min-height: 58px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  padding-left: 8px;
+}
+
+.parceiros-pricing__result strong {
+  margin-top: 2px;
+
+  color:
+    var(--partner-navy-950);
+
+  font-size: 23px;
+
+  font-weight: 800;
+
+  line-height: 1.05;
+
+  letter-spacing:
+    -0.025em;
+}
+
+.parceiros-pricing__result small {
+  margin-top: 3px;
+
+  color:
+    var(--partner-text-secondary);
+
+  font-size: 8.5px;
+}
+
+/* =========================================================
+   RODAPÉ DO SIMULADOR
+   ========================================================= */
+
+.parceiros-pricing__simulator-footer {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-top: 15px;
+
+  padding-top: 13px;
+
+  border-top:
+    1px solid
+    rgba(15, 23, 42, 0.07);
+}
+
+.parceiros-pricing__simulator-footer p {
+  margin: 0;
+
+  color:
+    var(--partner-text-secondary);
+
+  font-size: 9px;
+
+  line-height: 1.4;
+}
+
+.parceiros-pricing__simulate-button {
+  min-height: 36px;
+
+  flex: 0 0 auto;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding:
+    0
+    14px;
+
+  color:
+    var(--partner-navy-950);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.14);
+
+  border-radius: 8px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--partner-gold-400),
+      var(--partner-gold-500)
+    );
+
+  box-shadow:
+    0 7px 18px
+    rgba(214, 166, 58, 0.17);
+
+  font-size: 10.5px;
+
+  font-weight: 750;
+
+  cursor: pointer;
+
+  transition:
+    transform
+      var(--partner-transition),
+    box-shadow
+      var(--partner-transition);
+}
+
+.parceiros-pricing__simulate-button:hover {
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 9px 22px
+    rgba(214, 166, 58, 0.24);
+}
+
+/* =========================================================
+   AVISO COMERCIAL
+   ========================================================= */
+
+.parceiros-pricing__commercial-notice {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 9px;
+
+  margin-top: 16px;
+
+  padding:
+    11px
+    13px;
+
+  color:
+    var(--partner-navy-800);
+
+  border:
+    1px solid
+    rgba(15, 63, 143, 0.09);
+
+  border-radius: 9px;
+
+  background:
+    rgba(240, 246, 253, 0.74);
+}
+
+.parceiros-pricing__commercial-notice svg {
+  flex:
+    0
+    0
+    auto;
+
+  margin-top: 1px;
+}
+
+.parceiros-pricing__commercial-notice p {
+  margin: 0;
+
+  font-size: 10px;
+
+  line-height: 1.48;
+}
+
+/* =========================================================
+   NOTEBOOK
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .parceiros-pricing__content {
+    grid-template-columns:
+      minmax(230px, 0.65fr)
+      minmax(0, 1.35fr);
+
+    gap: 22px;
+  }
+
+  .parceiros-pricing__simulator-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .parceiros-pricing__result {
+    padding-left: 0;
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .parceiros-pricing__inner {
+    width:
+      min(
+        calc(100% - 32px),
+        var(--partner-container)
+      );
+
+    padding-bottom: 30px;
+  }
+
+  .parceiros-pricing__content {
+    grid-template-columns: 1fr;
+
+    gap: 22px;
+  }
+
+  .parceiros-pricing__panel {
+    padding: 20px;
+  }
+
+  .parceiros-pricing__benefits {
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap:
+      9px
+      20px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .parceiros-pricing__inner {
+    width:
+      calc(100% - 28px);
+
+    padding-bottom: 27px;
+  }
+
+  .parceiros-pricing__panel {
+    padding: 16px;
+
+    border-radius:
+      var(--partner-radius-lg);
+  }
+
+  .parceiros-pricing__title {
+    font-size: 21px;
+  }
+
+  .parceiros-pricing__lead {
+    font-size: 13px;
+  }
+
+  .parceiros-pricing__benefits {
+    display: flex;
+
+    flex-direction: column;
+  }
+
+  .parceiros-pricing__simulator {
+    padding: 14px;
+  }
+
+  .parceiros-pricing__simulator-header {
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+  .parceiros-pricing__simulator-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .parceiros-pricing__select-wrap select {
+    /*
+     * Evita zoom automático do Safari/iPhone.
+     */
+    height: 44px;
+
+    font-size: 16px;
+  }
+
+  .parceiros-pricing__result {
+    min-height: auto;
+
+    padding:
+      7px
+      0;
+  }
+
+  .parceiros-pricing__simulator-footer {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .parceiros-pricing__simulate-button {
+    width: 100%;
+
+    min-height: 42px;
+  }
+
+  .parceiros-pricing__commercial-notice p {
+    font-size: 9.5px;
+  }
+}
+
+/* =========================================================
+   MOBILE COMPACTO
+   ========================================================= */
+
+@media (max-width: 430px) {
+  .parceiros-pricing__inner {
+    width:
+      calc(100% - 24px);
+  }
+
+  .parceiros-pricing__panel {
+    padding: 14px;
+  }
+}
+
+/* =========================================================
+   REDUÇÃO DE MOVIMENTO
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .parceiros-pricing__simulate-button {
+    transition: none;
+  }
+}

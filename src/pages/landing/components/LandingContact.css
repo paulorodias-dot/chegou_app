@@ -1,0 +1,482 @@
+/* ==========================================================
+   SISTEMA CHEGOU!
+   LANDING PAGE PREMIUM — CONTATO / CTA FINAL
+   Versão compacta alinhada às demais seções
+========================================================== */
+
+
+/* ==========================================================
+   SEÇÃO
+========================================================== */
+
+.landing-contact {
+  width: 100%;
+
+  padding:
+    44px
+    max(24px, env(safe-area-inset-right))
+    44px
+    max(24px, env(safe-area-inset-left));
+
+  background:
+    linear-gradient(
+      145deg,
+      #0f3f8f 0%,
+      #0d3477 58%,
+      #09285d 100%
+    );
+
+  color: #ffffff;
+
+  scroll-margin-top:
+    calc(var(--lp-header-height) + 20px);
+}
+
+.landing-contact__container {
+  width: 100%;
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.15fr)
+    minmax(300px, 0.72fr);
+
+  align-items: center;
+
+  gap: 34px;
+}
+
+
+/* ==========================================================
+   CONTEÚDO
+========================================================== */
+
+.landing-contact__content {
+  min-width: 0;
+}
+
+.landing-contact__eyebrow {
+  display: inline-block;
+
+  margin-bottom: 8px;
+
+  color: #fb923c;
+
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 800;
+
+  letter-spacing: 0.055em;
+}
+
+.landing-contact__content h2 {
+  max-width: 650px;
+
+  margin: 0;
+
+  color: #ffffff;
+
+  font-family:
+    Poppins,
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: clamp(27px, 2.7vw, 35px);
+  line-height: 1.14;
+
+  font-weight: 700;
+
+  letter-spacing: -0.025em;
+}
+
+.landing-contact__content h2 span {
+  color: #fb923c;
+}
+
+.landing-contact__content > p {
+  max-width: 620px;
+
+  margin: 12px 0 0;
+
+  color:
+    rgba(255, 255, 255, 0.76);
+
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+
+/* ==========================================================
+   AÇÕES
+========================================================== */
+
+.landing-contact__actions {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+.landing-contact__primary-action,
+.landing-contact__secondary-action {
+  min-height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 0 16px;
+
+  border-radius: 10px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.landing-contact__primary-action {
+  border:
+    1px solid var(--lp-accent);
+
+  background:
+    var(--lp-accent);
+
+  color: #ffffff;
+
+  box-shadow:
+    0 8px 20px rgba(249, 115, 22, 0.20);
+}
+
+.landing-contact__primary-action:hover {
+  background:
+    var(--lp-accent-dark);
+
+  border-color:
+    var(--lp-accent-dark);
+
+  transform: translateY(-1px);
+}
+
+.landing-contact__secondary-action {
+  border:
+    1px solid rgba(255, 255, 255, 0.24);
+
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  color: #ffffff;
+}
+
+.landing-contact__secondary-action:hover {
+  background:
+    rgba(255, 255, 255, 0.13);
+
+  border-color:
+    rgba(255, 255, 255, 0.38);
+
+  transform: translateY(-1px);
+}
+
+.landing-contact__primary-action:active,
+.landing-contact__secondary-action:active {
+  transform: translateY(1px);
+}
+
+.landing-contact__primary-action:focus-visible,
+.landing-contact__secondary-action:focus-visible {
+  outline:
+    3px solid rgba(255, 255, 255, 0.30);
+
+  outline-offset: 3px;
+}
+
+
+/* ==========================================================
+   NOTA
+========================================================== */
+
+.landing-contact__note {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 14px;
+
+  color:
+    rgba(255, 255, 255, 0.62);
+
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.landing-contact__note svg {
+  width: 16px;
+  height: 16px;
+
+  flex: 0 0 auto;
+
+  color: #fb923c;
+}
+
+
+/* ==========================================================
+   PAINEL LATERAL
+========================================================== */
+
+.landing-contact__panel {
+  min-width: 0;
+
+  padding: 20px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.14);
+
+  border-radius: 15px;
+
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 16px 38px rgba(2, 8, 23, 0.14);
+}
+
+.landing-contact__panel-label {
+  color: #fb923c;
+
+  font-size: 9px;
+  line-height: 1.2;
+  font-weight: 800;
+
+  letter-spacing: 0.055em;
+}
+
+.landing-contact__panel-items {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 0 18px;
+
+  margin-top: 12px;
+}
+
+.landing-contact__panel-items article {
+  padding: 10px 0;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.10);
+}
+
+.landing-contact__panel-items article:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.landing-contact__panel-items strong {
+  color: #ffffff;
+
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.landing-contact__panel-items p {
+  margin: 3px 0 0;
+
+  color:
+    rgba(255, 255, 255, 0.65);
+
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+
+/* ==========================================================
+   DESKTOP INTERMEDIÁRIO
+========================================================== */
+
+@media (max-width: 1200px) {
+  .landing-contact {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  .landing-contact__container {
+    gap: 28px;
+  }
+}
+
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width: 900px) {
+  .landing-contact {
+    padding:
+      40px
+      max(20px, env(safe-area-inset-right))
+      40px
+      max(20px, env(safe-area-inset-left));
+  }
+
+  .landing-contact__container {
+    grid-template-columns: 1fr;
+
+    gap: 24px;
+  }
+
+  .landing-contact__content {
+    max-width: 720px;
+
+    margin: 0 auto;
+
+    text-align: center;
+  }
+
+  .landing-contact__content h2,
+  .landing-contact__content > p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .landing-contact__actions {
+    justify-content: center;
+  }
+
+  .landing-contact__note {
+    justify-content: center;
+  }
+
+  .landing-contact__panel {
+    width: min(100%, 680px);
+
+    margin: 0 auto;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 680px) {
+  .landing-contact {
+    padding:
+      34px
+      max(14px, env(safe-area-inset-right))
+      34px
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .landing-contact__content h2 {
+    font-size:
+      clamp(25px, 7.5vw, 30px);
+  }
+
+  .landing-contact__content > p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .landing-contact__actions {
+    flex-direction: column;
+
+    margin-top: 18px;
+  }
+
+  .landing-contact__primary-action,
+  .landing-contact__secondary-action {
+    width: 100%;
+
+    min-height: 46px;
+
+    font-size: 15px;
+  }
+
+  .landing-contact__note {
+    align-items: flex-start;
+    justify-content: flex-start;
+
+    text-align: left;
+  }
+
+  .landing-contact__panel {
+    padding: 16px;
+
+    border-radius: 14px;
+  }
+
+  .landing-contact__panel-items {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-contact__panel-items article {
+    border-bottom:
+      1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  .landing-contact__panel-items article:nth-last-child(-n + 2) {
+    border-bottom:
+      1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  .landing-contact__panel-items article:last-child {
+    border-bottom: 0;
+  }
+
+  .landing-contact__panel-items strong {
+    font-size: 12px;
+  }
+
+  .landing-contact__panel-items p {
+    font-size: 11px;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE COMPACTO
+========================================================== */
+
+@media (max-width: 430px) {
+  .landing-contact {
+    padding-top: 30px;
+    padding-bottom: 30px;
+  }
+
+  .landing-contact__content h2 {
+    font-size: 25px;
+  }
+}
+
+
+/* ==========================================================
+   REDUÇÃO DE MOVIMENTO
+========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-contact__primary-action,
+  .landing-contact__secondary-action {
+    transition: none;
+  }
+}

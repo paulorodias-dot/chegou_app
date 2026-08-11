@@ -1,0 +1,693 @@
+/* ==========================================================
+   SISTEMA CHEGOU!
+   LANDING PAGE PREMIUM — HERO
+   Versão compacta alinhada à Landing homologada
+========================================================== */
+
+
+/* ==========================================================
+   HERO BASE
+========================================================== */
+
+.landing-hero {
+  position: relative;
+
+  width: 100%;
+
+  background: #ffffff;
+
+  overflow: hidden;
+}
+
+.landing-hero__background {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at 78% 35%,
+      rgba(37, 99, 235, 0.055),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 8% 90%,
+      rgba(249, 115, 22, 0.025),
+      transparent 22%
+    );
+}
+
+
+/* ==========================================================
+   CONTAINER
+========================================================== */
+
+.landing-hero__container {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  max-width: 1440px;
+
+  min-height: 470px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 0.88fr)
+    minmax(500px, 1.12fr);
+
+  align-items: center;
+
+  gap: 30px;
+
+  padding:
+    34px
+    max(32px, env(safe-area-inset-right))
+    30px
+    max(32px, env(safe-area-inset-left));
+}
+
+
+/* ==========================================================
+   CONTEÚDO
+========================================================== */
+
+.landing-hero__content {
+  position: relative;
+  z-index: 3;
+
+  width: 100%;
+  max-width: 580px;
+}
+
+.landing-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 26px;
+
+  margin-bottom: 12px;
+
+  padding: 0 10px;
+
+  border:
+    1px solid rgba(37, 99, 235, 0.09);
+
+  border-radius: 999px;
+
+  background:
+    rgba(37, 99, 235, 0.06);
+
+  color: var(--lp-primary);
+
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 800;
+
+  letter-spacing: 0.055em;
+}
+
+.landing-hero__title {
+  max-width: 570px;
+
+  margin: 0;
+
+  color: var(--lp-text);
+
+  font-family:
+    Poppins,
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size:
+    clamp(34px, 3vw, 44px);
+
+  line-height: 1.08;
+
+  font-weight: 800;
+
+  letter-spacing: -0.035em;
+}
+
+.landing-hero__title span {
+  color: var(--lp-accent);
+}
+
+.landing-hero__description {
+  max-width: 550px;
+
+  margin: 14px 0 0;
+
+  color: var(--lp-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.55;
+
+  font-weight: 400;
+}
+
+
+/* ==========================================================
+   AÇÕES
+========================================================== */
+
+.landing-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-top: 20px;
+}
+
+.landing-hero__primary-action,
+.landing-hero__secondary-action {
+  min-height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 0 16px;
+
+  border-radius: 10px;
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+
+  touch-action: manipulation;
+}
+
+.landing-hero__primary-action {
+  border:
+    1px solid var(--lp-accent);
+
+  background:
+    var(--lp-accent);
+
+  color: #ffffff;
+
+  box-shadow:
+    0 7px 18px rgba(249, 115, 22, 0.17);
+}
+
+.landing-hero__primary-action:hover {
+  background:
+    var(--lp-accent-dark);
+
+  border-color:
+    var(--lp-accent-dark);
+
+  box-shadow:
+    0 9px 22px rgba(249, 115, 22, 0.22);
+
+  transform: translateY(-1px);
+}
+
+.landing-hero__secondary-action {
+  border:
+    1px solid var(--lp-border);
+
+  background: #ffffff;
+  color: var(--lp-text);
+}
+
+.landing-hero__secondary-action:hover {
+  border-color:
+    var(--lp-primary);
+
+  color:
+    var(--lp-primary);
+
+  transform: translateY(-1px);
+}
+
+.landing-hero__primary-action:active,
+.landing-hero__secondary-action:active {
+  transform: translateY(1px);
+}
+
+.landing-hero__primary-action:focus-visible,
+.landing-hero__secondary-action:focus-visible {
+  outline:
+    3px solid rgba(37, 99, 235, 0.25);
+
+  outline-offset: 3px;
+}
+
+
+/* ==========================================================
+   CONFIANÇA
+========================================================== */
+
+.landing-hero__trust {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 13px;
+
+  margin-top: 13px;
+}
+
+.landing-hero__trust span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color:
+    var(--lp-text-secondary);
+
+  font-size: 11px;
+  line-height: 1.4;
+
+  font-weight: 600;
+}
+
+.landing-hero__trust svg {
+  width: 15px;
+  height: 15px;
+
+  flex: 0 0 auto;
+
+  color:
+    var(--lp-primary);
+}
+
+
+/* ==========================================================
+   CHAMADA — PARCEIROS
+========================================================== */
+
+.landing-hero__partners {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 5px;
+
+  margin-top: 13px;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 11px;
+  line-height: 1.5;
+
+  color:
+    var(--lp-text-secondary);
+}
+
+.landing-hero__partners-link {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color:
+    var(--lp-primary);
+
+  font: inherit;
+  font-weight: 700;
+
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    gap 160ms ease;
+}
+
+.landing-hero__partners-link:hover {
+  color:
+    var(--lp-primary-dark);
+
+  gap: 8px;
+}
+
+.landing-hero__partners-link:focus-visible {
+  outline:
+    3px solid rgba(37, 99, 235, 0.22);
+
+  outline-offset: 4px;
+
+  border-radius: 4px;
+}
+
+.landing-hero__partners-link span {
+  font-size: 14px;
+  line-height: 1;
+}
+
+
+/* ==========================================================
+   ÁREA VISUAL
+========================================================== */
+
+.landing-hero__visual {
+  position: relative;
+
+  width: 100%;
+  min-width: 0;
+
+  height: 395px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+
+/* ==========================================================
+   CURVA DA ARTE
+========================================================== */
+
+.landing-hero__image-shape {
+  position: absolute;
+
+  top: 0;
+  right: -32px;
+  bottom: 0;
+
+  width:
+    calc(100% + 62px);
+
+  overflow: hidden;
+
+  border-radius:
+    46% 0 0 46%
+    / 50% 0 0 50%;
+
+  background:
+    #eff6ff;
+
+  box-shadow:
+    0 16px 38px rgba(15, 23, 42, 0.07);
+}
+
+.landing-hero__mascot {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: center;
+
+  filter: none;
+}
+
+
+/* ==========================================================
+   DESKTOP INTERMEDIÁRIO
+========================================================== */
+
+@media (max-width: 1360px) {
+  .landing-hero__container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+
+/* ==========================================================
+   NOTEBOOK
+========================================================== */
+
+@media (max-width: 1120px) {
+  .landing-hero__container {
+    min-height: 445px;
+
+    grid-template-columns:
+      minmax(0, 0.95fr)
+      minmax(420px, 1.05fr);
+
+    gap: 24px;
+
+    padding:
+      30px
+      max(24px, env(safe-area-inset-right))
+      28px
+      max(24px, env(safe-area-inset-left));
+  }
+
+  .landing-hero__title {
+    font-size:
+      clamp(32px, 3.7vw, 40px);
+  }
+
+  .landing-hero__visual {
+    height: 370px;
+  }
+
+  .landing-hero__image-shape {
+    right: -24px;
+  }
+}
+
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width: 900px) {
+  .landing-hero__container {
+    min-height: auto;
+
+    grid-template-columns: 1fr;
+
+    gap: 22px;
+
+    padding:
+      38px
+      max(20px, env(safe-area-inset-right))
+      30px
+      max(20px, env(safe-area-inset-left));
+  }
+
+  .landing-hero__content {
+    max-width: 680px;
+
+    margin: 0 auto;
+
+    text-align: center;
+  }
+
+  .landing-hero__title {
+    max-width: 680px;
+
+    margin-left: auto;
+    margin-right: auto;
+
+    font-size:
+      clamp(32px, 5.5vw, 40px);
+  }
+
+  .landing-hero__description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .landing-hero__actions,
+  .landing-hero__trust {
+    justify-content: center;
+  }
+
+  .landing-hero__partners {
+    justify-content: center;
+
+    max-width: 620px;
+
+    margin-right: auto;
+    margin-left: auto;
+
+    text-align: center;
+  }
+
+  .landing-hero__visual {
+    width:
+      min(100%, 700px);
+
+    height: 350px;
+
+    margin: 0 auto;
+  }
+
+  .landing-hero__image-shape {
+    position: relative;
+
+    top: auto;
+    right: auto;
+    bottom: auto;
+
+    width: 100%;
+    height: 100%;
+
+    border-radius:
+      50% 50% 16px 16px
+      / 22% 22% 16px 16px;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 680px) {
+  .landing-hero__container {
+    gap: 18px;
+
+    padding:
+      30px
+      max(14px, env(safe-area-inset-right))
+      22px
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .landing-hero__eyebrow {
+    min-height: 24px;
+
+    margin-bottom: 11px;
+
+    padding: 0 9px;
+
+    font-size: 9px;
+  }
+
+  .landing-hero__title {
+    font-size:
+      clamp(28px, 8vw, 33px);
+
+    line-height: 1.1;
+
+    letter-spacing: -0.025em;
+  }
+
+  .landing-hero__description {
+    margin-top: 12px;
+
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .landing-hero__actions {
+    flex-direction: column;
+
+    gap: 8px;
+
+    margin-top: 18px;
+  }
+
+  .landing-hero__primary-action,
+  .landing-hero__secondary-action {
+    width: 100%;
+
+    min-height: 46px;
+
+    font-size: 15px;
+  }
+
+  .landing-hero__trust {
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 6px;
+
+    margin-top: 12px;
+  }
+
+  .landing-hero__partners {
+    display: block;
+
+    margin-top: 12px;
+
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .landing-hero__partners > span {
+    display: block;
+  }
+
+  .landing-hero__partners-link {
+    margin-top: 4px;
+  }
+
+  .landing-hero__visual {
+    height: 290px;
+  }
+
+  .landing-hero__image-shape {
+    border-radius:
+      46% 46% 14px 14px
+      / 18% 18% 14px 14px;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE COMPACTO
+========================================================== */
+
+@media (max-width: 430px) {
+  .landing-hero__container {
+    padding-top: 26px;
+  }
+
+  .landing-hero__title {
+    font-size: 28px;
+  }
+
+  .landing-hero__visual {
+    height: 250px;
+  }
+}
+
+
+/* ==========================================================
+   REDUÇÃO DE MOVIMENTO
+========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero__primary-action,
+  .landing-hero__secondary-action,
+  .landing-hero__partners-link {
+    transition: none;
+  }
+}

@@ -1,0 +1,3332 @@
+/* =========================================================
+   SISTEMA CHEGOU!
+   MÓDULO MORADOR — ENCOMENDAS > RASTREIO
+
+   Referência:
+   Design System Premium — Transportadoras / Módulo Master
+
+   Diretrizes:
+   - Claro / Escuro / Sistema
+   - Desktop / Notebook
+   - Tablet horizontal / vertical
+   - Android / iPhone / PWA
+   - Safe Areas
+   - Proteção contra zoom automático no iPhone
+   - Cards Premium
+   - Sidebar Direita Premium
+   - Modal Premium
+   - Drawer Premium
+   - Reduced Motion
+   ========================================================= */
+
+
+/* =========================================================
+   01. TOKENS DA SUPERFÍCIE
+   ========================================================= */
+
+.morador-rastreio,
+.rastreio-modal-backdrop,
+.rastreio-drawer-backdrop {
+  --mr-bg-page: #f8fafc;
+  --mr-bg-card: #ffffff;
+  --mr-bg-soft: #f1f5f9;
+
+  --mr-bg-blue-soft: #eff6ff;
+  --mr-bg-orange-soft: #fff7ed;
+  --mr-bg-green-soft: #f0fdf4;
+  --mr-bg-red-soft: #fef2f2;
+
+  --mr-text: #0f172a;
+  --mr-text-secondary: #64748b;
+  --mr-text-muted: #94a3b8;
+
+  --mr-border: #e2e8f0;
+  --mr-border-strong: #cbd5e1;
+
+  --mr-blue: #2563eb;
+  --mr-blue-dark: #1d4ed8;
+
+  --mr-royal: #0f3f8f;
+  --mr-royal-dark: #0b3275;
+
+  --mr-orange: #f97316;
+  --mr-orange-dark: #ea580c;
+
+  --mr-green: #16a34a;
+  --mr-amber: #d97706;
+  --mr-red: #dc2626;
+
+  --mr-shadow-card:
+    0 8px 24px rgba(15, 23, 42, 0.05);
+
+  --mr-shadow-soft:
+    0 4px 16px rgba(15, 23, 42, 0.04);
+
+  --mr-shadow-modal:
+    0 24px 70px rgba(15, 23, 42, 0.25);
+
+  --mr-shadow-drawer:
+    -18px 0 60px rgba(15, 23, 42, 0.22);
+}
+
+
+/* =========================================================
+   02. BOX SIZING
+   ========================================================= */
+
+.morador-rastreio *,
+.morador-rastreio *::before,
+.morador-rastreio *::after,
+.rastreio-modal-backdrop *,
+.rastreio-modal-backdrop *::before,
+.rastreio-modal-backdrop *::after,
+.rastreio-drawer-backdrop *,
+.rastreio-drawer-backdrop *::before,
+.rastreio-drawer-backdrop *::after {
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   03. PÁGINA
+   ========================================================= */
+
+.morador-rastreio {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+
+  padding:
+    28px
+    24px
+    40px;
+
+  color: var(--mr-text);
+
+  background: transparent;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.morador-rastreio__container {
+  width: 100%;
+  max-width: 1600px;
+
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   04. GRID PRINCIPAL
+   Conteúdo + Sidebar Direita Premium
+   ========================================================= */
+
+.morador-rastreio__page-grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    360px;
+
+  align-items: start;
+
+  gap: 20px;
+
+  width: 100%;
+}
+
+
+/* =========================================================
+   05. HEADER
+   ========================================================= */
+
+.rastreio-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  min-height: 102px;
+}
+
+.rastreio-header__content {
+  min-width: 0;
+  max-width: 780px;
+}
+
+.rastreio-header__eyebrow {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-bottom: 5px;
+
+  color: var(--mr-orange);
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.rastreio-header h1 {
+  margin: 0;
+
+  color: var(--mr-text);
+
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.rastreio-header p {
+  max-width: 760px;
+
+  margin: 7px 0 0;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.rastreio-header__action {
+  display: flex;
+
+  flex: 0 0 auto;
+
+  gap: 10px;
+}
+
+
+/* =========================================================
+   06. BOTÕES
+   ========================================================= */
+
+.rastreio-primary-button,
+.rastreio-secondary-button,
+.rastreio-danger-button,
+.rastreio-filter-button,
+.rastreio-icon-button {
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+}
+
+.rastreio-primary-button,
+.rastreio-secondary-button,
+.rastreio-danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  min-height: 40px;
+
+  padding: 0 16px;
+
+  border: 0;
+  border-radius: 10px;
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+
+.rastreio-primary-button {
+  color: #ffffff;
+
+  background: var(--mr-orange);
+
+  box-shadow:
+    0 8px 18px rgba(249, 115, 22, 0.18);
+}
+
+.rastreio-primary-button:hover:not(:disabled) {
+  background: var(--mr-orange-dark);
+
+  transform: translateY(-1px);
+}
+
+.rastreio-secondary-button {
+  color: var(--mr-text);
+
+  border: 1px solid var(--mr-border);
+
+  background: var(--mr-bg-card);
+}
+
+.rastreio-secondary-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.rastreio-danger-button {
+  color: #ffffff;
+
+  background: var(--mr-red);
+}
+
+.rastreio-danger-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.rastreio-primary-button:disabled,
+.rastreio-secondary-button:disabled,
+.rastreio-danger-button:disabled,
+.rastreio-filter-button:disabled,
+.rastreio-icon-button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.55;
+
+  transform: none;
+}
+
+.rastreio-icon-button {
+  display: inline-grid;
+  place-items: center;
+
+  width: 40px;
+  height: 40px;
+
+  padding: 0;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 10px;
+
+  color: var(--mr-text-secondary);
+
+  background: var(--mr-bg-card);
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.rastreio-icon-button:hover {
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+
+/* =========================================================
+   07. WORKSPACE
+   ========================================================= */
+
+.morador-rastreio__workspace {
+  min-width: 0;
+  min-height: 420px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 14px;
+
+  background: var(--mr-bg-card);
+
+  box-shadow: var(--mr-shadow-soft);
+}
+
+
+/* =========================================================
+   08. ABAS PRINCIPAIS
+   ========================================================= */
+
+.morador-rastreio__views {
+  padding:
+    16px
+    16px
+    0;
+}
+
+.morador-rastreio__view-tabs {
+  display: flex;
+
+  gap: 6px;
+
+  width: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: none;
+}
+
+.morador-rastreio__view-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.morador-rastreio__view-tab {
+  flex: 0 0 auto;
+
+  min-height: 38px;
+
+  padding: 0 13px;
+
+  border: 0;
+  border-radius: 9px;
+
+  color: var(--mr-text-secondary);
+
+  background: transparent;
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.morador-rastreio__view-tab:hover {
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+.morador-rastreio__view-tab--active {
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+
+/* =========================================================
+   09. FILTROS
+   ========================================================= */
+
+.rastreio-filters {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding:
+    14px
+    16px
+    16px;
+
+  border-bottom: 1px solid var(--mr-border);
+}
+
+.rastreio-search {
+  position: relative;
+
+  flex: 1;
+
+  min-width: 0;
+}
+
+.rastreio-search__icon {
+  position: absolute;
+
+  top: 50%;
+  left: 12px;
+
+  transform: translateY(-50%);
+
+  color: var(--mr-text-secondary);
+
+  pointer-events: none;
+}
+
+.rastreio-search input {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+
+  padding:
+    0
+    12px
+    0
+    40px;
+
+  border: 1px solid var(--mr-border-strong);
+  border-radius: 10px;
+
+  outline: 0;
+
+  color: var(--mr-text);
+
+  background: var(--mr-bg-card);
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 12px;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.rastreio-search input::placeholder {
+  color: var(--mr-text-muted);
+}
+
+.rastreio-search input:focus {
+  border-color: var(--mr-blue);
+
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.rastreio-filter-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  min-height: 40px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--mr-border-strong);
+  border-radius: 10px;
+
+  color: var(--mr-text);
+
+  background: var(--mr-bg-card);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   10. ESTADO VAZIO
+   ========================================================= */
+
+.rastreio-empty {
+  min-height: 420px;
+
+  display: grid;
+
+  align-content: center;
+  justify-items: center;
+
+  gap: 9px;
+
+  padding:
+    48px
+    20px;
+
+  color: var(--mr-text-secondary);
+
+  text-align: center;
+}
+
+.rastreio-empty__icon {
+  display: grid;
+  place-items: center;
+
+  width: 62px;
+  height: 62px;
+
+  margin-bottom: 7px;
+
+  border-radius: 18px;
+
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+.rastreio-empty__content {
+  max-width: 470px;
+}
+
+.rastreio-empty h2 {
+  margin: 0;
+
+  color: var(--mr-text);
+
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.rastreio-empty p {
+  margin:
+    7px
+    0
+    18px;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   11. GRID DE CARDS DE RASTREIO
+   ========================================================= */
+
+.rastreio-cards-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+
+  padding: 16px;
+}
+
+
+/* =========================================================
+   12. CARD DE RASTREIO
+   ========================================================= */
+
+.rastreio-card {
+  min-width: 0;
+
+  padding: 16px;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 14px;
+
+  background: var(--mr-bg-card);
+
+  box-shadow: var(--mr-shadow-card);
+
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.rastreio-card:hover {
+  border-color: var(--mr-border-strong);
+
+  transform: translateY(-1px);
+}
+
+.rastreio-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+.rastreio-card__identity {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 11px;
+
+  min-width: 0;
+}
+
+.rastreio-card__icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 11px;
+
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+.rastreio-card__identity > div:last-child {
+  min-width: 0;
+}
+
+.rastreio-card__description {
+  margin:
+    0
+    0
+    3px;
+
+  overflow: hidden;
+
+  color: var(--mr-text);
+
+  font-size: 13px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rastreio-card__code {
+  display: block;
+
+  overflow-wrap: anywhere;
+
+  color: var(--mr-text-secondary);
+
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  letter-spacing: 0.02em;
+}
+
+
+/* =========================================================
+   13. MENU DO CARD
+   ========================================================= */
+
+.rastreio-card__menu-wrapper {
+  flex: 0 0 auto;
+}
+
+.rastreio-card__menu {
+  position: relative;
+}
+
+.rastreio-card__menu summary {
+  display: grid;
+  place-items: center;
+
+  width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  border-radius: 9px;
+
+  color: var(--mr-text-secondary);
+
+  list-style: none;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.rastreio-card__menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.rastreio-card__menu summary:hover {
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+.rastreio-card__menu-popover {
+  position: absolute;
+
+  z-index: 60;
+
+  top: 40px;
+  right: 0;
+
+  width: 140px;
+
+  padding: 6px;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 10px;
+
+  background: var(--mr-bg-card);
+
+  box-shadow:
+    0 14px 35px rgba(15, 23, 42, 0.14);
+}
+
+.rastreio-card__menu-popover button {
+  width: 100%;
+
+  min-height: 36px;
+
+  padding: 0 10px;
+
+  border: 0;
+  border-radius: 8px;
+
+  color: var(--mr-text);
+
+  background: transparent;
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.rastreio-card__menu-popover button:hover {
+  background: var(--mr-bg-soft);
+}
+
+.rastreio-card__menu-popover
+  .rastreio-card__menu-danger {
+  color: var(--mr-red);
+}
+
+
+/* =========================================================
+   14. METADADOS DO CARD
+   ========================================================= */
+
+.rastreio-card__meta {
+  display: grid;
+
+  gap: 10px;
+
+  margin-top: 17px;
+}
+
+.rastreio-card__meta-item {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  min-width: 0;
+
+  color: var(--mr-text-secondary);
+}
+
+.rastreio-card__meta-item > svg {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+}
+
+.rastreio-card__meta-item > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+}
+
+.rastreio-card__meta-item span {
+  color: var(--mr-text-muted);
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.rastreio-card__meta-item strong {
+  overflow: hidden;
+
+  color: var(--mr-text);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   15. FOOTER DO CARD
+   ========================================================= */
+
+.rastreio-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-top: 17px;
+
+  padding-top: 13px;
+
+  border-top: 1px solid var(--mr-border);
+}
+
+.rastreio-card__status {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 24px;
+
+  padding:
+    0
+    9px;
+
+  border-radius: 999px;
+
+  color: var(--mr-text-secondary);
+
+  background: var(--mr-bg-soft);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.rastreio-card__follow {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 4px;
+
+  padding: 6px 0;
+
+  border: 0;
+
+  color: var(--mr-blue);
+
+  background: transparent;
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   16. SIDEBAR DIREITA PREMIUM
+   ========================================================= */
+
+.rastreio-sidebar {
+  position: sticky;
+
+  top: 18px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+
+  min-width: 0;
+
+  max-height:
+    calc(100dvh - 64px);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  padding-right: 4px;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    var(--mr-border-strong)
+    transparent;
+}
+
+
+/* =========================================================
+   17. CARDS DA SIDEBAR
+   ========================================================= */
+
+.rastreio-sidebar-card {
+  flex: 0 0 auto;
+
+  width: 100%;
+  min-width: 0;
+
+  padding: 16px;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 14px;
+
+  background: var(--mr-bg-card);
+
+  box-shadow: var(--mr-shadow-soft);
+}
+
+.rastreio-sidebar-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 14px;
+}
+
+.rastreio-sidebar-card__header > div:first-child {
+  min-width: 0;
+}
+
+.rastreio-sidebar-card__eyebrow {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: var(--mr-orange);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.rastreio-sidebar-card h2 {
+  margin: 0;
+
+  color: var(--mr-text);
+
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.rastreio-sidebar-card__icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 11px;
+
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+
+/* =========================================================
+   18. SIDEBAR — CARD INTELIGENTE
+   SUAS ENCOMENDAS
+   ========================================================= */
+
+.rastreio-sidebar-card--summary {
+  flex-shrink: 0;
+
+  overflow: hidden;
+}
+
+.rastreio-sidebar-metrics {
+  display: grid;
+
+  gap: 0;
+}
+
+.rastreio-sidebar-metric {
+  display: grid;
+
+  grid-template-columns:
+    34px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 10px;
+
+  min-height: 62px;
+
+  border-bottom: 1px solid var(--mr-border);
+}
+
+.rastreio-sidebar-metric:last-child {
+  border-bottom: 0;
+}
+
+.rastreio-sidebar-metric__icon {
+  display: grid;
+  place-items: center;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 10px;
+
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+.rastreio-sidebar-metric__copy {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+}
+
+.rastreio-sidebar-metric__copy span {
+  color: var(--mr-text);
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.rastreio-sidebar-metric__copy small {
+  color: var(--mr-text-muted);
+
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.rastreio-sidebar-metric > strong {
+  min-width: 26px;
+
+  color: var(--mr-text);
+
+  font-size: 18px;
+  font-weight: 700;
+
+  text-align: right;
+}
+
+
+/* =========================================================
+   19. SIDEBAR — ATUALIZAÇÃO AUTOMÁTICA
+   ========================================================= */
+
+.rastreio-sidebar-realtime {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 7px;
+
+  margin-top: 12px;
+
+  padding:
+    9px
+    10px;
+
+  border-radius: 9px;
+
+  color: var(--mr-text-secondary);
+
+  background: var(--mr-bg-soft);
+}
+
+.rastreio-sidebar-realtime svg {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+
+  color: var(--mr-green);
+}
+
+.rastreio-sidebar-realtime span {
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   20. SIDEBAR — CTA
+   ========================================================= */
+
+.rastreio-sidebar-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  width: 100%;
+  min-height: 38px;
+
+  margin-top: 10px;
+
+  padding:
+    0
+    10px;
+
+  border: 0;
+  border-radius: 9px;
+
+  color: var(--mr-blue);
+
+  background: transparent;
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.rastreio-sidebar-link:hover {
+  background: var(--mr-bg-blue-soft);
+}
+
+
+/* =========================================================
+   21. SIDEBAR — ANTES DE IR À PORTARIA
+   ========================================================= */
+
+.rastreio-sidebar-card--portaria {
+  border-color:
+    rgba(37, 99, 235, 0.16);
+
+  background:
+    linear-gradient(
+      145deg,
+      var(--mr-bg-card),
+      var(--mr-bg-blue-soft)
+    );
+}
+
+.rastreio-sidebar-portaria-copy {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  padding-bottom: 11px;
+
+  border-bottom: 1px solid var(--mr-border);
+}
+
+.rastreio-sidebar-portaria-copy svg {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+
+  color: var(--mr-blue);
+}
+
+.rastreio-sidebar-portaria-copy p {
+  margin: 0;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.rastreio-sidebar-portaria-message {
+  margin:
+    11px
+    0
+    0;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   22. SIDEBAR — COMO FUNCIONA
+   ========================================================= */
+
+.rastreio-sidebar-steps {
+  position: relative;
+
+  display: grid;
+
+  gap: 0;
+
+  margin: 0;
+
+  padding: 0;
+
+  list-style: none;
+}
+
+.rastreio-sidebar-step {
+  position: relative;
+
+  display: grid;
+
+  grid-template-columns:
+    32px
+    minmax(0, 1fr);
+
+  gap: 10px;
+
+  min-height: 64px;
+}
+
+.rastreio-sidebar-step:not(:last-child)::after {
+  content: "";
+
+  position: absolute;
+
+  top: 34px;
+  bottom: 0;
+  left: 15px;
+
+  width: 1px;
+
+  background: var(--mr-border);
+}
+
+.rastreio-sidebar-step__marker {
+  position: relative;
+
+  z-index: 1;
+
+  display: grid;
+  place-items: center;
+
+  width: 32px;
+  height: 32px;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 10px;
+
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-card);
+}
+
+.rastreio-sidebar-step__content {
+  min-width: 0;
+
+  padding:
+    1px
+    0
+    12px;
+}
+
+.rastreio-sidebar-step__content strong {
+  display: block;
+
+  color: var(--mr-text);
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.rastreio-sidebar-step__content span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   23. MODAL — BACKDROP
+   ========================================================= */
+
+.rastreio-modal-backdrop {
+  position: fixed;
+
+  z-index: 1500;
+
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    max(18px, env(safe-area-inset-top))
+    max(18px, env(safe-area-inset-right))
+    max(18px, env(safe-area-inset-bottom))
+    max(18px, env(safe-area-inset-left));
+
+  background:
+    rgba(15, 23, 42, 0.48);
+
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+
+/* =========================================================
+   24. MODAL — ESTRUTURA
+   ========================================================= */
+
+.rastreio-modal {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+
+  max-height:
+    calc(
+      100dvh -
+      36px -
+      env(safe-area-inset-top) -
+      env(safe-area-inset-bottom)
+    );
+
+  overflow: hidden;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 14px;
+
+  color: var(--mr-text);
+
+  background: var(--mr-bg-card);
+
+  box-shadow: var(--mr-shadow-modal);
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+}
+
+.rastreio-modal--medium {
+  max-width: 560px;
+}
+
+.rastreio-modal--large {
+  width: min(720px, 100%);
+  max-width: 720px;
+
+  /*
+   * Altura fixa visual entre as abas.
+   * O min() impede corte quando o viewport for menor.
+   */
+  height:
+    min(
+      620px,
+      calc(
+        100dvh -
+        36px -
+        env(safe-area-inset-top) -
+        env(safe-area-inset-bottom)
+      )
+    );
+}
+
+
+/* =========================================================
+   25. MODAL — HEADER
+   ========================================================= */
+
+.rastreio-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  flex: 0 0 auto;
+
+  gap: 16px;
+
+  padding:
+    18px
+    20px
+    15px;
+
+  border-bottom: 1px solid var(--mr-border);
+
+  background: var(--mr-bg-card);
+}
+
+.rastreio-modal__header > div {
+  min-width: 0;
+}
+
+.rastreio-modal__header h2 {
+  margin: 0;
+
+  color: var(--mr-text);
+
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.rastreio-modal__header p {
+  margin:
+    5px
+    0
+    0;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   26. MODAL — BODY
+   ========================================================= */
+
+.rastreio-modal__body {
+  flex: 1 1 auto;
+
+  min-height: 0;
+
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+
+  padding:
+    18px
+    20px;
+
+  background: var(--mr-bg-card);
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    var(--mr-border-strong)
+    transparent;
+}
+
+
+/* =========================================================
+   27. MODAL — FOOTER
+   ========================================================= */
+
+.rastreio-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  flex: 0 0 auto;
+
+  gap: 10px;
+
+  padding:
+    13px
+    20px
+    max(
+      13px,
+      env(safe-area-inset-bottom)
+    );
+
+  border-top: 1px solid var(--mr-border);
+
+  background: var(--mr-bg-card);
+}
+
+
+/* =========================================================
+   28. MODAL — ABAS
+   ========================================================= */
+
+.rastreio-modal-tabs {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 5px;
+
+  margin-bottom: 18px;
+
+  padding: 5px;
+
+  border-radius: 12px;
+
+  background: var(--mr-bg-soft);
+}
+
+.rastreio-modal-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  min-width: 0;
+  min-height: 40px;
+
+  padding:
+    0
+    10px;
+
+  border: 0;
+  border-radius: 9px;
+
+  color: var(--mr-text-secondary);
+
+  background: transparent;
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.rastreio-modal-tab--active {
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-card);
+
+  box-shadow:
+    0 2px 9px rgba(15, 23, 42, 0.07);
+}
+
+.rastreio-modal-panel {
+  display: flex;
+  flex-direction: column;
+
+  min-height: 330px;
+}
+
+.rastreio-integration-preview,
+.rastreio-capability-placeholder,
+.rastreio-good-practice {
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   29. FORMULÁRIOS
+   ========================================================= */
+
+.rastreio-form-section {
+  display: grid;
+
+  gap: 18px;
+}
+
+.rastreio-form-section__heading h3 {
+  margin: 0;
+
+  color: var(--mr-text);
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rastreio-form-section__heading p {
+  margin:
+    5px
+    0
+    0;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.rastreio-field {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  min-width: 0;
+}
+
+.rastreio-field > span {
+  color: var(--mr-text-secondary);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rastreio-field input {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+
+  padding:
+    0
+    12px;
+
+  border: 1px solid var(--mr-border-strong);
+  border-radius: 10px;
+
+  outline: 0;
+
+  color: var(--mr-text);
+
+  background: var(--mr-bg-card);
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 12px;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.rastreio-field input::placeholder {
+  color: var(--mr-text-muted);
+}
+
+.rastreio-field input:focus {
+  border-color: var(--mr-blue);
+
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.rastreio-field input[readonly] {
+  color: var(--mr-text-secondary);
+
+  background: var(--mr-bg-soft);
+}
+
+.rastreio-field small {
+  color: var(--mr-text-muted);
+
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.rastreio-readonly-field {
+  display: flex;
+  align-items: center;
+
+  min-height: 42px;
+
+  padding:
+    0
+    12px;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 10px;
+
+  color: var(--mr-text-secondary);
+
+  background: var(--mr-bg-soft);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   30. BOAS PRÁTICAS / ORIENTAÇÕES
+   ========================================================= */
+
+.rastreio-good-practice,
+.rastreio-portaria-guidance {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  padding: 13px;
+
+  border:
+    1px solid
+    rgba(37, 99, 235, 0.12);
+
+  border-radius: 11px;
+
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+.rastreio-good-practice > svg,
+.rastreio-portaria-guidance > svg {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+}
+
+.rastreio-good-practice strong,
+.rastreio-portaria-guidance strong {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: var(--mr-text);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rastreio-good-practice p,
+.rastreio-portaria-guidance p {
+  margin: 0;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   31. PREVIEW DE ACOMPANHAMENTO
+   ========================================================= */
+
+.rastreio-integration-preview {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 13px;
+
+  padding: 16px;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 13px;
+
+  background: var(--mr-bg-card);
+}
+
+.rastreio-integration-preview__icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 44px;
+  height: 44px;
+
+  border-radius: 12px;
+
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+.rastreio-integration-preview h3 {
+  margin: 0;
+
+  color: var(--mr-text);
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rastreio-integration-preview p {
+  margin:
+    5px
+    0
+    0;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.rastreio-capability-placeholder {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  margin:
+    12px
+    0;
+
+  padding: 12px;
+
+  border-radius: 10px;
+
+  color: var(--mr-text-secondary);
+
+  background: var(--mr-bg-soft);
+}
+
+.rastreio-capability-placeholder > svg {
+  flex: 0 0 auto;
+
+  color: var(--mr-green);
+}
+
+.rastreio-capability-placeholder strong {
+  display: block;
+
+  margin-bottom: 2px;
+
+  color: var(--mr-text);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rastreio-capability-placeholder p {
+  margin: 0;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.rastreio-integration-note {
+  margin:
+    13px
+    0
+    0;
+
+  color: var(--mr-text-muted);
+
+  font-size: 10px;
+  line-height: 1.45;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   32. EXCLUSÃO
+   ========================================================= */
+
+.rastreio-delete-warning {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 14px;
+}
+
+.rastreio-delete-warning__icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 44px;
+  height: 44px;
+
+  border-radius: 12px;
+
+  color: var(--mr-red);
+
+  background: var(--mr-bg-red-soft);
+}
+
+.rastreio-delete-warning h3 {
+  margin: 0;
+
+  color: var(--mr-text);
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rastreio-delete-warning__code {
+  display: block;
+
+  margin-top: 7px;
+
+  color: var(--mr-text);
+
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+
+  font-size: 12px;
+}
+
+.rastreio-delete-warning p {
+  margin:
+    8px
+    0
+    0;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   33. DRAWER — BACKDROP
+   ========================================================= */
+
+.rastreio-drawer-backdrop {
+  position: fixed;
+
+  z-index: 1550;
+
+  inset: 0;
+
+  display: flex;
+  justify-content: flex-end;
+
+  background:
+    rgba(15, 23, 42, 0.44);
+
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+
+/* =========================================================
+   34. DRAWER
+   ========================================================= */
+
+.rastreio-drawer {
+  display: flex;
+  flex-direction: column;
+
+  width: min(540px, 100%);
+
+  height: 100vh;
+  height: 100dvh;
+
+  color: var(--mr-text);
+
+  background: var(--mr-bg-card);
+
+  box-shadow: var(--mr-shadow-drawer);
+
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+
+  animation:
+    rastreio-drawer-in 220ms ease-out;
+}
+
+.rastreio-drawer__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  flex: 0 0 auto;
+
+  gap: 16px;
+
+  padding:
+    max(
+      19px,
+      env(safe-area-inset-top)
+    )
+    max(
+      20px,
+      env(safe-area-inset-right)
+    )
+    15px
+    max(
+      20px,
+      env(safe-area-inset-left)
+    );
+
+  border-bottom: 1px solid var(--mr-border);
+
+  background: var(--mr-bg-card);
+}
+
+.rastreio-drawer__header > div {
+  min-width: 0;
+}
+
+.rastreio-drawer__eyebrow {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--mr-orange);
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.rastreio-drawer h2 {
+  margin: 0;
+
+  color: var(--mr-text);
+
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.rastreio-drawer__code {
+  display: block;
+
+  margin-top: 5px;
+
+  overflow-wrap: anywhere;
+
+  color: var(--mr-text-secondary);
+
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+
+  font-size: 11px;
+}
+
+.rastreio-drawer__body {
+  flex: 1;
+
+  min-height: 0;
+
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+
+  padding:
+    18px
+    max(
+      20px,
+      env(safe-area-inset-right)
+    )
+    max(
+      24px,
+      calc(
+        18px +
+        env(safe-area-inset-bottom)
+      )
+    )
+    max(
+      20px,
+      env(safe-area-inset-left)
+    );
+
+  background: var(--mr-bg-card);
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    var(--mr-border-strong)
+    transparent;
+}
+
+
+/* =========================================================
+   35. DRAWER — RESUMO
+   ========================================================= */
+
+.rastreio-drawer__summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+
+  margin-bottom: 20px;
+}
+
+.rastreio-drawer__summary-item {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  min-width: 0;
+
+  padding: 12px;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 11px;
+
+  color: var(--mr-text-secondary);
+
+  background: var(--mr-bg-card);
+}
+
+.rastreio-drawer__summary-item > svg {
+  flex: 0 0 auto;
+}
+
+.rastreio-drawer__summary-item > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+}
+
+.rastreio-drawer__summary-item span {
+  color: var(--mr-text-muted);
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.rastreio-drawer__summary-item strong {
+  overflow: hidden;
+
+  color: var(--mr-text);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   36. DRAWER — ACOMPANHAMENTO
+   ========================================================= */
+
+.rastreio-drawer__tracking {
+  margin-bottom: 16px;
+}
+
+.rastreio-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 12px;
+
+  color: var(--mr-blue);
+}
+
+.rastreio-section-heading span {
+  display: block;
+
+  color: var(--mr-text-muted);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.rastreio-section-heading h3 {
+  margin:
+    2px
+    0
+    0;
+
+  color: var(--mr-text);
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   37. MAPA / TIMELINE — PREPARAÇÃO
+   ========================================================= */
+
+.rastreio-tracking-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 220px;
+
+  padding: 26px;
+
+  border: 1px dashed var(--mr-border-strong);
+  border-radius: 13px;
+
+  background: var(--mr-bg-soft);
+
+  text-align: center;
+}
+
+.rastreio-tracking-placeholder__visual {
+  display: grid;
+  place-items: center;
+
+  width: 60px;
+  height: 60px;
+
+  margin-bottom: 12px;
+
+  border-radius: 18px;
+
+  color: var(--mr-blue);
+
+  background: var(--mr-bg-blue-soft);
+}
+
+.rastreio-tracking-placeholder h4 {
+  margin: 0;
+
+  color: var(--mr-text);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rastreio-tracking-placeholder p {
+  max-width: 390px;
+
+  margin:
+    6px
+    auto
+    0;
+
+  color: var(--mr-text-secondary);
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.rastreio-tracking-options {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+
+  margin-top: 10px;
+}
+
+.rastreio-tracking-option {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  min-width: 0;
+
+  padding: 12px;
+
+  border: 1px solid var(--mr-border);
+  border-radius: 10px;
+
+  color: var(--mr-text-secondary);
+
+  background: var(--mr-bg-card);
+}
+
+.rastreio-tracking-option > svg {
+  flex: 0 0 auto;
+
+  color: var(--mr-blue);
+}
+
+.rastreio-tracking-option > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+}
+
+.rastreio-tracking-option strong {
+  color: var(--mr-text);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rastreio-tracking-option span {
+  color: var(--mr-text-secondary);
+
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.rastreio-portaria-guidance {
+  margin-top: 18px;
+}
+
+
+/* =========================================================
+   38. ACESSIBILIDADE
+   ========================================================= */
+
+.rastreio-primary-button:focus-visible,
+.rastreio-secondary-button:focus-visible,
+.rastreio-danger-button:focus-visible,
+.rastreio-filter-button:focus-visible,
+.rastreio-icon-button:focus-visible,
+.rastreio-sidebar-link:focus-visible,
+.morador-rastreio__view-tab:focus-visible,
+.rastreio-modal-tab:focus-visible,
+.rastreio-card__follow:focus-visible,
+.rastreio-card__menu summary:focus-visible {
+  outline:
+    3px solid
+    rgba(37, 99, 235, 0.22);
+
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip: rect(0, 0, 0, 0);
+
+  white-space: nowrap;
+
+  border: 0;
+}
+
+
+/* =========================================================
+   39. MODO ESCURO MANUAL
+   ========================================================= */
+
+html.modo-escuro .morador-rastreio,
+body.modo-escuro .morador-rastreio,
+html.modo-escuro .rastreio-modal-backdrop,
+body.modo-escuro .rastreio-modal-backdrop,
+html.modo-escuro .rastreio-drawer-backdrop,
+body.modo-escuro .rastreio-drawer-backdrop {
+  --mr-bg-page: #0f172a;
+  --mr-bg-card: #111c2e;
+  --mr-bg-soft: #18243a;
+
+  --mr-bg-blue-soft:
+    rgba(37, 99, 235, 0.15);
+
+  --mr-bg-orange-soft:
+    rgba(154, 52, 18, 0.18);
+
+  --mr-bg-green-soft:
+    rgba(22, 163, 74, 0.15);
+
+  --mr-bg-red-soft:
+    rgba(220, 38, 38, 0.15);
+
+  --mr-text: #f8fafc;
+  --mr-text-secondary: #cbd5e1;
+  --mr-text-muted: #94a3b8;
+
+  --mr-border: #263449;
+  --mr-border-strong: #3b4b61;
+
+  --mr-shadow-card:
+    0 10px 26px rgba(0, 0, 0, 0.22);
+
+  --mr-shadow-soft:
+    0 6px 20px rgba(0, 0, 0, 0.18);
+
+  --mr-shadow-modal:
+    0 24px 70px rgba(0, 0, 0, 0.42);
+
+  --mr-shadow-drawer:
+    -18px 0 60px rgba(0, 0, 0, 0.38);
+}
+
+html.modo-escuro .rastreio-search,
+html.modo-escuro .rastreio-field,
+body.modo-escuro .rastreio-search,
+body.modo-escuro .rastreio-field {
+  color-scheme: dark;
+}
+
+html.modo-escuro
+  .rastreio-card__menu-popover,
+body.modo-escuro
+  .rastreio-card__menu-popover {
+  box-shadow:
+    0 14px 35px rgba(0, 0, 0, 0.32);
+}
+
+
+/* =========================================================
+   40. MODO CLARO EXPLÍCITO
+   ========================================================= */
+
+html.modo-claro .morador-rastreio,
+body.modo-claro .morador-rastreio,
+html.modo-claro .rastreio-modal-backdrop,
+body.modo-claro .rastreio-modal-backdrop,
+html.modo-claro .rastreio-drawer-backdrop,
+body.modo-claro .rastreio-drawer-backdrop {
+  color-scheme: light;
+}
+
+
+/* =========================================================
+   41. MODO SISTEMA
+   ========================================================= */
+
+@media (prefers-color-scheme: dark) {
+  html:not(.modo-claro):not(.modo-escuro)
+    .morador-rastreio,
+  body:not(.modo-claro):not(.modo-escuro)
+    .morador-rastreio,
+  html:not(.modo-claro):not(.modo-escuro)
+    .rastreio-modal-backdrop,
+  body:not(.modo-claro):not(.modo-escuro)
+    .rastreio-modal-backdrop,
+  html:not(.modo-claro):not(.modo-escuro)
+    .rastreio-drawer-backdrop,
+  body:not(.modo-claro):not(.modo-escuro)
+    .rastreio-drawer-backdrop {
+    --mr-bg-page: #0f172a;
+    --mr-bg-card: #111c2e;
+    --mr-bg-soft: #18243a;
+
+    --mr-bg-blue-soft:
+      rgba(37, 99, 235, 0.15);
+
+    --mr-bg-orange-soft:
+      rgba(154, 52, 18, 0.18);
+
+    --mr-bg-green-soft:
+      rgba(22, 163, 74, 0.15);
+
+    --mr-bg-red-soft:
+      rgba(220, 38, 38, 0.15);
+
+    --mr-text: #f8fafc;
+    --mr-text-secondary: #cbd5e1;
+    --mr-text-muted: #94a3b8;
+
+    --mr-border: #263449;
+    --mr-border-strong: #3b4b61;
+
+    --mr-shadow-card:
+      0 10px 26px rgba(0, 0, 0, 0.22);
+
+    --mr-shadow-soft:
+      0 6px 20px rgba(0, 0, 0, 0.18);
+
+    --mr-shadow-modal:
+      0 24px 70px rgba(0, 0, 0, 0.42);
+
+    --mr-shadow-drawer:
+      -18px 0 60px rgba(0, 0, 0, 0.38);
+  }
+
+  html:not(.modo-claro):not(.modo-escuro)
+    .rastreio-search,
+  html:not(.modo-claro):not(.modo-escuro)
+    .rastreio-field,
+  body:not(.modo-claro):not(.modo-escuro)
+    .rastreio-search,
+  body:not(.modo-claro):not(.modo-escuro)
+    .rastreio-field {
+    color-scheme: dark;
+  }
+}
+
+
+/* =========================================================
+   42. RESPONSIVIDADE — <= 1360px
+   Desktop / Notebook
+   ========================================================= */
+
+@media (max-width: 1360px) {
+  .morador-rastreio {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .morador-rastreio__page-grid {
+    grid-template-columns:
+      minmax(0, 1fr)
+      330px;
+
+    gap: 16px;
+  }
+
+  .rastreio-cards-grid {
+    gap: 11px;
+  }
+}
+
+
+/* =========================================================
+   43. RESPONSIVIDADE — <= 1120px
+   Tablet horizontal / Notebook compacto
+
+   Sidebar deixa de ser lateral e passa abaixo.
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .morador-rastreio {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .morador-rastreio__page-grid {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap: 16px;
+  }
+
+  .rastreio-sidebar {
+    position: static;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 12px;
+
+    max-height: none;
+
+    overflow: visible;
+
+    padding-right: 0;
+  }
+
+  .rastreio-sidebar-card--summary {
+    grid-column: 1 / -1;
+  }
+
+  .rastreio-cards-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .rastreio-modal--large {
+    max-width: 700px;
+  }
+
+  .rastreio-drawer {
+    width: min(520px, 100%);
+  }
+}
+
+
+/* =========================================================
+   44. RESPONSIVIDADE — <= 900px
+   Tablet vertical / Mobile grande
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .morador-rastreio {
+    padding:
+      18px
+      14px
+      calc(
+        92px +
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .rastreio-header {
+    min-height: 0;
+
+    flex-direction: column;
+
+    gap: 14px;
+  }
+
+  .rastreio-header__action {
+    width: 100%;
+  }
+
+  .rastreio-header__action
+    .rastreio-primary-button {
+    width: 100%;
+  }
+
+  .morador-rastreio__page-grid {
+    gap: 14px;
+  }
+
+  .rastreio-sidebar {
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+  }
+
+  .rastreio-sidebar-card--summary,
+  .rastreio-sidebar-card--portaria,
+  .rastreio-sidebar-card--how {
+    grid-column: auto;
+  }
+
+  .rastreio-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /*
+   * Proteção contra zoom automático no Safari / iPhone.
+   */
+  .rastreio-search input,
+  .rastreio-field input,
+  .rastreio-readonly-field {
+    font-size: 16px;
+  }
+
+  .rastreio-modal--large,
+  .rastreio-modal--medium {
+    max-width: 680px;
+  }
+}
+
+
+/* =========================================================
+   45. TABLET LANDSCAPE
+   Mantém Modal estável sem cortar viewport.
+   ========================================================= */
+
+@media (
+  min-width: 681px
+) and (
+  max-width: 1180px
+) and (
+  orientation: landscape
+) {
+  .rastreio-modal--large {
+    height:
+      min(
+        540px,
+        calc(100dvh - 24px)
+      );
+  }
+
+  .rastreio-modal {
+    max-height:
+      calc(100dvh - 24px);
+  }
+
+  .rastreio-modal-backdrop {
+    padding: 12px;
+  }
+
+  .rastreio-modal__header {
+    padding:
+      14px
+      18px
+      12px;
+  }
+
+  .rastreio-modal__body {
+    padding:
+      14px
+      18px;
+  }
+
+  .rastreio-modal__footer {
+    padding:
+      11px
+      18px;
+  }
+
+  .rastreio-modal-panel {
+    min-height: 260px;
+  }
+
+  .rastreio-drawer__body {
+    padding-top: 14px;
+  }
+
+  .rastreio-tracking-placeholder {
+    min-height: 180px;
+  }
+}
+
+
+/* =========================================================
+   46. RESPONSIVIDADE — <= 680px
+   Mobile
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .morador-rastreio {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .rastreio-header__eyebrow {
+    font-size: 11px;
+  }
+
+  .rastreio-header h1 {
+    font-size: 21px;
+  }
+
+  .rastreio-header p {
+    font-size: 13px;
+  }
+
+  .morador-rastreio__workspace {
+    border-radius: 13px;
+  }
+
+  .morador-rastreio__views {
+    padding:
+      12px
+      12px
+      0;
+  }
+
+  .rastreio-filters {
+    padding: 12px;
+  }
+
+  .rastreio-filter-button {
+    flex: 0 0 40px;
+
+    width: 40px;
+
+    padding: 0;
+  }
+
+  .rastreio-filter-button span {
+    display: none;
+  }
+
+  .rastreio-empty {
+    min-height: 310px;
+
+    padding:
+      36px
+      16px;
+  }
+
+  .rastreio-empty__icon {
+    width: 56px;
+    height: 56px;
+
+    border-radius: 16px;
+  }
+
+  .rastreio-cards-grid {
+    gap: 10px;
+
+    padding: 12px;
+  }
+
+  .rastreio-card {
+    padding: 14px;
+  }
+
+
+  /* =======================================================
+     SIDEBAR MOBILE
+     ======================================================= */
+
+  .rastreio-sidebar-card {
+    padding: 14px;
+  }
+
+  .rastreio-sidebar-card__header {
+    margin-bottom: 11px;
+  }
+
+  .rastreio-sidebar-card--how {
+    display: none;
+  }
+
+  .rastreio-sidebar-metric {
+    min-height: 56px;
+  }
+
+  .rastreio-sidebar-metric__copy small {
+    display: none;
+  }
+
+  .rastreio-sidebar-realtime {
+    margin-top: 9px;
+  }
+
+  .rastreio-sidebar-portaria-message {
+    line-height: 1.5;
+  }
+
+
+  /* =======================================================
+     MODAL MOBILE
+     ======================================================= */
+
+  .rastreio-modal-backdrop {
+    align-items: flex-end;
+
+    padding:
+      env(safe-area-inset-top)
+      0
+      0;
+  }
+
+  .rastreio-modal {
+    max-width: none;
+
+    max-height:
+      calc(
+        100dvh -
+        env(safe-area-inset-top)
+      );
+
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+
+    border-radius:
+      18px
+      18px
+      0
+      0;
+  }
+
+  /*
+   * Mantém tamanho estável no Novo Rastreio,
+   * mas nunca ultrapassa a tela.
+   */
+  .rastreio-modal--large,
+  .rastreio-modal--medium {
+    width: 100%;
+    max-width: none;
+
+    height:
+      min(
+        720px,
+        calc(
+          100dvh -
+          env(safe-area-inset-top)
+        )
+      );
+  }
+
+  .rastreio-modal__header {
+    padding:
+      16px
+      16px
+      13px;
+  }
+
+  .rastreio-modal__body {
+    padding:
+      15px
+      16px;
+  }
+
+  .rastreio-modal__footer {
+    padding:
+      12px
+      max(
+        16px,
+        env(safe-area-inset-right)
+      )
+      max(
+        14px,
+        calc(
+          env(safe-area-inset-bottom) +
+          8px
+        )
+      )
+      max(
+        16px,
+        env(safe-area-inset-left)
+      );
+  }
+
+  .rastreio-modal__footer
+    .rastreio-primary-button,
+  .rastreio-modal__footer
+    .rastreio-danger-button {
+    flex: 1;
+  }
+
+
+  /* =======================================================
+     ABAS DO MODAL MOBILE
+     ======================================================= */
+
+  .rastreio-modal-tabs {
+    gap: 4px;
+
+    margin-bottom: 15px;
+  }
+
+  .rastreio-modal-tab {
+    min-height: 46px;
+
+    flex-direction: column;
+
+    gap: 3px;
+
+    padding:
+      5px
+      4px;
+
+    font-size: 10px;
+  }
+
+  .rastreio-modal-tab svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .rastreio-modal-panel {
+    min-height: 300px;
+  }
+
+  .rastreio-form-section {
+    gap: 15px;
+  }
+
+  .rastreio-good-practice,
+  .rastreio-portaria-guidance {
+    padding: 11px;
+  }
+
+
+  /* =======================================================
+     DRAWER MOBILE
+     ======================================================= */
+
+  .rastreio-drawer {
+    width: 100%;
+  }
+
+  .rastreio-drawer__header {
+    padding:
+      max(
+        16px,
+        calc(
+          env(safe-area-inset-top) +
+          8px
+        )
+      )
+      max(
+        16px,
+        env(safe-area-inset-right)
+      )
+      13px
+      max(
+        16px,
+        env(safe-area-inset-left)
+      );
+  }
+
+  .rastreio-drawer__body {
+    padding:
+      15px
+      max(
+        16px,
+        env(safe-area-inset-right)
+      )
+      calc(
+        24px +
+        env(safe-area-inset-bottom)
+      )
+      max(
+        16px,
+        env(safe-area-inset-left)
+      );
+  }
+
+  .rastreio-drawer__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .rastreio-tracking-options {
+    grid-template-columns: 1fr;
+  }
+
+  .rastreio-tracking-placeholder {
+    min-height: 185px;
+
+    padding:
+      21px
+      16px;
+  }
+}
+
+
+/* =========================================================
+   47. RESPONSIVIDADE — <= 430px
+   Mobile pequeno / iPhone
+   ========================================================= */
+
+@media (max-width: 430px) {
+  .rastreio-header h1 {
+    font-size: 20px;
+  }
+
+  .rastreio-header p {
+    line-height: 1.5;
+  }
+
+  .morador-rastreio__view-tab {
+    padding:
+      0
+      11px;
+
+    font-size: 11px;
+  }
+
+  .rastreio-card__identity {
+    gap: 9px;
+  }
+
+  .rastreio-card__icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .rastreio-card__footer {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+  .rastreio-card__follow {
+    align-self: flex-end;
+  }
+
+  .rastreio-modal__header h2 {
+    font-size: 17px;
+  }
+
+  .rastreio-modal-tab {
+    font-size: 9.5px;
+  }
+
+  .rastreio-modal-panel {
+    min-height: 280px;
+  }
+
+  .rastreio-modal__footer {
+    flex-wrap: wrap;
+  }
+
+  .rastreio-modal__footer
+    .rastreio-secondary-button {
+    flex: 1;
+  }
+
+  .rastreio-delete-warning {
+    gap: 11px;
+  }
+
+  .rastreio-sidebar-metric {
+    grid-template-columns:
+      32px
+      minmax(0, 1fr)
+      auto;
+
+    gap: 8px;
+  }
+
+  .rastreio-sidebar-metric__icon {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+
+/* =========================================================
+   48. RESPONSIVIDADE — <= 360px
+   Mobile muito estreito
+   ========================================================= */
+
+@media (max-width: 360px) {
+  .morador-rastreio {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .rastreio-header h1 {
+    font-size: 19px;
+  }
+
+  .rastreio-modal-tabs {
+    padding: 4px;
+  }
+
+  .rastreio-modal-tab {
+    padding:
+      5px
+      2px;
+  }
+
+  .rastreio-modal-panel {
+    min-height: 250px;
+  }
+
+  .rastreio-modal__footer {
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    width: 100%;
+  }
+
+  .rastreio-modal__footer
+    .rastreio-primary-button,
+  .rastreio-modal__footer
+    .rastreio-secondary-button,
+  .rastreio-modal__footer
+    .rastreio-danger-button {
+    width: 100%;
+  }
+
+  .rastreio-sidebar-card {
+    padding: 12px;
+  }
+}
+
+
+/* =========================================================
+   49. SAFE AREAS
+   ========================================================= */
+
+@supports (padding: max(0px)) {
+  @media (max-width: 900px) {
+    .morador-rastreio {
+      padding-right:
+        max(
+          14px,
+          env(safe-area-inset-right)
+        );
+
+      padding-bottom:
+        max(
+          92px,
+          calc(
+            76px +
+            env(safe-area-inset-bottom)
+          )
+        );
+
+      padding-left:
+        max(
+          14px,
+          env(safe-area-inset-left)
+        );
+    }
+  }
+
+  @media (max-width: 680px) {
+    .morador-rastreio {
+      padding-right:
+        max(
+          12px,
+          env(safe-area-inset-right)
+        );
+
+      padding-left:
+        max(
+          12px,
+          env(safe-area-inset-left)
+        );
+    }
+  }
+}
+
+
+/* =========================================================
+   50. ANIMAÇÃO DO DRAWER
+   ========================================================= */
+
+@keyframes rastreio-drawer-in {
+  from {
+    opacity: 0;
+
+    transform:
+      translateX(40px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateX(0);
+  }
+}
+
+
+/* =========================================================
+   51. REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .morador-rastreio *,
+  .morador-rastreio *::before,
+  .morador-rastreio *::after,
+  .rastreio-modal-backdrop *,
+  .rastreio-modal-backdrop *::before,
+  .rastreio-modal-backdrop *::after,
+  .rastreio-drawer-backdrop *,
+  .rastreio-drawer-backdrop *::before,
+  .rastreio-drawer-backdrop *::after {
+    scroll-behavior: auto !important;
+
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+  }
+}

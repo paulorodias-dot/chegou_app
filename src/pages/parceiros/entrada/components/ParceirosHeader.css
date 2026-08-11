@@ -1,0 +1,650 @@
+.parceiros-header {
+  position: relative;
+  z-index: 50;
+
+  width: 100%;
+
+  background:
+    rgba(
+      4,
+      20,
+      39,
+      0.985
+    );
+
+  border-bottom:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.055
+    );
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* =========================================================
+   CONTAINER PRINCIPAL
+   ========================================================= */
+
+.parceiros-header__inner {
+  width:
+    min(
+      calc(100% - 56px),
+      var(--partner-container)
+    );
+
+  min-height: 72px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  /*
+   * Coluna ligeiramente maior para acomodar
+   * melhor a presença visual do logo.
+   */
+  grid-template-columns:
+    224px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 28px;
+}
+
+/* =========================================================
+   LOGO
+   ========================================================= */
+
+.parceiros-header__brand {
+  width: 224px;
+  min-width: 0;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: flex-start;
+
+  text-decoration: none;
+
+  /*
+   * Permite que o logo cresça visualmente
+   * sem ser cortado pelo próprio link.
+   */
+  overflow: visible;
+}
+
+.parceiros-header__logo {
+  display: block;
+
+  width: auto;
+  height: auto;
+
+  /*
+   * O arquivo possui margem visual interna.
+   * Por isso usamos uma caixa maior.
+   */
+  max-width: 216px;
+  max-height: 64px;
+
+  object-fit: contain;
+
+  object-position:
+    left center;
+
+  flex: 0 0 auto;
+
+  /*
+   * Compensa a área vazia existente no asset
+   * sem aumentar a altura do Header.
+   */
+  transform: scale(1.18);
+
+  transform-origin:
+    left center;
+}
+
+/* =========================================================
+   NAVEGAÇÃO
+   ========================================================= */
+
+.parceiros-header__nav {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 34px;
+}
+
+.parceiros-header__nav-link {
+  position: relative;
+
+  min-height: 34px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.88
+    );
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  line-height: 1;
+
+  white-space: nowrap;
+
+  text-decoration: none;
+
+  transition:
+    color
+    var(--partner-transition);
+}
+
+.parceiros-header__nav-link::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 2px;
+
+  width: 0;
+  height: 2px;
+
+  margin: 0 auto;
+
+  border-radius: 999px;
+
+  background:
+    var(--partner-gold-400);
+
+  transition:
+    width
+    var(--partner-transition);
+}
+
+.parceiros-header__nav-link:hover,
+.parceiros-header__nav-link:focus-visible {
+  color: #ffffff;
+}
+
+.parceiros-header__nav-link:hover::after,
+.parceiros-header__nav-link:focus-visible::after {
+  width: 100%;
+}
+
+/* =========================================================
+   AÇÕES
+   ========================================================= */
+
+.parceiros-header__desktop-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+.parceiros-header__button {
+  min-height: 40px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding:
+    0
+    16px;
+
+  border-radius: 9px;
+
+  font-size: 12.5px;
+
+  font-weight: 700;
+
+  line-height: 1;
+
+  white-space: nowrap;
+
+  text-decoration: none;
+
+  transition:
+    transform
+      var(--partner-transition),
+    background
+      var(--partner-transition),
+    border-color
+      var(--partner-transition),
+    box-shadow
+      var(--partner-transition);
+}
+
+.parceiros-header__button:hover {
+  transform:
+    translateY(-1px);
+}
+
+.parceiros-header__button--login {
+  color: #ffffff;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.025
+    );
+
+  border:
+    1px solid
+    rgba(
+      229,
+      187,
+      88,
+      0.58
+    );
+}
+
+.parceiros-header__button--login:hover {
+  background:
+    rgba(
+      229,
+      187,
+      88,
+      0.07
+    );
+
+  border-color:
+    var(--partner-gold-400);
+}
+
+.parceiros-header__button--primary {
+  color:
+    var(--partner-navy-950);
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--partner-gold-400),
+      var(--partner-gold-500)
+    );
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.12
+    );
+
+  box-shadow:
+    0
+    8px
+    20px
+    rgba(
+      214,
+      166,
+      58,
+      0.18
+    );
+}
+
+.parceiros-header__button--primary:hover {
+  box-shadow:
+    0
+    10px
+    24px
+    rgba(
+      214,
+      166,
+      58,
+      0.26
+    );
+}
+
+/* =========================================================
+   ACESSIBILIDADE
+   ========================================================= */
+
+.parceiros-header a:focus-visible,
+.parceiros-header button:focus-visible {
+  outline:
+    2px solid
+    var(--partner-gold-400);
+
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   MOBILE — ELEMENTOS OCULTOS NO DESKTOP
+   ========================================================= */
+
+.parceiros-header__menu-button,
+.parceiros-header__mobile-actions {
+  display: none;
+}
+
+/* =========================================================
+   DESKTOP INTERMEDIÁRIO / NOTEBOOK
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .parceiros-header__inner {
+    width:
+      min(
+        calc(100% - 40px),
+        var(--partner-container)
+      );
+
+    grid-template-columns:
+      188px
+      minmax(0, 1fr)
+      auto;
+
+    gap: 18px;
+  }
+
+  .parceiros-header__brand {
+    width: 188px;
+  }
+
+  .parceiros-header__logo {
+    max-width: 178px;
+    max-height: 55px;
+
+    transform: scale(1.12);
+  }
+
+  .parceiros-header__nav {
+    gap: 20px;
+  }
+
+  .parceiros-header__nav-link {
+    font-size: 11.5px;
+  }
+
+  .parceiros-header__button {
+    padding:
+      0
+      12px;
+
+    font-size: 11px;
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .parceiros-header__inner {
+    width:
+      min(
+        calc(100% - 32px),
+        var(--partner-container)
+      );
+
+    min-height: 64px;
+
+    grid-template-columns:
+      1fr
+      auto;
+
+    gap: 16px;
+  }
+
+  .parceiros-header__brand {
+    width: auto;
+  }
+
+  .parceiros-header__logo {
+    max-width: 146px;
+    max-height: 47px;
+
+    transform: scale(1.08);
+  }
+
+  .parceiros-header__desktop-actions {
+    display: none;
+  }
+
+  .parceiros-header__menu-button {
+    width: 40px;
+    height: 40px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    color: #ffffff;
+
+    border:
+      1px solid
+      rgba(
+        255,
+        255,
+        255,
+        0.12
+      );
+
+    border-radius: 9px;
+
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.04
+      );
+
+    cursor: pointer;
+  }
+
+  /* =======================================================
+     MENU MOBILE/TABLET
+     ======================================================= */
+
+  .parceiros-header__nav {
+    position: absolute;
+
+    top:
+      calc(
+        100% + 8px
+      );
+
+    left: 16px;
+    right: 16px;
+
+    display: none;
+
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 2px;
+
+    padding: 12px;
+
+    border:
+      1px solid
+      rgba(
+        255,
+        255,
+        255,
+        0.09
+      );
+
+    border-radius:
+      var(--partner-radius-lg);
+
+    background:
+      rgba(
+        4,
+        20,
+        39,
+        0.99
+      );
+
+    box-shadow:
+      0
+      20px
+      50px
+      rgba(
+        0,
+        0,
+        0,
+        0.28
+      );
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .parceiros-header__nav.is-open {
+    display: flex;
+  }
+
+  .parceiros-header__nav-link {
+    width: 100%;
+
+    min-height: 42px;
+
+    padding:
+      0
+      10px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+  }
+
+  .parceiros-header__nav-link::after {
+    display: none;
+  }
+
+  .parceiros-header__nav-link:hover,
+  .parceiros-header__nav-link:focus-visible {
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.05
+      );
+  }
+
+  .parceiros-header__mobile-actions {
+    display: grid;
+
+    grid-template-columns:
+      1fr
+      1fr;
+
+    gap: 8px;
+
+    margin-top: 8px;
+  }
+
+  .parceiros-header__mobile-actions
+    .parceiros-header__button {
+    min-height: 42px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .parceiros-header__inner {
+    width:
+      calc(
+        100% - 28px
+      );
+
+    min-height: 62px;
+  }
+
+  .parceiros-header__logo {
+    max-width: 134px;
+    max-height: 44px;
+
+    transform: scale(1.06);
+  }
+}
+
+/* =========================================================
+   MOBILE COMPACTO
+   ========================================================= */
+
+@media (max-width: 430px) {
+  .parceiros-header__inner {
+    width:
+      calc(
+        100% - 24px
+      );
+
+    min-height: 60px;
+  }
+
+  .parceiros-header__logo {
+    max-width: 122px;
+    max-height: 41px;
+
+    transform: scale(1.04);
+  }
+
+  .parceiros-header__mobile-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .parceiros-header__button {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   MOBILE MUITO COMPACTO
+   ========================================================= */
+
+@media (max-width: 360px) {
+  .parceiros-header__logo {
+    max-width: 112px;
+    max-height: 39px;
+
+    transform: none;
+  }
+}
+
+/* =========================================================
+   REDUÇÃO DE MOVIMENTO
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .parceiros-header__button,
+  .parceiros-header__nav-link::after {
+    transition: none;
+  }
+}

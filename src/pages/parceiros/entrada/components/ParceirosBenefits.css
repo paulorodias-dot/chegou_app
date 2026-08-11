@@ -1,0 +1,361 @@
+.parceiros-benefits {
+  width: 100%;
+  min-width: 0;
+
+  background: #ffffff;
+}
+
+.parceiros-benefits__inner {
+  width:
+    min(
+      calc(100% - 56px),
+      var(--partner-container)
+    );
+
+  margin: 0 auto;
+
+  padding:
+    32px
+    0
+    34px;
+}
+
+/* =========================================================
+   CABEÇALHO
+   ========================================================= */
+
+.parceiros-benefits__header {
+  max-width: 760px;
+
+  margin:
+    0
+    auto
+    25px;
+
+  text-align: center;
+}
+
+.parceiros-benefits__title {
+  margin: 0;
+
+  color:
+    var(--partner-navy-900);
+
+  font-size:
+    clamp(
+      22px,
+      2vw,
+      28px
+    );
+
+  font-weight: 760;
+
+  line-height: 1.2;
+
+  letter-spacing:
+    -0.025em;
+}
+
+.parceiros-benefits__subtitle {
+  margin:
+    7px
+    0
+    0;
+
+  color:
+    var(--partner-text-secondary);
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.parceiros-benefits__grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      6,
+      minmax(0, 1fr)
+    );
+
+  gap: 14px;
+}
+
+/* =========================================================
+   ITEM
+   ========================================================= */
+
+.parceiros-benefits__item {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  padding:
+    14px
+    10px
+    10px;
+
+  text-align: center;
+
+  border-radius:
+    var(--partner-radius-lg);
+
+  transition:
+    transform
+      var(--partner-transition),
+    background
+      var(--partner-transition),
+    box-shadow
+      var(--partner-transition);
+}
+
+.parceiros-benefits__item:hover {
+  transform:
+    translateY(-2px);
+
+  background:
+    #fffdfa;
+
+  box-shadow:
+    0
+    10px
+    28px
+    rgba(
+      15,
+      23,
+      42,
+      0.055
+    );
+}
+
+/* =========================================================
+   ÍCONE
+   ========================================================= */
+
+.parceiros-benefits__icon-box {
+  width: 52px;
+  height: 52px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 11px;
+
+  color:
+    var(--partner-navy-900);
+
+  border:
+    1px solid
+    rgba(
+      214,
+      166,
+      58,
+      0.16
+    );
+
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(
+        248,
+        235,
+        200,
+        0.78
+      ),
+      rgba(
+        255,
+        250,
+        240,
+        0.96
+      )
+    );
+}
+
+/* =========================================================
+   TEXTO
+   ========================================================= */
+
+.parceiros-benefits__item-title {
+  margin: 0;
+
+  color:
+    var(--partner-navy-900);
+
+  font-size: 12.5px;
+
+  font-weight: 750;
+
+  line-height: 1.35;
+}
+
+.parceiros-benefits__item-description {
+  margin:
+    7px
+    0
+    0;
+
+  color:
+    var(--partner-text-secondary);
+
+  font-size: 10.5px;
+
+  line-height: 1.48;
+}
+
+/* =========================================================
+   NOTEBOOK
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .parceiros-benefits__grid {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+
+    gap:
+      16px
+      18px;
+  }
+
+  .parceiros-benefits__item {
+    padding:
+      14px
+      14px
+      12px;
+  }
+
+  .parceiros-benefits__item-description {
+    max-width: 220px;
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .parceiros-benefits__inner {
+    width:
+      min(
+        calc(100% - 32px),
+        var(--partner-container)
+      );
+
+    padding:
+      28px
+      0
+      30px;
+  }
+
+  .parceiros-benefits__header {
+    margin-bottom: 21px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .parceiros-benefits__inner {
+    width:
+      calc(
+        100% - 28px
+      );
+
+    padding:
+      25px
+      0
+      27px;
+  }
+
+  .parceiros-benefits__title {
+    font-size: 21px;
+  }
+
+  .parceiros-benefits__subtitle {
+    font-size: 12.5px;
+  }
+
+  .parceiros-benefits__grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap: 10px;
+  }
+
+  .parceiros-benefits__item {
+    padding:
+      12px
+      8px;
+  }
+
+  .parceiros-benefits__icon-box {
+    width: 48px;
+    height: 48px;
+  }
+
+  .parceiros-benefits__item-title {
+    font-size: 12px;
+  }
+
+  .parceiros-benefits__item-description {
+    font-size: 10px;
+  }
+}
+
+/* =========================================================
+   MOBILE COMPACTO
+   ========================================================= */
+
+@media (max-width: 430px) {
+  .parceiros-benefits__inner {
+    width:
+      calc(
+        100% - 24px
+      );
+  }
+
+  .parceiros-benefits__grid {
+    gap: 8px;
+  }
+
+  .parceiros-benefits__item {
+    padding:
+      11px
+      6px;
+  }
+
+  .parceiros-benefits__icon-box {
+    width: 45px;
+    height: 45px;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .parceiros-benefits__item {
+    transition: none;
+  }
+}

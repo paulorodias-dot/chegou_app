@@ -83,7 +83,7 @@ function CalendarWorkspace({
       <section className="calendar-workspace">
         <header className="calendar-workspace__header">
           <div>
-            <span>Agenda Master</span>
+            <span>{eyebrow}</span>
             <h1>Calendário Premium</h1>
 
             <p>
