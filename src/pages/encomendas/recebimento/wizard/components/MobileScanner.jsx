@@ -108,26 +108,46 @@ export default function MobileScanner({
         origemCaptura: "CAMERA_DISPOSITIVO",
       });
 
-      if (resposta?.ok === false) {
-        if (resposta.motivo === "CODIGO_DUPLICADO_LOCAL") {
+      if (
+        resposta?.ok === false
+      ) {
+        if (
+          resposta.motivo ===
+          "CODIGO_DUPLICADO_LOCAL"
+        ) {
           mostrarMensagem(
             {
-              tipo: "warning",
-              texto: "Este volume já foi capturado.",
+              tipo:
+                "warning",
+
+              titulo:
+                "Volume já capturado",
+
+              texto:
+                "Este código já consta neste recebimento.",
             },
-            1400
+            2200
           );
-          return;
+
+          return resposta;
         }
+
 
         mostrarMensagem(
           {
-            tipo: "danger",
-            texto: "Não foi possível registrar esta leitura.",
+            tipo:
+              "danger",
+
+            titulo:
+              "Leitura não registrada",
+
+            texto:
+              "Não foi possível registrar esta leitura.",
           },
           1600
         );
-        return;
+
+        return resposta;
       }
 
       mostrarMensagem(
@@ -139,6 +159,9 @@ export default function MobileScanner({
         },
         1000
       );
+
+      return resposta;
+
     },
     [mostrarMensagem, onDetected]
   );
@@ -147,13 +170,19 @@ export default function MobileScanner({
     cameraAtiva,
     iniciando,
     erroCamera,
+
     detectorDisponivel,
     formatosSuportados,
+
     focoContinuoAtivo,
+
     resolucaoAtual,
+
     lendo,
-    leituraReforcadaAtiva,
-    possuiImageCapture,
+
+    cooldownRestanteMs,
+    cooldownAtivo,
+
     iniciarCamera,
     pararCamera,
   } = useMobileScanner({
@@ -161,6 +190,15 @@ export default function MobileScanner({
     videoRef,
     onDetected: handleDetected,
   });
+
+  const cooldownSegundos =
+  Math.max(
+    0,
+    Math.ceil(
+      cooldownRestanteMs /
+        1000
+    )
+  );
 
   const formatosTexto = useMemo(() => {
     if (
@@ -406,6 +444,20 @@ export default function MobileScanner({
           </div>
         )}
 
+        {cooldownAtivo && (
+          <div className="mobile-scanner__status">
+            <ScanLine
+              size={14}
+              aria-hidden="true"
+            />
+
+            <span>
+              Próxima leitura em{" "}
+              {cooldownSegundos}s
+            </span>
+          </div>
+        )}
+
         {resolucaoAtual?.width &&
           resolucaoAtual?.height && (
             <div className="mobile-scanner__status">
@@ -453,7 +505,15 @@ export default function MobileScanner({
                 : "status"
             }
           >
-            {mensagem.texto}
+            {mensagem.titulo && (
+              <strong className="mobile-scanner__feedback-title">
+                {mensagem.titulo}
+              </strong>
+            )}
+
+            <span className="mobile-scanner__feedback-text">
+              {mensagem.texto}
+            </span>
           </div>
         )}
       </footer>

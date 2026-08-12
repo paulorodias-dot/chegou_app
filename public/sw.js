@@ -21,8 +21,8 @@
  * revisar estes identificadores antes de cada publicação que alterar o
  * Service Worker.
  */
-const SERVICE_WORKER_VERSION = "chegou-sw-2026.08.11.006";
-const RELEASE_ID = "2026.08.11.006";
+const SERVICE_WORKER_VERSION = "chegou-sw-2026.08.12.001";
+const RELEASE_ID = "2026.08.12.001";
 const APP_VERSION = "1.2.0";
 const SERVICE_WORKER_SCHEMA_VERSION = 1;
 

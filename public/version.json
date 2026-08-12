@@ -1,17 +1,20 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.11.006",
+  "releaseId": "2026.08.12.001",
   "appVersion": "1.2.0",
   "scope": "GLOBAL",
   "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-08-11T18:20:00-03:00",
-  "title": "Melhorias no Recebimento de Encomendas",
-  "message": "Aprimoramos a captura de volumes no Recebimento de Encomendas para oferecer leitura mais rápida e estável em dispositivos móveis.",
+  "publishedAt": "2026-08-12T07:15:00-03:00",
+  "title": "Melhorias na captura de encomendas",
+  "message": "Aprimoramos a captura de volumes no Recebimento de Encomendas para oferecer leitura mais estável, rápida e segura em dispositivos móveis.",
   "highlights": [
-    "Melhorias no foco automático da câmera durante a leitura de códigos.",
-    "Ajuste adaptativo de zoom conforme as capacidades do dispositivo.",
-    "Leitura otimizada para códigos de barras, QR Code, Data Matrix e PDF417.",
-    "Maior estabilidade antes da captura automática dos volumes."
+    "Leitura mobile aprimorada com câmera traseira principal e alta resolução.",
+    "Nova estratégia multicamada para códigos de barras, QR Code, Data Matrix e PDF417.",
+    "Processamento automático por vídeo, snapshot, tratamento de contraste e captura fotográfica em alta resolução.",
+    "Melhorias de foco, exposição, nitidez e estabilidade para etiquetas impressas.",
+    "Novo intervalo operacional de 4 segundos entre capturas realizadas pela câmera.",
+    "Aviso imediato quando um código já capturado é identificado novamente.",
+    "Leitores físicos permanecem com captura sequencial sem intervalo artificial."
   ]
 }

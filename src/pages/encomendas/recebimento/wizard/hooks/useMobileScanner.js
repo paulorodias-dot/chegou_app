@@ -23,7 +23,27 @@ import {
 // ============================================================
 
 const INTERVALO_DETECCAO_MS = 70;
-const TEMPO_BLOQUEIO_MESMO_CODIGO_MS = 1800;
+
+/*
+ * Cooldown operacional SOMENTE da câmera.
+ *
+ * Depois de uma captura válida:
+ * - mantém a câmera aberta;
+ * - não aceita outro volume durante 4 segundos;
+ * - o mesmo código continua podendo gerar aviso de duplicidade.
+ *
+ * Leitor USB / teclado NÃO utiliza este cooldown.
+ */
+const COOLDOWN_CAPTURA_CAMERA_MS = 4000;
+
+const INTERVALO_ATUALIZACAO_COOLDOWN_MS = 200;
+
+/*
+ * Evita que o mesmo código parado diante da câmera
+ * produza dezenas de toasts por segundo.
+ */
+const INTERVALO_AVISO_DUPLICADO_MS = 1200;
+
 const DETECCOES_CONSECUTIVAS_NECESSARIAS = 2;
 const TEMPO_ESTABILIZACAO_CAMERA_MS = 700;
 const TEMPO_SINGLE_SHOT_MS = 380;
@@ -680,6 +700,98 @@ async function aplicarFoco({
   };
 }
 
+// ============================================================
+// AJUSTES ADAPTATIVOS DA CÂMERA
+//
+// Não utilizamos números absolutos para contraste/sharpness,
+// porque cada câmera pode expor escalas diferentes.
+//
+// A regra é:
+// - respeitar min/max reais;
+// - manter exposição automática;
+// - reduzir levemente exposição em etiquetas claras;
+// - aumentar contraste e nitidez de forma moderada;
+// - não alterar brilho diretamente para evitar estouro
+//   do branco do papel.
+// ============================================================
+
+function limitarNaFaixa(
+  valor,
+  capacidade
+) {
+  if (
+    !capacidade ||
+    typeof capacidade.min !== "number" ||
+    typeof capacidade.max !== "number" ||
+    typeof valor !== "number"
+  ) {
+    return null;
+  }
+
+  return Math.max(
+    capacidade.min,
+    Math.min(
+      capacidade.max,
+      valor
+    )
+  );
+}
+
+
+function obterValorAtual(
+  settings,
+  propriedade,
+  capacidade
+) {
+  const atual =
+    settings?.[propriedade];
+
+  if (
+    typeof atual === "number"
+  ) {
+    return atual;
+  }
+
+  if (
+    typeof capacidade?.min === "number" &&
+    typeof capacidade?.max === "number"
+  ) {
+    return (
+      capacidade.min +
+      capacidade.max
+    ) / 2;
+  }
+
+  return null;
+}
+
+
+function calcularIncrementoProporcional({
+  atual,
+  capacidade,
+  percentual,
+}) {
+  if (
+    typeof atual !== "number" ||
+    typeof capacidade?.max !== "number"
+  ) {
+    return null;
+  }
+
+  const desejado =
+    atual +
+    (
+      capacidade.max -
+      atual
+    ) *
+      percentual;
+
+  return limitarNaFaixa(
+    desejado,
+    capacidade
+  );
+}
+
 async function configurarMedicaoAutomatica(
   track
 ) {
@@ -688,10 +800,24 @@ async function configurarMedicaoAutomatica(
   }
 
   const capabilities =
-    obterCapabilitiesTrack(track);
+    obterCapabilitiesTrack(
+      track
+    );
 
-  const advanced =
-    {};
+  const settings =
+    obterSettingsTrack(
+      track
+    );
+
+  const suportados =
+    obterConstraintsSuportados();
+
+  const advanced = {};
+
+
+  // ----------------------------------------------------------
+  // EXPOSIÇÃO AUTOMÁTICA
+  // ----------------------------------------------------------
 
   if (
     Array.isArray(
@@ -705,6 +831,11 @@ async function configurarMedicaoAutomatica(
       "continuous";
   }
 
+
+  // ----------------------------------------------------------
+  // WHITE BALANCE AUTOMÁTICO
+  // ----------------------------------------------------------
+
   if (
     Array.isArray(
       capabilities?.whiteBalanceMode
@@ -717,6 +848,132 @@ async function configurarMedicaoAutomatica(
       "continuous";
   }
 
+
+  // ----------------------------------------------------------
+  // COMPENSAÇÃO DE EXPOSIÇÃO
+  //
+  // Etiquetas normalmente possuem fundo claro.
+  // Uma pequena compensação negativa ajuda a preservar
+  // barras escuras sem estourar excessivamente o branco.
+  //
+  // Só aplicamos quando a câmera realmente expõe a capability.
+  // ----------------------------------------------------------
+
+  if (
+    suportados?.exposureCompensation ===
+      true &&
+    capabilities?.exposureCompensation &&
+    typeof capabilities
+      .exposureCompensation
+      .min === "number" &&
+    typeof capabilities
+      .exposureCompensation
+      .max === "number"
+  ) {
+    const exposicaoDesejada =
+      limitarNaFaixa(
+        -0.15,
+        capabilities
+          .exposureCompensation
+      );
+
+    if (
+      exposicaoDesejada !== null
+    ) {
+      advanced.exposureCompensation =
+        exposicaoDesejada;
+    }
+  }
+
+
+  // ----------------------------------------------------------
+  // CONTRASTE DA CÂMERA
+  //
+  // Elevação moderada: 12% do espaço disponível acima
+  // do valor atual.
+  // ----------------------------------------------------------
+
+  if (
+    suportados?.contrast === true &&
+    capabilities?.contrast
+  ) {
+    const contrasteAtual =
+      obterValorAtual(
+        settings,
+        "contrast",
+        capabilities.contrast
+      );
+
+    const contrasteDesejado =
+      calcularIncrementoProporcional({
+        atual:
+          contrasteAtual,
+
+        capacidade:
+          capabilities.contrast,
+
+        percentual:
+          0.12,
+      });
+
+    if (
+      contrasteDesejado !== null
+    ) {
+      advanced.contrast =
+        contrasteDesejado;
+    }
+  }
+
+
+  // ----------------------------------------------------------
+  // SHARPNESS / NITIDEZ
+  //
+  // Um pouco mais agressivo que o contraste, porque nosso
+  // objetivo é preservar bordas das barras.
+  // ----------------------------------------------------------
+
+  if (
+    suportados?.sharpness === true &&
+    capabilities?.sharpness
+  ) {
+    const nitidezAtual =
+      obterValorAtual(
+        settings,
+        "sharpness",
+        capabilities.sharpness
+      );
+
+    const nitidezDesejada =
+      calcularIncrementoProporcional({
+        atual:
+          nitidezAtual,
+
+        capacidade:
+          capabilities.sharpness,
+
+        percentual:
+          0.18,
+      });
+
+    if (
+      nitidezDesejada !== null
+    ) {
+      advanced.sharpness =
+        nitidezDesejada;
+    }
+  }
+
+
+  /*
+   * Não alteramos brightness diretamente.
+   *
+   * Exposição automática + exposição compensada são mais
+   * apropriadas para preservar detalhes da etiqueta.
+   * Alterar brightness indiscriminadamente pode clarear
+   * também as barras e reduzir contraste.
+   */
+
+
   if (
     Object.keys(
       advanced
@@ -724,6 +981,7 @@ async function configurarMedicaoAutomatica(
   ) {
     return;
   }
+
 
   try {
     await track.applyConstraints({
@@ -735,9 +993,23 @@ async function configurarMedicaoAutomatica(
         advanced,
       ],
     });
+
+
+    console.info(
+      "[MobileScanner] Ajustes ópticos aplicados:",
+      {
+        solicitados:
+          advanced,
+
+        settingsDepois:
+          obterSettingsTrack(
+            track
+          ),
+      }
+    );
   } catch (error) {
     console.warn(
-      "[MobileScanner] Medição automática não aplicada:",
+      "[MobileScanner] Ajustes automáticos da câmera parcialmente recusados:",
       error
     );
   }
@@ -1215,6 +1487,11 @@ export default function useMobileScanner({
   ] = useState(false);
 
   const [
+    cooldownRestanteMs,
+    setCooldownRestanteMs,
+  ] = useState(0);
+
+  const [
     diagnosticoCamera,
     setDiagnosticoCamera,
   ] = useState(null);
@@ -1290,6 +1567,24 @@ export default function useMobileScanner({
   const ultimaFotoEmRef =
     useRef(0);
 
+  const cooldownAteRef =
+    useRef(0);
+
+  const cooldownTimerRef =
+    useRef(null);
+
+  const ultimoCodigoAceitoRef =
+    useRef(null);
+
+  const ultimoAvisoDuplicadoRef =
+    useRef({
+      codigo:
+        null,
+
+      avisadoEm:
+        0,
+    });
+
   useEffect(() => {
     ativoRef.current =
       ativo;
@@ -1303,6 +1598,89 @@ export default function useMobileScanner({
   }, [
     cameraAtiva,
   ]);
+
+  // ============================================================
+  // COOLDOWN DA CÂMERA
+  // ============================================================
+
+  const pararCooldown =
+    useCallback(() => {
+      if (
+        cooldownTimerRef.current
+      ) {
+        window.clearTimeout(
+          cooldownTimerRef.current
+        );
+
+        cooldownTimerRef.current =
+          null;
+      }
+
+      cooldownAteRef.current =
+        0;
+
+      setCooldownRestanteMs(
+        0
+      );
+    }, []);
+
+
+  const atualizarCooldown =
+    useCallback(() => {
+      const restante =
+        Math.max(
+          0,
+          cooldownAteRef.current -
+            Date.now()
+        );
+
+      setCooldownRestanteMs(
+        restante
+      );
+
+      if (
+        restante <= 0
+      ) {
+        cooldownTimerRef.current =
+          null;
+
+        return;
+      }
+
+      cooldownTimerRef.current =
+        window.setTimeout(
+          atualizarCooldown,
+          INTERVALO_ATUALIZACAO_COOLDOWN_MS
+        );
+    }, []);
+
+
+  const iniciarCooldown =
+    useCallback(() => {
+      if (
+        cooldownTimerRef.current
+      ) {
+        window.clearTimeout(
+          cooldownTimerRef.current
+        );
+      }
+
+      cooldownAteRef.current =
+        Date.now() +
+        COOLDOWN_CAPTURA_CAMERA_MS;
+
+      setCooldownRestanteMs(
+        COOLDOWN_CAPTURA_CAMERA_MS
+      );
+
+      cooldownTimerRef.current =
+        window.setTimeout(
+          atualizarCooldown,
+          INTERVALO_ATUALIZACAO_COOLDOWN_MS
+        );
+    }, [
+      atualizarCooldown,
+    ]);
 
   const resetarCandidato =
     useCallback(() => {
@@ -1386,6 +1764,20 @@ export default function useMobileScanner({
       cameraAtivaRef.current =
         false;
 
+      pararCooldown();
+
+      ultimoCodigoAceitoRef.current =
+        null;
+
+      ultimoAvisoDuplicadoRef.current =
+        {
+          codigo:
+            null,
+
+          avisadoEm:
+            0,
+        };
+
       resetarCandidato();
 
       setLeituraReforcadaAtiva(
@@ -1428,9 +1820,10 @@ export default function useMobileScanner({
         null
       );
     }, [
-      resetarCandidato,
-      videoRef,
-    ]);
+        pararCooldown,
+        resetarCandidato,
+        videoRef,
+      ]);
 
   const registrarCandidato =
     useCallback(
@@ -1504,66 +1897,183 @@ export default function useMobileScanner({
           return false;
         }
 
+
         const agora =
           Date.now();
 
-        const ultimo =
-          ultimoCodigoRef.current;
+
+        // ======================================================
+        // COOLDOWN ATIVO
+        // ======================================================
+
+        const cooldownAtivo =
+          agora <
+          cooldownAteRef.current;
+
+
+        if (cooldownAtivo) {
+          /*
+          * Se for exatamente o mesmo código que acabou de
+          * ser aceito, deixamos chegar até onDetected().
+          *
+          * O estado do Wizard é a autoridade que responderá:
+          * CODIGO_DUPLICADO_LOCAL
+          *
+          * Isso permite mostrar o toast ao operador.
+          */
+
+          if (
+            ultimoCodigoAceitoRef.current ===
+            codigo
+          ) {
+            const ultimoAviso =
+              ultimoAvisoDuplicadoRef.current;
+
+
+            const podeAvisar =
+              ultimoAviso.codigo !==
+                codigo ||
+              agora -
+                ultimoAviso.avisadoEm >=
+                INTERVALO_AVISO_DUPLICADO_MS;
+
+
+            if (
+              podeAvisar &&
+              typeof onDetected ===
+                "function"
+            ) {
+              ultimoAvisoDuplicadoRef.current =
+                {
+                  codigo,
+
+                  avisadoEm:
+                    agora,
+                };
+
+
+              onDetected({
+                codigo,
+
+                formato:
+                  resultado?.format ||
+                  null,
+
+                boundingBox:
+                  resultado
+                    ?.boundingBox ||
+                  null,
+
+                cornerPoints:
+                  resultado
+                    ?.cornerPoints ||
+                  null,
+
+                detectadoEm:
+                  new Date()
+                    .toISOString(),
+              });
+            }
+          }
+
+
+          /*
+          * Código diferente durante os 4 segundos:
+          * simplesmente aguardamos.
+          *
+          * Não registra, não bipa e não inicia outro cooldown.
+          */
+          resetarCandidato();
+
+          return false;
+        }
+
+
+        // ======================================================
+        // NOVA LEITURA LIBERADA
+        // ======================================================
+
+        let resposta =
+          null;
+
 
         if (
-          ultimo.codigo ===
-            codigo &&
-          agora -
-            ultimo.registradoEm <
-            TEMPO_BLOQUEIO_MESMO_CODIGO_MS
+          typeof onDetected ===
+          "function"
+        ) {
+          resposta =
+            onDetected({
+              codigo,
+
+              formato:
+                resultado?.format ||
+                null,
+
+              boundingBox:
+                resultado
+                  ?.boundingBox ||
+                null,
+
+              cornerPoints:
+                resultado
+                  ?.cornerPoints ||
+                null,
+
+              detectadoEm:
+                new Date()
+                  .toISOString(),
+            });
+        }
+
+
+        /*
+        * O Wizard rejeitou a leitura, por exemplo:
+        * CODIGO_DUPLICADO_LOCAL.
+        *
+        * Não inicia cooldown de 4 segundos para uma captura
+        * que não entrou no recebimento.
+        */
+        if (
+          resposta?.ok === false
         ) {
           resetarCandidato();
 
           return false;
         }
 
-        ultimoCodigoRef.current = {
-          codigo,
 
-          registradoEm:
-            agora,
-        };
+        // ======================================================
+        // CAPTURA ACEITA
+        // ======================================================
+
+        ultimoCodigoAceitoRef.current =
+          codigo;
+
 
         ultimaDeteccaoVisualRef.current =
           agora;
 
+
+        ultimoAvisoDuplicadoRef.current =
+          {
+            codigo:
+              null,
+
+            avisadoEm:
+              0,
+          };
+
+
         resetarCandidato();
 
-        if (
-          typeof onDetected ===
-          "function"
-        ) {
-          onDetected({
-            codigo,
 
-            formato:
-              resultado?.format ||
-              null,
+        iniciarCooldown();
 
-            boundingBox:
-              resultado
-                ?.boundingBox ||
-              null,
-
-            cornerPoints:
-              resultado
-                ?.cornerPoints ||
-              null,
-
-            detectadoEm:
-              new Date()
-                .toISOString(),
-          });
-        }
 
         return true;
       },
       [
+        iniciarCooldown,
         onDetected,
         resetarCandidato,
       ]
@@ -2468,6 +2978,11 @@ export default function useMobileScanner({
     lendo,
 
     leituraReforcadaAtiva,
+
+    cooldownRestanteMs,
+
+    cooldownAtivo:
+      cooldownRestanteMs > 0,
 
     diagnosticoCamera,
 
