@@ -180,8 +180,12 @@ export default function MobileScanner({
 
     lendo,
 
+    leituraReforcadaAtiva,
+
     cooldownRestanteMs,
     cooldownAtivo,
+
+    possuiImageCapture,
 
     iniciarCamera,
     pararCamera,
