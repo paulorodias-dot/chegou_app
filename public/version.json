@@ -1,20 +1,22 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.12.002",
+  "releaseId": "2026.08.13.001",
   "appVersion": "1.2.0",
   "scope": "GLOBAL",
   "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-08-12T07:15:00-03:00",
-  "title": "Melhorias na captura de encomendas",
-  "message": "Aprimoramos a captura de volumes no Recebimento de Encomendas para oferecer leitura mais estável, rápida e segura em dispositivos móveis.",
+  "publishedAt": "2026-08-13T19:30:00-03:00",
+  "title": "Nova experiência no Recebimento de Encomendas",
+  "message": "Evoluímos o Recebimento de Encomendas para deixar a operação da Portaria mais organizada, rápida e segura, com uma nova visão dos lotes e melhores recursos de consulta.",
   "highlights": [
-    "Leitura mobile aprimorada com câmera traseira principal e alta resolução.",
-    "Nova estratégia multicamada para códigos de barras, QR Code, Data Matrix e PDF417.",
-    "Processamento automático por vídeo, snapshot, tratamento de contraste e captura fotográfica em alta resolução.",
-    "Melhorias de foco, exposição, nitidez e estabilidade para etiquetas impressas.",
-    "Novo intervalo operacional de 4 segundos entre capturas realizadas pela câmera.",
-    "Aviso imediato quando um código já capturado é identificado novamente.",
-    "Leitores físicos permanecem com captura sequencial sem intervalo artificial."
+    "Nova tela de Recebimento com visão organizada dos lotes que aguardam Entrada.",
+    "Identificação numérica dos lotes para facilitar consultas e acompanhamento da operação.",
+    "Visualização detalhada dos volumes de cada lote diretamente na tabela.",
+    "Indicação visual quando um rastreio informado pelo morador é reconhecido durante o recebimento.",
+    "Novos filtros por pesquisa, situação, transportadora e período para localizar recebimentos com mais facilidade.",
+    "Filtro de transportadoras adaptado aos recebimentos existentes no período consultado.",
+    "Nova impressão operacional dos lotes e respectivos volumes para apoio à gestão do condomínio.",
+    "Novos acessos de navegação para Recebimento e Entrada de Encomendas na Portaria.",
+    "Melhorias de responsividade para utilização da operação em computadores e dispositivos móveis."
   ]
 }

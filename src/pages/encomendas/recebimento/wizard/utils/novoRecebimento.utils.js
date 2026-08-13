@@ -8,6 +8,25 @@ import {
 
 
 // ============================================================
+// SISTEMA CHEGOU!
+// NOVO RECEBIMENTO — UTILS
+//
+// Responsabilidades:
+// - estado local;
+// - normalizações exclusivamente de UX;
+// - volumes locais;
+// - quantidade;
+// - validações visuais;
+// - serialização do payload;
+// - estados de sincronização.
+//
+// IMPORTANTE:
+// Nenhuma normalização deste arquivo substitui as validações,
+// normalizações, autorização ou regras autoritativas do backend.
+// ============================================================
+
+
+// ============================================================
 // CLONE SEGURO DO ESTADO INICIAL
 // Evita reaproveitar referências internas do objeto congelado.
 // ============================================================
@@ -32,10 +51,11 @@ export function criarEstadoInicialNovoRecebimento() {
 
 // ============================================================
 // UUID LOCAL
+//
 // Utilizado para:
-// - clientReceiptId
-// - clientVolumeId
-// - chave de idempotência
+// - clientReceiptId;
+// - clientVolumeId;
+// - chave de idempotência.
 //
 // Não representa ID oficial do banco.
 // ============================================================
@@ -69,6 +89,7 @@ export function gerarClientReceiptId() {
 // CHAVE DE IDEMPOTÊNCIA
 //
 // A RPC oficial exige chave com pelo menos 16 caracteres.
+//
 // Esta chave deve permanecer a mesma durante retries
 // do MESMO payload final.
 // ============================================================
@@ -79,28 +100,232 @@ export function gerarChaveIdempotenciaRecebimento() {
 
 
 // ============================================================
-// NORMALIZAÇÃO VISUAL LOCAL
-//
-// IMPORTANTE:
-// Isto NÃO substitui fn_encomendas_normalizar_rastreio_v1.
-//
-// Serve apenas para:
-// - comparação local
-// - feedback visual
-// - prevenção simples de duplicidade no Wizard
-//
-// O backend continua sendo a autoridade.
+// TEXTO OPCIONAL
 // ============================================================
 
-export function normalizarCodigoLocal(valor) {
-  if (valor === null || valor === undefined) {
+function textoOpcional(valor) {
+  if (
+    valor === null ||
+    valor === undefined
+  ) {
+    return null;
+  }
+
+  const texto =
+    String(valor).trim();
+
+  return texto || null;
+}
+
+
+// ============================================================
+// NORMALIZAÇÃO VISUAL DO CÓDIGO
+//
+// Regra de UX oficial:
+// - letras sempre em CAIXA ALTA;
+// - números permanecem intactos;
+// - preserva caracteres do valor apresentado;
+// - remove apenas espaços nas extremidades.
+//
+// Ex.:
+// ab123cd   -> AB123CD
+// 1z999aa   -> 1Z999AA
+//
+// Esta função é adequada para o valor exibido/armazenado
+// localmente em codigoLido.
+// ============================================================
+
+export function normalizarCodigoExibicaoLocal(
+  valor
+) {
+  if (
+    valor === null ||
+    valor === undefined
+  ) {
     return "";
   }
 
   return String(valor)
     .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "");
+    .toUpperCase();
+}
+
+
+// ============================================================
+// NORMALIZAÇÃO LOCAL PARA COMPARAÇÃO
+//
+// IMPORTANTE:
+// Isto NÃO substitui fn_encomendas_normalizar_rastreio_v1.
+//
+// Serve apenas para:
+// - comparação local;
+// - feedback visual;
+// - prevenção simples de duplicidade no Wizard.
+//
+// Remove caracteres que não sejam A-Z ou 0-9.
+//
+// O backend continua sendo a autoridade.
+// ============================================================
+
+export function normalizarCodigoLocal(valor) {
+  return normalizarCodigoExibicaoLocal(
+    valor
+  ).replace(
+    /[^A-Z0-9]/g,
+    ""
+  );
+}
+
+
+// ============================================================
+// NORMALIZAÇÃO LOCAL DE NOME DE PESSOA
+//
+// Regra visual:
+//
+// joão da silva
+// -> João da Silva
+//
+// maria de souza
+// -> Maria de Souza
+//
+// Mantém conectivos usuais em minúsculas quando não forem
+// a primeira palavra.
+//
+// É somente uma normalização de UX.
+// ============================================================
+
+const CONECTIVOS_NOME =
+  new Set([
+    "da",
+    "das",
+    "de",
+    "do",
+    "dos",
+    "e",
+  ]);
+
+
+function normalizarParteNome(
+  palavra,
+  indice
+) {
+  if (!palavra) {
+    return "";
+  }
+
+  const minuscula =
+    palavra.toLocaleLowerCase(
+      "pt-BR"
+    );
+
+
+  if (
+    indice > 0 &&
+    CONECTIVOS_NOME.has(
+      minuscula
+    )
+  ) {
+    return minuscula;
+  }
+
+
+  /*
+   * Trata nomes compostos com hífen:
+   *
+   * ana-maria
+   * -> Ana-Maria
+   */
+  if (
+    minuscula.includes("-")
+  ) {
+    return minuscula
+      .split("-")
+      .map((parte) => {
+        if (!parte) {
+          return "";
+        }
+
+        return (
+          parte
+            .charAt(0)
+            .toLocaleUpperCase(
+              "pt-BR"
+            ) +
+          parte.slice(1)
+        );
+      })
+      .join("-");
+  }
+
+
+  /*
+   * Trata nomes com apóstrofo:
+   *
+   * d'ávila
+   * -> D'Ávila
+   */
+  if (
+    minuscula.includes("'")
+  ) {
+    return minuscula
+      .split("'")
+      .map((parte) => {
+        if (!parte) {
+          return "";
+        }
+
+        return (
+          parte
+            .charAt(0)
+            .toLocaleUpperCase(
+              "pt-BR"
+            ) +
+          parte.slice(1)
+        );
+      })
+      .join("'");
+  }
+
+
+  return (
+    minuscula
+      .charAt(0)
+      .toLocaleUpperCase(
+        "pt-BR"
+      ) +
+    minuscula.slice(1)
+  );
+}
+
+
+export function normalizarNomePessoaLocal(
+  valor
+) {
+  if (
+    valor === null ||
+    valor === undefined
+  ) {
+    return "";
+  }
+
+
+  const texto =
+    String(valor)
+      .trim()
+      .replace(/\s+/g, " ");
+
+
+  if (!texto) {
+    return "";
+  }
+
+
+  return texto
+    .split(" ")
+    .map(
+      normalizarParteNome
+    )
+    .join(" ");
 }
 
 
@@ -117,13 +342,17 @@ export function normalizarQuantidadeLocal(valor) {
     return "";
   }
 
-  const numero = Number(valor);
+  const numero =
+    Number(valor);
 
-  if (!Number.isFinite(numero)) {
+  if (
+    !Number.isFinite(numero)
+  ) {
     return "";
   }
 
-  const inteiro = Math.trunc(numero);
+  const inteiro =
+    Math.trunc(numero);
 
   if (inteiro < 0) {
     return 0;
@@ -133,13 +362,16 @@ export function normalizarQuantidadeLocal(valor) {
 }
 
 
-export function calcularQuantidadeBipada(volumes = []) {
+export function calcularQuantidadeBipada(
+  volumes = []
+) {
   if (!Array.isArray(volumes)) {
     return 0;
   }
 
   return volumes.filter(
-    (volume) => volume?.removido !== true
+    (volume) =>
+      volume?.removido !== true
   ).length;
 }
 
@@ -156,8 +388,15 @@ export function calcularDiferencaQuantidade(
     return null;
   }
 
-  const informada = Number(quantidadeInformada);
-  const bipada = Number(quantidadeBipada || 0);
+  const informada =
+    Number(
+      quantidadeInformada
+    );
+
+  const bipada =
+    Number(
+      quantidadeBipada || 0
+    );
 
   if (
     !Number.isFinite(informada) ||
@@ -166,7 +405,10 @@ export function calcularDiferencaQuantidade(
     return null;
   }
 
-  return bipada - informada;
+  return (
+    bipada -
+    informada
+  );
 }
 
 
@@ -174,12 +416,16 @@ export function possuiDivergenciaQuantidadeLocal(
   quantidadeInformada,
   quantidadeBipada
 ) {
-  const diferenca = calcularDiferencaQuantidade(
-    quantidadeInformada,
-    quantidadeBipada
-  );
+  const diferenca =
+    calcularDiferencaQuantidade(
+      quantidadeInformada,
+      quantidadeBipada
+    );
 
-  return diferenca !== null && diferenca !== 0;
+  return (
+    diferenca !== null &&
+    diferenca !== 0
+  );
 }
 
 
@@ -189,42 +435,95 @@ export function possuiDivergenciaQuantidadeLocal(
 
 export function criarVolumeLocal({
   codigoLido,
-  formatoCodigo = NOVO_RECEBIMENTO_FORMATO_CODIGO.DESCONHECIDO,
-  origemCaptura = NOVO_RECEBIMENTO_ORIGEM_CAPTURA.DIGITACAO_MANUAL,
+  formatoCodigo =
+    NOVO_RECEBIMENTO_FORMATO_CODIGO
+      .DESCONHECIDO,
+
+  origemCaptura =
+    NOVO_RECEBIMENTO_ORIGEM_CAPTURA
+      .DIGITACAO_MANUAL,
+
   confianca = null,
 } = {}) {
-  const agora = new Date().toISOString();
+  const agora =
+    new Date().toISOString();
+
+  const codigoExibicao =
+    normalizarCodigoExibicaoLocal(
+      codigoLido
+    );
 
   return {
-    clientVolumeId: `volume-${gerarUuidLocal()}`,
+    clientVolumeId:
+      `volume-${gerarUuidLocal()}`,
 
-    codigoLido: String(codigoLido || "").trim(),
+    /*
+     * Regra UX:
+     * letras ficam em caixa alta já no estado.
+     */
+    codigoLido:
+      codigoExibicao,
+
     codigoNormalizadoLocal:
-      normalizarCodigoLocal(codigoLido),
+      normalizarCodigoLocal(
+        codigoExibicao
+      ),
 
     formatoCodigo,
     origemCaptura,
 
     confianca,
 
-    capturadoEm: agora,
+    capturadoEm:
+      agora,
 
-    numeroVolume: null,
+    numeroVolume:
+      null,
 
-    removido: false,
-    removidoEm: null,
+    removido:
+      false,
 
-    avaria: null,
-    evidencias: [],
+    removidoEm:
+      null,
 
-    serverVolumeId: null,
+    /*
+     * Estrutura esperada:
+     *
+     * avaria: {
+     *   tipoOcorrencia,
+     *   gravidade,
+     *   descricao,
+     *   justificativa,
+     *   fotoMomento: "AGORA" | "DEPOIS",
+     *   requerFoto,
+     *   requerRevisao,
+     *   metadata
+     * }
+     */
+    avaria:
+      null,
 
-    moradorAguardandoRecebimento: null,
+    /*
+     * Somente metadados de evidências já enviadas
+     * ao Storage devem permanecer aqui.
+     *
+     * Não armazenar File/Blob bruto nesta coleção.
+     */
+    evidencias:
+      [],
+
+    serverVolumeId:
+      null,
+
+    moradorAguardandoRecebimento:
+      null,
 
     syncStatus:
-      NOVO_RECEBIMENTO_SYNC_STATUS.LOCAL,
+      NOVO_RECEBIMENTO_SYNC_STATUS
+        .LOCAL,
 
-    ultimoErro: null,
+    ultimoErro:
+      null,
   };
 }
 
@@ -241,21 +540,28 @@ export function codigoJaExisteLocalmente(
   codigoLido
 ) {
   const codigoNormalizado =
-    normalizarCodigoLocal(codigoLido);
+    normalizarCodigoLocal(
+      codigoLido
+    );
 
   if (!codigoNormalizado) {
     return false;
   }
 
-  return (volumes || []).some((volume) => {
-    if (volume?.removido === true) {
+  return (
+    volumes || []
+  ).some((volume) => {
+    if (
+      volume?.removido === true
+    ) {
       return false;
     }
 
     return (
       normalizarCodigoLocal(
         volume?.codigoLido
-      ) === codigoNormalizado
+      ) ===
+      codigoNormalizado
     );
   });
 }
@@ -268,21 +574,29 @@ export function codigoJaExisteLocalmente(
 // Não representa código oficial.
 // ============================================================
 
-export function reenumerarVolumesLocais(volumes = []) {
+export function reenumerarVolumesLocais(
+  volumes = []
+) {
   let contador = 0;
 
-  return volumes.map((volume) => {
-    if (volume?.removido === true) {
-      return volume;
+  return volumes.map(
+    (volume) => {
+      if (
+        volume?.removido === true
+      ) {
+        return volume;
+      }
+
+      contador += 1;
+
+      return {
+        ...volume,
+
+        numeroVolume:
+          contador,
+      };
     }
-
-    contador += 1;
-
-    return {
-      ...volume,
-      numeroVolume: contador,
-    };
-  });
+  );
 }
 
 
@@ -290,17 +604,25 @@ export function reenumerarVolumesLocais(volumes = []) {
 // ATUALIZAÇÃO DERIVADA DO ESTADO
 // ============================================================
 
-export function recalcularEstadoCaptura(state) {
-  const volumes = reenumerarVolumesLocais(
-    state?.captura?.volumes || []
-  );
+export function recalcularEstadoCaptura(
+  state
+) {
+  const volumes =
+    reenumerarVolumesLocais(
+      state?.captura?.volumes ||
+      []
+    );
 
   const quantidadeBipada =
-    calcularQuantidadeBipada(volumes);
+    calcularQuantidadeBipada(
+      volumes
+    );
 
   const possuiDivergencia =
     possuiDivergenciaQuantidadeLocal(
-      state?.captura?.quantidadeInformada,
+      state?.captura
+        ?.quantidadeInformada,
+
       quantidadeBipada
     );
 
@@ -309,14 +631,17 @@ export function recalcularEstadoCaptura(state) {
 
     captura: {
       ...state.captura,
+
       volumes,
+
       quantidadeBipada,
     },
 
     possuiDivergenciaQuantidade:
       possuiDivergencia,
 
-    atualizadoEm: new Date().toISOString(),
+    atualizadoEm:
+      new Date().toISOString(),
   };
 }
 
@@ -326,7 +651,8 @@ export function recalcularEstadoCaptura(state) {
 // ============================================================
 
 export function iniciarNovoRecebimentoLocal() {
-  const agora = new Date().toISOString();
+  const agora =
+    new Date().toISOString();
 
   return {
     ...criarEstadoInicialNovoRecebimento(),
@@ -337,14 +663,19 @@ export function iniciarNovoRecebimentoLocal() {
     chaveIdempotencia:
       gerarChaveIdempotenciaRecebimento(),
 
-    abertoEm: agora,
-    atualizadoEm: agora,
+    abertoEm:
+      agora,
+
+    atualizadoEm:
+      agora,
 
     statusLocal:
-      NOVO_RECEBIMENTO_LOCAL_STATUS.EM_ANDAMENTO,
+      NOVO_RECEBIMENTO_LOCAL_STATUS
+        .EM_ANDAMENTO,
 
     syncStatus:
-      NOVO_RECEBIMENTO_SYNC_STATUS.LOCAL,
+      NOVO_RECEBIMENTO_SYNC_STATUS
+        .LOCAL,
   };
 }
 
@@ -356,12 +687,18 @@ export function iniciarNovoRecebimentoLocal() {
 // Não substituem validações das RPCs.
 // ============================================================
 
-export function podeAvancarIdentificacao(state) {
+export function podeAvancarIdentificacao(
+  state
+) {
   const entregadorNome =
-    state?.identificacao?.entregadorNome?.trim();
+    normalizarNomePessoaLocal(
+      state?.identificacao
+        ?.entregadorNome
+    );
 
   const transportadoraId =
-    state?.identificacao?.transportadoraId;
+    state?.identificacao
+      ?.transportadoraId;
 
   return Boolean(
     entregadorNome &&
@@ -370,9 +707,12 @@ export function podeAvancarIdentificacao(state) {
 }
 
 
-export function podeIniciarCaptura(state) {
+export function podeIniciarCaptura(
+  state
+) {
   const quantidade =
-    state?.captura?.quantidadeInformada;
+    state?.captura
+      ?.quantidadeInformada;
 
   if (
     quantidade === "" ||
@@ -382,25 +722,122 @@ export function podeIniciarCaptura(state) {
     return false;
   }
 
-  const numero = Number(quantidade);
+  const numero =
+    Number(quantidade);
 
-  return Number.isInteger(numero) && numero > 0;
+  return (
+    Number.isInteger(numero) &&
+    numero > 0
+  );
 }
 
 
-export function podeConcluirRecebimento(state) {
-  if (!podeAvancarIdentificacao(state)) {
+export function podeConcluirRecebimento(
+  state
+) {
+  if (
+    !podeAvancarIdentificacao(
+      state
+    )
+  ) {
     return false;
   }
 
-  if (!podeIniciarCaptura(state)) {
+  if (
+    !podeIniciarCaptura(
+      state
+    )
+  ) {
     return false;
   }
 
   const quantidadeBipada =
-    Number(state?.captura?.quantidadeBipada || 0);
+    Number(
+      state?.captura
+        ?.quantidadeBipada ||
+      0
+    );
 
-  return quantidadeBipada > 0;
+  /*
+   * AVARIA SEM FOTO:
+   * não bloqueia conclusão.
+   *
+   * ASSINATURA OBRIGATÓRIA AUSENTE:
+   * não bloqueia conclusão.
+   *
+   * Essas regras são tratadas pelo backend
+   * conforme contratos homologados.
+   */
+  return (
+    quantidadeBipada > 0
+  );
+}
+
+
+// ============================================================
+// EVIDÊNCIA PRONTA PARA BACKEND
+//
+// rpc_encomenda_evidencia_registrar_v1 exige:
+// - bucket;
+// - storage_path.
+//
+// Portanto uma escolha "Anexar agora" que ainda não terminou
+// seu upload NÃO pode ser serializada como evidência válida.
+//
+// Isso impede enviar:
+//
+// bucket: null
+// storage_path: null
+//
+// e quebrar o processamento inteiro.
+// ============================================================
+
+function evidenciaProntaParaBackend(
+  evidencia
+) {
+  if (!evidencia) {
+    return false;
+  }
+
+  return Boolean(
+    textoOpcional(
+      evidencia.bucket
+    ) &&
+    textoOpcional(
+      evidencia.storagePath
+    )
+  );
+}
+
+
+// ============================================================
+// ASSINATURA PRONTA PARA BACKEND
+//
+// A RPC de assinatura também exige bucket + storage_path.
+//
+// Assim:
+// - assinatura desenhada localmente mas ainda não enviada
+//   não gera registrar=true;
+// - assinatura já persistida no Storage gera registrar=true.
+//
+// A ausência nunca deve impedir Concluir Recebimento.
+// ============================================================
+
+function assinaturaProntaParaBackend(
+  assinatura
+) {
+  if (!assinatura) {
+    return false;
+  }
+
+  return Boolean(
+    textoOpcional(
+      assinatura.bucket
+    ) &&
+    textoOpcional(
+      assinatura.storagePath
+    )
+  );
 }
 
 
@@ -410,7 +847,10 @@ export function podeConcluirRecebimento(state) {
 // IMPORTANTE:
 // Este método apenas monta o contrato frontend.
 //
-// O service será responsável por enviar à RPC.
+// O service será responsável por enviar à:
+//
+// rpc_encomenda_pre_recebimento_processar_v2
+//
 // Não inclui confirmar=true.
 // Portanto NÃO promove para Encomenda Oficial.
 // ============================================================
@@ -431,117 +871,381 @@ export function montarPayloadProcessarRecebimento({
     );
   }
 
+
   const volumesAtivos =
-    (state.captura?.volumes || []).filter(
-      (volume) => volume?.removido !== true
+    (
+      state.captura?.volumes ||
+      []
+    ).filter(
+      (volume) =>
+        volume?.removido !== true
     );
+
 
   const ocorrencias = [];
   const evidencias = [];
 
+
+  // ==========================================================
+  // OCORRÊNCIAS + EVIDÊNCIAS
+  // ==========================================================
+
   volumesAtivos.forEach(
-    (volume, volumeIndice) => {
-      if (volume?.avaria) {
-        ocorrencias.push({
-          volume_indice: volumeIndice,
+    (
+      volume,
+      volumeIndice
+    ) => {
+      if (!volume?.avaria) {
+        return;
+      }
 
-          tipo_ocorrencia:
-            volume.avaria.tipoOcorrencia ||
-            "OUTRA_OCORRENCIA",
 
-          gravidade:
-            volume.avaria.gravidade ||
-            "BAIXA",
+      const fotoMomento =
+        volume.avaria
+          .fotoMomento ||
+        volume.avaria
+          .metadata
+          ?.foto_momento ||
+        null;
 
-          decisao_operacional:
-            volume.avaria.decisaoOperacional ||
-            null,
 
-          descricao:
-            volume.avaria.descricao || null,
+      const metadataAvaria = {
+        ...(
+          volume.avaria
+            .metadata ||
+          {}
+        ),
+      };
 
-          justificativa:
-            volume.avaria.justificativa || null,
 
-          requer_foto:
-            Boolean(
-              volume.avaria.requerFoto
-            ),
+      if (fotoMomento) {
+        metadataAvaria
+          .foto_momento =
+          fotoMomento;
+      }
 
-          requer_revisao:
-            Boolean(
-              volume.avaria.requerRevisao
-            ),
 
-          metadata:
-            volume.avaria.metadata || {},
-        });
+      ocorrencias.push({
+        volume_indice:
+          volumeIndice,
 
-        const ocorrenciaIndice =
-          ocorrencias.length - 1;
+        tipo_ocorrencia:
+          volume.avaria
+            .tipoOcorrencia ||
+          "OUTRA_OCORRENCIA",
 
-        (volume.evidencias || []).forEach(
+        gravidade:
+          volume.avaria
+            .gravidade ||
+          "BAIXA",
+
+        decisao_operacional:
+          textoOpcional(
+            volume.avaria
+              .decisaoOperacional
+          ),
+
+        descricao:
+          textoOpcional(
+            volume.avaria
+              .descricao
+          ),
+
+        justificativa:
+          textoOpcional(
+            volume.avaria
+              .justificativa
+          ),
+
+        /*
+         * Auxiliar do contrato.
+         *
+         * NÃO é autoridade sobre obrigatoriedade.
+         * Backend/configuração do condomínio continua soberano.
+         */
+        requer_foto:
+          Boolean(
+            volume.avaria
+              .requerFoto
+          ),
+
+        requer_revisao:
+          Boolean(
+            volume.avaria
+              .requerRevisao
+          ),
+
+        metadata:
+          metadataAvaria,
+      });
+
+
+      const ocorrenciaIndice =
+        ocorrencias.length - 1;
+
+
+      (
+        volume.evidencias ||
+        []
+      )
+        .filter(
+          evidenciaProntaParaBackend
+        )
+        .forEach(
           (evidencia) => {
             evidencias.push({
-              volume_indice: volumeIndice,
+              volume_indice:
+                volumeIndice,
+
               ocorrencia_indice:
                 ocorrenciaIndice,
 
               tipo_evidencia:
-                evidencia.tipoEvidencia ||
+                evidencia
+                  .tipoEvidencia ||
                 "FOTO_AVARIA",
 
               bucket:
-                evidencia.bucket || null,
+                textoOpcional(
+                  evidencia.bucket
+                ),
 
               storage_path:
-                evidencia.storagePath || null,
+                textoOpcional(
+                  evidencia
+                    .storagePath
+                ),
 
               mime_type:
-                evidencia.mimeType || null,
+                textoOpcional(
+                  evidencia.mimeType
+                ),
 
               tamanho_bytes:
-                evidencia.tamanhoBytes ?? null,
+                evidencia
+                  .tamanhoBytes ??
+                null,
 
               largura_px:
-                evidencia.larguraPx ?? null,
+                evidencia
+                  .larguraPx ??
+                null,
 
               altura_px:
-                evidencia.alturaPx ?? null,
+                evidencia
+                  .alturaPx ??
+                null,
 
               hash_sha256:
-                evidencia.hashSha256 || null,
+                textoOpcional(
+                  evidencia
+                    .hashSha256
+                ),
 
               arquivo_original:
                 Boolean(
-                  evidencia.arquivoOriginal
+                  evidencia
+                    .arquivoOriginal
                 ),
 
               exif_removido:
-                evidencia.exifRemovido !== false,
+                evidencia
+                  .exifRemovido !==
+                false,
 
               classificacao_acesso:
-                evidencia.classificacaoAcesso ||
+                evidencia
+                  .classificacaoAcesso ||
                 "INCIDENTE",
 
+              /*
+               * null permite que o backend use
+               * retencao_incidente_dias.
+               *
+               * FOTO_AVARIA homologada:
+               * 365 dias no condomínio de teste.
+               */
               retencao_dias:
-                evidencia.retencaoDias ?? null,
+                evidencia
+                  .retencaoDias ??
+                null,
 
-              metadata:
-                evidencia.metadata || {},
+              metadata: {
+                ...(
+                  evidencia
+                    .metadata ||
+                  {}
+                ),
+
+                origem_wizard:
+                  "NOVO_RECEBIMENTO",
+              },
             });
           }
         );
-      }
     }
   );
 
+
+  // ==========================================================
+  // IDENTIFICAÇÃO NORMALIZADA
+  // ==========================================================
+
+  const entregadorNome =
+    normalizarNomePessoaLocal(
+      state.identificacao
+        ?.entregadorNome
+    );
+
+
+  /*
+   * Para transportadora:
+   *
+   * - se houver nome livre informado em "Outras",
+   *   ele tem precedência;
+   *
+   * - caso contrário usa o nome apresentado
+   *   da transportadora selecionada.
+   *
+   * O backend V2 preserva este campo.
+   */
+  const transportadoraNomeInformado =
+    textoOpcional(
+      state.identificacao
+        ?.transportadoraNomeInformado
+    ) ||
+    textoOpcional(
+      state.identificacao
+        ?.transportadoraNome
+    );
+
+
+  /*
+   * Somente documento JÁ mascarado deve sair deste util.
+   *
+   * Não usamos um eventual documento bruto como fallback,
+   * para evitar exposição acidental de dado pessoal.
+   *
+   * Quando ajustarmos a tela de identificação, o estado
+   * oficial deve utilizar:
+   *
+   * identificacao.entregadorDocumentoMascarado
+   */
+  const entregadorDocumentoMascarado =
+    textoOpcional(
+      state.identificacao
+        ?.entregadorDocumentoMascarado
+    );
+
+
+  // ==========================================================
+  // ASSINATURA
+  // ==========================================================
+
+  const assinaturaPronta =
+    assinaturaProntaParaBackend(
+      state.assinatura
+    );
+
+
+  const assinaturaPayload =
+    assinaturaPronta
+      ? {
+          registrar:
+            true,
+
+          tipo_assinatura:
+            state.assinatura
+              .tipoAssinatura ||
+            "RECEBIMENTO_ENTREGADOR",
+
+          nome_signatario:
+            normalizarNomePessoaLocal(
+              state.assinatura
+                .nomeSignatario ||
+              entregadorNome
+            ) ||
+            null,
+
+          documento_mascarado_signatario:
+            textoOpcional(
+              state.assinatura
+                .documentoMascarado
+            ),
+
+          bucket:
+            textoOpcional(
+              state.assinatura
+                .bucket
+            ),
+
+          storage_path:
+            textoOpcional(
+              state.assinatura
+                .storagePath
+            ),
+
+          hash_sha256:
+            textoOpcional(
+              state.assinatura
+                .hashSha256
+            ),
+
+          mime_type:
+            textoOpcional(
+              state.assinatura
+                .mimeType
+            ),
+
+          tamanho_bytes:
+            state.assinatura
+              .tamanhoBytes ??
+            null,
+
+          metadata: {
+            ...(
+              state.assinatura
+                .metadata ||
+              {}
+            ),
+
+            origem_wizard:
+              "NOVO_RECEBIMENTO",
+          },
+        }
+      : {
+          /*
+           * Inclusive quando o condomínio considera
+           * assinatura obrigatória.
+           *
+           * A ausência é uma pendência administrativa
+           * não bloqueante, conforme contrato V3.
+           */
+          registrar:
+            false,
+        };
+
+
+  // ==========================================================
+  // PAYLOAD FINAL
+  // ==========================================================
+
   return {
-    condominio_id: condominioId,
+    condominio_id:
+      condominioId,
 
     transportadora_id:
-      state.identificacao.transportadoraId ||
+      state.identificacao
+        ?.transportadoraId ||
       null,
+
+    /*
+     * NOVO CONTRATO V2.
+     *
+     * Fundamental para TRP-00022 / Outras Transportadoras.
+     */
+    transportadora_nome_informado:
+      transportadoraNomeInformado,
 
     tipo_entrega:
       "ENCOMENDA_PADRAO",
@@ -551,95 +1255,93 @@ export function montarPayloadProcessarRecebimento({
 
     quantidade_informada:
       Number(
-        state.captura.quantidadeInformada
+        state.captura
+          .quantidadeInformada
       ),
 
     quantidade_conferida:
       Number(
-        state.captura.quantidadeBipada
+        state.captura
+          .quantidadeBipada
       ),
 
     entregador_nome:
-      state.identificacao.entregadorNome
-        ?.trim() || null,
+      entregadorNome ||
+      null,
 
     entregador_empresa:
-      state.identificacao.transportadoraNome
-        ?.trim() || null,
+      transportadoraNomeInformado,
+
+    /*
+     * NOVO CONTRATO V2.
+     *
+     * Não envia documento bruto.
+     */
+    entregador_documento_mascarado:
+      entregadorDocumentoMascarado,
 
     observacoes:
-      state.observacoes?.trim() || null,
+      textoOpcional(
+        state.observacoes
+      ),
 
     justificativa_divergencia:
-      state.justificativaDivergencia
-        ?.trim() || null,
+      textoOpcional(
+        state
+          .justificativaDivergencia
+      ),
 
-    confirmar: false,
+    /*
+     * O Wizard atual cria/consolida o Pré.
+     *
+     * Entrada Oficial é fluxo separado.
+     */
+    confirmar:
+      false,
 
-    volumes: volumesAtivos.map(
-      (volume, index) => ({
-        codigo_lido:
-          volume.codigoLido || null,
+    volumes:
+      volumesAtivos.map(
+        (
+          volume,
+          index
+        ) => ({
+          codigo_lido:
+            normalizarCodigoExibicaoLocal(
+              volume.codigoLido
+            ) ||
+            null,
 
-        formato_codigo:
-          volume.formatoCodigo ||
-          NOVO_RECEBIMENTO_FORMATO_CODIGO.DESCONHECIDO,
+          formato_codigo:
+            volume.formatoCodigo ||
+            NOVO_RECEBIMENTO_FORMATO_CODIGO
+              .DESCONHECIDO,
 
-        numero_volume: index + 1,
+          numero_volume:
+            index + 1,
 
-        origem_captura:
-          volume.origemCaptura ||
-          NOVO_RECEBIMENTO_ORIGEM_CAPTURA.DIGITACAO_MANUAL,
+          origem_captura:
+            volume.origemCaptura ||
+            NOVO_RECEBIMENTO_ORIGEM_CAPTURA
+              .DIGITACAO_MANUAL,
 
-        confianca:
-          volume.confianca ?? null,
-      })
-    ),
+          confianca:
+            volume.confianca ??
+            null,
+        })
+      ),
 
-    capturas: [],
+    /*
+     * Capturas estruturadas/OCR permanecem desacopladas.
+     */
+    capturas:
+      [],
 
     ocorrencias,
 
     evidencias,
 
-    assinatura: state.assinatura
-      ? {
-          registrar: true,
-
-          tipo_assinatura:
-            state.assinatura.tipoAssinatura ||
-            "RECEBIMENTO_ENTREGADOR",
-
-          nome_signatario:
-            state.assinatura.nomeSignatario ||
-            state.identificacao.entregadorNome ||
-            null,
-
-          documento_mascarado_signatario:
-            state.assinatura.documentoMascarado ||
-            null,
-
-          bucket:
-            state.assinatura.bucket || null,
-
-          storage_path:
-            state.assinatura.storagePath || null,
-
-          hash_sha256:
-            state.assinatura.hashSha256 || null,
-
-          mime_type:
-            state.assinatura.mimeType || null,
-
-          tamanho_bytes:
-            state.assinatura.tamanhoBytes ?? null,
-
-          metadata:
-            state.assinatura.metadata || {},
-        }
-      : {
-          registrar: false,
-        },
+    assinatura:
+      assinaturaPayload,
   };
 }
 
@@ -648,19 +1350,25 @@ export function montarPayloadProcessarRecebimento({
 // MARCAÇÕES DE SINCRONIZAÇÃO
 // ============================================================
 
-export function marcarRecebimentoConcluindo(state) {
+export function marcarRecebimentoConcluindo(
+  state
+) {
   return {
     ...state,
 
     statusLocal:
-      NOVO_RECEBIMENTO_LOCAL_STATUS.CONCLUINDO,
+      NOVO_RECEBIMENTO_LOCAL_STATUS
+        .CONCLUINDO,
 
     syncStatus:
-      NOVO_RECEBIMENTO_SYNC_STATUS.SINCRONIZANDO,
+      NOVO_RECEBIMENTO_SYNC_STATUS
+        .SINCRONIZANDO,
 
-    ultimoErro: null,
+    ultimoErro:
+      null,
 
-    atualizadoEm: new Date().toISOString(),
+    atualizadoEm:
+      new Date().toISOString(),
   };
 }
 
@@ -673,25 +1381,31 @@ export function marcarRecebimentoConcluido(
     ...state,
 
     statusLocal:
-      NOVO_RECEBIMENTO_LOCAL_STATUS.CONCLUIDO,
+      NOVO_RECEBIMENTO_LOCAL_STATUS
+        .CONCLUIDO,
 
     syncStatus:
-      NOVO_RECEBIMENTO_SYNC_STATUS.SINCRONIZADO,
+      NOVO_RECEBIMENTO_SYNC_STATUS
+        .SINCRONIZADO,
 
     preRecebimentoId:
-      resultado?.pre_recebimento_id ||
+      resultado
+        ?.pre_recebimento_id ||
       state.preRecebimentoId ||
       null,
 
     correlationId:
-      resultado?.pre_recebimento
+      resultado
+        ?.pre_recebimento
         ?.correlation_id ||
       state.correlationId ||
       null,
 
-    ultimoErro: null,
+    ultimoErro:
+      null,
 
-    atualizadoEm: new Date().toISOString(),
+    atualizadoEm:
+      new Date().toISOString(),
   };
 }
 
@@ -708,18 +1422,23 @@ export function marcarRecebimentoAguardandoSincronizacao(
         .AGUARDANDO_SINCRONIZACAO,
 
     syncStatus:
-      NOVO_RECEBIMENTO_SYNC_STATUS.PENDENTE,
+      NOVO_RECEBIMENTO_SYNC_STATUS
+        .PENDENTE,
 
-    ultimoErro: erro
-      ? {
-          message:
-            erro?.message ||
-            "Falha de sincronização.",
-          registradoEm:
-            new Date().toISOString(),
-        }
-      : null,
+    ultimoErro:
+      erro
+        ? {
+            message:
+              erro?.message ||
+              "Falha de sincronização.",
 
-    atualizadoEm: new Date().toISOString(),
+            registradoEm:
+              new Date()
+                .toISOString(),
+          }
+        : null,
+
+    atualizadoEm:
+      new Date().toISOString(),
   };
 }

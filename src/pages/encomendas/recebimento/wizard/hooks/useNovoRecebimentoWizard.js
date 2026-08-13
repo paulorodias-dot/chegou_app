@@ -14,8 +14,10 @@ import {
 
   erroPareceConectividade,
   navegadorEstaOnline,
+
   processarRecebimento,
   retomarRecebimento,
+  concluirLoteRecebimento,
 
   listarTransportadorasRecebimento,
 } from "../../services";
@@ -56,18 +58,191 @@ import {
 // - autosave IndexedDB;
 // - recuperação após interrupção;
 // - congelamento da tentativa de conclusão;
-// - chamada ao service;
+// - Fase 1: materialização do Pré-Recebimento;
+// - Fase 2: conclusão do Lote;
 // - retomada idempotente.
 //
 // NÃO:
 // - acessa Supabase diretamente;
 // - executa regra autoritativa de backend;
 // - faz matching do Morador;
-// - promove Encomenda Oficial.
+// - promove Encomenda Oficial;
+// - executa Entrada Oficial.
+//
+// CONTRATO DE CONCLUSÃO:
+//
+// IndexedDB
+// ↓
+// processar_v2(confirmar=false)
+// ↓
+// Pré-Recebimento materializado
+// ↓
+// persistir preRecebimentoId localmente
+// ↓
+// lote_concluir_v3
+// ↓
+// LOTE_CONCLUIDO
+// ↓
+// somente então:
+// - finalizar estado local;
+// - disparar onConcluido;
+// - remover rascunho.
+//
+// Recebimento ≠ Entrada Oficial.
 // ============================================================
 
 
 const AUTOSAVE_DELAY_MS = 250;
+
+
+// ============================================================
+// STATUS DE LOTE QUE REPRESENTAM CONCLUSÃO OU ESTADO POSTERIOR
+//
+// LOTE_CONCLUIDO:
+// conclusão normal deste fluxo.
+//
+// PARCIALMENTE_PROCESSADO / PROCESSADO:
+// o lote já avançou posteriormente. Em uma reconciliação,
+// não devemos interpretar isso como falha do Recebimento.
+// ============================================================
+
+const STATUS_LOTE_RESOLVIDOS =
+  new Set([
+    "LOTE_CONCLUIDO",
+    "PARCIALMENTE_PROCESSADO",
+    "PROCESSADO",
+  ]);
+
+
+// ============================================================
+// HELPERS — CONCLUSÃO
+// ============================================================
+
+function obterPreRecebimentoIdResultado(
+  resultado
+) {
+  return (
+    resultado?.pre_recebimento_id ||
+    resultado?.pre_recebimento?.id ||
+    resultado?.preRecebimentoId ||
+    null
+  );
+}
+
+
+function obterStatusLote(
+  resultado
+) {
+  return (
+    resultado?.status_lote ||
+    resultado?.status ||
+    null
+  );
+}
+
+
+function statusLoteEstaResolvido(
+  resultado
+) {
+  const status =
+    obterStatusLote(
+      resultado
+    );
+
+  return STATUS_LOTE_RESOLVIDOS.has(
+    status
+  );
+}
+
+
+function estadoPossuiDivergenciaQuantidade(
+  estado
+) {
+  const quantidadeInformada =
+    estado?.captura
+      ?.quantidadeInformada;
+
+  const quantidadeBipada =
+    estado?.captura
+      ?.quantidadeBipada ||
+    0;
+
+  const diferenca =
+    calcularDiferencaQuantidade(
+      quantidadeInformada,
+      quantidadeBipada
+    );
+
+  return (
+    diferenca !== null &&
+    diferenca !== undefined &&
+    diferenca !== 0
+  );
+}
+
+
+function montarResultadoFinalConclusao({
+  estado,
+  resultadoProcessamento = null,
+  resultadoLote,
+}) {
+  const status =
+    obterStatusLote(
+      resultadoLote
+    );
+
+
+  return {
+    ok: true,
+
+    pre_recebimento_id:
+      estado.preRecebimentoId,
+
+    processamento:
+      resultadoProcessamento,
+
+    lote:
+      resultadoLote,
+
+    status,
+
+    status_lote:
+      status,
+
+    possui_pendencia_foto_avaria:
+      Boolean(
+        resultadoLote
+          ?.possui_pendencia_foto_avaria ??
+        resultadoLote
+          ?.possui_pendencia_foto
+      ),
+
+    possui_pendencia_foto:
+      Boolean(
+        resultadoLote
+          ?.possui_pendencia_foto ??
+        resultadoLote
+          ?.possui_pendencia_foto_avaria
+      ),
+
+    possui_pendencia_assinatura:
+      Boolean(
+        resultadoLote
+          ?.possui_pendencia_assinatura
+      ),
+
+    entrada_oficial_liberada:
+      Boolean(
+        resultadoLote
+          ?.entrada_oficial_liberada
+      ),
+
+    entregador_liberado:
+      resultadoLote
+        ?.entregador_liberado !==
+      false,
+  };
+}
 
 
 // ============================================================
@@ -79,64 +254,97 @@ export default function useNovoRecebimentoWizard({
   condominioId,
   onConcluido,
 } = {}) {
-  const [state, setState] = useState(null);
+  const [
+    state,
+    setState,
+  ] = useState(null);
+
 
   const [
     carregandoRecuperacao,
     setCarregandoRecuperacao,
   ] = useState(false);
 
+
   const [
     recuperacaoEncontrada,
     setRecuperacaoEncontrada,
   ] = useState(false);
+
 
   const [
     conclusaoPendenteEncontrada,
     setConclusaoPendenteEncontrada,
   ] = useState(false);
 
+
   const [
     erroInterface,
     setErroInterface,
   ] = useState(null);
+
 
   const [
     transportadoras,
     setTransportadoras,
   ] = useState([]);
 
+
   const [
     carregandoTransportadoras,
     setCarregandoTransportadoras,
   ] = useState(false);
+
 
   const [
     erroTransportadoras,
     setErroTransportadoras,
   ] = useState(null);
 
-  const autosaveTimerRef = useRef(null);
 
-  const inicializacaoRef = useRef(false);
+  const autosaveTimerRef =
+    useRef(null);
+
+
+  const inicializacaoRef =
+    useRef(false);
 
 
   // ==========================================================
   // CRIAR NOVO ESTADO LOCAL
   // ==========================================================
 
-  const criarNovoEstado = useCallback(() => {
-    const novo =
-      iniciarNovoRecebimentoLocal();
+  const criarNovoEstado =
+    useCallback(
+      () => {
+        const novo =
+          iniciarNovoRecebimentoLocal();
 
-    setState(novo);
 
-    setRecuperacaoEncontrada(false);
-    setConclusaoPendenteEncontrada(false);
-    setErroInterface(null);
+        setState(
+          novo
+        );
 
-    return novo;
-  }, []);
+
+        setRecuperacaoEncontrada(
+          false
+        );
+
+
+        setConclusaoPendenteEncontrada(
+          false
+        );
+
+
+        setErroInterface(
+          null
+        );
+
+
+        return novo;
+      },
+      []
+    );
 
 
   // ==========================================================
@@ -145,25 +353,38 @@ export default function useNovoRecebimentoWizard({
 
   useEffect(() => {
     if (!open) {
-      inicializacaoRef.current = false;
+      inicializacaoRef.current =
+        false;
+
       return;
     }
 
-    if (inicializacaoRef.current) {
+
+    if (
+      inicializacaoRef.current
+    ) {
       return;
     }
 
-    inicializacaoRef.current = true;
 
-    let ativo = true;
+    inicializacaoRef.current =
+      true;
+
+
+    let ativo =
+      true;
 
 
     async function inicializar() {
       try {
-        setCarregandoRecuperacao(true);
+        setCarregandoRecuperacao(
+          true
+        );
+
 
         const salvo =
           await obterRecebimentoAtivoLocal();
+
 
         if (!ativo) {
           return;
@@ -171,17 +392,36 @@ export default function useNovoRecebimentoWizard({
 
 
         if (salvo) {
-          setState(salvo);
+          setState(
+            salvo
+          );
 
-          setRecuperacaoEncontrada(true);
 
+          setRecuperacaoEncontrada(
+            true
+          );
+
+
+          /*
+           * Uma conclusão pendente possui:
+           *
+           * - payload/chave para recuperar a Fase 1; OU
+           * - preRecebimentoId para retomar diretamente
+           *   a Fase 2.
+           */
           setConclusaoPendenteEncontrada(
             Boolean(
               salvo.conclusaoPendente &&
-              salvo.payloadConclusao &&
-              salvo.chaveIdempotencia
+              (
+                salvo.preRecebimentoId ||
+                (
+                  salvo.payloadConclusao &&
+                  salvo.chaveIdempotencia
+                )
+              )
             )
           );
+
 
           return;
         }
@@ -190,37 +430,51 @@ export default function useNovoRecebimentoWizard({
         const novo =
           iniciarNovoRecebimentoLocal();
 
-        setState(novo);
 
-        await salvarRecebimentoLocal(novo);
+        setState(
+          novo
+        );
+
+
+        await salvarRecebimentoLocal(
+          novo
+        );
       } catch (error) {
         if (!ativo) {
           return;
         }
 
+
         setErroInterface(
           error?.message ||
-            "Não foi possível preparar o recebimento."
+          "Não foi possível preparar o recebimento."
         );
+
 
         setState(
           iniciarNovoRecebimentoLocal()
         );
       } finally {
         if (ativo) {
-          setCarregandoRecuperacao(false);
+          setCarregandoRecuperacao(
+            false
+          );
         }
       }
     }
 
 
-    inicializar();
+    void inicializar();
 
 
     return () => {
-      ativo = false;
+      ativo =
+        false;
     };
-  }, [open]);
+  }, [
+    open,
+  ]);
+
 
   // ==========================================================
   // TRANSPORTADORAS OFICIAIS
@@ -235,20 +489,31 @@ export default function useNovoRecebimentoWizard({
     }
 
 
-    let ativo = true;
+    let ativo =
+      true;
 
 
     async function carregarTransportadoras() {
       try {
-        setCarregandoTransportadoras(true);
-        setErroTransportadoras(null);
+        setCarregandoTransportadoras(
+          true
+        );
+
+
+        setErroTransportadoras(
+          null
+        );
 
 
         const resultado =
           await listarTransportadorasRecebimento({
             condominioId,
-            limite: 100,
-            offset: 0,
+
+            limite:
+              100,
+
+            offset:
+              0,
           });
 
 
@@ -273,11 +538,14 @@ export default function useNovoRecebimentoWizard({
         );
 
 
-        setTransportadoras([]);
+        setTransportadoras(
+          []
+        );
+
 
         setErroTransportadoras(
           error?.message ||
-            "Não foi possível carregar as transportadoras."
+          "Não foi possível carregar as transportadoras."
         );
       } finally {
         if (ativo) {
@@ -289,11 +557,12 @@ export default function useNovoRecebimentoWizard({
     }
 
 
-    carregarTransportadoras();
+    void carregarTransportadoras();
 
 
     return () => {
-      ativo = false;
+      ativo =
+        false;
     };
   }, [
     open,
@@ -306,12 +575,17 @@ export default function useNovoRecebimentoWizard({
   // ==========================================================
 
   useEffect(() => {
-    if (!open || !state?.clientReceiptId) {
+    if (
+      !open ||
+      !state?.clientReceiptId
+    ) {
       return undefined;
     }
 
 
-    if (autosaveTimerRef.current) {
+    if (
+      autosaveTimerRef.current
+    ) {
       clearTimeout(
         autosaveTimerRef.current
       );
@@ -319,59 +593,77 @@ export default function useNovoRecebimentoWizard({
 
 
     autosaveTimerRef.current =
-      setTimeout(async () => {
-        try {
-          await salvarRecebimentoLocal(
-            state
-          );
-        } catch (error) {
-          console.error(
-            "[Recebimento] Falha no autosave local:",
-            error
-          );
-        }
-      }, AUTOSAVE_DELAY_MS);
+      setTimeout(
+        async () => {
+          try {
+            await salvarRecebimentoLocal(
+              state
+            );
+          } catch (error) {
+            console.error(
+              "[Recebimento] Falha no autosave local:",
+              error
+            );
+          }
+        },
+        AUTOSAVE_DELAY_MS
+      );
 
 
     return () => {
-      if (autosaveTimerRef.current) {
+      if (
+        autosaveTimerRef.current
+      ) {
         clearTimeout(
           autosaveTimerRef.current
         );
       }
     };
-  }, [open, state]);
+  }, [
+    open,
+    state,
+  ]);
 
 
   // ==========================================================
   // ATUALIZAÇÃO GENÉRICA
   // ==========================================================
 
-  const atualizarState = useCallback(
-    (updater) => {
-      setState((atual) => {
-        if (!atual) {
-          return atual;
-        }
+  const atualizarState =
+    useCallback(
+      (updater) => {
+        setState(
+          (atual) => {
+            if (!atual) {
+              return atual;
+            }
 
-        const proximo =
-          typeof updater === "function"
-            ? updater(atual)
-            : updater;
 
-        if (!proximo) {
-          return atual;
-        }
+            const proximo =
+              typeof updater ===
+              "function"
+                ? updater(atual)
+                : updater;
 
-        return {
-          ...proximo,
-          atualizadoEm:
-            new Date().toISOString(),
-        };
-      });
-    },
-    []
-  );
+
+            if (!proximo) {
+              return atual;
+            }
+
+
+            return {
+              ...proximo,
+
+              atualizadoEm:
+                new Date()
+                  .toISOString(),
+            };
+          }
+        );
+      },
+      []
+    );
+
 
   // ==========================================================
   // RECONCILIAR TRANSPORTADORA DO RASCUNHO RECUPERADO
@@ -385,7 +677,8 @@ export default function useNovoRecebimentoWizard({
 
     if (
       !transportadoraId ||
-      transportadoras.length === 0
+      transportadoras.length ===
+        0
     ) {
       return;
     }
@@ -418,16 +711,18 @@ export default function useNovoRecebimentoWizard({
     }
 
 
-    atualizarState((atual) => ({
-      ...atual,
+    atualizarState(
+      (atual) => ({
+        ...atual,
 
-      identificacao: {
-        ...atual.identificacao,
+        identificacao: {
+          ...atual.identificacao,
 
-        transportadoraNome:
-          encontrada.nomeFantasia,
-      },
-    }));
+          transportadoraNome:
+            encontrada.nomeFantasia,
+        },
+      })
+    );
   }, [
     state?.identificacao
       ?.transportadoraId,
@@ -447,17 +742,26 @@ export default function useNovoRecebimentoWizard({
 
   const atualizarIdentificacao =
     useCallback(
-      (campo, valor) => {
-        atualizarState((atual) => ({
-          ...atual,
+      (
+        campo,
+        valor
+      ) => {
+        atualizarState(
+          (atual) => ({
+            ...atual,
 
-          identificacao: {
-            ...atual.identificacao,
-            [campo]: valor,
-          },
-        }));
+            identificacao: {
+              ...atual.identificacao,
+
+              [campo]:
+                valor,
+            },
+          })
+        );
       },
-      [atualizarState]
+      [
+        atualizarState,
+      ]
     );
 
 
@@ -468,25 +772,30 @@ export default function useNovoRecebimentoWizard({
   const atualizarQuantidadeInformada =
     useCallback(
       (valor) => {
-        atualizarState((atual) => {
-          const quantidade =
-            normalizarQuantidadeLocal(
-              valor
-            );
+        atualizarState(
+          (atual) => {
+            const quantidade =
+              normalizarQuantidadeLocal(
+                valor
+              );
 
-          return recalcularEstadoCaptura({
-            ...atual,
 
-            captura: {
-              ...atual.captura,
+            return recalcularEstadoCaptura({
+              ...atual,
 
-              quantidadeInformada:
-                quantidade,
-            },
-          });
-        });
+              captura: {
+                ...atual.captura,
+
+                quantidadeInformada:
+                  quantidade,
+              },
+            });
+          }
+        );
       },
-      [atualizarState]
+      [
+        atualizarState,
+      ]
     );
 
 
@@ -502,17 +811,28 @@ export default function useNovoRecebimentoWizard({
         origemCaptura,
         confianca,
       } = {}) => {
-        if (!codigoLido?.trim()) {
+        if (
+          !codigoLido?.trim()
+        ) {
           return {
-            ok: false,
-            motivo: "CODIGO_VAZIO",
+            ok:
+              false,
+
+            motivo:
+              "CODIGO_VAZIO",
           };
         }
 
 
-        if (!podeIniciarCaptura(state)) {
+        if (
+          !podeIniciarCaptura(
+            state
+          )
+        ) {
           return {
-            ok: false,
+            ok:
+              false,
+
             motivo:
               "QUANTIDADE_NAO_INFORMADA",
           };
@@ -526,7 +846,9 @@ export default function useNovoRecebimentoWizard({
           )
         ) {
           return {
-            ok: false,
+            ok:
+              false,
+
             motivo:
               "CODIGO_DUPLICADO_LOCAL",
           };
@@ -542,24 +864,29 @@ export default function useNovoRecebimentoWizard({
           });
 
 
-        atualizarState((atual) =>
-          recalcularEstadoCaptura({
-            ...atual,
+        atualizarState(
+          (atual) =>
+            recalcularEstadoCaptura({
+              ...atual,
 
-            captura: {
-              ...atual.captura,
+              captura: {
+                ...atual.captura,
 
-              volumes: [
-                ...atual.captura.volumes,
-                volume,
-              ],
-            },
-          })
+                volumes: [
+                  ...atual.captura
+                    .volumes,
+
+                  volume,
+                ],
+              },
+            })
         );
 
 
         return {
-          ok: true,
+          ok:
+            true,
+
           volume,
         };
       },
@@ -573,32 +900,43 @@ export default function useNovoRecebimentoWizard({
   // ==========================================================
   // REMOVER VOLUME LOCAL
   //
-  // Enquanto usamos Modelo A, nenhum Volume foi persistido
-  // no backend antes de Concluir Recebimento.
+  // Enquanto nenhum Pré foi materializado, o volume existe
+  // somente no modelo local.
+  //
+  // Depois da Fase 1, não devemos tratar uma alteração local
+  // como se ela automaticamente alterasse o Pré já persistido.
+  // A UI será refinada posteriormente para bloquear edição
+  // incompatível durante uma conclusão parcialmente executada.
   // ==========================================================
 
   const removerVolumeLocal =
     useCallback(
       (clientVolumeId) => {
-        atualizarState((atual) => {
-          const volumes =
-            atual.captura.volumes.filter(
-              (volume) =>
-                volume.clientVolumeId !==
-                clientVolumeId
-            );
+        atualizarState(
+          (atual) => {
+            const volumes =
+              atual.captura.volumes.filter(
+                (volume) =>
+                  volume.clientVolumeId !==
+                  clientVolumeId
+              );
 
-          return recalcularEstadoCaptura({
-            ...atual,
 
-            captura: {
-              ...atual.captura,
-              volumes,
-            },
-          });
-        });
+            return recalcularEstadoCaptura({
+              ...atual,
+
+              captura: {
+                ...atual.captura,
+
+                volumes,
+              },
+            });
+          }
+        );
       },
-      [atualizarState]
+      [
+        atualizarState,
+      ]
     );
 
 
@@ -612,28 +950,36 @@ export default function useNovoRecebimentoWizard({
         clientVolumeId,
         avaria
       ) => {
-        atualizarState((atual) => ({
-          ...atual,
+        atualizarState(
+          (atual) => ({
+            ...atual,
 
-          captura: {
-            ...atual.captura,
+            captura: {
+              ...atual.captura,
 
-            volumes:
-              atual.captura.volumes.map(
-                (volume) =>
-                  volume.clientVolumeId ===
-                  clientVolumeId
-                    ? {
-                        ...volume,
-                        avaria:
-                          avaria || null,
-                      }
-                    : volume
-              ),
-          },
-        }));
+              volumes:
+                atual.captura
+                  .volumes
+                  .map(
+                    (volume) =>
+                      volume.clientVolumeId ===
+                      clientVolumeId
+                        ? {
+                            ...volume,
+
+                            avaria:
+                              avaria ||
+                              null,
+                          }
+                        : volume
+                  ),
+            },
+          })
+        );
       },
-      [atualizarState]
+      [
+        atualizarState,
+      ]
     );
 
 
@@ -647,33 +993,41 @@ export default function useNovoRecebimentoWizard({
         clientVolumeId,
         evidencia
       ) => {
-        atualizarState((atual) => ({
-          ...atual,
+        atualizarState(
+          (atual) => ({
+            ...atual,
 
-          captura: {
-            ...atual.captura,
+            captura: {
+              ...atual.captura,
 
-            volumes:
-              atual.captura.volumes.map(
-                (volume) =>
-                  volume.clientVolumeId ===
-                  clientVolumeId
-                    ? {
-                        ...volume,
+              volumes:
+                atual.captura
+                  .volumes
+                  .map(
+                    (volume) =>
+                      volume.clientVolumeId ===
+                      clientVolumeId
+                        ? {
+                            ...volume,
 
-                        evidencias: [
-                          ...(volume.evidencias ||
-                            []),
+                            evidencias: [
+                              ...(
+                                volume.evidencias ||
+                                []
+                              ),
 
-                          evidencia,
-                        ],
-                      }
-                    : volume
-              ),
-          },
-        }));
+                              evidencia,
+                            ],
+                          }
+                        : volume
+                  ),
+            },
+          })
+        );
       },
-      [atualizarState]
+      [
+        atualizarState,
+      ]
     );
 
 
@@ -684,13 +1038,19 @@ export default function useNovoRecebimentoWizard({
   const definirAssinatura =
     useCallback(
       (assinatura) => {
-        atualizarState((atual) => ({
-          ...atual,
-          assinatura:
-            assinatura || null,
-        }));
+        atualizarState(
+          (atual) => ({
+            ...atual,
+
+            assinatura:
+              assinatura ||
+              null,
+          })
+        );
       },
-      [atualizarState]
+      [
+        atualizarState,
+      ]
     );
 
 
@@ -701,26 +1061,36 @@ export default function useNovoRecebimentoWizard({
   const definirObservacoes =
     useCallback(
       (valor) => {
-        atualizarState((atual) => ({
-          ...atual,
-          observacoes: valor,
-        }));
+        atualizarState(
+          (atual) => ({
+            ...atual,
+
+            observacoes:
+              valor,
+          })
+        );
       },
-      [atualizarState]
+      [
+        atualizarState,
+      ]
     );
 
 
   const definirJustificativaDivergencia =
     useCallback(
       (valor) => {
-        atualizarState((atual) => ({
-          ...atual,
+        atualizarState(
+          (atual) => ({
+            ...atual,
 
-          justificativaDivergencia:
-            valor,
-        }));
+            justificativaDivergencia:
+              valor,
+          })
+        );
       },
-      [atualizarState]
+      [
+        atualizarState,
+      ]
     );
 
 
@@ -729,38 +1099,59 @@ export default function useNovoRecebimentoWizard({
   // ==========================================================
 
   const irParaProximaEtapa =
-    useCallback(() => {
-      atualizarState((atual) => ({
-        ...atual,
+    useCallback(
+      () => {
+        atualizarState(
+          (atual) => ({
+            ...atual,
 
-        etapaAtual:
-          Math.min(
-            atual.etapaAtual + 1,
-            NOVO_RECEBIMENTO_ULTIMA_ETAPA
-          ),
-      }));
-    }, [atualizarState]);
+            etapaAtual:
+              Math.min(
+                atual.etapaAtual +
+                  1,
+
+                NOVO_RECEBIMENTO_ULTIMA_ETAPA
+              ),
+          })
+        );
+      },
+      [
+        atualizarState,
+      ]
+    );
 
 
   const voltarEtapa =
-    useCallback(() => {
-      atualizarState((atual) => ({
-        ...atual,
+    useCallback(
+      () => {
+        atualizarState(
+          (atual) => ({
+            ...atual,
 
-        etapaAtual:
-          Math.max(
-            atual.etapaAtual - 1,
-            NOVO_RECEBIMENTO_PRIMEIRA_ETAPA
-          ),
-      }));
-    }, [atualizarState]);
+            etapaAtual:
+              Math.max(
+                atual.etapaAtual -
+                  1,
+
+                NOVO_RECEBIMENTO_PRIMEIRA_ETAPA
+              ),
+          })
+        );
+      },
+      [
+        atualizarState,
+      ]
+    );
 
 
   // ==========================================================
   // PERSISTIR TENTATIVA DE CONCLUSÃO
   //
-  // MUITO IMPORTANTE:
-  // chave + payload ficam congelados ANTES da RPC.
+  // Chave + payload ficam congelados ANTES da primeira RPC.
+  //
+  // Se já existe preRecebimentoId, a Fase 1 já foi confirmada.
+  // Nesse caso continuamos preservando o payload congelado,
+  // mas NÃO precisaremos executar processar_v2 novamente.
   // ==========================================================
 
   const prepararConclusao =
@@ -806,24 +1197,41 @@ export default function useNovoRecebimentoWizard({
           payloadConclusao:
             payload,
 
-          conclusaoPendente: true,
+          conclusaoPendente:
+            true,
 
           conclusaoIniciadaEm:
-            new Date().toISOString(),
+            state.conclusaoIniciadaEm ||
+            new Date()
+              .toISOString(),
+
+          /*
+           * Não apagamos um Pré já materializado.
+           */
+          preRecebimentoId:
+            state.preRecebimentoId ||
+            null,
+
+          faseConclusao:
+            state.preRecebimentoId
+              ? "PRE_RECEBIMENTO_PROCESSADO"
+              : "PREPARADA",
         };
 
 
         /*
-         * Primeiro IndexedDB.
+         * IndexedDB primeiro.
          *
-         * Só depois tentaremos o servidor.
+         * Só depois o servidor.
          */
         await salvarRecebimentoLocal(
           congelado
         );
 
 
-        setState(congelado);
+        setState(
+          congelado
+        );
 
 
         return congelado;
@@ -836,45 +1244,199 @@ export default function useNovoRecebimentoWizard({
 
 
   // ==========================================================
-  // RESULTADO DE SUCESSO
+  // REGISTRAR FASE 1 CONCLUÍDA
+  //
+  // O Pré já existe no servidor.
+  //
+  // Persistir preRecebimentoId ANTES da Fase 2 é obrigatório
+  // para recuperação segura após:
+  // - queda de internet;
+  // - timeout;
+  // - fechamento do navegador;
+  // - desligamento do computador.
+  // ==========================================================
+
+  const registrarPreRecebimentoProcessado =
+    useCallback(
+      async (
+        estadoAtual,
+        resultadoProcessamento
+      ) => {
+        const preRecebimentoId =
+          obterPreRecebimentoIdResultado(
+            resultadoProcessamento
+          );
+
+
+        if (!preRecebimentoId) {
+          throw new Error(
+            "O processamento não retornou o identificador do Pré-Recebimento."
+          );
+        }
+
+
+        const atualizado = {
+          ...estadoAtual,
+
+          preRecebimentoId,
+
+          faseConclusao:
+            "PRE_RECEBIMENTO_PROCESSADO",
+
+          resultadoProcessamento:
+            resultadoProcessamento,
+
+          conclusaoPendente:
+            true,
+
+          atualizadoEm:
+            new Date()
+              .toISOString(),
+        };
+
+
+        await salvarRecebimentoLocal(
+          atualizado
+        );
+
+
+        setState(
+          atualizado
+        );
+
+
+        return atualizado;
+      },
+      []
+    );
+
+
+  // ==========================================================
+  // EXECUTAR FASE 2 — CONCLUIR LOTE
+  // ==========================================================
+
+  const executarConclusaoLote =
+    useCallback(
+      async (
+        estadoAtual
+      ) => {
+        if (
+          !estadoAtual
+            ?.preRecebimentoId
+        ) {
+          throw new Error(
+            "Pré-Recebimento não identificado para conclusão do lote."
+          );
+        }
+
+
+        const possuiDivergencia =
+          estadoPossuiDivergenciaQuantidade(
+            estadoAtual
+          );
+
+
+        const resultadoLote =
+          await concluirLoteRecebimento({
+            preRecebimentoId:
+              estadoAtual
+                .preRecebimentoId,
+
+            quantidadeConferida:
+              estadoAtual.captura
+                ?.quantidadeBipada,
+
+            decisaoRecebimento:
+              possuiDivergencia
+                ? "ACEITO_COM_RESSALVA"
+                : "ACEITO_NORMALMENTE",
+
+            justificativaDivergencia:
+              possuiDivergencia
+                ? (
+                    estadoAtual
+                      .justificativaDivergencia ||
+                    null
+                  )
+                : null,
+
+            observacoes:
+              estadoAtual.observacoes ||
+              null,
+          });
+
+
+        if (
+          !statusLoteEstaResolvido(
+            resultadoLote
+          )
+        ) {
+          throw new Error(
+            `O lote não confirmou sua conclusão. Status retornado: ${
+              obterStatusLote(
+                resultadoLote
+              ) ||
+              "não informado"
+            }.`
+          );
+        }
+
+
+        return resultadoLote;
+      },
+      []
+    );
+
+
+  // ==========================================================
+  // RESULTADO DE SUCESSO FINAL
+  //
+  // SOMENTE chamar após a Fase 2 estar confirmada.
   // ==========================================================
 
   const tratarSucessoConclusao =
     useCallback(
       async (
-        estadoCongelado,
+        estadoResolvido,
         resultado
       ) => {
         const concluido = {
           ...marcarRecebimentoConcluido(
-            estadoCongelado,
+            estadoResolvido,
             resultado
           ),
 
-          conclusaoPendente: false,
+          conclusaoPendente:
+            false,
+
+          faseConclusao:
+            "LOTE_CONCLUIDO",
 
           resultadoConclusao:
             resultado,
 
           concluidoEm:
-            new Date().toISOString(),
+            new Date()
+              .toISOString(),
         };
 
 
         /*
-         * Persiste primeiro o resultado do servidor.
+         * Persiste primeiro a confirmação inequívoca
+         * de sucesso.
          */
         await salvarRecebimentoLocal(
           concluido
         );
 
 
-        setState(concluido);
+        setState(
+          concluido
+        );
 
 
         /*
-         * Agora que existe confirmação inequívoca,
-         * podemos apagar o rascunho local.
+         * Agora o rascunho pode ser removido.
          */
         await concluirPersistenciaLocal(
           concluido.clientReceiptId
@@ -885,61 +1447,126 @@ export default function useNovoRecebimentoWizard({
           false
         );
 
-        setRecuperacaoEncontrada(false);
+
+        setRecuperacaoEncontrada(
+          false
+        );
+
+
+        setErroInterface(
+          null
+        );
 
 
         if (
           typeof onConcluido ===
           "function"
         ) {
-          onConcluido(resultado);
+          onConcluido(
+            resultado
+          );
         }
 
 
         return resultado;
       },
-      [onConcluido]
+      [
+        onConcluido,
+      ]
     );
 
 
   // ==========================================================
   // CONCLUIR RECEBIMENTO
+  //
+  // FASE 1
+  // processar_v2(confirmar=false)
+  //
+  // FASE 2
+  // lote_concluir_v3
+  //
+  // Se preRecebimentoId já existir, pulamos a Fase 1.
   // ==========================================================
 
   const concluirRecebimento =
     useCallback(
       async () => {
-        setErroInterface(null);
+        setErroInterface(
+          null
+        );
 
-        let congelado = null;
+
+        /*
+         * Esta variável acompanha a fase MAIS AVANÇADA
+         * comprovadamente persistida.
+         *
+         * Ela é essencial no catch.
+         *
+         * Se a internet cair depois da Fase 1,
+         * precisamos salvar comPre — não o congelado anterior.
+         */
+        let estadoConclusaoAtual =
+          null;
+
+
+        let resultadoProcessamento =
+          null;
 
 
         try {
-          congelado =
+          const congelado =
             await prepararConclusao();
 
 
-          if (!navegadorEstaOnline()) {
+          estadoConclusaoAtual =
+            congelado;
+
+
+          if (
+            !navegadorEstaOnline()
+          ) {
             const pendente =
               marcarRecebimentoAguardandoSincronizacao(
-                congelado
+                estadoConclusaoAtual
               );
 
+
             pendente.payloadConclusao =
-              congelado.payloadConclusao;
+              estadoConclusaoAtual
+                .payloadConclusao;
+
 
             pendente.conclusaoPendente =
               true;
 
+
             pendente.conclusaoIniciadaEm =
-              congelado.conclusaoIniciadaEm;
+              estadoConclusaoAtual
+                .conclusaoIniciadaEm;
+
+
+            pendente.preRecebimentoId =
+              estadoConclusaoAtual
+                .preRecebimentoId ||
+              null;
+
+
+            pendente.faseConclusao =
+              estadoConclusaoAtual
+                .preRecebimentoId
+                ? "PRE_RECEBIMENTO_PROCESSADO"
+                : "AGUARDANDO_SINCRONIZACAO";
 
 
             await salvarRecebimentoLocal(
               pendente
             );
 
-            setState(pendente);
+
+            setState(
+              pendente
+            );
+
 
             setConclusaoPendenteEncontrada(
               true
@@ -947,30 +1574,84 @@ export default function useNovoRecebimentoWizard({
 
 
             return {
-              ok: false,
-              pendenteSincronizacao: true,
+              ok:
+                false,
+
+              pendenteSincronizacao:
+                true,
             };
           }
 
 
-          const resultado =
-            await processarRecebimento({
-              chaveIdempotencia:
-                congelado.chaveIdempotencia,
+          // ==================================================
+          // FASE 1
+          //
+          // Só executamos quando o Pré ainda NÃO está
+          // confirmado localmente.
+          // ==================================================
 
-              payload:
-                congelado.payloadConclusao,
+          if (
+            !estadoConclusaoAtual
+              .preRecebimentoId
+          ) {
+            resultadoProcessamento =
+              await processarRecebimento({
+                chaveIdempotencia:
+                  estadoConclusaoAtual
+                    .chaveIdempotencia,
+
+                payload:
+                  estadoConclusaoAtual
+                    .payloadConclusao,
+              });
+
+
+            estadoConclusaoAtual =
+              await registrarPreRecebimentoProcessado(
+                estadoConclusaoAtual,
+                resultadoProcessamento
+              );
+          } else {
+            resultadoProcessamento =
+              estadoConclusaoAtual
+                .resultadoProcessamento ||
+              null;
+          }
+          
+          // ==================================================
+          // FASE 2
+          // ==================================================
+
+          const resultadoLote =
+            await executarConclusaoLote(
+              estadoConclusaoAtual
+            );
+
+
+          const resultadoFinal =
+            montarResultadoFinalConclusao({
+              estado:
+                estadoConclusaoAtual,
+
+              resultadoProcessamento,
+
+              resultadoLote,
             });
 
 
           return await tratarSucessoConclusao(
-            congelado,
-            resultado
+            estadoConclusaoAtual,
+            resultadoFinal
           );
         } catch (error) {
           const base =
-            congelado || state;
+            estadoConclusaoAtual ||
+            state;
 
+
+          // ==================================================
+          // FALHA PROVÁVEL DE CONECTIVIDADE
+          // ==================================================
 
           if (
             base &&
@@ -988,10 +1669,28 @@ export default function useNovoRecebimentoWizard({
                 base.payloadConclusao ||
                 null,
 
+              preRecebimentoId:
+                base.preRecebimentoId ||
+                null,
+
+              resultadoProcessamento:
+                base.resultadoProcessamento ||
+                resultadoProcessamento ||
+                null,
+
               conclusaoPendente:
                 Boolean(
-                  base.payloadConclusao
+                  base.preRecebimentoId ||
+                  (
+                    base.payloadConclusao &&
+                    base.chaveIdempotencia
+                  )
                 ),
+
+              faseConclusao:
+                base.preRecebimentoId
+                  ? "PRE_RECEBIMENTO_PROCESSADO"
+                  : "AGUARDANDO_SINCRONIZACAO",
             };
 
 
@@ -999,7 +1698,11 @@ export default function useNovoRecebimentoWizard({
               pendente
             );
 
-            setState(pendente);
+
+            setState(
+              pendente
+            );
+
 
             setConclusaoPendenteEncontrada(
               true
@@ -1007,17 +1710,34 @@ export default function useNovoRecebimentoWizard({
 
 
             return {
-              ok: false,
-              pendenteSincronizacao: true,
+              ok:
+                false,
+
+              pendenteSincronizacao:
+                true,
+
+              preRecebimentoId:
+                pendente
+                  .preRecebimentoId,
+
+              faseConclusao:
+                pendente
+                  .faseConclusao,
+
               error,
             };
           }
 
 
-          /*
-           * Rejeição conhecida do backend:
-           * mantemos os dados para correção.
-           */
+          // ==================================================
+          // REJEIÇÃO CONHECIDA / ERRO OPERACIONAL
+          //
+          // Se a Fase 1 já ocorreu, preservamos o
+          // preRecebimentoId.
+          //
+          // Um novo clique poderá retentar somente V3.
+          // ==================================================
+
           const comErro = {
             ...base,
 
@@ -1034,11 +1754,35 @@ export default function useNovoRecebimentoWizard({
                 error?.message ||
                 "Não foi possível concluir o recebimento.",
 
+              code:
+                error?.code ||
+                null,
+
               registradoEm:
-                new Date().toISOString(),
+                new Date()
+                  .toISOString(),
             },
 
-            conclusaoPendente: false,
+            /*
+             * Não há ambiguidade de rede neste ramo.
+             *
+             * Permitimos nova tentativa manual.
+             */
+            conclusaoPendente:
+              false,
+
+            /*
+             * IMPORTANTE:
+             * não apagamos a Fase 1 já confirmada.
+             */
+            preRecebimentoId:
+              base?.preRecebimentoId ||
+              null,
+
+            faseConclusao:
+              base?.preRecebimentoId
+                ? "PRE_RECEBIMENTO_PROCESSADO"
+                : "ERRO",
           };
 
 
@@ -1046,11 +1790,20 @@ export default function useNovoRecebimentoWizard({
             comErro
           );
 
-          setState(comErro);
+
+          setState(
+            comErro
+          );
+
+
+          setConclusaoPendenteEncontrada(
+            false
+          );
+
 
           setErroInterface(
             error?.message ||
-              "Não foi possível concluir o recebimento."
+            "Não foi possível concluir o recebimento."
           );
 
 
@@ -1059,7 +1812,13 @@ export default function useNovoRecebimentoWizard({
       },
       [
         prepararConclusao,
+
+        registrarPreRecebimentoProcessado,
+
+        executarConclusaoLote,
+
         tratarSucessoConclusao,
+
         state,
       ]
     );
@@ -1067,35 +1826,94 @@ export default function useNovoRecebimentoWizard({
 
   // ==========================================================
   // RETOMAR APÓS QUEDA / DESLIGAMENTO
+  //
+  // Caso A:
+  // preRecebimentoId existe
+  // → Fase 1 já foi confirmada
+  // → executar SOMENTE V3.
+  //
+  // Caso B:
+  // preRecebimentoId não existe
+  // → reconciliar processar_v2 via retomar_v2
+  // → persistir Pré
+  // → executar V3.
   // ==========================================================
 
   const retomarConclusaoPendente =
     useCallback(
       async () => {
         if (
-          !state?.conclusaoPendente ||
-          !state?.payloadConclusao ||
-          !state?.chaveIdempotencia
+          !state
+            ?.conclusaoPendente
         ) {
           return {
-            ok: false,
-            semOperacaoPendente: true,
+            ok:
+              false,
+
+            semOperacaoPendente:
+              true,
           };
         }
 
 
-        if (!navegadorEstaOnline()) {
+        /*
+         * Para recuperar a Fase 1 precisamos da chave/payload.
+         *
+         * Para recuperar somente a Fase 2 basta o
+         * preRecebimentoId.
+         */
+        if (
+          !state.preRecebimentoId &&
+          (
+            !state.payloadConclusao ||
+            !state.chaveIdempotencia
+          )
+        ) {
           return {
-            ok: false,
-            pendenteSincronizacao: true,
+            ok:
+              false,
+
+            semOperacaoPendente:
+              true,
           };
         }
 
 
-        setErroInterface(null);
+        if (
+          !navegadorEstaOnline()
+        ) {
+          return {
+            ok:
+              false,
+
+            pendenteSincronizacao:
+              true,
+          };
+        }
 
 
-        const sincronizando = {
+        setErroInterface(
+          null
+        );
+
+
+        /*
+        * A conclusão pendente foi recuperada e o operador
+        * iniciou explicitamente a verificação.
+        *
+        * A partir deste instante existe novamente uma
+        * operação ativa no frontend.
+        *
+        * Isso faz isProcessing voltar a true assim que
+        * o estado CONCLUINDO for aplicado, bloqueando
+        * duplo clique durante a reconciliação.
+        */
+        setConclusaoPendenteEncontrada(
+          false
+        );
+
+
+        let estadoConclusaoAtual = {
           ...state,
 
           statusLocal:
@@ -1106,33 +1924,87 @@ export default function useNovoRecebimentoWizard({
             NOVO_RECEBIMENTO_SYNC_STATUS
               .SINCRONIZANDO,
 
-          ultimoErro: null,
+          ultimoErro:
+            null,
         };
 
 
+        let resultadoProcessamento =
+          estadoConclusaoAtual
+            .resultadoProcessamento ||
+          null;
+
+
         await salvarRecebimentoLocal(
-          sincronizando
+          estadoConclusaoAtual
         );
 
-        setState(sincronizando);
+
+        setState(
+          estadoConclusaoAtual
+        );
 
 
         try {
-          const resultado =
-            await retomarRecebimento({
-              chaveIdempotencia:
-                sincronizando.chaveIdempotencia,
+          // ==================================================
+          // RECUPERAR FASE 1, SE NECESSÁRIO
+          // ==================================================
 
-              payload:
-                sincronizando.payloadConclusao,
+          if (
+            !estadoConclusaoAtual
+              .preRecebimentoId
+          ) {
+            resultadoProcessamento =
+              await retomarRecebimento({
+                chaveIdempotencia:
+                  estadoConclusaoAtual
+                    .chaveIdempotencia,
+
+                payload:
+                  estadoConclusaoAtual
+                    .payloadConclusao,
+              });
+
+
+            estadoConclusaoAtual =
+              await registrarPreRecebimentoProcessado(
+                estadoConclusaoAtual,
+                resultadoProcessamento
+              );
+          }
+
+
+          // ==================================================
+          // RECUPERAR / EXECUTAR FASE 2
+          // ==================================================
+
+          const resultadoLote =
+            await executarConclusaoLote(
+              estadoConclusaoAtual
+            );
+
+
+          const resultadoFinal =
+            montarResultadoFinalConclusao({
+              estado:
+                estadoConclusaoAtual,
+
+              resultadoProcessamento,
+
+              resultadoLote,
             });
 
 
           return await tratarSucessoConclusao(
-            sincronizando,
-            resultado
+            estadoConclusaoAtual,
+            resultadoFinal
           );
         } catch (error) {
+
+          // ==================================================
+          // NOVA FALHA DE CONECTIVIDADE
+          // ==================================================
+
           if (
             erroPareceConectividade(
               error
@@ -1140,15 +2012,34 @@ export default function useNovoRecebimentoWizard({
           ) {
             const pendente = {
               ...marcarRecebimentoAguardandoSincronizacao(
-                sincronizando,
+                estadoConclusaoAtual,
                 error
               ),
 
               payloadConclusao:
-                sincronizando.payloadConclusao,
+                estadoConclusaoAtual
+                  .payloadConclusao ||
+                null,
+
+              preRecebimentoId:
+                estadoConclusaoAtual
+                  .preRecebimentoId ||
+                null,
+
+              resultadoProcessamento:
+                estadoConclusaoAtual
+                  .resultadoProcessamento ||
+                resultadoProcessamento ||
+                null,
 
               conclusaoPendente:
                 true,
+
+              faseConclusao:
+                estadoConclusaoAtual
+                  .preRecebimentoId
+                  ? "PRE_RECEBIMENTO_PROCESSADO"
+                  : "AGUARDANDO_SINCRONIZACAO",
             };
 
 
@@ -1156,20 +2047,95 @@ export default function useNovoRecebimentoWizard({
               pendente
             );
 
-            setState(pendente);
+
+            setState(
+              pendente
+            );
+
+
+            setConclusaoPendenteEncontrada(
+              true
+            );
 
 
             return {
-              ok: false,
-              pendenteSincronizacao: true,
+              ok:
+                false,
+
+              pendenteSincronizacao:
+                true,
+
+              preRecebimentoId:
+                pendente
+                  .preRecebimentoId,
+
+              faseConclusao:
+                pendente
+                  .faseConclusao,
+
               error,
             };
           }
 
 
+          // ==================================================
+          // ERRO EXPLÍCITO DO BACKEND
+          // ==================================================
+
+          const comErro = {
+            ...estadoConclusaoAtual,
+
+            statusLocal:
+              NOVO_RECEBIMENTO_LOCAL_STATUS
+                .ERRO,
+
+            syncStatus:
+              NOVO_RECEBIMENTO_SYNC_STATUS
+                .ERRO,
+
+            ultimoErro: {
+              message:
+                error?.message ||
+                "Não foi possível verificar o recebimento anterior.",
+
+              code:
+                error?.code ||
+                null,
+
+              registradoEm:
+                new Date()
+                  .toISOString(),
+            },
+
+            conclusaoPendente:
+              false,
+
+            faseConclusao:
+              estadoConclusaoAtual
+                .preRecebimentoId
+                ? "PRE_RECEBIMENTO_PROCESSADO"
+                : "ERRO",
+          };
+
+
+          await salvarRecebimentoLocal(
+            comErro
+          );
+
+
+          setState(
+            comErro
+          );
+
+
+          setConclusaoPendenteEncontrada(
+            false
+          );
+
+
           setErroInterface(
             error?.message ||
-              "Não foi possível verificar o recebimento anterior."
+            "Não foi possível verificar o recebimento anterior."
           );
 
 
@@ -1178,6 +2144,11 @@ export default function useNovoRecebimentoWizard({
       },
       [
         state,
+
+        registrarPreRecebimentoProcessado,
+
+        executarConclusaoLote,
+
         tratarSucessoConclusao,
       ]
     );
@@ -1186,21 +2157,44 @@ export default function useNovoRecebimentoWizard({
   // ==========================================================
   // DESCARTAR RASCUNHO LOCAL
   //
-  // Não deve ser usado para uma conclusão ambígua.
-  // Se conclusaoPendente=true, primeiro reconciliar servidor.
+  // Não deve ser usado quando existe conclusão ambígua.
   // ==========================================================
 
   const descartarRecebimentoLocal =
     useCallback(
       async () => {
-        if (!state?.clientReceiptId) {
+        if (
+          !state?.clientReceiptId
+        ) {
           return;
         }
 
 
-        if (state.conclusaoPendente) {
+        if (
+          state.conclusaoPendente
+        ) {
           throw new Error(
             "Existe uma conclusão pendente. Verifique o recebimento antes de descartá-lo."
+          );
+        }
+
+
+        /*
+         * Atenção:
+         *
+         * Se preRecebimentoId existir, já há materialização
+         * no backend.
+         *
+         * O descarte local NÃO desfaz o Pré.
+         *
+         * A UX de cancelamento deverá distinguir esse cenário
+         * antes de habilitarmos descarte irrestrito.
+         */
+        if (
+          state.preRecebimentoId
+        ) {
+          throw new Error(
+            "Este recebimento já possui Pré-Recebimento no servidor e não pode ser descartado apenas localmente."
           );
         }
 
@@ -1210,13 +2204,28 @@ export default function useNovoRecebimentoWizard({
         );
 
 
-        setState(null);
+        setState(
+          null
+        );
 
-        setRecuperacaoEncontrada(false);
-        setConclusaoPendenteEncontrada(false);
-        setErroInterface(null);
+
+        setRecuperacaoEncontrada(
+          false
+        );
+
+
+        setConclusaoPendenteEncontrada(
+          false
+        );
+
+
+        setErroInterface(
+          null
+        );
       },
-      [state]
+      [
+        state,
+      ]
     );
 
 
@@ -1227,14 +2236,33 @@ export default function useNovoRecebimentoWizard({
   const iniciarOutroRecebimento =
     useCallback(
       async () => {
-        if (state?.conclusaoPendente) {
+        if (
+          state?.conclusaoPendente
+        ) {
           throw new Error(
             "Verifique primeiro o recebimento pendente antes de iniciar outro."
           );
         }
 
 
-        if (state?.clientReceiptId) {
+        /*
+         * Não abandonamos silenciosamente um Pré materializado
+         * que ainda não teve a conclusão do lote resolvida.
+         */
+        if (
+          state?.preRecebimentoId &&
+          state?.faseConclusao !==
+            "LOTE_CONCLUIDO"
+        ) {
+          throw new Error(
+            "O recebimento atual já existe no servidor e precisa ser resolvido antes de iniciar outro."
+          );
+        }
+
+
+        if (
+          state?.clientReceiptId
+        ) {
           await removerRecebimentoLocal(
             state.clientReceiptId
           );
@@ -1250,16 +2278,31 @@ export default function useNovoRecebimentoWizard({
         );
 
 
-        setState(novo);
+        setState(
+          novo
+        );
 
-        setRecuperacaoEncontrada(false);
-        setConclusaoPendenteEncontrada(false);
-        setErroInterface(null);
+
+        setRecuperacaoEncontrada(
+          false
+        );
+
+
+        setConclusaoPendenteEncontrada(
+          false
+        );
+
+
+        setErroInterface(
+          null
+        );
 
 
         return novo;
       },
-      [state]
+      [
+        state,
+      ]
     );
 
 
@@ -1268,11 +2311,15 @@ export default function useNovoRecebimentoWizard({
   // ==========================================================
 
   const quantidadeBipada =
-    state?.captura?.quantidadeBipada || 0;
+    state?.captura
+      ?.quantidadeBipada ||
+    0;
 
 
   const quantidadeInformada =
-    state?.captura?.quantidadeInformada ?? "";
+    state?.captura
+      ?.quantidadeInformada ??
+    "";
 
 
   const diferencaQuantidade =
@@ -1289,6 +2336,23 @@ export default function useNovoRecebimentoWizard({
     );
 
 
+  const possuiDivergenciaQuantidade =
+    useMemo(
+      () =>
+        (
+          diferencaQuantidade !==
+            null &&
+          diferencaQuantidade !==
+            undefined &&
+          diferencaQuantidade !==
+            0
+        ),
+      [
+        diferencaQuantidade,
+      ]
+    );
+
+
   const canAdvanceIdentification =
     useMemo(
       () =>
@@ -1298,7 +2362,9 @@ export default function useNovoRecebimentoWizard({
             state
           )
         ),
-      [state]
+      [
+        state,
+      ]
     );
 
 
@@ -1307,9 +2373,13 @@ export default function useNovoRecebimentoWizard({
       () =>
         Boolean(
           state &&
-          podeIniciarCaptura(state)
+          podeIniciarCaptura(
+            state
+          )
         ),
-      [state]
+      [
+        state,
+      ]
     );
 
 
@@ -1318,22 +2388,28 @@ export default function useNovoRecebimentoWizard({
       () =>
         Boolean(
           state &&
+
           podeConcluirRecebimento(
             state
           ) &&
+
           !state.conclusaoPendente &&
+
           state.statusLocal !==
             NOVO_RECEBIMENTO_LOCAL_STATUS
               .CONCLUINDO
         ),
-      [state]
+      [
+        state,
+      ]
     );
 
 
   const isProcessing =
     state?.statusLocal ===
       NOVO_RECEBIMENTO_LOCAL_STATUS
-        .CONCLUINDO;
+        .CONCLUINDO &&
+    !conclusaoPendenteEncontrada;
 
 
   // ==========================================================
@@ -1343,10 +2419,12 @@ export default function useNovoRecebimentoWizard({
   return {
     state,
 
+
     etapaAtual:
       state?.etapaAtual ||
       NOVO_RECEBIMENTO_ETAPAS
         .IDENTIFICACAO,
+
 
     carregandoRecuperacao,
 
@@ -1356,43 +2434,70 @@ export default function useNovoRecebimentoWizard({
 
     erroInterface,
 
+
     transportadoras,
+
     carregandoTransportadoras,
+
     erroTransportadoras,
 
+
     quantidadeInformada,
+
     quantidadeBipada,
+
     diferencaQuantidade,
 
+    possuiDivergenciaQuantidade,
+
+
     canAdvanceIdentification,
+
     canCapture,
+
     canFinish,
+
     isProcessing,
+
 
     online:
       navegadorEstaOnline(),
 
+
     criarNovoEstado,
 
+
     atualizarIdentificacao,
+
     atualizarQuantidadeInformada,
 
+
     adicionarVolumeLocal,
+
     removerVolumeLocal,
 
+
     atualizarAvariaVolume,
+
     adicionarEvidenciaVolume,
 
+
     definirAssinatura,
+
     definirObservacoes,
+
     definirJustificativaDivergencia,
 
+
     irParaProximaEtapa,
+
     voltarEtapa,
+
 
     concluirRecebimento,
 
     retomarConclusaoPendente,
+
 
     descartarRecebimentoLocal,
 

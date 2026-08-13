@@ -1,11 +1,9 @@
 import {
   useMemo,
-  useState,
 } from "react";
 
-import {
-  NOVO_RECEBIMENTO_TIPO_ASSINATURA,
-} from "../constants";
+import AssinaturaRecebimentoPad
+  from "../components/AssinaturaRecebimentoPad";
 
 
 // ============================================================
@@ -15,21 +13,39 @@ import {
 // Responsabilidades:
 // - resumo do recebimento;
 // - diferença de quantidade;
-// - total de avarias;
+// - resumo de avarias;
+// - resumo de evidências;
 // - justificativa operacional;
 // - observações;
-// - preparação da assinatura do Entregador.
+// - assinatura real do Entregador.
 //
 // NÃO:
-// - acessa Supabase;
+// - acessa Supabase diretamente;
 // - grava Pré-Recebimento;
-// - faz upload;
-// - define retenção;
-// - promove Encomenda Oficial.
+// - promove Encomenda Oficial;
+// - decide retenção;
+// - decide obrigatoriedade de assinatura;
+// - decide obrigatoriedade de foto.
+//
+// A assinatura:
+// - usa AssinaturaRecebimentoPad;
+// - faz upload pelo service oficial;
+// - ausência nunca bloqueia o recebimento.
+//
+// Avaria:
+// - pode possuir foto agora ou depois;
+// - foto pendente não bloqueia Concluir Recebimento;
+// - poderá bloquear Entrada Oficial conforme backend.
 // ============================================================
 
 
-function formatarNumero(valor) {
+// ============================================================
+// FORMATADORES
+// ============================================================
+
+function formatarNumero(
+  valor
+) {
   if (
     valor === null ||
     valor === undefined ||
@@ -42,26 +58,61 @@ function formatarNumero(valor) {
 }
 
 
-function tentarOrientacaoHorizontal() {
-  if (
-    typeof screen === "undefined" ||
-    !screen.orientation ||
-    typeof screen.orientation.lock !==
-      "function"
-  ) {
-    return Promise.resolve(false);
-  }
+// ============================================================
+// CONTAGENS DE AVARIA / EVIDÊNCIA
+// ============================================================
 
-  return screen.orientation
-    .lock("landscape")
-    .then(() => true)
-    .catch(() => false);
+function volumePossuiFotoAvaria(
+  volume
+) {
+  return (
+    volume?.evidencias ||
+    []
+  ).some(
+    (evidencia) =>
+      evidencia
+        ?.tipoEvidencia ===
+        "FOTO_AVARIA" &&
+      Boolean(
+        evidencia?.bucket &&
+        evidencia?.storagePath
+      )
+  );
 }
 
 
-export default function StepFinalizacao({
-  operadorNome,
+function volumePossuiFotoPendente(
+  volume
+) {
+  if (!volume?.avaria) {
+    return false;
+  }
 
+
+  /*
+   * Se não existe foto válida no volume
+   * e a avaria foi marcada para DEPOIS,
+   * existe pendência operacional.
+   *
+   * Mesmo que fotoMomento ainda não exista
+   * em recebimentos locais antigos, a ausência
+   * de evidência continua sendo mostrada como pendência.
+   */
+  return !volumePossuiFotoAvaria(
+    volume
+  );
+}
+
+
+// ============================================================
+// COMPONENTE
+// ============================================================
+
+export default function StepFinalizacao({
+  condominioId,
+  clientReceiptId,
+
+  operadorNome,
   entregadorNome,
   transportadoraNome,
 
@@ -70,56 +121,110 @@ export default function StepFinalizacao({
   diferencaQuantidade,
 
   volumes = [],
-
   assinatura,
 
-  observacoes = "",
-  justificativaDivergencia = "",
-
-  possuiDivergenciaQuantidade = false,
+  observacoes,
+  justificativaDivergencia,
+  possuiDivergenciaQuantidade,
 
   onChangeAssinatura,
   onChangeObservacoes,
   onChangeJustificativaDivergencia,
 }) {
-  const [
-    assinaturaAberta,
-    setAssinaturaAberta,
-  ] = useState(false);
 
+  // ==========================================================
+  // AVARIAS
+  // ==========================================================
 
-  const quantidadeAvarias =
+  const volumesComAvaria =
     useMemo(
       () =>
-        volumes.filter(
+        (
+          volumes ||
+          []
+        ).filter(
           (volume) =>
-            Boolean(volume?.avaria)
-        ).length,
-      [volumes]
+            Boolean(
+              volume?.avaria
+            )
+        ),
+      [
+        volumes,
+      ]
     );
 
 
+  const quantidadeAvarias =
+    volumesComAvaria.length;
+
+
+  const quantidadeFotosAvaria =
+    useMemo(
+      () =>
+        volumesComAvaria.filter(
+          volumePossuiFotoAvaria
+        ).length,
+      [
+        volumesComAvaria,
+      ]
+    );
+
+
+  const quantidadeFotosPendentes =
+    useMemo(
+      () =>
+        volumesComAvaria.filter(
+          volumePossuiFotoPendente
+        ).length,
+      [
+        volumesComAvaria,
+      ]
+    );
+
+
+  // ==========================================================
+  // DIVERGÊNCIA
+  // ==========================================================
+
   const resumoDivergencia =
-    useMemo(() => {
-      if (
-        diferencaQuantidade === null ||
-        diferencaQuantidade === undefined
-      ) {
-        return "—";
-      }
+    useMemo(
+      () => {
+        if (
+          diferencaQuantidade ===
+            null ||
+          diferencaQuantidade ===
+            undefined
+        ) {
+          return "—";
+        }
 
-      if (diferencaQuantidade === 0) {
-        return "Sem divergência";
-      }
 
-      if (diferencaQuantidade > 0) {
-        return `+${diferencaQuantidade}`;
-      }
+        if (
+          diferencaQuantidade ===
+          0
+        ) {
+          return "Sem divergência";
+        }
 
-      return String(
-        diferencaQuantidade
-      );
-    }, [diferencaQuantidade]);
+
+        if (
+          diferencaQuantidade >
+          0
+        ) {
+          return (
+            `+${diferencaQuantidade}`
+          );
+        }
+
+
+        return String(
+          diferencaQuantidade
+        );
+      },
+      [
+        diferencaQuantidade,
+      ]
+    );
 
 
   const resumoQuantidadeClass =
@@ -128,75 +233,28 @@ export default function StepFinalizacao({
       : "novo-recebimento-summary__item--success";
 
 
-  async function abrirAssinatura() {
-    await tentarOrientacaoHorizontal();
+  // ==========================================================
+  // ASSINATURA
+  // ==========================================================
 
-    setAssinaturaAberta(true);
-  }
+  const assinaturaColetada =
+    Boolean(
+      assinatura?.bucket &&
+      assinatura?.storagePath
+    );
 
 
-  function fecharAssinatura() {
-    setAssinaturaAberta(false);
-  }
-
-
-  function registrarAssinaturaEstrutural() {
-    if (
-      typeof onChangeAssinatura !==
-      "function"
-    ) {
-      return;
-    }
-
-    /*
-     * Estrutura temporária do frontend.
-     *
-     * A captura real em canvas, geração do arquivo,
-     * SHA-256 e upload ao Storage serão conectados
-     * posteriormente.
-     */
-    onChangeAssinatura({
-      tipoAssinatura:
-        NOVO_RECEBIMENTO_TIPO_ASSINATURA,
-
-      nomeSignatario:
-        entregadorNome || null,
-
-      documentoMascarado:
-        null,
-
-      bucket:
-        null,
-
-      storagePath:
-        null,
-
-      hashSha256:
-        null,
-
-      mimeType:
-        null,
-
-      tamanhoBytes:
-        null,
-
-      metadata: {
-        origem:
-          "WIZARD_RECEBIMENTO_PORTARIA",
-      },
-
-      capturadaLocalmente: true,
-
-      capturadaEm:
-        new Date().toISOString(),
-    });
-
-    setAssinaturaAberta(false);
-  }
-
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
     <section className="novo-recebimento-section">
+
+      {/* ====================================================
+          HEADER
+      ==================================================== */}
+
       <header className="novo-recebimento-section__header">
         <h3 className="novo-recebimento-section__title">
           Conferência final
@@ -210,10 +268,11 @@ export default function StepFinalizacao({
 
 
       {/* ====================================================
-          RESUMO
+          RESUMO PRINCIPAL
       ==================================================== */}
 
       <div className="novo-recebimento-summary">
+
         <div className="novo-recebimento-summary__item">
           <span className="novo-recebimento-summary__label">
             Lote
@@ -306,6 +365,51 @@ export default function StepFinalizacao({
             {quantidadeAvarias}
           </span>
         </div>
+
+
+        <div
+          className={
+            `novo-recebimento-summary__item ${
+              quantidadeFotosPendentes > 0
+                ? "novo-recebimento-summary__item--warning"
+                : quantidadeAvarias > 0
+                  ? "novo-recebimento-summary__item--success"
+                  : ""
+            }`
+          }
+        >
+          <span className="novo-recebimento-summary__label">
+            Fotos de avaria
+          </span>
+
+          <span className="novo-recebimento-summary__value">
+            {quantidadeAvarias === 0
+              ? "Não aplicável"
+              : `${quantidadeFotosAvaria}/${quantidadeAvarias}`}
+          </span>
+        </div>
+
+
+        <div
+          className={
+            `novo-recebimento-summary__item ${
+              assinaturaColetada
+                ? "novo-recebimento-summary__item--success"
+                : ""
+            }`
+          }
+        >
+          <span className="novo-recebimento-summary__label">
+            Assinatura
+          </span>
+
+          <span className="novo-recebimento-summary__value">
+            {assinaturaColetada
+              ? "Coletada"
+              : "Não coletada"}
+          </span>
+        </div>
+
       </div>
 
 
@@ -314,6 +418,7 @@ export default function StepFinalizacao({
       ==================================================== */}
 
       <div className="novo-recebimento-grid">
+
         <div className="novo-recebimento-summary__item">
           <span className="novo-recebimento-summary__label">
             Entregador
@@ -334,7 +439,105 @@ export default function StepFinalizacao({
             {transportadoraNome || "—"}
           </span>
         </div>
+
       </div>
+
+
+      {/* ====================================================
+          AVARIAS
+      ==================================================== */}
+
+      {quantidadeAvarias > 0 && (
+        <div className="novo-recebimento-observations">
+
+          <div
+            className={
+              `
+                novo-recebimento-feedback
+                ${
+                  quantidadeFotosPendentes > 0
+                    ? "novo-recebimento-feedback--warning"
+                    : "novo-recebimento-feedback--success"
+                }
+              `
+            }
+            role="status"
+          >
+            <div>
+              <strong>
+                {quantidadeAvarias === 1
+                  ? "1 volume com avaria"
+                  : `${quantidadeAvarias} volumes com avaria`}
+              </strong>
+
+              <p>
+                {quantidadeFotosPendentes > 0
+                  ? (
+                    quantidadeFotosPendentes === 1
+                      ? "Existe 1 fotografia de avaria pendente. O recebimento poderá ser concluído; a pendência será tratada antes da Entrada Oficial quando exigida."
+                      : `Existem ${quantidadeFotosPendentes} fotografias de avaria pendentes. O recebimento poderá ser concluído; as pendências serão tratadas antes da Entrada Oficial quando exigidas.`
+                  )
+                  : "Todas as avarias possuem fotografia anexada."}
+              </p>
+            </div>
+          </div>
+
+
+          <div className="novo-recebimento-summary">
+
+            {volumesComAvaria.map(
+              (
+                volume,
+                index
+              ) => {
+                const avaria =
+                  volume.avaria;
+
+                const possuiFoto =
+                  volumePossuiFotoAvaria(
+                    volume
+                  );
+
+
+                return (
+                  <div
+                    key={
+                      volume.clientVolumeId ||
+                      `avaria-${index}`
+                    }
+                    className={
+                      `novo-recebimento-summary__item ${
+                        possuiFoto
+                          ? "novo-recebimento-summary__item--success"
+                          : "novo-recebimento-summary__item--warning"
+                      }`
+                    }
+                  >
+                    <span className="novo-recebimento-summary__label">
+                      Volume{" "}
+                      {volume.numeroVolume ||
+                        index + 1}
+                    </span>
+
+                    <span className="novo-recebimento-summary__value">
+                      {avaria?.tipoOcorrencia ||
+                        "Avaria registrada"}
+                    </span>
+
+                    <small className="novo-recebimento-field__helper">
+                      {possuiFoto
+                        ? "Foto anexada"
+                        : "Foto pendente"}
+                    </small>
+                  </div>
+                );
+              }
+            )}
+
+          </div>
+
+        </div>
+      )}
 
 
       {/* ====================================================
@@ -343,6 +546,7 @@ export default function StepFinalizacao({
 
       {possuiDivergenciaQuantidade && (
         <div className="novo-recebimento-observations">
+
           <div
             className="
               novo-recebimento-feedback
@@ -386,6 +590,7 @@ export default function StepFinalizacao({
               placeholder="Registre a justificativa operacional."
             />
           </label>
+
         </div>
       )}
 
@@ -395,6 +600,7 @@ export default function StepFinalizacao({
       ==================================================== */}
 
       <div className="novo-recebimento-observations">
+
         <label className="novo-recebimento-field">
           <span className="novo-recebimento-field__label">
             Observações do Recebimento
@@ -402,7 +608,9 @@ export default function StepFinalizacao({
 
           <textarea
             className="novo-recebimento-textarea"
-            value={observacoes}
+            value={
+              observacoes
+            }
             onChange={(event) => {
               if (
                 typeof onChangeObservacoes ===
@@ -424,149 +632,61 @@ export default function StepFinalizacao({
           registrada aqui, por exemplo: “Continuação do lote
           LOTE-000123”.
         </div>
+
       </div>
 
 
       {/* ====================================================
-          ASSINATURA
+          ASSINATURA REAL
       ==================================================== */}
 
-      <div className="novo-recebimento-signature">
-        <div className="novo-recebimento-signature__header">
-          <div>
-            <h4 className="novo-recebimento-signature__title">
-              Assinatura do Entregador
-            </h4>
+      <AssinaturaRecebimentoPad
+        condominioId={
+          condominioId
+        }
 
-            <p className="novo-recebimento-signature__description">
-              Em dispositivos compatíveis, a área de
-              assinatura poderá utilizar a orientação
-              horizontal para ampliar o espaço disponível.
-            </p>
-          </div>
-        </div>
+        clientReceiptId={
+          clientReceiptId
+        }
 
+        entregadorNome={
+          entregadorNome
+        }
 
-        {assinatura ? (
-          <div
-            className="
-              novo-recebimento-feedback
-              novo-recebimento-feedback--success
-            "
-            role="status"
-          >
-            <div>
-              <strong>
-                Assinatura registrada
-              </strong>
+        assinatura={
+          assinatura
+        }
 
-              <p>
-                A assinatura será vinculada ao
-                Pré-Recebimento na conclusão.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="
-                novo-recebimento-button
-                novo-recebimento-button--secondary
-              "
-              onClick={() => {
-                if (
-                  typeof onChangeAssinatura ===
-                  "function"
-                ) {
-                  onChangeAssinatura(
-                    null
-                  );
-                }
-              }}
-            >
-              Refazer
-            </button>
-          </div>
-        ) : (
-          <div className="novo-recebimento-signature__area">
-            <div>
-              <p>
-                A assinatura ainda não foi coletada.
-              </p>
-
-              <button
-                type="button"
-                className="
-                  novo-recebimento-button
-                  novo-recebimento-button--primary
-                "
-                onClick={abrirAssinatura}
-              >
-                Assinar
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+        onChange={
+          onChangeAssinatura
+        }
+      />
 
 
       {/* ====================================================
-          PAINEL ESTRUTURAL DE ASSINATURA
+          ORIENTAÇÃO OPERACIONAL FINAL
       ==================================================== */}
 
-      {assinaturaAberta && (
-        <div className="novo-recebimento-signature">
-          <div className="novo-recebimento-signature__header">
-            <div>
-              <h4 className="novo-recebimento-signature__title">
-                Área de assinatura
-              </h4>
+      <div
+        className="
+          novo-recebimento-feedback
+          novo-recebimento-feedback--info
+        "
+        role="status"
+      >
+        <div>
+          <strong>
+            Após concluir
+          </strong>
 
-              <p className="novo-recebimento-signature__description">
-                O dispositivo tentará utilizar a orientação
-                horizontal quando o navegador permitir.
-              </p>
-            </div>
-          </div>
-
-
-          <div className="novo-recebimento-signature__area">
-            Área preparada para o componente oficial de
-            assinatura por toque.
-          </div>
-
-
-          <div className="novo-recebimento-navigation">
-            <div className="novo-recebimento-navigation__left">
-              <button
-                type="button"
-                className="
-                  novo-recebimento-button
-                  novo-recebimento-button--secondary
-                "
-                onClick={fecharAssinatura}
-              >
-                Voltar
-              </button>
-            </div>
-
-
-            <div className="novo-recebimento-navigation__right">
-              <button
-                type="button"
-                className="
-                  novo-recebimento-button
-                  novo-recebimento-button--primary
-                "
-                onClick={
-                  registrarAssinaturaEstrutural
-                }
-              >
-                Confirmar assinatura
-              </button>
-            </div>
-          </div>
+          <p>
+            O lote ficará concluído no Recebimento. A Entrada
+            Oficial dos volumes será realizada na etapa
+            operacional seguinte.
+          </p>
         </div>
-      )}
+      </div>
+
     </section>
   );
 }

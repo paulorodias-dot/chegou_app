@@ -7,52 +7,26 @@ import {
 
 // ============================================================
 // SISTEMA CHEGOU! — MOBILE SCANNER
-// Release funcional: 2026.08.11.005
-//
-// Estratégia:
-// - câmera traseira principal por deviceId;
-// - stream de alta resolução sem zoom digital obrigatório;
-// - autofocus inicial + contínuo quando suportado;
-// - refoco automático;
-// - leitura contínua via BarcodeDetector;
-// - fast path via vídeo ao vivo;
-// - snapshot invisível via ImageCapture.grabFrame();
-// - recorte central + contraste local sem persistir imagem;
-// - hard fallback via ImageCapture.takePhoto() somente quando necessário;
-// - câmera permanece aberta após cada leitura.
+// Release funcional: 2026.08.12.002
 // ============================================================
 
 const INTERVALO_DETECCAO_MS = 70;
-
-/*
- * Cooldown operacional SOMENTE da câmera.
- *
- * Depois de uma captura válida:
- * - mantém a câmera aberta;
- * - não aceita outro volume durante 4 segundos;
- * - o mesmo código continua podendo gerar aviso de duplicidade.
- *
- * Leitor USB / teclado NÃO utiliza este cooldown.
- */
-const COOLDOWN_CAPTURA_CAMERA_MS = 4000;
-
-const INTERVALO_ATUALIZACAO_COOLDOWN_MS = 200;
-
-/*
- * Evita que o mesmo código parado diante da câmera
- * produza dezenas de toasts por segundo.
- */
-const INTERVALO_AVISO_DUPLICADO_MS = 1200;
-
 const DETECCOES_CONSECUTIVAS_NECESSARIAS = 2;
 const TEMPO_ESTABILIZACAO_CAMERA_MS = 700;
+
+const COOLDOWN_CAPTURA_CAMERA_MS = 4000;
+const INTERVALO_ATUALIZACAO_COOLDOWN_MS = 200;
+const INTERVALO_AVISO_DUPLICADO_MS = 1800;
+
 const TEMPO_SINGLE_SHOT_MS = 380;
 const TEMPO_SEM_LEITURA_PARA_REFOCO_MS = 1300;
 const INTERVALO_MINIMO_REFOCO_MS = 1500;
+
 const TEMPO_SEM_LEITURA_PARA_SNAPSHOT_MS = 120;
 const INTERVALO_MINIMO_SNAPSHOT_MS = 160;
 const TEMPO_SEM_LEITURA_PARA_FOTO_MS = 700;
 const INTERVALO_MINIMO_FOTO_MS = 1200;
+
 const CONTRASTE_REFORCADO = 1.55;
 const MAX_LARGURA_PROCESSAMENTO = 1800;
 
@@ -154,7 +128,7 @@ function possuiBarcodeDetector() {
   );
 }
 
-function possuiImageCapture() {
+function possuiImageCaptureApi() {
   return Boolean(
     typeof window !== "undefined" &&
       "ImageCapture" in window
@@ -164,12 +138,39 @@ function possuiImageCapture() {
 function obterConstraintsSuportados() {
   try {
     return (
-      navigator?.mediaDevices?.getSupportedConstraints?.() ||
-      {}
+      navigator?.mediaDevices?.getSupportedConstraints?.() || {}
     );
   } catch {
     return {};
   }
+}
+
+function obterCapabilitiesTrack(track) {
+  try {
+    return track?.getCapabilities?.() || {};
+  } catch {
+    return {};
+  }
+}
+
+function obterSettingsTrack(track) {
+  try {
+    return track?.getSettings?.() || {};
+  } catch {
+    return {};
+  }
+}
+
+function obterConstraintsTrack(track) {
+  try {
+    return track?.getConstraints?.() || {};
+  } catch {
+    return {};
+  }
+}
+
+function encerrarStream(stream) {
+  stream?.getTracks?.().forEach((track) => track.stop());
 }
 
 async function obterFormatosSuportados() {
@@ -210,8 +211,7 @@ async function criarDetector() {
   }
 
   try {
-    const formatos =
-      await obterFormatosSuportados();
+    const formatos = await obterFormatosSuportados();
 
     const detector =
       formatos.length > 0
@@ -237,45 +237,6 @@ async function criarDetector() {
   }
 }
 
-function obterCapabilitiesTrack(track) {
-  try {
-    return (
-      track?.getCapabilities?.() ||
-      {}
-    );
-  } catch {
-    return {};
-  }
-}
-
-function obterSettingsTrack(track) {
-  try {
-    return (
-      track?.getSettings?.() ||
-      {}
-    );
-  } catch {
-    return {};
-  }
-}
-
-function obterConstraintsTrack(track) {
-  try {
-    return (
-      track?.getConstraints?.() ||
-      {}
-    );
-  } catch {
-    return {};
-  }
-}
-
-function encerrarStream(stream) {
-  stream?.getTracks?.().forEach(
-    (track) => track.stop()
-  );
-}
-
 async function listarCamerasDisponiveis() {
   if (!possuiEnumeracaoCamera()) {
     return [];
@@ -287,27 +248,15 @@ async function listarCamerasDisponiveis() {
 
     return dispositivos
       .filter(
-        (device) =>
-          device.kind === "videoinput"
+        (device) => device.kind === "videoinput"
       )
       .map((device, index) => ({
-        deviceId:
-          device.deviceId,
-
-        groupId:
-          device.groupId ||
-          null,
-
+        deviceId: device.deviceId,
+        groupId: device.groupId || null,
         label:
-          device.label ||
-          `Câmera ${index + 1}`,
-
-        labelOriginal:
-          device.label ||
-          "",
-
-        indice:
-          index,
+          device.label || `Câmera ${index + 1}`,
+        labelOriginal: device.label || "",
+        indice: index,
       }));
   } catch (error) {
     console.warn(
@@ -323,42 +272,31 @@ function calcularScoreCamera(
   camera,
   deviceIdCameraInicial
 ) {
-  const label =
-    normalizarTexto(
-      camera?.labelOriginal ||
-        camera?.label
-    );
+  const label = normalizarTexto(
+    camera?.labelOriginal || camera?.label
+  );
 
   let score = 0;
 
-  CAMERA_LABEL_POSITIVOS.forEach(
-    (termo) => {
-      if (
-        label.includes(
-          normalizarTexto(termo)
-        )
-      ) {
-        score += 20;
-      }
+  CAMERA_LABEL_POSITIVOS.forEach((termo) => {
+    if (
+      label.includes(normalizarTexto(termo))
+    ) {
+      score += 20;
     }
-  );
+  });
 
-  CAMERA_LABEL_NEGATIVOS.forEach(
-    (termo) => {
-      if (
-        label.includes(
-          normalizarTexto(termo)
-        )
-      ) {
-        score -= 45;
-      }
+  CAMERA_LABEL_NEGATIVOS.forEach((termo) => {
+    if (
+      label.includes(normalizarTexto(termo))
+    ) {
+      score -= 45;
     }
-  );
+  });
 
   if (
     deviceIdCameraInicial &&
-    camera.deviceId ===
-      deviceIdCameraInicial
+    camera.deviceId === deviceIdCameraInicial
   ) {
     score += 15;
   }
@@ -381,43 +319,31 @@ function selecionarCameraPrincipal({
     cameras
       .map((camera) => ({
         ...camera,
-
-        score:
-          calcularScoreCamera(
-            camera,
-            deviceIdCameraInicial
-          ),
+        score: calcularScoreCamera(
+          camera,
+          deviceIdCameraInicial
+        ),
       }))
-      .sort(
-        (a, b) =>
-          b.score - a.score
-      )[0] || null
+      .sort((a, b) => b.score - a.score)[0] ||
+    null
   );
 }
 
 function obterConstraintsBootstrap() {
   return {
     audio: false,
-
     video: {
       facingMode: {
-        ideal:
-          "environment",
+        ideal: "environment",
       },
-
       width: {
-        ideal:
-          1920,
+        ideal: 1920,
       },
-
       height: {
-        ideal:
-          1080,
+        ideal: 1080,
       },
-
       frameRate: {
-        ideal:
-          30,
+        ideal: 30,
       },
     },
   };
@@ -427,92 +353,75 @@ function obterConstraintsCameraPrincipal(
   deviceId
 ) {
   return {
-    audio:
-      false,
+    audio: false,
 
     video: {
       ...(deviceId
         ? {
             deviceId: {
-              exact:
-                deviceId,
+              exact: deviceId,
             },
           }
         : {
             facingMode: {
-              ideal:
-                "environment",
+              ideal: "environment",
             },
           }),
 
       width: {
         min:
-          RESOLUCAO_PREFERENCIAL
-            .widthMin,
+          RESOLUCAO_PREFERENCIAL.widthMin,
 
         ideal:
-          RESOLUCAO_PREFERENCIAL
-            .widthIdeal,
+          RESOLUCAO_PREFERENCIAL.widthIdeal,
       },
 
       height: {
         min:
-          RESOLUCAO_PREFERENCIAL
-            .heightMin,
+          RESOLUCAO_PREFERENCIAL.heightMin,
 
         ideal:
-          RESOLUCAO_PREFERENCIAL
-            .heightIdeal,
+          RESOLUCAO_PREFERENCIAL.heightIdeal,
       },
 
       frameRate: {
         ideal:
-          RESOLUCAO_PREFERENCIAL
-            .frameRateIdeal,
+          RESOLUCAO_PREFERENCIAL.frameRateIdeal,
 
         max:
-          RESOLUCAO_PREFERENCIAL
-            .frameRateMax,
+          RESOLUCAO_PREFERENCIAL.frameRateMax,
       },
     },
   };
 }
 
-function obterConstraintsFallback(
-  deviceId
-) {
+function obterConstraintsFallback(deviceId) {
   return {
-    audio:
-      false,
+    audio: false,
 
     video: {
       ...(deviceId
         ? {
             deviceId: {
-              exact:
-                deviceId,
+              exact: deviceId,
             },
           }
         : {
             facingMode: {
-              ideal:
-                "environment",
+              ideal: "environment",
             },
           }),
 
       width: {
-        ideal:
-          1920,
+        ideal: 1920,
       },
 
       height: {
-        ideal:
-          1080,
+        ideal: 1080,
       },
 
       frameRate: {
-        ideal:
-          30,
+        ideal: 30,
       },
     },
   };
@@ -522,60 +431,45 @@ async function abrirCameraSelecionada(
   deviceId
 ) {
   try {
-    return await navigator
-      .mediaDevices
-      .getUserMedia(
-        obterConstraintsCameraPrincipal(
-          deviceId
-        )
-      );
+    return await navigator.mediaDevices.getUserMedia(
+      obterConstraintsCameraPrincipal(
+        deviceId
+      )
+    );
   } catch (error) {
     console.warn(
       "[MobileScanner] Resolução preferencial recusada; tentando fallback:",
       error
     );
 
-    return navigator
-      .mediaDevices
-      .getUserMedia(
-        obterConstraintsFallback(
-          deviceId
-        )
-      );
+    return navigator.mediaDevices.getUserMedia(
+      obterConstraintsFallback(deviceId)
+    );
   }
 }
 
-function criarConstraintsPreservacao(
-  track
-) {
+function criarConstraintsPreservacao(track) {
   const settings =
     obterSettingsTrack(track);
 
-  const constraints =
-    {};
+  const constraints = {};
 
   if (
-    Number.isFinite(
-      settings?.width
-    )
+    Number.isFinite(settings?.width)
   ) {
     constraints.width =
       settings.width;
   }
 
   if (
-    Number.isFinite(
-      settings?.height
-    )
+    Number.isFinite(settings?.height)
   ) {
     constraints.height =
       settings.height;
   }
 
   if (
-    Number.isFinite(
-      settings?.frameRate
-    )
+    Number.isFinite(settings?.frameRate)
   ) {
     constraints.frameRate =
       settings.frameRate;
@@ -605,14 +499,9 @@ async function aplicarFoco({
 } = {}) {
   if (!track) {
     return {
-      aplicado:
-        false,
-
-      confirmado:
-        false,
-
-      settings:
-        {},
+      aplicado: false,
+      confirmado: false,
+      settings: {},
     };
   }
 
@@ -626,12 +515,8 @@ async function aplicarFoco({
     )
   ) {
     return {
-      aplicado:
-        false,
-
-      confirmado:
-        false,
-
+      aplicado: false,
+      confirmado: false,
       settings:
         obterSettingsTrack(track),
     };
@@ -641,8 +526,7 @@ async function aplicarFoco({
     obterConstraintsSuportados();
 
   const advanced = {
-    focusMode:
-      modo,
+    focusMode: modo,
   };
 
   if (
@@ -661,9 +545,7 @@ async function aplicarFoco({
         track
       ),
 
-      advanced: [
-        advanced,
-      ],
+      advanced: [advanced],
     });
   } catch (error) {
     console.warn(
@@ -672,12 +554,8 @@ async function aplicarFoco({
     );
 
     return {
-      aplicado:
-        false,
-
-      confirmado:
-        false,
-
+      aplicado: false,
+      confirmado: false,
       settings:
         obterSettingsTrack(track),
     };
@@ -689,31 +567,14 @@ async function aplicarFoco({
     obterSettingsTrack(track);
 
   return {
-    aplicado:
-      true,
+    aplicado: true,
 
     confirmado:
-      settings?.focusMode ===
-      modo,
+      settings?.focusMode === modo,
 
     settings,
   };
 }
-
-// ============================================================
-// AJUSTES ADAPTATIVOS DA CÂMERA
-//
-// Não utilizamos números absolutos para contraste/sharpness,
-// porque cada câmera pode expor escalas diferentes.
-//
-// A regra é:
-// - respeitar min/max reais;
-// - manter exposição automática;
-// - reduzir levemente exposição em etiquetas claras;
-// - aumentar contraste e nitidez de forma moderada;
-// - não alterar brilho diretamente para evitar estouro
-//   do branco do papel.
-// ============================================================
 
 function limitarNaFaixa(
   valor,
@@ -721,8 +582,10 @@ function limitarNaFaixa(
 ) {
   if (
     !capacidade ||
-    typeof capacidade.min !== "number" ||
-    typeof capacidade.max !== "number" ||
+    typeof capacidade.min !==
+      "number" ||
+    typeof capacidade.max !==
+      "number" ||
     typeof valor !== "number"
   ) {
     return null;
@@ -736,7 +599,6 @@ function limitarNaFaixa(
     )
   );
 }
-
 
 function obterValorAtual(
   settings,
@@ -753,43 +615,19 @@ function obterValorAtual(
   }
 
   if (
-    typeof capacidade?.min === "number" &&
-    typeof capacidade?.max === "number"
+    typeof capacidade?.min ===
+      "number" &&
+    typeof capacidade?.max ===
+      "number"
   ) {
     return (
-      capacidade.min +
-      capacidade.max
-    ) / 2;
+      (capacidade.min +
+        capacidade.max) /
+      2
+    );
   }
 
   return null;
-}
-
-
-function calcularIncrementoProporcional({
-  atual,
-  capacidade,
-  percentual,
-}) {
-  if (
-    typeof atual !== "number" ||
-    typeof capacidade?.max !== "number"
-  ) {
-    return null;
-  }
-
-  const desejado =
-    atual +
-    (
-      capacidade.max -
-      atual
-    ) *
-      percentual;
-
-  return limitarNaFaixa(
-    desejado,
-    capacidade
-  );
 }
 
 async function configurarMedicaoAutomatica(
@@ -800,24 +638,12 @@ async function configurarMedicaoAutomatica(
   }
 
   const capabilities =
-    obterCapabilitiesTrack(
-      track
-    );
+    obterCapabilitiesTrack(track);
 
   const settings =
-    obterSettingsTrack(
-      track
-    );
-
-  const suportados =
-    obterConstraintsSuportados();
+    obterSettingsTrack(track);
 
   const advanced = {};
-
-
-  // ----------------------------------------------------------
-  // EXPOSIÇÃO AUTOMÁTICA
-  // ----------------------------------------------------------
 
   if (
     Array.isArray(
@@ -831,11 +657,6 @@ async function configurarMedicaoAutomatica(
       "continuous";
   }
 
-
-  // ----------------------------------------------------------
-  // WHITE BALANCE AUTOMÁTICO
-  // ----------------------------------------------------------
-
   if (
     Array.isArray(
       capabilities?.whiteBalanceMode
@@ -848,140 +669,101 @@ async function configurarMedicaoAutomatica(
       "continuous";
   }
 
-
-  // ----------------------------------------------------------
-  // COMPENSAÇÃO DE EXPOSIÇÃO
-  //
-  // Etiquetas normalmente possuem fundo claro.
-  // Uma pequena compensação negativa ajuda a preservar
-  // barras escuras sem estourar excessivamente o branco.
-  //
-  // Só aplicamos quando a câmera realmente expõe a capability.
-  // ----------------------------------------------------------
-
   if (
-    suportados?.exposureCompensation ===
-      true &&
-    capabilities?.exposureCompensation &&
-    typeof capabilities
-      .exposureCompensation
-      .min === "number" &&
-    typeof capabilities
-      .exposureCompensation
-      .max === "number"
+    capabilities?.exposureCompensation
   ) {
-    const exposicaoDesejada =
+    const atual = obterValorAtual(
+      settings,
+      "exposureCompensation",
+      capabilities.exposureCompensation
+    );
+
+    const desejado =
       limitarNaFaixa(
-        -0.15,
-        capabilities
-          .exposureCompensation
+        typeof atual === "number"
+          ? atual - 0.25
+          : 0,
+        capabilities.exposureCompensation
       );
 
     if (
-      exposicaoDesejada !== null
+      typeof desejado === "number"
     ) {
       advanced.exposureCompensation =
-        exposicaoDesejada;
+        desejado;
     }
   }
 
-
-  // ----------------------------------------------------------
-  // CONTRASTE DA CÂMERA
-  //
-  // Elevação moderada: 12% do espaço disponível acima
-  // do valor atual.
-  // ----------------------------------------------------------
-
   if (
-    suportados?.contrast === true &&
     capabilities?.contrast
   ) {
-    const contrasteAtual =
-      obterValorAtual(
-        settings,
-        "contrast",
+    const atual = obterValorAtual(
+      settings,
+      "contrast",
+      capabilities.contrast
+    );
+
+    const incremento =
+      typeof capabilities.contrast
+        ?.step === "number"
+        ? capabilities.contrast.step *
+          2
+        : 0.1;
+
+    const desejado =
+      limitarNaFaixa(
+        typeof atual === "number"
+          ? atual + incremento
+          : atual,
         capabilities.contrast
       );
 
-    const contrasteDesejado =
-      calcularIncrementoProporcional({
-        atual:
-          contrasteAtual,
-
-        capacidade:
-          capabilities.contrast,
-
-        percentual:
-          0.12,
-      });
-
     if (
-      contrasteDesejado !== null
+      typeof desejado === "number"
     ) {
       advanced.contrast =
-        contrasteDesejado;
+        desejado;
     }
   }
 
-
-  // ----------------------------------------------------------
-  // SHARPNESS / NITIDEZ
-  //
-  // Um pouco mais agressivo que o contraste, porque nosso
-  // objetivo é preservar bordas das barras.
-  // ----------------------------------------------------------
-
   if (
-    suportados?.sharpness === true &&
     capabilities?.sharpness
   ) {
-    const nitidezAtual =
-      obterValorAtual(
-        settings,
-        "sharpness",
+    const atual = obterValorAtual(
+      settings,
+      "sharpness",
+      capabilities.sharpness
+    );
+
+    const incremento =
+      typeof capabilities.sharpness
+        ?.step === "number"
+        ? capabilities.sharpness.step *
+          2
+        : 0.1;
+
+    const desejado =
+      limitarNaFaixa(
+        typeof atual === "number"
+          ? atual + incremento
+          : atual,
         capabilities.sharpness
       );
 
-    const nitidezDesejada =
-      calcularIncrementoProporcional({
-        atual:
-          nitidezAtual,
-
-        capacidade:
-          capabilities.sharpness,
-
-        percentual:
-          0.18,
-      });
-
     if (
-      nitidezDesejada !== null
+      typeof desejado === "number"
     ) {
       advanced.sharpness =
-        nitidezDesejada;
+        desejado;
     }
   }
 
-
-  /*
-   * Não alteramos brightness diretamente.
-   *
-   * Exposição automática + exposição compensada são mais
-   * apropriadas para preservar detalhes da etiqueta.
-   * Alterar brightness indiscriminadamente pode clarear
-   * também as barras e reduzir contraste.
-   */
-
-
   if (
-    Object.keys(
-      advanced
-    ).length === 0
+    Object.keys(advanced).length ===
+    0
   ) {
     return;
   }
-
 
   try {
     await track.applyConstraints({
@@ -989,212 +771,114 @@ async function configurarMedicaoAutomatica(
         track
       ),
 
-      advanced: [
-        advanced,
-      ],
+      advanced: [advanced],
     });
-
-
-    console.info(
-      "[MobileScanner] Ajustes ópticos aplicados:",
-      {
-        solicitados:
-          advanced,
-
-        settingsDepois:
-          obterSettingsTrack(
-            track
-          ),
-      }
-    );
   } catch (error) {
     console.warn(
-      "[MobileScanner] Ajustes automáticos da câmera parcialmente recusados:",
+      "[MobileScanner] Ajustes ópticos adicionais não foram aplicados:",
       error
     );
   }
 }
 
-async function prepararAutofocus(
-  track
-) {
-  if (!track) {
-    return {
-      focoContinuoAtivo:
-        false,
-
-      modoFinal:
-        null,
-
-      settings:
-        {},
-    };
-  }
-
+async function prepararAutofocus(track) {
   const capabilities =
     obterCapabilitiesTrack(track);
 
-  const possuiSingleShot =
-    suportaModoFoco(
-      capabilities,
-      "single-shot"
-    );
-
-  const possuiContinuous =
+  if (
     suportaModoFoco(
       capabilities,
       "continuous"
-    );
-
-  if (possuiSingleShot) {
-    await aplicarFoco({
-      track,
-
-      modo:
-        "single-shot",
-
-      usarPontoInteresse:
-        true,
-    });
-
-    await esperar(
-      TEMPO_SINGLE_SHOT_MS
-    );
-  }
-
-  if (possuiContinuous) {
+    )
+  ) {
     const resultado =
       await aplicarFoco({
         track,
-
-        modo:
-          "continuous",
-
-        usarPontoInteresse:
-          true,
+        modo: "continuous",
       });
 
-    return {
-      focoContinuoAtivo:
-        resultado.confirmado,
-
-      modoFinal:
-        resultado.settings
-          ?.focusMode ||
-        null,
-
-      settings:
-        resultado.settings,
-    };
+    return Boolean(
+      resultado.aplicado
+    );
   }
 
-  return {
-    focoContinuoAtivo:
-      false,
-
-    modoFinal:
-      obterSettingsTrack(track)
-        ?.focusMode ||
-      (possuiSingleShot
-        ? "single-shot"
-        : null),
-
-    settings:
-      obterSettingsTrack(track),
-  };
-}
-
-async function executarRefoco(
-  track
-) {
-  if (!track) {
-    return;
-  }
-
-  const capabilities =
-    obterCapabilitiesTrack(track);
-
-  const possuiSingleShot =
+  if (
     suportaModoFoco(
       capabilities,
       "single-shot"
-    );
-
-  const possuiContinuous =
-    suportaModoFoco(
-      capabilities,
-      "continuous"
-    );
-
-  if (possuiSingleShot) {
+    )
+  ) {
     await aplicarFoco({
       track,
-
-      modo:
-        "single-shot",
-
-      usarPontoInteresse:
-        true,
+      modo: "single-shot",
     });
 
     await esperar(
       TEMPO_SINGLE_SHOT_MS
     );
+
+    return false;
   }
 
-  if (possuiContinuous) {
-    await aplicarFoco({
-      track,
+  return false;
+}
 
-      modo:
-        "continuous",
+function obterCentroBoundingBox(
+  resultado
+) {
+  const box =
+    resultado?.boundingBox;
 
-      usarPontoInteresse:
-        true,
-    });
+  if (!box) {
+    return null;
   }
+
+  return {
+    x:
+      Number(box.x || 0) +
+      Number(box.width || 0) / 2,
+
+    y:
+      Number(box.y || 0) +
+      Number(box.height || 0) / 2,
+  };
 }
 
 function resultadoEstaNaAreaCentral(
   resultado,
   video
 ) {
-  const box =
-    resultado?.boundingBox;
+  const centro =
+    obterCentroBoundingBox(resultado);
+
+  if (!centro) {
+    return true;
+  }
+
+  const largura =
+    Number(video?.videoWidth || 0);
+
+  const altura =
+    Number(video?.videoHeight || 0);
 
   if (
-    !box ||
-    !video?.videoWidth ||
-    !video?.videoHeight
+    largura <= 0 ||
+    altura <= 0
   ) {
     return true;
   }
 
-  const centroX =
-    box.x +
-    box.width / 2;
+  const x =
+    centro.x / largura;
 
-  const centroY =
-    box.y +
-    box.height / 2;
-
-  const xRelativo =
-    centroX /
-    video.videoWidth;
-
-  const yRelativo =
-    centroY /
-    video.videoHeight;
+  const y =
+    centro.y / altura;
 
   return (
-    xRelativo >=
-      AREA_LEITURA.xMin &&
-    xRelativo <=
-      AREA_LEITURA.xMax &&
-    yRelativo >=
-      AREA_LEITURA.yMin &&
-    yRelativo <=
-      AREA_LEITURA.yMax
+    x >= AREA_LEITURA.xMin &&
+    x <= AREA_LEITURA.xMax &&
+    y >= AREA_LEITURA.yMin &&
+    y <= AREA_LEITURA.yMax
   );
 }
 
@@ -1202,12 +886,17 @@ function escolherMelhorResultado(
   resultados,
   video
 ) {
+  if (
+    !Array.isArray(resultados) ||
+    resultados.length === 0
+  ) {
+    return null;
+  }
+
   const validos =
-    (resultados || []).filter(
+    resultados.filter(
       (resultado) =>
-        Boolean(
-          resultado?.rawValue
-        )
+        resultado?.rawValue
     );
 
   if (
@@ -1217,12 +906,11 @@ function escolherMelhorResultado(
   }
 
   const centrais =
-    validos.filter(
-      (resultado) =>
-        resultadoEstaNaAreaCentral(
-          resultado,
-          video
-        )
+    validos.filter((resultado) =>
+      resultadoEstaNaAreaCentral(
+        resultado,
+        video
+      )
     );
 
   const candidatos =
@@ -1231,83 +919,113 @@ function escolherMelhorResultado(
       : validos;
 
   return candidatos
-    .slice()
-    .sort((a, b) => {
-      const areaA =
-        (a?.boundingBox?.width ||
-          0) *
-        (a?.boundingBox?.height ||
-          0);
+    .map((resultado) => {
+      const box =
+        resultado?.boundingBox;
 
-      const areaB =
-        (b?.boundingBox?.width ||
-          0) *
-        (b?.boundingBox?.height ||
-          0);
+      const area =
+        Number(box?.width || 0) *
+        Number(box?.height || 0);
 
-      return (
-        areaB -
-        areaA
-      );
-    })[0];
+      return {
+        resultado,
+        area,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.area - a.area
+    )[0]?.resultado;
+}
+
+function obterRegiaoCentral(
+  largura,
+  altura
+) {
+  const x =
+    Math.floor(
+      largura *
+        AREA_LEITURA.xMin
+    );
+
+  const y =
+    Math.floor(
+      altura *
+        AREA_LEITURA.yMin
+    );
+
+  const width =
+    Math.floor(
+      largura *
+        (AREA_LEITURA.xMax -
+          AREA_LEITURA.xMin)
+    );
+
+  const height =
+    Math.floor(
+      altura *
+        (AREA_LEITURA.yMax -
+          AREA_LEITURA.yMin)
+    );
+
+  return {
+    x,
+    y,
+    width,
+    height,
+  };
 }
 
 function criarCanvasReforcado(
-  bitmap
+  source
 ) {
+  const larguraOriginal =
+    Number(
+      source?.width ||
+        source?.videoWidth ||
+        0
+    );
+
+  const alturaOriginal =
+    Number(
+      source?.height ||
+        source?.videoHeight ||
+        0
+    );
+
   if (
-    !bitmap?.width ||
-    !bitmap?.height
+    larguraOriginal <= 0 ||
+    alturaOriginal <= 0
   ) {
     return null;
   }
 
-  const cropX =
-    Math.round(
-      bitmap.width *
-        0.04
-    );
-
-  const cropY =
-    Math.round(
-      bitmap.height *
-        0.18
-    );
-
-  const cropWidth =
-    Math.round(
-      bitmap.width *
-        0.92
-    );
-
-  const cropHeight =
-    Math.round(
-      bitmap.height *
-        0.64
+  const regiao =
+    obterRegiaoCentral(
+      larguraOriginal,
+      alturaOriginal
     );
 
   const escala =
     Math.min(
-      1.5,
+      1,
       MAX_LARGURA_PROCESSAMENTO /
-        cropWidth
+        regiao.width
     );
 
-  const destinoWidth =
+  const largura =
     Math.max(
       1,
-      Math.round(
-        cropWidth *
-          escala
+      Math.floor(
+        regiao.width * escala
       )
     );
 
-  const destinoHeight =
+  const altura =
     Math.max(
       1,
-      Math.round(
-        cropHeight *
-          escala
+      Math.floor(
+        regiao.height * escala
       )
     );
 
@@ -1316,100 +1034,89 @@ function criarCanvasReforcado(
       "canvas"
     );
 
-  canvas.width =
-    destinoWidth;
-
-  canvas.height =
-    destinoHeight;
+  canvas.width = largura;
+  canvas.height = altura;
 
   const context =
-    canvas.getContext(
-      "2d",
-      {
-        willReadFrequently:
-          true,
-
-        alpha:
-          false,
-      }
-    );
+    canvas.getContext("2d", {
+      willReadFrequently: true,
+    });
 
   if (!context) {
     return null;
   }
 
   context.imageSmoothingEnabled =
-    true;
-
-  context.imageSmoothingQuality =
-    "high";
+    false;
 
   context.drawImage(
-    bitmap,
-
-    cropX,
-    cropY,
-    cropWidth,
-    cropHeight,
-
+    source,
+    regiao.x,
+    regiao.y,
+    regiao.width,
+    regiao.height,
     0,
     0,
-    destinoWidth,
-    destinoHeight
+    largura,
+    altura
   );
 
   const imageData =
     context.getImageData(
       0,
       0,
-      destinoWidth,
-      destinoHeight
+      largura,
+      altura
     );
 
-  const data =
+  const dados =
     imageData.data;
 
   const contraste =
     CONTRASTE_REFORCADO;
 
+  const intercepto =
+    128 *
+    (1 - contraste);
+
   for (
     let index = 0;
-    index < data.length;
+    index < dados.length;
     index += 4
   ) {
     const r =
-      data[index];
+      dados[index];
 
     const g =
-      data[index + 1];
+      dados[index + 1];
 
     const b =
-      data[index + 2];
+      dados[index + 2];
 
     const cinza =
       0.299 * r +
       0.587 * g +
       0.114 * b;
 
-    const ajustado =
+    const reforcado =
       Math.max(
         0,
         Math.min(
           255,
-          (cinza - 128) *
+          cinza *
             contraste +
-            128
+            intercepto
         )
       );
 
-    data[index] =
-      ajustado;
+    dados[index] =
+      reforcado;
 
-    data[index + 1] =
-      ajustado;
+    dados[index + 1] =
+      reforcado;
 
-    data[index + 2] =
-      ajustado;
+    dados[index + 2] =
+      reforcado;
   }
 
   context.putImageData(
@@ -1421,11 +1128,26 @@ function criarCanvasReforcado(
   return canvas;
 }
 
+function normalizarCodigo(valor) {
+  return String(valor || "")
+    .trim()
+    .replace(/\s+/g, "");
+}
+
+function obterFormatoResultado(
+  resultado
+) {
+  return (
+    resultado?.format ||
+    "unknown"
+  );
+}
+
 export default function useMobileScanner({
-  ativo = false,
+  ativo,
   videoRef,
   onDetected,
-} = {}) {
+}) {
   const [
     cameraAtiva,
     setCameraAtiva,
@@ -1474,7 +1196,11 @@ export default function useMobileScanner({
   const [
     resolucaoAtual,
     setResolucaoAtual,
-  ] = useState(null);
+  ] = useState({
+    width: null,
+    height: null,
+    frameRate: null,
+  });
 
   const [
     lendo,
@@ -1502,22 +1228,22 @@ export default function useMobileScanner({
   const trackRef =
     useRef(null);
 
-  const imageCaptureRef =
-    useRef(null);
-
   const detectorRef =
     useRef(null);
 
-  const timerRef =
+  const imageCaptureRef =
+    useRef(null);
+
+  const timerDeteccaoRef =
     useRef(null);
 
   const timerEstabilizacaoRef =
     useRef(null);
 
-  const processandoRef =
-    useRef(false);
+  const timerCooldownRef =
+    useRef(null);
 
-  const refocandoRef =
+  const processandoFrameRef =
     useRef(false);
 
   const reforcandoRef =
@@ -1527,36 +1253,42 @@ export default function useMobileScanner({
     useRef(false);
 
   const ativoRef =
-    useRef(ativo);
+    useRef(Boolean(ativo));
 
   const liberadoParaDetectarRef =
     useRef(false);
 
-  const ultimoCodigoRef =
-    useRef({
-      codigo:
-        null,
-
-      registradoEm:
-        0,
-    });
+  const onDetectedRef =
+    useRef(onDetected);
 
   const candidatoRef =
     useRef({
-      codigo:
-        null,
-
-      formato:
-        null,
-
-      quantidade:
-        0,
+      codigo: null,
+      formato: null,
+      quantidade: 0,
     });
 
+  /*
+   * Trava síncrona.
+   *
+   * Este ref é a autoridade para impedir
+   * vídeo + grabFrame + takePhoto de
+   * confirmarem o mesmo volume em paralelo.
+   */
+  const capturaBloqueadaRef =
+    useRef(false);
+
+  const cooldownAteRef =
+    useRef(0);
+
+  const ultimoCodigoAceitoRef =
+    useRef(null);
+
+  const ultimoAvisoDuplicadoEmRef =
+    useRef(0);
+
   const ultimaDeteccaoVisualRef =
-    useRef(
-      Date.now()
-    );
+    useRef(Date.now());
 
   const ultimoRefocoEmRef =
     useRef(0);
@@ -1567,63 +1299,68 @@ export default function useMobileScanner({
   const ultimaFotoEmRef =
     useRef(0);
 
-  const cooldownAteRef =
-    useRef(0);
-
-  const cooldownTimerRef =
-    useRef(null);
-
-  const ultimoCodigoAceitoRef =
-    useRef(null);
-
-  const ultimoAvisoDuplicadoRef =
-    useRef({
-      codigo:
-        null,
-
-      avisadoEm:
-        0,
-    });
-
   useEffect(() => {
     ativoRef.current =
-      ativo;
-  }, [
-    ativo,
-  ]);
+      Boolean(ativo);
+  }, [ativo]);
 
   useEffect(() => {
-    cameraAtivaRef.current =
-      cameraAtiva;
-  }, [
-    cameraAtiva,
-  ]);
+    onDetectedRef.current =
+      onDetected;
+  }, [onDetected]);
 
-  // ============================================================
-  // COOLDOWN DA CÂMERA
-  // ============================================================
-
-  const pararCooldown =
+  const limparTimerDeteccao =
     useCallback(() => {
       if (
-        cooldownTimerRef.current
+        timerDeteccaoRef.current
       ) {
         window.clearTimeout(
-          cooldownTimerRef.current
+          timerDeteccaoRef.current
         );
 
-        cooldownTimerRef.current =
+        timerDeteccaoRef.current =
           null;
       }
-
-      cooldownAteRef.current =
-        0;
-
-      setCooldownRestanteMs(
-        0
-      );
     }, []);
 
+  const limparTimerEstabilizacao =
+    useCallback(() => {
+      if (
+        timerEstabilizacaoRef.current
+      ) {
+        window.clearTimeout(
+          timerEstabilizacaoRef.current
+        );
+
+        timerEstabilizacaoRef.current =
+          null;
+      }
+    }, []);
+
+  const limparTimerCooldown =
+    useCallback(() => {
+      if (
+        timerCooldownRef.current
+      ) {
+        window.clearInterval(
+          timerCooldownRef.current
+        );
+
+        timerCooldownRef.current =
+          null;
+      }
+    }, []);
+
+  const resetarCandidato =
+    useCallback(() => {
+      candidatoRef.current = {
+        codigo: null,
+        formato: null,
+        quantidade: 0,
+      };
+
+      setLendo(false);
+    }, []);
 
   const atualizarCooldown =
     useCallback(() => {
@@ -1638,145 +1375,241 @@ export default function useMobileScanner({
         restante
       );
 
-      if (
-        restante <= 0
-      ) {
-        cooldownTimerRef.current =
+      if (restante <= 0) {
+        capturaBloqueadaRef.current =
+          false;
+
+        cooldownAteRef.current =
+          0;
+
+        ultimoCodigoAceitoRef.current =
           null;
 
-        return;
+        limparTimerCooldown();
       }
-
-      cooldownTimerRef.current =
-        window.setTimeout(
-          atualizarCooldown,
-          INTERVALO_ATUALIZACAO_COOLDOWN_MS
-        );
-    }, []);
-
+    }, [limparTimerCooldown]);
 
   const iniciarCooldown =
-    useCallback(() => {
-      if (
-        cooldownTimerRef.current
-      ) {
-        window.clearTimeout(
-          cooldownTimerRef.current
+    useCallback(
+      (codigo) => {
+        /*
+         * IMPORTANTE:
+         * trava ANTES do callback.
+         *
+         * Portanto qualquer detector
+         * concorrente que chegar alguns
+         * milissegundos depois já encontra
+         * capturaBloqueadaRef = true.
+         */
+        capturaBloqueadaRef.current =
+          true;
+
+        ultimoCodigoAceitoRef.current =
+          codigo;
+
+        cooldownAteRef.current =
+          Date.now() +
+          COOLDOWN_CAPTURA_CAMERA_MS;
+
+        setCooldownRestanteMs(
+          COOLDOWN_CAPTURA_CAMERA_MS
         );
+
+        limparTimerCooldown();
+
+        timerCooldownRef.current =
+          window.setInterval(
+            atualizarCooldown,
+            INTERVALO_ATUALIZACAO_COOLDOWN_MS
+          );
+      },
+      [
+        atualizarCooldown,
+        limparTimerCooldown,
+      ]
+    );
+
+  const avisarDuplicidade =
+    useCallback(
+      (codigo, formato) => {
+        const agora =
+          Date.now();
+
+        if (
+          agora -
+            ultimoAvisoDuplicadoEmRef.current <
+          INTERVALO_AVISO_DUPLICADO_MS
+        ) {
+          return;
+        }
+
+        ultimoAvisoDuplicadoEmRef.current =
+          agora;
+
+        onDetectedRef.current?.({
+          codigo,
+          formato,
+          origem: "CAMERA",
+          duplicado: true,
+        });
+      },
+      []
+    );
+
+  const emitirDeteccao =
+    useCallback(
+      (resultado) => {
+        const codigo =
+          normalizarCodigo(
+            resultado?.rawValue
+          );
+
+        if (!codigo) {
+          return false;
+        }
+
+        const formato =
+          obterFormatoResultado(
+            resultado
+          );
+
+        /*
+         * PRIMEIRA BARREIRA:
+         * se alguma camada já ganhou a
+         * corrida, nenhuma outra camada
+         * pode registrar.
+         */
+        if (
+          capturaBloqueadaRef.current ||
+          Date.now() <
+            cooldownAteRef.current
+        ) {
+          if (
+            codigo ===
+            ultimoCodigoAceitoRef.current
+          ) {
+            avisarDuplicidade(
+              codigo,
+              formato
+            );
+          }
+
+          return false;
+        }
+
+        /*
+         * TRAVA ATÔMICA:
+         * cooldown começa ANTES do
+         * onDetected.
+         */
+        iniciarCooldown(codigo);
+
+        resetarCandidato();
+
+        ultimaDeteccaoVisualRef.current =
+          Date.now();
+
+        try {
+          onDetectedRef.current?.({
+            codigo,
+            formato,
+            origem: "CAMERA",
+            duplicado: false,
+          });
+
+          return true;
+        } catch (error) {
+          console.error(
+            "[MobileScanner] Falha ao entregar captura:",
+            error
+          );
+
+          /*
+           * Mesmo se o callback falhar,
+           * não liberamos imediatamente
+           * para evitar dupla captura.
+           */
+          return false;
+        }
+      },
+      [
+        avisarDuplicidade,
+        iniciarCooldown,
+        resetarCandidato,
+      ]
+    );
+
+  const registrarCandidato =
+    useCallback((resultado) => {
+      const codigo =
+        normalizarCodigo(
+          resultado?.rawValue
+        );
+
+      if (!codigo) {
+        return false;
       }
 
-      cooldownAteRef.current =
-        Date.now() +
-        COOLDOWN_CAPTURA_CAMERA_MS;
+      const formato =
+        obterFormatoResultado(
+          resultado
+        );
 
-      setCooldownRestanteMs(
-        COOLDOWN_CAPTURA_CAMERA_MS
+      const atual =
+        candidatoRef.current;
+
+      if (
+        atual.codigo === codigo &&
+        atual.formato === formato
+      ) {
+        atual.quantidade += 1;
+      } else {
+        candidatoRef.current = {
+          codigo,
+          formato,
+          quantidade: 1,
+        };
+      }
+
+      const quantidade =
+        candidatoRef.current
+          .quantidade;
+
+      setLendo(
+        quantidade > 0 &&
+          quantidade <
+            DETECCOES_CONSECUTIVAS_NECESSARIAS
       );
 
-      cooldownTimerRef.current =
-        window.setTimeout(
-          atualizarCooldown,
-          INTERVALO_ATUALIZACAO_COOLDOWN_MS
-        );
-    }, [
-      atualizarCooldown,
-    ]);
-
-  const resetarCandidato =
-    useCallback(() => {
-      candidatoRef.current = {
-        codigo:
-          null,
-
-        formato:
-          null,
-
-        quantidade:
-          0,
-      };
-
-      setLendo(false);
+      return (
+        quantidade >=
+        DETECCOES_CONSECUTIVAS_NECESSARIAS
+      );
     }, []);
 
   const pararCamera =
     useCallback(() => {
+      limparTimerDeteccao();
+      limparTimerEstabilizacao();
+      limparTimerCooldown();
+
       liberadoParaDetectarRef.current =
         false;
 
-      if (
-        timerRef.current
-      ) {
-        window.clearTimeout(
-          timerRef.current
-        );
-
-        timerRef.current =
-          null;
-      }
-
-      if (
-        timerEstabilizacaoRef.current
-      ) {
-        window.clearTimeout(
-          timerEstabilizacaoRef.current
-        );
-
-        timerEstabilizacaoRef.current =
-          null;
-      }
-
-      if (
-        streamRef.current
-      ) {
-        encerrarStream(
-          streamRef.current
-        );
-
-        streamRef.current =
-          null;
-      }
-
-      if (
-        videoRef?.current
-      ) {
-        videoRef.current.srcObject =
-          null;
-      }
-
-      trackRef.current =
-        null;
-
-      imageCaptureRef.current =
-        null;
-
-      detectorRef.current =
-        null;
-
-      processandoRef.current =
-        false;
-
-      refocandoRef.current =
+      processandoFrameRef.current =
         false;
 
       reforcandoRef.current =
         false;
 
-      cameraAtivaRef.current =
+      capturaBloqueadaRef.current =
         false;
 
-      pararCooldown();
+      cooldownAteRef.current =
+        0;
 
       ultimoCodigoAceitoRef.current =
         null;
-
-      ultimoAvisoDuplicadoRef.current =
-        {
-          codigo:
-            null,
-
-          avisadoEm:
-            0,
-        };
 
       resetarCandidato();
 
@@ -1784,309 +1617,61 @@ export default function useMobileScanner({
         false
       );
 
-      setCameraAtiva(
-        false
-      );
+      setCooldownRestanteMs(0);
 
-      setDetectorDisponivel(
-        false
-      );
+      const stream =
+        streamRef.current;
 
-      setFormatosSuportados(
-        []
-      );
+      if (stream) {
+        encerrarStream(stream);
+      }
 
-      setFocoContinuoAtivo(
-        false
-      );
+      streamRef.current = null;
+      trackRef.current = null;
+      detectorRef.current = null;
+      imageCaptureRef.current = null;
 
-      setCameraLabel(
-        null
-      );
+      cameraAtivaRef.current =
+        false;
 
-      setCameraPrincipal(
-        null
-      );
+      setCameraAtiva(false);
+      setDetectorDisponivel(false);
+      setFormatosSuportados([]);
+      setFocoContinuoAtivo(false);
 
-      setCamerasDisponiveis(
-        []
-      );
+      const video =
+        videoRef?.current;
 
-      setResolucaoAtual(
-        null
-      );
+      if (video) {
+        try {
+          video.pause();
+        } catch {
+          // Sem ação.
+        }
 
-      setDiagnosticoCamera(
-        null
-      );
+        video.srcObject = null;
+      }
     }, [
-        pararCooldown,
-        resetarCandidato,
-        videoRef,
-      ]);
-
-  const registrarCandidato =
-    useCallback(
-      (resultado) => {
-        const codigo =
-          String(
-            resultado?.rawValue ||
-              ""
-          ).trim();
-
-        if (!codigo) {
-          resetarCandidato();
-
-          return false;
-        }
-
-        const formato =
-          resultado?.format ||
-          null;
-
-        const atual =
-          candidatoRef.current;
-
-        if (
-          atual.codigo ===
-            codigo &&
-          atual.formato ===
-            formato
-        ) {
-          candidatoRef.current = {
-            ...atual,
-
-            quantidade:
-              atual.quantidade +
-              1,
-          };
-        } else {
-          candidatoRef.current = {
-            codigo,
-
-            formato,
-
-            quantidade:
-              1,
-          };
-        }
-
-        setLendo(true);
-
-        return (
-          candidatoRef.current
-            .quantidade >=
-          DETECCOES_CONSECUTIVAS_NECESSARIAS
-        );
-      },
-      [
-        resetarCandidato,
-      ]
-    );
-
-  const emitirDeteccao =
-    useCallback(
-      (resultado) => {
-        const codigo =
-          String(
-            resultado?.rawValue ||
-              ""
-          ).trim();
-
-        if (!codigo) {
-          return false;
-        }
-
-
-        const agora =
-          Date.now();
-
-
-        // ======================================================
-        // COOLDOWN ATIVO
-        // ======================================================
-
-        const cooldownAtivo =
-          agora <
-          cooldownAteRef.current;
-
-
-        if (cooldownAtivo) {
-          /*
-          * Se for exatamente o mesmo código que acabou de
-          * ser aceito, deixamos chegar até onDetected().
-          *
-          * O estado do Wizard é a autoridade que responderá:
-          * CODIGO_DUPLICADO_LOCAL
-          *
-          * Isso permite mostrar o toast ao operador.
-          */
-
-          if (
-            ultimoCodigoAceitoRef.current ===
-            codigo
-          ) {
-            const ultimoAviso =
-              ultimoAvisoDuplicadoRef.current;
-
-
-            const podeAvisar =
-              ultimoAviso.codigo !==
-                codigo ||
-              agora -
-                ultimoAviso.avisadoEm >=
-                INTERVALO_AVISO_DUPLICADO_MS;
-
-
-            if (
-              podeAvisar &&
-              typeof onDetected ===
-                "function"
-            ) {
-              ultimoAvisoDuplicadoRef.current =
-                {
-                  codigo,
-
-                  avisadoEm:
-                    agora,
-                };
-
-
-              onDetected({
-                codigo,
-
-                formato:
-                  resultado?.format ||
-                  null,
-
-                boundingBox:
-                  resultado
-                    ?.boundingBox ||
-                  null,
-
-                cornerPoints:
-                  resultado
-                    ?.cornerPoints ||
-                  null,
-
-                detectadoEm:
-                  new Date()
-                    .toISOString(),
-              });
-            }
-          }
-
-
-          /*
-          * Código diferente durante os 4 segundos:
-          * simplesmente aguardamos.
-          *
-          * Não registra, não bipa e não inicia outro cooldown.
-          */
-          resetarCandidato();
-
-          return false;
-        }
-
-
-        // ======================================================
-        // NOVA LEITURA LIBERADA
-        // ======================================================
-
-        let resposta =
-          null;
-
-
-        if (
-          typeof onDetected ===
-          "function"
-        ) {
-          resposta =
-            onDetected({
-              codigo,
-
-              formato:
-                resultado?.format ||
-                null,
-
-              boundingBox:
-                resultado
-                  ?.boundingBox ||
-                null,
-
-              cornerPoints:
-                resultado
-                  ?.cornerPoints ||
-                null,
-
-              detectadoEm:
-                new Date()
-                  .toISOString(),
-            });
-        }
-
-
-        /*
-        * O Wizard rejeitou a leitura, por exemplo:
-        * CODIGO_DUPLICADO_LOCAL.
-        *
-        * Não inicia cooldown de 4 segundos para uma captura
-        * que não entrou no recebimento.
-        */
-        if (
-          resposta?.ok === false
-        ) {
-          resetarCandidato();
-
-          return false;
-        }
-
-
-        // ======================================================
-        // CAPTURA ACEITA
-        // ======================================================
-
-        ultimoCodigoAceitoRef.current =
-          codigo;
-
-
-        ultimaDeteccaoVisualRef.current =
-          agora;
-
-
-        ultimoAvisoDuplicadoRef.current =
-          {
-            codigo:
-              null,
-
-            avisadoEm:
-              0,
-          };
-
-
-        resetarCandidato();
-
-
-        iniciarCooldown();
-
-
-        return true;
-      },
-      [
-        iniciarCooldown,
-        onDetected,
-        resetarCandidato,
-      ]
-    );
+      limparTimerCooldown,
+      limparTimerDeteccao,
+      limparTimerEstabilizacao,
+      resetarCandidato,
+      videoRef,
+    ]);
 
   const tentarRefocoAutomatico =
     useCallback(async () => {
       const track =
         trackRef.current;
 
+      if (!track) {
+        return;
+      }
+
       if (
-        !track ||
-        refocandoRef.current
+        capturaBloqueadaRef.current ||
+        Date.now() <
+          cooldownAteRef.current
       ) {
         return;
       }
@@ -2094,7 +1679,7 @@ export default function useMobileScanner({
       const agora =
         Date.now();
 
-      const semLeituraHa =
+      const semLeitura =
         agora -
         ultimaDeteccaoVisualRef.current;
 
@@ -2103,7 +1688,7 @@ export default function useMobileScanner({
         ultimoRefocoEmRef.current;
 
       if (
-        semLeituraHa <
+        semLeitura <
           TEMPO_SEM_LEITURA_PARA_REFOCO_MS ||
         desdeUltimoRefoco <
           INTERVALO_MINIMO_REFOCO_MS
@@ -2111,39 +1696,66 @@ export default function useMobileScanner({
         return;
       }
 
-      refocandoRef.current =
-        true;
-
       ultimoRefocoEmRef.current =
         agora;
 
-      try {
-        await executarRefoco(
-          track
+      const capabilities =
+        obterCapabilitiesTrack(track);
+
+      if (
+        suportaModoFoco(
+          capabilities,
+          "single-shot"
+        )
+      ) {
+        await aplicarFoco({
+          track,
+          modo: "single-shot",
+        });
+
+        await esperar(
+          TEMPO_SINGLE_SHOT_MS
         );
 
-        const settings =
-          obterSettingsTrack(
-            track
-          );
-
-        setFocoContinuoAtivo(
-          settings?.focusMode ===
+        if (
+          suportaModoFoco(
+            capabilities,
             "continuous"
-        );
-      } catch (error) {
-        console.warn(
-          "[MobileScanner] Refoco automático falhou:",
-          error
-        );
-      } finally {
-        refocandoRef.current =
-          false;
+          )
+        ) {
+          await aplicarFoco({
+            track,
+            modo: "continuous",
+          });
+        }
+
+        return;
+      }
+
+      if (
+        suportaModoFoco(
+          capabilities,
+          "continuous"
+        )
+      ) {
+        await aplicarFoco({
+          track,
+          modo: "continuous",
+        });
       }
     }, []);
 
   const tentarLeituraReforcada =
     useCallback(async () => {
+      if (
+        reforcandoRef.current ||
+        capturaBloqueadaRef.current ||
+        Date.now() <
+          cooldownAteRef.current
+      ) {
+        return false;
+      }
+
       const detector =
         detectorRef.current;
 
@@ -2152,30 +1764,7 @@ export default function useMobileScanner({
 
       if (
         !detector ||
-        !imageCapture ||
-        reforcandoRef.current ||
-        !ativoRef.current ||
-        !cameraAtivaRef.current
-      ) {
-        return false;
-      }
-
-      const agora =
-        performance.now();
-
-      const semLeituraHa =
-        Date.now() -
-        ultimaDeteccaoVisualRef.current;
-
-      const desdeUltimoSnapshot =
-        agora -
-        ultimoSnapshotEmRef.current;
-
-      if (
-        semLeituraHa <
-          TEMPO_SEM_LEITURA_PARA_SNAPSHOT_MS ||
-        desdeUltimoSnapshot <
-          INTERVALO_MINIMO_SNAPSHOT_MS
+        !imageCapture
       ) {
         return false;
       }
@@ -2183,51 +1772,67 @@ export default function useMobileScanner({
       reforcandoRef.current =
         true;
 
-      ultimoSnapshotEmRef.current =
-        agora;
-
-      let bitmap =
-        null;
+      let bitmap = null;
 
       try {
-        // ------------------------------------------------------
-        // NÍVEL 2 — SNAPSHOT INVISÍVEL / FAST PATH
-        // ------------------------------------------------------
+        const agoraSnapshot =
+          performance.now();
+
+        const desdeUltimoSnapshot =
+          agoraSnapshot -
+          ultimoSnapshotEmRef.current;
+
+        const semLeitura =
+          Date.now() -
+          ultimaDeteccaoVisualRef.current;
 
         if (
+          semLeitura >=
+            TEMPO_SEM_LEITURA_PARA_SNAPSHOT_MS &&
+          desdeUltimoSnapshot >=
+            INTERVALO_MINIMO_SNAPSHOT_MS &&
           typeof imageCapture.grabFrame ===
-          "function"
+            "function"
         ) {
+          ultimoSnapshotEmRef.current =
+            agoraSnapshot;
+
           try {
             bitmap =
               await imageCapture.grabFrame();
 
-            const resultadosFrame =
+            /*
+             * Durante o await outra
+             * camada pode ter capturado.
+             * Verificamos novamente.
+             */
+            if (
+              capturaBloqueadaRef.current ||
+              Date.now() <
+                cooldownAteRef.current
+            ) {
+              return false;
+            }
+
+            const resultadosSnapshot =
               await detector.detect(
                 bitmap
               );
 
-            const frame =
+            const snapshot =
               (
-                resultadosFrame ||
+                resultadosSnapshot ||
                 []
               ).find(
                 (resultado) =>
                   resultado?.rawValue
               );
 
-            if (frame) {
-              ultimaDeteccaoVisualRef.current =
-                Date.now();
-
+            if (snapshot) {
               return emitirDeteccao(
-                frame
+                snapshot
               );
             }
-
-            // --------------------------------------------------
-            // NÍVEL 3 — SNAPSHOT + RECORTE + CONTRASTE
-            // --------------------------------------------------
 
             const canvas =
               criarCanvasReforcado(
@@ -2250,9 +1855,6 @@ export default function useMobileScanner({
                 );
 
               if (reforcado) {
-                ultimaDeteccaoVisualRef.current =
-                  Date.now();
-
                 return emitirDeteccao(
                   reforcado
                 );
@@ -2266,9 +1868,18 @@ export default function useMobileScanner({
           }
         }
 
-        // ------------------------------------------------------
-        // NÍVEL 4 — FOTO HIGH-RES / HARD PATH
-        // ------------------------------------------------------
+        /*
+         * Antes da fotografia high-res,
+         * verificamos novamente se outra
+         * camada já ganhou a corrida.
+         */
+        if (
+          capturaBloqueadaRef.current ||
+          Date.now() <
+            cooldownAteRef.current
+        ) {
+          return false;
+        }
 
         const agoraFoto =
           performance.now();
@@ -2299,20 +1910,22 @@ export default function useMobileScanner({
           true
         );
 
-        let blob =
-          null;
-
-        let fotoBitmap =
-          null;
+        let fotoBitmap = null;
 
         try {
-          blob =
+          const blob =
             await imageCapture.takePhoto();
 
+          if (
+            capturaBloqueadaRef.current ||
+            Date.now() <
+              cooldownAteRef.current
+          ) {
+            return false;
+          }
+
           const resultadosFoto =
-            await detector.detect(
-              blob
-            );
+            await detector.detect(blob);
 
           const foto =
             (
@@ -2324,9 +1937,6 @@ export default function useMobileScanner({
             );
 
           if (foto) {
-            ultimaDeteccaoVisualRef.current =
-              Date.now();
-
             return emitirDeteccao(
               foto
             );
@@ -2358,26 +1968,13 @@ export default function useMobileScanner({
               );
 
             if (fotoReforcada) {
-              ultimaDeteccaoVisualRef.current =
-                Date.now();
-
               return emitirDeteccao(
                 fotoReforcada
               );
             }
           }
         } finally {
-          if (
-            fotoBitmap &&
-            typeof fotoBitmap.close ===
-              "function"
-          ) {
-            try {
-              fotoBitmap.close();
-            } catch {
-              // Sem impacto operacional.
-            }
-          }
+          fotoBitmap?.close?.();
         }
 
         return false;
@@ -2389,17 +1986,7 @@ export default function useMobileScanner({
 
         return false;
       } finally {
-        if (
-          bitmap &&
-          typeof bitmap.close ===
-            "function"
-        ) {
-          try {
-            bitmap.close();
-          } catch {
-            // Sem impacto operacional.
-          }
-        }
+        bitmap?.close?.();
 
         reforcandoRef.current =
           false;
@@ -2408,9 +1995,7 @@ export default function useMobileScanner({
           false
         );
       }
-    }, [
-      emitirDeteccao,
-    ]);
+    }, [emitirDeteccao]);
 
   const detectarFrame =
     useCallback(async () => {
@@ -2424,10 +2009,28 @@ export default function useMobileScanner({
         return;
       }
 
+      /*
+       * Durante cooldown não executamos
+       * detector desnecessariamente.
+       */
       if (
-        processandoRef.current
+        capturaBloqueadaRef.current ||
+        Date.now() <
+          cooldownAteRef.current
       ) {
-        timerRef.current =
+        timerDeteccaoRef.current =
+          window.setTimeout(
+            detectarFrame,
+            INTERVALO_DETECCAO_MS
+          );
+
+        return;
+      }
+
+      if (
+        processandoFrameRef.current
+      ) {
+        timerDeteccaoRef.current =
           window.setTimeout(
             detectarFrame,
             INTERVALO_DETECCAO_MS
@@ -2444,7 +2047,7 @@ export default function useMobileScanner({
         video.videoWidth === 0 ||
         video.videoHeight === 0
       ) {
-        timerRef.current =
+        timerDeteccaoRef.current =
           window.setTimeout(
             detectarFrame,
             INTERVALO_DETECCAO_MS
@@ -2453,15 +2056,27 @@ export default function useMobileScanner({
         return;
       }
 
-      processandoRef.current =
+      processandoFrameRef.current =
         true;
 
       try {
         const resultados =
-          await detectorRef.current
-            .detect(
-              video
-            );
+          await detectorRef.current.detect(
+            video
+          );
+
+        /*
+         * O detector pode ter ficado
+         * aguardando enquanto outra
+         * camada capturou.
+         */
+        if (
+          capturaBloqueadaRef.current ||
+          Date.now() <
+            cooldownAteRef.current
+        ) {
+          return;
+        }
 
         const melhor =
           escolherMelhorResultado(
@@ -2472,34 +2087,36 @@ export default function useMobileScanner({
         if (!melhor) {
           resetarCandidato();
 
-          void tentarRefocoAutomatico();
+          if (
+            Date.now() >=
+              cooldownAteRef.current &&
+            !capturaBloqueadaRef.current
+          ) {
+            void tentarRefocoAutomatico();
 
-          void tentarLeituraReforcada();
-        } else {
+            void tentarLeituraReforcada();
+          }
+        } else if (
+          resultadoEstaNaAreaCentral(
+            melhor,
+            video
+          )
+        ) {
           ultimaDeteccaoVisualRef.current =
             Date.now();
 
-          if (
-            resultadoEstaNaAreaCentral(
-              melhor,
-              video
-            )
-          ) {
-            const estabilizado =
-              registrarCandidato(
-                melhor
-              );
+          const estabilizado =
+            registrarCandidato(
+              melhor
+            );
 
-            if (
-              estabilizado
-            ) {
-              emitirDeteccao(
-                melhor
-              );
-            }
-          } else {
-            resetarCandidato();
+          if (estabilizado) {
+            emitirDeteccao(
+              melhor
+            );
           }
+        } else {
+          resetarCandidato();
         }
       } catch (error) {
         console.warn(
@@ -2509,7 +2126,7 @@ export default function useMobileScanner({
 
         resetarCandidato();
       } finally {
-        processandoRef.current =
+        processandoFrameRef.current =
           false;
 
         if (
@@ -2517,7 +2134,7 @@ export default function useMobileScanner({
           cameraAtivaRef.current &&
           liberadoParaDetectarRef.current
         ) {
-          timerRef.current =
+          timerDeteccaoRef.current =
             window.setTimeout(
               detectarFrame,
               INTERVALO_DETECCAO_MS
@@ -2536,15 +2153,14 @@ export default function useMobileScanner({
   const descobrirCameraPrincipal =
     useCallback(async () => {
       const bootstrapStream =
-        await navigator.mediaDevices
-          .getUserMedia(
-            obterConstraintsBootstrap()
-          );
+        await navigator.mediaDevices.getUserMedia(
+          obterConstraintsBootstrap()
+        );
 
       const bootstrapTrack =
-        bootstrapStream
-          .getVideoTracks?.()[0] ||
-        null;
+        bootstrapStream.getVideoTracks?.()[
+          0
+        ] || null;
 
       const bootstrapSettings =
         obterSettingsTrack(
@@ -2565,7 +2181,6 @@ export default function useMobileScanner({
       const principal =
         selecionarCameraPrincipal({
           cameras,
-
           deviceIdCameraInicial:
             deviceIdInicial,
         });
@@ -2594,19 +2209,12 @@ export default function useMobileScanner({
         return false;
       }
 
-      if (
-        streamRef.current
-      ) {
+      if (streamRef.current) {
         return true;
       }
 
-      setIniciando(
-        true
-      );
-
-      setErroCamera(
-        null
-      );
+      setIniciando(true);
+      setErroCamera(null);
 
       try {
         const descoberta =
@@ -2622,8 +2230,7 @@ export default function useMobileScanner({
         const stream =
           await abrirCameraSelecionada(
             principal?.deviceId ||
-              descoberta
-                .deviceIdInicial ||
+              descoberta.deviceIdInicial ||
               null
           );
 
@@ -2631,8 +2238,7 @@ export default function useMobileScanner({
           stream;
 
         const track =
-          stream
-            .getVideoTracks?.()[0] ||
+          stream.getVideoTracks?.()[0] ||
           null;
 
         if (!track) {
@@ -2678,33 +2284,27 @@ export default function useMobileScanner({
           "true"
         );
 
-        video.muted =
-          true;
+        video.muted = true;
 
         await video.play();
 
-        await esperar(
-          220
-        );
+        await esperar(220);
 
         await configurarMedicaoAutomatica(
           track
         );
 
-        const autofocus =
+        const focoAtivo =
           await prepararAutofocus(
             track
           );
 
         setFocoContinuoAtivo(
-          autofocus
-            .focoContinuoAtivo
+          focoAtivo
         );
 
         const settingsDepois =
-          obterSettingsTrack(
-            track
-          );
+          obterSettingsTrack(track);
 
         const capabilities =
           obterCapabilitiesTrack(
@@ -2731,7 +2331,7 @@ export default function useMobileScanner({
         });
 
         if (
-          possuiImageCapture()
+          possuiImageCaptureApi()
         ) {
           try {
             imageCaptureRef.current =
@@ -2752,35 +2352,29 @@ export default function useMobileScanner({
         const {
           detector,
           formatos,
-        } =
-          await criarDetector();
+        } = await criarDetector();
 
         detectorRef.current =
           detector;
 
         setDetectorDisponivel(
-          Boolean(
-            detector
-          )
+          Boolean(detector)
         );
 
         setFormatosSuportados(
           formatos
         );
 
-        const diagnostico = {
+        setDiagnosticoCamera({
           cameraSelecionada: {
             deviceId:
-              settingsDepois
-                ?.deviceId ||
-              principal
-                ?.deviceId ||
+              settingsDepois?.deviceId ||
+              principal?.deviceId ||
               null,
 
             label:
               track.label ||
-              principal
-                ?.label ||
+              principal?.label ||
               null,
 
             score:
@@ -2792,8 +2386,7 @@ export default function useMobileScanner({
             descoberta.cameras,
 
           bootstrapSettings:
-            descoberta
-              .bootstrapSettings,
+            descoberta.bootstrapSettings,
 
           capabilities,
 
@@ -2803,23 +2396,19 @@ export default function useMobileScanner({
 
           autofocus: {
             focusModeSuportados:
-              capabilities
-                ?.focusMode ||
+              capabilities?.focusMode ||
               [],
 
             focusModeAtual:
-              settingsDepois
-                ?.focusMode ||
+              settingsDepois?.focusMode ||
               null,
 
             focusDistance:
-              settingsDepois
-                ?.focusDistance ??
+              settingsDepois?.focusDistance ??
               null,
 
             focoContinuoConfirmado:
-              settingsDepois
-                ?.focusMode ===
+              settingsDepois?.focusMode ===
               "continuous",
           },
 
@@ -2831,23 +2420,12 @@ export default function useMobileScanner({
           contentHint:
             track.contentHint ||
             null,
-        };
-
-        setDiagnosticoCamera(
-          diagnostico
-        );
-
-        console.info(
-          "[MobileScanner] Diagnóstico completo:",
-          diagnostico
-        );
+        });
 
         cameraAtivaRef.current =
           true;
 
-        setCameraAtiva(
-          true
-        );
+        setCameraAtiva(true);
 
         ultimaDeteccaoVisualRef.current =
           Date.now();
@@ -2861,22 +2439,29 @@ export default function useMobileScanner({
         ultimaFotoEmRef.current =
           0;
 
+        capturaBloqueadaRef.current =
+          false;
+
+        cooldownAteRef.current =
+          0;
+
+        ultimoCodigoAceitoRef.current =
+          null;
+
+        setCooldownRestanteMs(0);
+
         timerEstabilizacaoRef.current =
-          window.setTimeout(
-            () => {
-              if (
-                ativoRef.current &&
-                cameraAtivaRef.current
-              ) {
-                liberadoParaDetectarRef.current =
-                  true;
+          window.setTimeout(() => {
+            if (
+              ativoRef.current &&
+              cameraAtivaRef.current
+            ) {
+              liberadoParaDetectarRef.current =
+                true;
 
-                detectarFrame();
-              }
-            },
-
-            TEMPO_ESTABILIZACAO_CAMERA_MS
-          );
+              detectarFrame();
+            }
+          }, TEMPO_ESTABILIZACAO_CAMERA_MS);
 
         return true;
       } catch (error) {
@@ -2922,13 +2507,11 @@ export default function useMobileScanner({
 
         return false;
       } finally {
-        setIniciando(
-          false
-        );
+        setIniciando(false);
       }
     }, [
-      descobrirCameraPrincipal,
       detectarFrame,
+      descobrirCameraPrincipal,
       pararCamera,
       videoRef,
     ]);
@@ -2946,9 +2529,7 @@ export default function useMobileScanner({
     () => () => {
       pararCamera();
     },
-    [
-      pararCamera,
-    ]
+    [pararCamera]
   );
 
   return {
@@ -2964,8 +2545,7 @@ export default function useMobileScanner({
 
     focoContinuoAtivo,
 
-    zoomAtual:
-      null,
+    zoomAtual: null,
 
     cameraLabel,
 
@@ -2997,6 +2577,6 @@ export default function useMobileScanner({
       possuiBarcodeDetector(),
 
     possuiImageCapture:
-      possuiImageCapture(),
+      possuiImageCaptureApi(),
   };
 }

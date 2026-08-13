@@ -1256,8 +1256,14 @@ export default function AppLayout({
 
           <button
             type="button"
-            className="mobile-nav-item"
-            onClick={() => navegar("portaria-inicio")}
+            className={
+              activePage === "receber-encomenda"
+                ? "mobile-nav-item active"
+                : "mobile-nav-item"
+            }
+            onClick={() =>
+              navegar("receber-encomenda")
+            }
           >
             <Package size={20} />
             <span>Receber</span>

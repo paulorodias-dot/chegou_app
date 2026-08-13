@@ -13,6 +13,8 @@ import {
   Clock,
   Package,
   PackageSearch,
+  PackagePlus,
+  PackageCheck,
   Car,
   User,
   HelpCircle,
@@ -23,6 +25,7 @@ import {
   Handshake,
   Headphones,
 } from "lucide-react";
+
 
 export const menusByRole = {
   master: [
@@ -102,6 +105,7 @@ export const menusByRole = {
       icon: Settings,
     },
   ],
+
 
   admin_logistica: [
     {
@@ -193,6 +197,7 @@ export const menusByRole = {
       hideOnMobileBottom: true,
     },
   ],
+
 
   morador: [
     {
@@ -293,12 +298,34 @@ export const menusByRole = {
     },
   ],
 
+
   funcionario: [
     {
       id: "portaria-inicio",
       label: "Início",
       icon: Home,
       visible: true,
+    },
+    {
+      id: "portaria-encomendas",
+      label: "Encomendas",
+      icon: Package,
+      visible: true,
+      mobileTarget: "receber-encomenda",
+      children: [
+        {
+          id: "receber-encomenda",
+          label: "Recebimento",
+          icon: PackagePlus,
+          visible: true,
+        },
+        {
+          id: "entrada-encomenda",
+          label: "Entrada",
+          icon: PackageCheck,
+          visible: true,
+        },
+      ],
     },
   ],
 };

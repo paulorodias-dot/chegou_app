@@ -980,6 +980,418 @@
   cursor: pointer;
 }
 
+/* ============================================================
+   AVARIA — MODAL
+============================================================ */
+
+.novo-recebimento-avaria-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(3px);
+}
+
+
+.novo-recebimento-avaria-modal__dialog {
+  width: min(720px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+
+  box-shadow:
+    0 24px 70px rgba(15, 23, 42, 0.22);
+}
+
+
+.novo-recebimento-avaria-modal__header {
+  flex: 0 0 auto;
+
+  padding: 20px 22px 16px;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+
+.novo-recebimento-avaria-modal__eyebrow {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #f97316;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+
+.novo-recebimento-avaria-modal__title {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 20px;
+  font-weight: 700;
+}
+
+
+.novo-recebimento-avaria-modal__subtitle {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+
+  overflow-wrap: anywhere;
+}
+
+
+.novo-recebimento-avaria-modal__body {
+  flex: 1 1 auto;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+
+  padding: 20px 22px;
+
+  overflow-y: auto;
+}
+
+
+.novo-recebimento-avaria-modal__textarea {
+  min-height: 88px;
+
+  resize: vertical;
+}
+
+
+.novo-recebimento-avaria-modal__photo {
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+
+  padding: 16px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+
+  background: #f8fafc;
+}
+
+
+.novo-recebimento-avaria-modal__photo-header h4 {
+  margin: 0 0 4px;
+
+  color: #0f172a;
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+
+.novo-recebimento-avaria-modal__photo-header p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+
+.novo-recebimento-avaria-modal__options {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+
+.novo-recebimento-avaria-option {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  padding: 14px;
+
+  cursor: pointer;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+
+
+.novo-recebimento-avaria-option:hover {
+  border-color: #94a3b8;
+}
+
+
+.novo-recebimento-avaria-option--selected {
+  border-color: #0f3f8f;
+
+  background: #eff6ff;
+
+  box-shadow:
+    0 0 0 2px rgba(15, 63, 143, 0.08);
+}
+
+
+.novo-recebimento-avaria-option input {
+  margin-top: 3px;
+}
+
+
+.novo-recebimento-avaria-option span {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+
+.novo-recebimento-avaria-option strong {
+  color: #0f172a;
+
+  font-size: 14px;
+}
+
+
+.novo-recebimento-avaria-option small {
+  color: #64748b;
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+
+.novo-recebimento-avaria-modal__footer {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding: 16px 22px;
+
+  border-top: 1px solid #e2e8f0;
+
+  background: #ffffff;
+}
+
+
+.novo-recebimento-avaria-modal__footer-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+
+.novo-recebimento-button--warning {
+  border-color: #fdba74;
+
+  color: #9a3412;
+
+  background: #fff7ed;
+}
+
+
+.novo-recebimento-button--warning:hover {
+  border-color: #fb923c;
+
+  background: #ffedd5;
+}
+
+
+@media (max-width: 680px) {
+  .novo-recebimento-avaria-modal {
+    align-items: flex-end;
+
+    padding: 0;
+  }
+
+
+  .novo-recebimento-avaria-modal__dialog {
+    width: 100%;
+    max-height: 92dvh;
+
+    border-radius:
+      20px 20px 0 0;
+  }
+
+
+  .novo-recebimento-avaria-modal__header {
+    padding:
+      18px 16px 14px;
+  }
+
+
+  .novo-recebimento-avaria-modal__body {
+    padding:
+      16px;
+
+    gap: 16px;
+  }
+
+
+  .novo-recebimento-avaria-modal__options {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .novo-recebimento-avaria-modal__footer {
+    padding:
+      14px 16px;
+
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+
+  .novo-recebimento-avaria-modal__footer > div,
+  .novo-recebimento-avaria-modal__footer-actions {
+    width: 100%;
+  }
+
+
+  .novo-recebimento-avaria-modal__footer-actions {
+    display: grid;
+
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+
+  .novo-recebimento-avaria-modal__footer button {
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   AVARIA — UPLOAD DE FOTO
+============================================================ */
+
+.novo-recebimento-avaria-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  padding-top: 2px;
+}
+
+
+.novo-recebimento-avaria-upload__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+
+.novo-recebimento-avaria-upload__processing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px;
+
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+
+  background: #eff6ff;
+}
+
+
+.novo-recebimento-avaria-upload__processing > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+
+.novo-recebimento-avaria-upload__processing strong {
+  color: #1e3a8a;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+
+.novo-recebimento-avaria-upload__processing small {
+  color: #475569;
+
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+
+.novo-recebimento-spinner {
+  width: 20px;
+  height: 20px;
+
+  flex: 0 0 auto;
+
+  border: 2px solid #bfdbfe;
+  border-top-color: #0f3f8f;
+  border-radius: 999px;
+
+  animation:
+    novo-recebimento-spin
+    0.75s linear infinite;
+}
+
+
+@keyframes novo-recebimento-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+@media (max-width: 680px) {
+  .novo-recebimento-avaria-upload__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+
+  .novo-recebimento-avaria-upload__actions button {
+    width: 100%;
+  }
+}
 
 /* =========================================================
    ASSINATURA

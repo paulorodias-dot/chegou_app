@@ -684,27 +684,83 @@ function App() {
   }
 
   function renderizarPaginaPortaria() {
-    if (paginaAtual === "portaria-inicio") {
-      return (
-        <DashboardPortaria
-          perfil={perfil}
-          onNavigate={navegarPara}
-        />
-      );
-    }
+  // ==========================================================
+  // INÍCIO
+  // ==========================================================
 
-    if (paginaAtual === "receber-encomenda") {
-      return (
-        <RecebimentoEncomendas
-          perfil={perfil}
-        />
-      );
-    }
-
+  if (
+    paginaAtual ===
+    "portaria-inicio"
+  ) {
     return (
-      <PaginaPreparando titulo="Módulo Portaria" />
+      <DashboardPortaria
+        perfil={
+          perfil
+        }
+        onNavigate={
+          navegarPara
+        }
+      />
     );
   }
+
+
+  // ==========================================================
+  // ENCOMENDAS — RECEBIMENTO
+  // ==========================================================
+
+  if (
+    paginaAtual ===
+    "receber-encomenda"
+  ) {
+    return (
+      <RecebimentoEncomendas
+        perfil={
+          perfil
+        }
+
+        onNavigate={
+          navegarPara
+        }
+      />
+    );
+  }
+
+
+  // ==========================================================
+  // ENCOMENDAS — ENTRADA
+  //
+  // Tela ainda não construída.
+  //
+  // A rota lógica já nasce definitiva para permitir:
+  // - navegação pela Tela de Recebimento;
+  // - menu lateral;
+  // - atalhos futuros;
+  // - contexto de lote/volume posteriormente.
+  // ==========================================================
+
+  if (
+    paginaAtual ===
+    "entrada-encomenda"
+  ) {
+    return (
+      <PaginaPreparando
+        titulo="Entrada de Encomendas"
+      />
+    );
+  }
+
+
+  // ==========================================================
+  // FALLBACK
+  // ==========================================================
+
+  return (
+    <PaginaPreparando
+      titulo="Módulo Portaria"
+    />
+  );
+}
 
   function renderizarSistemaProtegido() {
     if (carregandoSessao) {

@@ -14,6 +14,9 @@ import {
   MobileScanner,
 } from "../components";
 
+import AvariaVolumeModal
+  from "../components/AvariaVolumeModal";
+
 
 // ============================================================
 // SISTEMA CHEGOU!
@@ -177,6 +180,9 @@ export default function StepCapturaVolumes({
 
   capturaHabilitada = false,
 
+  condominioId = null,
+  clientReceiptId = null,
+
   onChangeQuantidadeInformada,
   onAdicionarVolume,
   onRemoverVolume,
@@ -205,6 +211,11 @@ export default function StepCapturaVolumes({
     scannerAberto,
     setScannerAberto,
   ] = useState(false);
+
+  const [
+    volumeAvariaAberto,
+    setVolumeAvariaAberto,
+  ] = useState(null);
 
 
   const inputCapturaRef =
@@ -647,8 +658,31 @@ export default function StepCapturaVolumes({
   // AVARIA
   // ==========================================================
 
-  function handleAvariaToggle(
+  function handleAbrirAvaria(
     volume
+  ) {
+    setVolumeAvariaAberto(
+      volume
+    );
+  }
+
+
+  function handleFecharAvaria() {
+    setVolumeAvariaAberto(
+      null
+    );
+
+    window.requestAnimationFrame(
+      () => {
+        inputCapturaRef.current?.focus();
+      }
+    );
+  }
+
+
+  function handleSalvarAvaria(
+    clientVolumeId,
+    avaria
   ) {
     if (
       typeof onAtualizarAvaria !==
@@ -658,45 +692,74 @@ export default function StepCapturaVolumes({
     }
 
 
-    if (volume?.avaria) {
-      onAtualizarAvaria(
-        volume.clientVolumeId,
-        null
-      );
+    onAtualizarAvaria(
+      clientVolumeId,
+      avaria
+    );
 
+
+    setVolumeAvariaAberto(
+      null
+    );
+
+
+    setMensagemCaptura({
+      tipo: "success",
+      texto:
+        avaria?.fotoMomento === "DEPOIS"
+          ? "Avaria registrada. A foto poderá ser anexada posteriormente."
+          : "Avaria registrada. A foto será anexada neste recebimento.",
+    });
+
+
+    limparMensagemDepois(
+      2600
+    );
+
+
+    window.requestAnimationFrame(
+      () => {
+        inputCapturaRef.current?.focus();
+      }
+    );
+  }
+
+
+  function handleRemoverAvaria(
+    clientVolumeId
+  ) {
+    if (
+      typeof onAtualizarAvaria !==
+      "function"
+    ) {
       return;
     }
 
 
-    /*
-     * Estado estrutural inicial.
-     *
-     * Posteriormente abriremos o painel/modal de avaria para
-     * definição de tipo, gravidade e fotografias.
-     */
     onAtualizarAvaria(
-      volume.clientVolumeId,
-      {
-        tipoOcorrencia:
-          "AVARIA_LEVE",
+      clientVolumeId,
+      null
+    );
 
-        gravidade:
-          "BAIXA",
 
-        requerFoto:
-          true,
+    setVolumeAvariaAberto(
+      null
+    );
 
-        requerRevisao:
-          false,
 
-        descricao:
-          "",
+    setMensagemCaptura({
+      tipo: "success",
+      texto:
+        "Registro de avaria removido.",
+    });
 
-        justificativa:
-          "",
 
-        metadata:
-          {},
+    limparMensagemDepois();
+
+
+    window.requestAnimationFrame(
+      () => {
+        inputCapturaRef.current?.focus();
       }
     );
   }
@@ -1143,27 +1206,29 @@ export default function StepCapturaVolumes({
 
 
                       <td>
-                        <label className="novo-recebimento-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={
-                              Boolean(
+                        <button
+                          type="button"
+                          className={
+                            `
+                              novo-recebimento-button
+                              novo-recebimento-button--compact
+                              ${
                                 volume.avaria
-                              )
-                            }
-                            onChange={() =>
-                              handleAvariaToggle(
-                                volume
-                              )
-                            }
-                          />
-
-                          <span>
-                            {volume.avaria
-                              ? "Registrada"
-                              : "Avaria"}
-                          </span>
-                        </label>
+                                  ? "novo-recebimento-button--warning"
+                                  : "novo-recebimento-button--secondary"
+                              }
+                            `
+                          }
+                          onClick={() =>
+                            handleAbrirAvaria(
+                              volume
+                            )
+                          }
+                        >
+                          {volume.avaria
+                            ? "Ver avaria"
+                            : "Registrar avaria"}
+                        </button>
                       </td>
 
 
@@ -1204,6 +1269,42 @@ export default function StepCapturaVolumes({
         leitura contínua de códigos. OCR e fotografias de
         avaria serão conectados às suas camadas específicas.
       </div>
+
+      <AvariaVolumeModal
+        open={
+          Boolean(
+            volumeAvariaAberto
+          )
+        }
+
+        volume={
+          volumeAvariaAberto
+        }
+
+        condominioId={
+          condominioId
+        }
+
+        clientReceiptId={
+          clientReceiptId
+        }
+
+        onClose={
+          handleFecharAvaria
+        }
+
+        onSave={
+          handleSalvarAvaria
+        }
+
+        onRemove={
+          handleRemoverAvaria
+        }
+
+        onAddEvidence={
+          onAdicionarEvidencia
+        }
+      />
 
 
       {/* ====================================================

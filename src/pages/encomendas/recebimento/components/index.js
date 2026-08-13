@@ -11,3 +11,5 @@ export { default as RecebimentoTable } from "./RecebimentoTable";
 export { default as RecebimentoStatusDot } from "./RecebimentoStatusDot";
 
 export { default as RecebimentoDetailsDrawer } from "./RecebimentoDetailsDrawer";
+
+export { default as RecebimentoPrintView } from "./RecebimentoPrintView";

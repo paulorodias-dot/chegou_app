@@ -367,31 +367,48 @@ export default function NovoRecebimentoWizard({
           quantidadeInformada={
             quantidadeInformada
           }
+
           quantidadeBipada={
             quantidadeBipada
           }
+
           diferencaQuantidade={
             diferencaQuantidade
           }
+
           volumes={
             state.captura?.volumes ||
             []
           }
+
           capturaHabilitada={
             canCapture
           }
+
+          condominioId={
+            condominioId
+          }
+
+          clientReceiptId={
+            state.clientReceiptId
+          }
+
           onChangeQuantidadeInformada={
             atualizarQuantidadeInformada
           }
+
           onAdicionarVolume={
             adicionarVolumeLocal
           }
+
           onRemoverVolume={
             removerVolumeLocal
           }
+
           onAtualizarAvaria={
             atualizarAvariaVolume
           }
+
           onAdicionarEvidencia={
             adicionarEvidenciaVolume
           }
@@ -402,6 +419,14 @@ export default function NovoRecebimentoWizard({
 
     return (
       <StepFinalizacao
+        condominioId={
+          condominioId
+        }
+
+        clientReceiptId={
+          state.clientReceiptId
+        }
+
         operadorNome={
           operadorNome
         }

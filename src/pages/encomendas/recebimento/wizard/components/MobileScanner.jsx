@@ -16,13 +16,11 @@ import {
   ZapOff,
 } from "lucide-react";
 
-import {
-  useMobileScanner,
-} from "../hooks";
+import { useMobileScanner } from "../hooks";
 
 // ============================================================
 // SISTEMA CHEGOU! — MOBILE SCANNER
-// Release funcional: 2026.08.11.005
+// Release funcional: 2026.08.12.002
 // ============================================================
 
 function mapearFormatoDetector(formato) {
@@ -99,7 +97,10 @@ export default function MobileScanner({
   const handleDetected = useCallback(
     (resultado) => {
       if (typeof onDetected !== "function") {
-        return;
+        return {
+          ok: false,
+          motivo: "HANDLER_INDISPONIVEL",
+        };
       }
 
       const resposta = onDetected({
@@ -108,23 +109,13 @@ export default function MobileScanner({
         origemCaptura: "CAMERA_DISPOSITIVO",
       });
 
-      if (
-        resposta?.ok === false
-      ) {
-        if (
-          resposta.motivo ===
-          "CODIGO_DUPLICADO_LOCAL"
-        ) {
+      if (resposta?.ok === false) {
+        if (resposta.motivo === "CODIGO_DUPLICADO_LOCAL") {
           mostrarMensagem(
             {
-              tipo:
-                "warning",
-
-              titulo:
-                "Volume já capturado",
-
-              texto:
-                "Este código já consta neste recebimento.",
+              tipo: "warning",
+              titulo: "Volume já capturado",
+              texto: "Este código já consta neste recebimento.",
             },
             2200
           );
@@ -132,17 +123,11 @@ export default function MobileScanner({
           return resposta;
         }
 
-
         mostrarMensagem(
           {
-            tipo:
-              "danger",
-
-            titulo:
-              "Leitura não registrada",
-
-            texto:
-              "Não foi possível registrar esta leitura.",
+            tipo: "danger",
+            titulo: "Leitura não registrada",
+            texto: "Não foi possível registrar esta leitura.",
           },
           1600
         );
@@ -153,15 +138,15 @@ export default function MobileScanner({
       mostrarMensagem(
         {
           tipo: "success",
+          titulo: "Volume capturado",
           texto: resultado.formato
-            ? `${nomeFormatoDetector(resultado.formato)} capturado.`
-            : "Volume capturado.",
+            ? `${nomeFormatoDetector(resultado.formato)} registrado.`
+            : "Código registrado neste recebimento.",
         },
         1000
       );
 
       return resposta;
-
     },
     [mostrarMensagem, onDetected]
   );
@@ -170,23 +155,15 @@ export default function MobileScanner({
     cameraAtiva,
     iniciando,
     erroCamera,
-
     detectorDisponivel,
     formatosSuportados,
-
     focoContinuoAtivo,
-
     resolucaoAtual,
-
     lendo,
-
     leituraReforcadaAtiva,
-
     cooldownRestanteMs,
     cooldownAtivo,
-
     possuiImageCapture,
-
     iniciarCamera,
     pararCamera,
   } = useMobileScanner({
@@ -195,13 +172,9 @@ export default function MobileScanner({
     onDetected: handleDetected,
   });
 
-  const cooldownSegundos =
-  Math.max(
+  const cooldownSegundos = Math.max(
     0,
-    Math.ceil(
-      cooldownRestanteMs /
-        1000
-    )
+    Math.ceil(cooldownRestanteMs / 1000)
   );
 
   const formatosTexto = useMemo(() => {
@@ -271,6 +244,7 @@ export default function MobileScanner({
       await track.applyConstraints({
         advanced: [{ torch: novoValor }],
       });
+
       setFlashAtivo(novoValor);
     } catch (error) {
       console.warn(
@@ -432,11 +406,9 @@ export default function MobileScanner({
           <div>
             <strong>Posicione o código na linha vermelha</strong>
             <span>
-              A leitura é automática. Em etiquetas impressas,
-              mantenha o código centralizado e evite reflexos
-              diretos. Se a leitura comum não responder, o
-              scanner tenta uma captura de alta resolução e
-              contraste reforçado sem sair desta tela.
+              A câmera é uma alternativa de captura. Para códigos
+              pequenos ou muito densos, aproxime até as barras ficarem
+              nítidas e evite reflexos diretos. A leitura é automática.
             </span>
           </div>
         </div>
@@ -450,14 +422,9 @@ export default function MobileScanner({
 
         {cooldownAtivo && (
           <div className="mobile-scanner__status">
-            <ScanLine
-              size={14}
-              aria-hidden="true"
-            />
-
+            <ScanLine size={14} aria-hidden="true" />
             <span>
-              Próxima leitura em{" "}
-              {cooldownSegundos}s
+              Próxima leitura em {cooldownSegundos}s
             </span>
           </div>
         )}
