@@ -1,22 +1,21 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.13.001",
-  "appVersion": "1.2.0",
+  "releaseId": "2026.08.14.001",
+  "appVersion": "1.2.1",
   "scope": "GLOBAL",
   "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-08-13T19:30:00-03:00",
-  "title": "Nova experiência no Recebimento de Encomendas",
-  "message": "Evoluímos o Recebimento de Encomendas para deixar a operação da Portaria mais organizada, rápida e segura, com uma nova visão dos lotes e melhores recursos de consulta.",
+  "publishedAt": "2026-08-14T16:26:00-03:00",
+  "title": "Melhorias de acesso e experiência no Sistema Chegou!",
+  "message": "Atualizamos o Sistema Chegou! com melhorias de acesso, navegação e experiência visual para deixar o uso no celular e no computador ainda mais simples e consistente.",
   "highlights": [
-    "Nova tela de Recebimento com visão organizada dos lotes que aguardam Entrada.",
-    "Identificação numérica dos lotes para facilitar consultas e acompanhamento da operação.",
-    "Visualização detalhada dos volumes de cada lote diretamente na tabela.",
-    "Indicação visual quando um rastreio informado pelo morador é reconhecido durante o recebimento.",
-    "Novos filtros por pesquisa, situação, transportadora e período para localizar recebimentos com mais facilidade.",
-    "Filtro de transportadoras adaptado aos recebimentos existentes no período consultado.",
-    "Nova impressão operacional dos lotes e respectivos volumes para apoio à gestão do condomínio.",
-    "Novos acessos de navegação para Recebimento e Entrada de Encomendas na Portaria.",
-    "Melhorias de responsividade para utilização da operação em computadores e dispositivos móveis."
+    "Melhoria na opção Lembrar-me para facilitar o retorno ao sistema quando a sessão ainda estiver válida.",
+    "Ajustes de visualização no iPhone para manter os controles do sistema acessíveis no topo da tela.",
+    "Melhorias na experiência dos modos Claro, Escuro e Sistema, inclusive nos menus do celular.",
+    "Aprimoramento dos indicadores de novidade para destacar novos recursos e opções de menu.",
+    "Novo destaque para a opção Entrada no menu de Encomendas da Portaria.",
+    "Melhorias na abertura do aplicativo e na apresentação do ícone oficial do Sistema Chegou!.",
+    "Ajustes no controle de atualizações para que páginas públicas, como Landing e Parceiros, não exibam avisos destinados aos usuários do sistema.",
+    "Aprimoramentos gerais de navegação, responsividade e experiência visual."
   ]
 }

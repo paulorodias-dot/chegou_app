@@ -26,7 +26,6 @@ import {
   Headphones,
 } from "lucide-react";
 
-
 export const menusByRole = {
   master: [
     {
@@ -105,7 +104,6 @@ export const menusByRole = {
       icon: Settings,
     },
   ],
-
 
   admin_logistica: [
     {
@@ -197,7 +195,6 @@ export const menusByRole = {
       hideOnMobileBottom: true,
     },
   ],
-
 
   morador: [
     {
@@ -298,7 +295,6 @@ export const menusByRole = {
     },
   ],
 
-
   funcionario: [
     {
       id: "portaria-inicio",
@@ -311,6 +307,7 @@ export const menusByRole = {
       label: "Encomendas",
       icon: Package,
       visible: true,
+      novo: true,
       mobileTarget: "receber-encomenda",
       children: [
         {
@@ -324,6 +321,7 @@ export const menusByRole = {
           label: "Entrada",
           icon: PackageCheck,
           visible: true,
+          novo: true,
         },
       ],
     },

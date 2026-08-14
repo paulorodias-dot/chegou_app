@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
 
@@ -17,6 +18,7 @@ import RedefinirSenha from "./pages/RedefinirSenha";
 import CriarSenhaResponsavel from "./pages/CriarSenhaResponsavel";
 
 import {
+  deveManterConectado,
   logout,
   recuperarSessaoAtual,
   registrarAtividadeUsuario,
@@ -31,7 +33,7 @@ import VersionManager from "./components/VersionManager";
 import CargosFuncoes from "./pages/master/CargosFuncoes";
 import Transportadoras from "./pages/master/Transportadoras";
 import AcessoAssistidoMaster from "./pages/master/AcessoAssistidoMaster";
-import DashboardMaster from './pages/master/dashboard/DashboardMaster'
+import DashboardMaster from "./pages/master/dashboard/DashboardMaster";
 import CadastroCondominio from "./pages/master/CadastroCondominio";
 import AuditoriaCondominios from "./pages/master/AuditoriaCondominios";
 
@@ -74,6 +76,7 @@ function isStandalonePWA() {
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [perfil, setPerfil] = useState(null);
 
@@ -190,6 +193,26 @@ function App() {
           paginaSalva ||
             getPaginaInicialPorRole(role)
         );
+
+        /**
+         * Quando "Lembrar-me" estiver ativo e existir uma sessão
+         * válida, a aplicação instalada pode iniciar em /login e
+         * seguir diretamente para a área autenticada.
+         *
+         * Importante:
+         * - não armazena senha;
+         * - não cria autenticação paralela;
+         * - depende exclusivamente da sessão válida do Supabase;
+         * - não redireciona Landing, Parceiros ou outras páginas públicas.
+         */
+        if (
+          deveManterConectado() &&
+          window.location.pathname === "/login"
+        ) {
+          navigate("/sistema", {
+            replace: true,
+          });
+        }
       }
     } catch (error) {
       console.warn(
@@ -228,8 +251,8 @@ function App() {
   /**
    * Resolve o módulo utilizado pelo Version Manager.
    *
-   * Regras:
-   * - Master normal: master;
+   * Regras oficiais:
+   * - Master normal: NÃO participa do versionamento público;
    * - Master em Suporte Master: admin_logistica;
    * - Síndico, Subsindico e Admin Logística:
    *   admin_logistica;
@@ -243,11 +266,12 @@ function App() {
 
     const role = getRole(perfil);
 
-    if (
-      role === "master" &&
-      suporteMaster?.modo_suporte_master
-    ) {
-      return "admin_logistica";
+    if (role === "master") {
+      if (suporteMaster?.modo_suporte_master) {
+        return "admin_logistica";
+      }
+
+      return "";
     }
 
     return role;
@@ -888,19 +912,24 @@ function App() {
   const moduloVersionManager =
     getModuloVersionManager();
 
+  const rotaInternaVersionada =
+    location.pathname === "/sistema" ||
+    location.pathname.startsWith("/sistema/");
+
   const versionManagerHabilitado =
+    rotaInternaVersionada &&
     !carregandoSessao &&
     Boolean(perfil) &&
     Boolean(moduloVersionManager);
 
   return (
     <>
-      <VersionManager
-        moduloAtual={moduloVersionManager}
-        habilitado={
-          versionManagerHabilitado
-        }
-      />
+      {versionManagerHabilitado ? (
+        <VersionManager
+          moduloAtual={moduloVersionManager}
+          habilitado
+        />
+      ) : null}
 
       <Routes>
         <Route

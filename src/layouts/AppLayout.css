@@ -1924,3 +1924,440 @@ body.modo-escuro .pwa-install-ios-steps {
     font-size: 17px;
   }
 }
+
+
+/* =========================================================
+   SISTEMA CHEGOU! — AJUSTES GLOBAIS 14/08/2026
+   Safe Area iPhone + Temas Claro/Escuro/Sistema + Mobile
+========================================================= */
+
+/* ---------------------------------------------------------
+   SAFE AREA SUPERIOR — iPhone / aparelhos com recorte
+   Mantém o fundo do topo até a borda, mas posiciona os
+   controles abaixo da área reservada pelo sistema.
+--------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .app-topbar {
+    height: calc(72px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    box-sizing: border-box;
+  }
+
+  .app-shell {
+    padding-top: calc(72px + env(safe-area-inset-top));
+  }
+
+  .app-sidebar {
+    top: calc(72px + env(safe-area-inset-top));
+  }
+
+  .sidebar-overlay {
+    inset:
+      calc(72px + env(safe-area-inset-top))
+      0
+      0
+      0;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-topbar {
+    height: calc(64px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-left: max(10px, env(safe-area-inset-left));
+  }
+
+  .app-shell {
+    padding-top: calc(64px + env(safe-area-inset-top));
+  }
+
+  .app-sidebar {
+    top: calc(64px + env(safe-area-inset-top));
+  }
+
+  .sidebar-overlay {
+    inset:
+      calc(64px + env(safe-area-inset-top))
+      0
+      0
+      0;
+  }
+}
+
+/* Suporte Master também respeita a área segura superior. */
+@media (max-width: 900px) {
+  .support-master-banner {
+    padding-top: calc(6px + env(safe-area-inset-top));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+
+  .app-shell:has(.support-master-banner) .app-topbar {
+    top: calc(34px + env(safe-area-inset-top));
+  }
+
+  .app-shell:has(.support-master-banner) .app-sidebar {
+    top: calc(106px + env(safe-area-inset-top));
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell:has(.support-master-banner) .app-topbar {
+    top: calc(46px + env(safe-area-inset-top));
+  }
+
+  .app-shell:has(.support-master-banner) .app-sidebar {
+    top: calc(118px + env(safe-area-inset-top));
+  }
+}
+
+/* ---------------------------------------------------------
+   TEMA CLARO — explícito
+--------------------------------------------------------- */
+
+[data-theme="light"] .app-shell,
+[data-theme="light"] .app-main {
+  background: #f5f7fb;
+}
+
+[data-theme="light"] .app-content-footer {
+  background: #ffffff;
+  border-color: rgba(226, 232, 240, 0.9);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .content-footer-meta {
+  color: #64748b;
+}
+
+[data-theme="light"] .content-footer-meta strong {
+  color: #0f3f8f;
+}
+
+[data-theme="light"] .mobile-bottom-nav {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(148, 163, 184, 0.25);
+  box-shadow: 0 -12px 34px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .mobile-nav-item {
+  color: #64748b;
+}
+
+[data-theme="light"] .mobile-nav-item.active {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+[data-theme="light"] .mobile-nav-item.active svg {
+  color: #f97316;
+}
+
+[data-theme="light"] .profile-menu-premium {
+  background: rgba(255, 255, 255, 0.99);
+  color: #0f172a;
+  border-color: rgba(226, 232, 240, 0.94);
+}
+
+[data-theme="light"] .profile-menu-header {
+  background:
+    radial-gradient(
+      circle at 90% 5%,
+      rgba(37, 99, 235, 0.13),
+      transparent 38%
+    ),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-color: rgba(226, 232, 240, 0.86);
+}
+
+[data-theme="light"] .profile-menu-header strong {
+  color: #0f172a;
+}
+
+[data-theme="light"] .profile-menu-header small {
+  color: #475569;
+}
+
+[data-theme="light"] .profile-menu-options button {
+  color: #334155;
+}
+
+/* ---------------------------------------------------------
+   TEMA ESCURO — explícito
+--------------------------------------------------------- */
+
+[data-theme="dark"] .app-shell,
+[data-theme="dark"] .app-main,
+body.modo-escuro .app-shell,
+body.modo-escuro .app-main {
+  background: #0f172a;
+}
+
+[data-theme="dark"] .app-content-footer,
+body.modo-escuro .app-content-footer {
+  background: #111827;
+  border-color: rgba(148, 163, 184, 0.16);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="dark"] .content-footer-meta,
+body.modo-escuro .content-footer-meta {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .content-footer-meta strong,
+body.modo-escuro .content-footer-meta strong {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .mobile-bottom-nav,
+body.modo-escuro .mobile-bottom-nav {
+  background: rgba(17, 24, 39, 0.97);
+  border-color: rgba(148, 163, 184, 0.16);
+  box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.42);
+}
+
+[data-theme="dark"] .mobile-nav-item,
+body.modo-escuro .mobile-nav-item {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .mobile-nav-item.active,
+body.modo-escuro .mobile-nav-item.active {
+  color: #f8fafc;
+  background: rgba(37, 99, 235, 0.18);
+}
+
+[data-theme="dark"] .mobile-nav-item.active svg,
+body.modo-escuro .mobile-nav-item.active svg {
+  color: #f97316;
+}
+
+/* ---------------------------------------------------------
+   TEMA DO SISTEMA
+   Quando data-theme="system", acompanha automaticamente
+   a preferência clara/escura do aparelho.
+--------------------------------------------------------- */
+
+@media (prefers-color-scheme: light) {
+  [data-theme="system"] .app-shell,
+  [data-theme="system"] .app-main {
+    background: #f5f7fb;
+  }
+
+  [data-theme="system"] .app-content-footer {
+    background: #ffffff;
+    border-color: rgba(226, 232, 240, 0.9);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+  }
+
+  [data-theme="system"] .content-footer-meta {
+    color: #64748b;
+  }
+
+  [data-theme="system"] .content-footer-meta strong {
+    color: #0f3f8f;
+  }
+
+  [data-theme="system"] .mobile-bottom-nav {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(148, 163, 184, 0.25);
+    box-shadow: 0 -12px 34px rgba(15, 23, 42, 0.12);
+  }
+
+  [data-theme="system"] .mobile-nav-item {
+    color: #64748b;
+  }
+
+  [data-theme="system"] .mobile-nav-item.active {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.1);
+  }
+
+  [data-theme="system"] .mobile-nav-item.active svg {
+    color: #f97316;
+  }
+
+  [data-theme="system"] .profile-menu-premium {
+    background: rgba(255, 255, 255, 0.99);
+    color: #0f172a;
+    border-color: rgba(226, 232, 240, 0.94);
+  }
+
+  [data-theme="system"] .profile-menu-header {
+    background:
+      radial-gradient(
+        circle at 90% 5%,
+        rgba(37, 99, 235, 0.13),
+        transparent 38%
+      ),
+      linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border-color: rgba(226, 232, 240, 0.86);
+  }
+
+  [data-theme="system"] .profile-menu-header strong {
+    color: #0f172a;
+  }
+
+  [data-theme="system"] .profile-menu-header small {
+    color: #475569;
+  }
+
+  [data-theme="system"] .profile-menu-options button {
+    color: #334155;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] .app-shell,
+  [data-theme="system"] .app-main {
+    background: #0f172a;
+  }
+
+  [data-theme="system"] .app-content-footer {
+    background: #111827;
+    border-color: rgba(148, 163, 184, 0.16);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  }
+
+  [data-theme="system"] .content-footer-meta {
+    color: #94a3b8;
+  }
+
+  [data-theme="system"] .content-footer-meta strong {
+    color: #f8fafc;
+  }
+
+  [data-theme="system"] .mobile-bottom-nav {
+    background: rgba(17, 24, 39, 0.97);
+    border-color: rgba(148, 163, 184, 0.16);
+    box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.42);
+  }
+
+  [data-theme="system"] .mobile-nav-item {
+    color: #94a3b8;
+  }
+
+  [data-theme="system"] .mobile-nav-item.active {
+    color: #f8fafc;
+    background: rgba(37, 99, 235, 0.18);
+  }
+
+  [data-theme="system"] .mobile-nav-item.active svg {
+    color: #f97316;
+  }
+
+  [data-theme="system"] .profile-menu-premium {
+    background: rgba(17, 24, 39, 0.99);
+    color: #f8fafc;
+    border-color: rgba(148, 163, 184, 0.2);
+    box-shadow:
+      0 28px 74px rgba(0, 0, 0, 0.5),
+      0 4px 16px rgba(0, 0, 0, 0.26);
+  }
+
+  [data-theme="system"] .profile-menu-header {
+    background:
+      radial-gradient(
+        circle at 90% 5%,
+        rgba(37, 99, 235, 0.21),
+        transparent 38%
+      ),
+      linear-gradient(180deg, #172033 0%, #111827 100%);
+    border-color: rgba(148, 163, 184, 0.16);
+  }
+
+  [data-theme="system"] .profile-menu-header strong {
+    color: #f8fafc;
+  }
+
+  [data-theme="system"] .profile-menu-header small {
+    color: #cbd5e1;
+  }
+
+  [data-theme="system"] .profile-menu-options button {
+    color: #cbd5e1;
+  }
+
+  [data-theme="system"] .profile-menu-options button:hover,
+  [data-theme="system"] .profile-menu-options button:focus-visible {
+    color: #dbeafe;
+    background: rgba(37, 99, 235, 0.18);
+  }
+
+  [data-theme="system"] .profile-menu-separator {
+    background: rgba(148, 163, 184, 0.17);
+  }
+
+  [data-theme="system"] .profile-menu-options .profile-menu-logout {
+    color: #f87171;
+  }
+}
+
+/* ---------------------------------------------------------
+   RADAR DE NOVIDADES — reforço visual
+--------------------------------------------------------- */
+
+.menu-new-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  display: inline-block;
+  margin-left: 7px;
+  border-radius: 999px;
+  background: #f97316;
+  box-shadow:
+    0 0 0 3px rgba(249, 115, 22, 0.16),
+    0 0 12px rgba(249, 115, 22, 0.35);
+}
+
+.submenu-new-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 18px;
+  padding: 2px 7px;
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  border-radius: 999px;
+  color: #f97316;
+  background: rgba(249, 115, 22, 0.11);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+[data-theme="dark"] .submenu-new-badge,
+body.modo-escuro .submenu-new-badge {
+  color: #fdba74;
+  background: rgba(249, 115, 22, 0.14);
+  border-color: rgba(251, 146, 60, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] .submenu-new-badge {
+    color: #fdba74;
+    background: rgba(249, 115, 22, 0.14);
+    border-color: rgba(251, 146, 60, 0.3);
+  }
+}
+
+/* ---------------------------------------------------------
+   MOBILE — refinamentos de contraste e área segura inferior
+--------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .mobile-bottom-nav {
+    padding-right: max(8px, env(safe-area-inset-right));
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    padding-left: max(8px, env(safe-area-inset-left));
+  }
+
+  .profile-menu-premium {
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: max(10px, env(safe-area-inset-left));
+  }
+}
