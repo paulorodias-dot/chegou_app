@@ -266,12 +266,11 @@ function App() {
 
     const role = getRole(perfil);
 
-    if (role === "master") {
-      if (suporteMaster?.modo_suporte_master) {
-        return "admin_logistica";
-      }
-
-      return "";
+    if (
+      role === "master" &&
+      suporteMaster?.modo_suporte_master
+    ) {
+      return "admin_logistica";
     }
 
     return role;
