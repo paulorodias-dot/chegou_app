@@ -18,6 +18,41 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
   });
 }
 
+function gerarTokenSeguro() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+
+  return Array.from(array)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function adicionarDiasIso(dataBase: Date, dias: number) {
+  const data = new Date(dataBase);
+  data.setUTCDate(data.getUTCDate() + dias);
+  return data.toISOString();
+}
+
+function extrairResultadoRpc(rpcData: unknown) {
+  if (Array.isArray(rpcData)) {
+    return rpcData[0] || null;
+  }
+
+  return rpcData || null;
+}
+
+function rpcConcluiuComSucesso(rpcData: unknown) {
+  const resultado: any = extrairResultadoRpc(rpcData);
+
+  if (!resultado) return false;
+
+  if (typeof resultado.success === "boolean") {
+    return resultado.success === true;
+  }
+
+  return true;
+}
+
 async function registrarLog({
   supabase,
   acao,
@@ -71,6 +106,7 @@ serve(async (req) => {
     const aceiteTermos = body?.aceite_termos === true;
     const aceiteLgpd = body?.aceite_lgpd === true;
     const dadosFinais = body?.dados_finais || {};
+    const contexto = body?.contexto || {};
     const criarNotificacao =
       body?.criar_notificacao_responsavel_logistica !== false;
 
@@ -148,6 +184,28 @@ serve(async (req) => {
       );
     }
 
+    // Idempotência de experiência:
+    // se o Wizard já foi concluído, não repetir a finalização.
+    if (convite.wizard_finalizado === true) {
+      const { data: preJaFinalizado, error: preJaFinalizadoError } =
+        await supabase
+          .from("pre_cadastro_moradores")
+          .select("*")
+          .eq("id", convite.pre_cadastro_id)
+          .maybeSingle();
+
+      if (preJaFinalizadoError) throw preJaFinalizadoError;
+
+      return jsonResponse({
+        success: true,
+        data: {
+          pre_cadastro: preJaFinalizado,
+          idempotente: true,
+          message: "Wizard já estava finalizado.",
+        },
+      });
+    }
+
     if (convite.token_revogado) {
       return jsonResponse(
         {
@@ -158,13 +216,16 @@ serve(async (req) => {
       );
     }
 
-    if (convite.token_expira_em && new Date(convite.token_expira_em) < new Date()) {
+    if (
+      convite.token_expira_em &&
+      new Date(convite.token_expira_em) < new Date()
+    ) {
       return jsonResponse(
         {
           success: false,
           error: "Convite expirado.",
         },
-        400
+        410
       );
     }
 
@@ -186,8 +247,36 @@ serve(async (req) => {
       );
     }
 
-    const agora = new Date().toISOString();
+    if (preCadastro.senha_preparada !== true) {
+      return jsonResponse(
+        {
+          success: false,
+          error:
+            "A senha ainda não foi preparada. Conclua a etapa de Senha e Aceites antes de enviar o cadastro.",
+        },
+        409
+      );
+    }
 
+    if (
+      !preCadastro.senha_auth_criptografada ||
+      !preCadastro.senha_hash
+    ) {
+      return jsonResponse(
+        {
+          success: false,
+          error:
+            "A credencial preparada está incompleta. O cadastro não será finalizado.",
+        },
+        409
+      );
+    }
+
+    const agora = new Date();
+    const agoraIso = agora.toISOString();
+
+    // 1) Autoridade de validação/conclusão.
+    // Não aplicar fallback que burle pendências críticas.
     const { data: rpcData, error: rpcError } = await supabase.rpc(
       "concluir_wizard_morador",
       {
@@ -201,78 +290,237 @@ serve(async (req) => {
     );
 
     if (rpcError) {
-      console.warn("RPC concluir_wizard_morador falhou. Aplicando fallback:", rpcError);
+      await registrarLog({
+        supabase,
+        acao: "WIZARD_MORADOR_FINALIZACAO_RPC_ERRO",
+        condominio_id:
+          preCadastro.condominio_id || convite.condominio_id,
+        email: preCadastro.email,
+        detalhes: {
+          pre_cadastro_id: preCadastro.id,
+          convite_id: convite.id,
+          erro: rpcError.message,
+        },
+      });
+
+      return jsonResponse(
+        {
+          success: false,
+          error:
+            "Não foi possível validar e concluir o cadastro.",
+          detalhes: rpcError.message,
+        },
+        409
+      );
     }
 
-    const { data: preAtualizado, error: updatePreError } = await supabase
-      .from("pre_cadastro_moradores")
-      .update({
-        aceite_termos: true,
-        aceite_lgpd: true,
-        status_cadastro: "AGUARDANDO_AUDITORIA",
-        status_convite: "WIZARD_FINALIZADO",
-        status_auditoria: "AGUARDANDO_AUDITORIA",
-        status_acompanhamento: "fila_auditoria",
-        etapa_atual: 9,
-        percentual_preenchimento: 100,
-        wizard_finalizado_em: agora,
-        enviado_auditoria_em: agora,
-        dados_complementares: {
-          ...(preCadastro.dados_complementares || {}),
-          wizard_final: dadosFinais,
-          finalizacao: {
-            ip,
-            user_agent: userAgent,
-            finalizado_em: agora,
-            origem: "wizard_morador_enviar_auditoria",
-          },
+    if (!rpcConcluiuComSucesso(rpcData)) {
+      const resultadoRpc: any = extrairResultadoRpc(rpcData);
+
+      await registrarLog({
+        supabase,
+        acao: "WIZARD_MORADOR_FINALIZACAO_RECUSADA",
+        condominio_id:
+          preCadastro.condominio_id || convite.condominio_id,
+        email: preCadastro.email,
+        detalhes: {
+          pre_cadastro_id: preCadastro.id,
+          convite_id: convite.id,
+          resultado_rpc: resultadoRpc,
         },
-        atualizado_em: agora,
-      })
-      .eq("id", preCadastro.id)
+      });
+
+      return jsonResponse(
+        {
+          success: false,
+          error:
+            "O cadastro possui pendências que impedem a finalização.",
+          data: resultadoRpc,
+        },
+        422
+      );
+    }
+
+    // Recarrega após a RPC porque ela altera o Pré-Cadastro.
+    const { data: prePosRpc, error: prePosRpcError } = await supabase
+      .from("pre_cadastro_moradores")
       .select("*")
+      .eq("id", preCadastro.id)
       .single();
+
+    if (prePosRpcError) throw prePosRpcError;
+
+    const tokenAcompanhamento =
+      prePosRpc.token_acompanhamento || gerarTokenSeguro();
+
+    const tokenAcompanhamentoExpiraEm =
+      prePosRpc.token_acompanhamento_expira_em ||
+      adicionarDiasIso(agora, 7);
+
+    const dadosComplementaresFinal = {
+      ...(prePosRpc.dados_complementares || {}),
+      wizard_final: dadosFinais,
+      finalizacao: {
+        ip,
+        user_agent: userAgent,
+        contexto,
+        finalizado_em: agoraIso,
+        origem: "wizard_morador_enviar_auditoria",
+      },
+    };
+
+    // 2) Consolidação autoritativa do estado final do Wizard.
+    // Auth continua NÃO criado.
+    const { data: preAtualizado, error: updatePreError } =
+      await supabase
+        .from("pre_cadastro_moradores")
+        .update({
+          aceite_termos: true,
+          aceite_lgpd: true,
+          aceite_termos_em:
+            prePosRpc.aceite_termos_em || agoraIso,
+          aceite_ip: prePosRpc.aceite_ip || ip,
+          aceite_user_agent:
+            prePosRpc.aceite_user_agent || userAgent,
+
+          status_cadastro: "AGUARDANDO_AUDITORIA",
+          status_convite: "WIZARD_FINALIZADO",
+          status_auditoria: "AGUARDANDO_AUDITORIA",
+          status_acompanhamento: "fila_auditoria",
+
+          etapa_atual: 8,
+          percentual_preenchimento: 100,
+
+          wizard_finalizado_em:
+            prePosRpc.wizard_finalizado_em || agoraIso,
+          enviado_auditoria_em:
+            prePosRpc.enviado_auditoria_em || agoraIso,
+
+          bloqueado_para_edicao: true,
+
+          // A conta só será criada na aprovação.
+          auth_ativo: false,
+          status_conta: "PENDENTE_APROVACAO",
+
+          // Token específico de acompanhamento.
+          token_acompanhamento: tokenAcompanhamento,
+          token_acompanhamento_expira_em:
+            tokenAcompanhamentoExpiraEm,
+
+          dados_complementares: dadosComplementaresFinal,
+
+          atualizado_em: agoraIso,
+        })
+        .eq("id", preCadastro.id)
+        .select("*")
+        .single();
 
     if (updatePreError) throw updatePreError;
 
+    // O token do convite pode ser considerado "utilizado" para escrita.
+    // A Edge de carregar tratará o mesmo link como acesso READ-ONLY
+    // à Tela 9 depois da conclusão.
     const { error: updateConviteError } = await supabase
       .from("convites_morador")
       .update({
         status_convite: "WIZARD_FINALIZADO",
         wizard_finalizado: true,
-        wizard_finalizado_em: agora,
+        wizard_finalizado_em: agoraIso,
         token_utilizado: true,
-        atualizado_em: agora,
+        token_utilizado_em: agoraIso,
+        updated_at: agoraIso,
       })
       .eq("id", convite.id);
 
     if (updateConviteError) throw updateConviteError;
 
-    const { data: auditoriaExistente } = await supabase
-      .from("auditorias_morador")
-      .select("id")
-      .eq("pre_cadastro_id", preCadastro.id)
-      .maybeSingle();
+    // 3) Garante uma Auditoria única para este Pré-Cadastro.
+    const { data: auditoriaExistente, error: auditoriaBuscaError } =
+      await supabase
+        .from("auditorias_morador")
+        .select("id")
+        .eq("pre_cadastro_id", preCadastro.id)
+        .order("criado_em", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    if (!auditoriaExistente?.id) {
-      await supabase.from("auditorias_morador").insert({
-        business_id: preCadastro.business_id || convite.business_id || null,
-        condominio_id: preCadastro.condominio_id || convite.condominio_id || null,
-        pre_cadastro_id: preCadastro.id,
-        status_auditoria: "AGUARDANDO_AUDITORIA",
-        origem: "wizard_morador",
-        dados_auditoria: dadosFinais,
-        criado_em: agora,
-        atualizado_em: agora,
-      });
+    if (auditoriaBuscaError) throw auditoriaBuscaError;
+
+    let auditoriaId = auditoriaExistente?.id || null;
+
+    if (!auditoriaId) {
+      const { data: auditoriaCriada, error: auditoriaInsertError } =
+        await supabase
+          .from("auditorias_morador")
+          .insert({
+            business_id:
+              preCadastro.business_id || convite.business_id || null,
+            condominio_id:
+              preCadastro.condominio_id ||
+              convite.condominio_id ||
+              null,
+            pre_cadastro_id: preCadastro.id,
+
+            status_auditoria: "AGUARDANDO_AUDITORIA",
+            tipo_auditoria: "cadastro_morador",
+            origem_auditoria: "wizard_morador",
+
+            percentual_preenchimento: 100,
+            saude_cadastro:
+              preAtualizado.saude_cadastro ||
+              "aguardando_auditoria",
+
+            aprovado_rapido: false,
+
+            campos_criticos_pendentes:
+              preAtualizado.pendencias_criticas || [],
+            campos_nao_criticos_pendentes:
+              preAtualizado.pendencias_informativas || [],
+
+            divergencias:
+              preAtualizado.divergencias || {},
+
+            dados_antes:
+              preAtualizado.dados_anteriores || {},
+
+            dados_depois: preAtualizado,
+
+            prioridade: "normal",
+            solicitou_correcao: false,
+
+            criado_em: agoraIso,
+            atualizado_em: agoraIso,
+          })
+          .select("id")
+          .single();
+
+      if (auditoriaInsertError) throw auditoriaInsertError;
+
+      auditoriaId = auditoriaCriada?.id || null;
+    } else {
+      const { error: auditoriaUpdateError } = await supabase
+        .from("auditorias_morador")
+        .update({
+          status_auditoria: "AGUARDANDO_AUDITORIA",
+          percentual_preenchimento: 100,
+          dados_depois: preAtualizado,
+          atualizado_em: agoraIso,
+        })
+        .eq("id", auditoriaId);
+
+      if (auditoriaUpdateError) throw auditoriaUpdateError;
     }
-    
+
+    // 4) Notificação administrativa idempotente.
     if (criarNotificacao) {
       const { data: notificacaoExistente } = await supabase
         .from("notificacoes")
         .select("id")
         .eq("tipo", "morador_aguardando_auditoria")
-        .eq("condominio_id", preCadastro.condominio_id || convite.condominio_id)
+        .eq(
+          "condominio_id",
+          preCadastro.condominio_id || convite.condominio_id
+        )
         .contains("metadata", {
           pre_cadastro_id: preCadastro.id,
         })
@@ -281,10 +529,16 @@ serve(async (req) => {
       if (!notificacaoExistente?.id) {
         await supabase.from("notificacoes").insert({
           usuario_id: null,
-          business_id: preCadastro.business_id || convite.business_id || null,
-          condominio_id: preCadastro.condominio_id || convite.condominio_id || null,
+          business_id:
+            preCadastro.business_id || convite.business_id || null,
+          condominio_id:
+            preCadastro.condominio_id ||
+            convite.condominio_id ||
+            null,
           titulo: "Novo cadastro aguardando auditoria",
-          mensagem: `${preCadastro.nome || "Morador"} finalizou o cadastro e aguarda auditoria.`,
+          mensagem: `${
+            preCadastro.nome || "Morador"
+          } finalizou o cadastro e aguarda auditoria.`,
           tipo: "morador_aguardando_auditoria",
           destino_tipo: "administrativo",
           modulo: "moradores",
@@ -295,6 +549,7 @@ serve(async (req) => {
           metadata: {
             pre_cadastro_id: preCadastro.id,
             convite_id: convite.id,
+            auditoria_id: auditoriaId,
             nome: preCadastro.nome || null,
             email: preCadastro.email || null,
             torre: preCadastro.torre || null,
@@ -303,20 +558,23 @@ serve(async (req) => {
         });
       }
     }
-    
+
     await registrarLog({
       supabase,
       acao: "WIZARD_MORADOR_ENVIADO_AUDITORIA",
-      condominio_id: preCadastro.condominio_id || convite.condominio_id,
+      condominio_id:
+        preCadastro.condominio_id || convite.condominio_id,
       usuario_id: null,
       email: preCadastro.email,
       origem: "wizard_morador_enviar_auditoria",
       detalhes: {
         pre_cadastro_id: preCadastro.id,
         convite_id: convite.id,
-        rpc_executada: !rpcError,
-        rpc_erro: rpcError?.message || null,
-        finalizado_em: agora,
+        auditoria_id: auditoriaId,
+        rpc_executada: true,
+        percentual_preenchimento: 100,
+        finalizado_em: agoraIso,
+        auth_criado: false,
       },
     });
 
@@ -324,8 +582,17 @@ serve(async (req) => {
       success: true,
       data: {
         pre_cadastro: preAtualizado,
+        auditoria_id: auditoriaId,
         rpc: rpcData || null,
-        fallback_aplicado: Boolean(rpcError),
+        percentual_preenchimento: 100,
+        status_cadastro: "AGUARDANDO_AUDITORIA",
+        status_acompanhamento: "fila_auditoria",
+        token_acompanhamento: tokenAcompanhamento,
+        token_acompanhamento_expira_em:
+          tokenAcompanhamentoExpiraEm,
+        bloqueado_para_edicao: true,
+        auth_ativo: false,
+        auth_criado: false,
       },
     });
   } catch (err) {

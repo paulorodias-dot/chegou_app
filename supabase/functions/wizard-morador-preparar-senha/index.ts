@@ -18,10 +18,8 @@ function somenteNumeros(valor = "") {
   return String(valor).replace(/\D/g, "");
 }
 
-function gerarTokenSeguro() {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  return Array.from(array).map((b) => b.toString(16).padStart(2, "0")).join("");
+function validarCpfBasico(cpf = "") {
+  return somenteNumeros(cpf).length === 11;
 }
 
 function validarSenhaForte(senha = "") {
@@ -34,12 +32,14 @@ function validarSenhaForte(senha = "") {
 }
 
 async function hashSenha(senha: string) {
-
   const encoder = new TextEncoder();
   const saltArray = new Uint8Array(16);
   crypto.getRandomValues(saltArray);
 
-  const salt = Array.from(saltArray).map((b) => b.toString(16).padStart(2, "0")).join("");
+  const salt = Array.from(saltArray)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
   const iterations = 210000;
 
   const keyMaterial = await crypto.subtle.importKey(
@@ -72,17 +72,11 @@ async function obterChaveCriptografia() {
   const secret = Deno.env.get("CHEGOU_AUTH_PASSWORD_SECRET");
 
   if (!secret || secret.length < 32) {
-    throw new Error(
-      "CHEGOU_AUTH_PASSWORD_SECRET ausente ou inválida."
-    );
+    throw new Error("CHEGOU_AUTH_PASSWORD_SECRET ausente ou inválida.");
   }
 
   const encoder = new TextEncoder();
-
-  const hash = await crypto.subtle.digest(
-    "SHA-256",
-    encoder.encode(secret)
-  );
+  const hash = await crypto.subtle.digest("SHA-256", encoder.encode(secret));
 
   return crypto.subtle.importKey(
     "raw",
@@ -94,39 +88,26 @@ async function obterChaveCriptografia() {
 }
 
 function bytesParaBase64(bytes: Uint8Array) {
-  return btoa(
-    String.fromCharCode(...bytes)
-  );
+  return btoa(String.fromCharCode(...bytes));
 }
 
-async function criptografarSenhaAuth(
-  senha: string
-) {
+async function criptografarSenhaAuth(senha: string) {
   const encoder = new TextEncoder();
-
-  const chave =
-    await obterChaveCriptografia();
+  const chave = await obterChaveCriptografia();
 
   const iv = new Uint8Array(12);
-
   crypto.getRandomValues(iv);
 
-  const encrypted =
-    await crypto.subtle.encrypt(
-      {
-        name: "AES-GCM",
-        iv,
-      },
-      chave,
-      encoder.encode(senha)
-    );
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    chave,
+    encoder.encode(senha)
+  );
 
   return [
     "v1",
     bytesParaBase64(iv),
-    bytesParaBase64(
-      new Uint8Array(encrypted)
-    ),
+    bytesParaBase64(new Uint8Array(encrypted)),
   ].join("$");
 }
 
@@ -136,6 +117,15 @@ function obterIp(req: Request) {
     req.headers.get("cf-connecting-ip") ||
     req.headers.get("x-real-ip") ||
     null
+  );
+}
+
+function cpfCanonicoDoPreCadastro(preCadastro: Record<string, any>) {
+  return somenteNumeros(
+    preCadastro?.documento_cpf_cnpj ||
+      preCadastro?.cpf ||
+      preCadastro?.dados_complementares?.cpf ||
+      ""
   );
 }
 
@@ -173,10 +163,14 @@ serve(async (req) => {
     }
 
     if (!validarSenhaForte(senha)) {
-      return jsonResponse({
-        success: false,
-        error: "A senha deve ter no mínimo 8 caracteres, uma letra maiúscula, um número e um caractere especial.",
-      }, 400);
+      return jsonResponse(
+        {
+          success: false,
+          error:
+            "A senha deve ter no mínimo 8 caracteres, uma letra maiúscula, um número e um caractere especial.",
+        },
+        400
+      );
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -190,9 +184,7 @@ serve(async (req) => {
 
     const { data: tokenData, error: tokenError } = await supabaseAdmin.rpc(
       "validar_token_convite_morador",
-      {
-        p_token: token,
-      }
+      { p_token: token }
     );
 
     if (tokenError) throw tokenError;
@@ -219,43 +211,109 @@ serve(async (req) => {
     if (buscaError) throw buscaError;
 
     if (!preCadastro) {
+      return jsonResponse({ success: false, error: "Pré-cadastro não encontrado." }, 404);
+    }
+
+    if (preCadastro.bloqueado_para_edicao === true) {
       return jsonResponse(
-        { success: false, error: "Pré-cadastro não encontrado." },
-        404
+        {
+          success: false,
+          error: "Cadastro já finalizado. A senha não pode ser alterada por este fluxo.",
+        },
+        409
       );
     }
 
-    if (preCadastro.token_expira_em && new Date(preCadastro.token_expira_em) < new Date()) {
+    if (
+      preCadastro.token_expira_em &&
+      new Date(preCadastro.token_expira_em) < new Date()
+    ) {
       return jsonResponse({ success: false, error: "Token do convite expirado." }, 410);
     }
 
-    const senhaHash =
-      await hashSenha(senha);
+    const cpfInformado = somenteNumeros(cpf_login);
+    const cpfCanonico = cpfCanonicoDoPreCadastro(preCadastro);
 
-    const senhaAuthCriptografada =
-      await criptografarSenhaAuth(senha);
+    if (!validarCpfBasico(cpfInformado || cpfCanonico)) {
+      return jsonResponse(
+        {
+          success: false,
+          error: "CPF do responsável é obrigatório para preparar a credencial de acesso.",
+        },
+        400
+      );
+    }
 
-    const tokenAcompanhamento = preCadastro.token_acompanhamento || gerarTokenSeguro();
+    if (cpfInformado && cpfCanonico && cpfInformado !== cpfCanonico) {
+      return jsonResponse(
+        {
+          success: false,
+          error: "O CPF informado para acesso não corresponde ao CPF do pré-cadastro.",
+        },
+        409
+      );
+    }
+
+    if (
+      email_login &&
+      preCadastro.email &&
+      String(email_login).trim().toLowerCase() !==
+        String(preCadastro.email).trim().toLowerCase()
+    ) {
+      return jsonResponse(
+        {
+          success: false,
+          error: "O e-mail informado para acesso não corresponde ao e-mail do pré-cadastro.",
+        },
+        409
+      );
+    }
+
+    const senhaHash = await hashSenha(senha);
+    const senhaAuthCriptografada = await criptografarSenhaAuth(senha);
 
     const ip = obterIp(req);
     const userAgent = req.headers.get("user-agent") || "";
 
+    const dadosComplementaresAtualizados = {
+      ...(preCadastro.dados_complementares || {}),
+      cpf: cpfCanonico || cpfInformado,
+      senha_preparada: true,
+      senha_definida: true,
+    };
+
+    /*
+      NÃO alterar status_acompanhamento aqui.
+
+      Antes da finalização da Tela 7 ele deve permanecer NULL.
+      A constraint atual só aceita estados pós-finalização:
+      fila_auditoria, auditoria_iniciada, em_analise,
+      aprovado, recusado, conta_ativa.
+    */
     const { error: updateError } = await supabaseAdmin
       .from("pre_cadastro_moradores")
       .update({
+        cpf: preCadastro.cpf || cpfCanonico || cpfInformado,
+        documento_cpf_cnpj:
+          preCadastro.documento_cpf_cnpj || cpfCanonico || cpfInformado,
+
         senha_hash: senhaHash,
-        senha_auth_criptografada:
-          senhaAuthCriptografada,
+        senha_auth_criptografada: senhaAuthCriptografada,
         senha_preparada: true,
         senha_definida: true,
+
         status_conta: "PENDENTE_APROVACAO",
         auth_ativo: false,
-        token_acompanhamento: tokenAcompanhamento,
-        status_acompanhamento: preCadastro.status_acompanhamento || "fila_auditoria",
+
+        dados_complementares: dadosComplementaresAtualizados,
+
         ip_ultimo_acesso: ip,
         dispositivo_ultimo_acesso: userAgent,
-        navegador_ultimo_acesso: contexto?.navegador || preCadastro.navegador_ultimo_acesso,
-        sistema_operacional: contexto?.sistema_operacional || preCadastro.sistema_operacional,
+        navegador_ultimo_acesso:
+          contexto?.navegador || preCadastro.navegador_ultimo_acesso,
+        sistema_operacional:
+          contexto?.sistema_operacional || preCadastro.sistema_operacional,
+
         atualizado_em: new Date().toISOString(),
       })
       .eq("id", preCadastro.id);
@@ -269,13 +327,15 @@ serve(async (req) => {
         business_id: preCadastro.business_id,
         protocolo: preCadastro.protocolo,
         status: "senha_preparada",
-        descricao: "Senha preparada com segurança. Conta pendente de aprovação administrativa.",
+        descricao:
+          "Senha preparada com segurança. Conta ainda não criada e pendente de aprovação administrativa.",
         ip,
         user_agent: userAgent,
         dados: {
-          email_login,
-          cpf_login: somenteNumeros(cpf_login),
+          email_login: email_login || preCadastro.email || null,
+          cpf_login: cpfCanonico || cpfInformado,
           contexto,
+          auth_criado: false,
         },
         data_hora: new Date().toISOString(),
         atualizado_em: new Date().toISOString(),
@@ -291,16 +351,24 @@ serve(async (req) => {
         pre_cadastro_id: preCadastro.id,
         status_conta: "PENDENTE_APROVACAO",
         auth_ativo: false,
+        auth_criado: false,
         senha_preparada: true,
-        token_acompanhamento: tokenAcompanhamento,
+        senha_definida: true,
+        status_acompanhamento: preCadastro.status_acompanhamento || null,
       },
     });
   } catch (error) {
     console.error("Erro wizard-morador-preparar-senha:", error);
 
-    return jsonResponse({
-      success: false,
-      error: error instanceof Error ? error.message : "Erro inesperado ao preparar senha.",
-    }, 500);
+    return jsonResponse(
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Erro inesperado ao preparar senha.",
+      },
+      500
+    );
   }
 });

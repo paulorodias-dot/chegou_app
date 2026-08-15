@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { salvarPesquisaWizardMorador } from "../../../services/wizardMoradorService";
 import {
-  ArrowLeft,
   ArrowRight,
   Building2,
   CheckCircle2,
@@ -65,19 +64,17 @@ function ehAmbienteTeste(dadosWizard = {}) {
     "";
 
   const cnpjLimpo = somenteNumeros(cnpj);
-  const host = window.location.hostname;
+  const businessId = String(dadosWizard?.business_id || "");
 
   return (
     cnpjLimpo === "123456" ||
+    businessId.startsWith("CONDTEST-") ||
     dadosWizard?.modoTeste === true ||
     dadosWizard?.modo_teste === true ||
     dadosWizard?.token === "sandbox-token-morador" ||
     dadosWizard?.token?.startsWith("sandbox-") ||
-    host === "localhost" ||
-    host === "127.0.0.1" ||
-    host.startsWith("192.168.") ||
-    host.startsWith("10.") ||
-    host.startsWith("172.")
+    dadosWizard?.token?.startsWith("mock-") ||
+    dadosWizard?.token?.startsWith("teste-")
   );
 }
 
@@ -190,7 +187,6 @@ export default function WizardMoradorTela8({
   formTela1,
   formMorador,
   dependentes = [],
-  onBack,
   onNext,
 }) {
   const resumo = useMemo(
@@ -216,6 +212,7 @@ export default function WizardMoradorTela8({
   const [permiteContato, setPermiteContato] = useState(true);
 
   const [canaisContato, setCanaisContato] = useState(["email"]);
+  const [processando, setProcessando] = useState(false);
 
   function alternarLista(valor, lista, setLista) {
     if (valor === "nenhuma") {
@@ -254,7 +251,46 @@ export default function WizardMoradorTela8({
     toast.success("Protocolo copiado.");
   }
 
+  function obterTokenPesquisa() {
+    return (
+      new URLSearchParams(window.location.search).get("token") ||
+      dadosWizard?.token_convite ||
+      dadosWizard?.preCadastro?.token_convite ||
+      dadosWizard?.pre_cadastro?.token_convite ||
+      dadosWizard?.token ||
+      null
+    );
+  }
+
+  function tokenPodeChamarEdge(token) {
+    return Boolean(
+      token &&
+        token !== "sandbox-token-morador" &&
+        !token?.startsWith("sandbox-") &&
+        !token?.startsWith("mock-") &&
+        !token?.startsWith("teste-")
+    );
+  }
+
+  async function persistirPesquisaSePossivel(feedbackNps) {
+    const tokenPesquisa = obterTokenPesquisa();
+
+    if (!tokenPodeChamarEdge(tokenPesquisa)) {
+      return false;
+    }
+
+    await salvarPesquisaWizardMorador({
+      token: tokenPesquisa,
+      protocolo: resumo.protocolo,
+      pesquisa: feedbackNps,
+    });
+
+    return true;
+  }
+
   async function enviarFeedback() {
+    if (processando) return;
+
     if (notaNps === null) {
       toast.error(
         "Selecione uma nota de 0 a 10 para continuar."
@@ -262,78 +298,90 @@ export default function WizardMoradorTela8({
       return;
     }
 
+    const payloadPesquisa = montarPayloadNps({
+      dadosWizard,
+      resumo,
+      notaNps,
+      experienciaCadastro,
+      influenciasNota,
+      dificuldades,
+      problemasTecnicos,
+      comentario,
+      permiteContato,
+      canaisContato,
+    });
+
     try {
-      const payloadPesquisa = montarPayloadNps({
-        dadosWizard,
-        resumo,
-        notaNps,
-        experienciaCadastro,
-        influenciasNota,
-        dificuldades,
-        problemasTecnicos,
-        comentario,
-        permiteContato,
-        canaisContato,
-      });
-      
-      const tokenPesquisa =
-        dadosWizard?.token_convite ||
-        dadosWizard?.preCadastro?.token_convite ||
-        dadosWizard?.pre_cadastro?.token_convite ||
-        null;
+      setProcessando(true);
 
-      const tokenInvalidoParaEdge =
-        !tokenPesquisa ||
-        tokenPesquisa === "sandbox-token-morador" ||
-        tokenPesquisa?.startsWith("sandbox-") ||
-        tokenPesquisa?.startsWith("mock-") ||
-        tokenPesquisa?.startsWith("teste-");
+      try {
+        await persistirPesquisaSePossivel(
+          payloadPesquisa.feedback_nps
+        );
 
-      if (!ambienteTeste && !tokenInvalidoParaEdge) {
-        await salvarPesquisaWizardMorador({
-          token: tokenPesquisa,
-          protocolo: resumo.protocolo,
-          pesquisa: payloadPesquisa.feedback_nps,
-        });
+        toast.success(
+          ambienteTeste
+            ? "Pesquisa registrada como validação e fora das métricas oficiais."
+            : "Pesquisa registrada com sucesso."
+        );
+      } catch (error) {
+        console.warn(
+          "Não foi possível persistir a pesquisa NPS:",
+          error
+        );
+
+        toast(
+          "Seu cadastro já está concluído. Não foi possível registrar a pesquisa agora, mas você pode acompanhar a auditoria normalmente."
+        );
       }
 
-      toast.success(
-        ambienteTeste
-          ? "Pesquisa validada em ambiente de testes."
-          : "Pesquisa registrada com sucesso."
-      );
-
-      await onNext({
-        ...payloadPesquisa,
-      });
-    } catch (error) {
-      toast.error(
-        error.message || "Erro ao salvar pesquisa."
-      );
+      await onNext?.(payloadPesquisa);
+    } finally {
+      setProcessando(false);
     }
   }
 
   async function pularPesquisa() {
-    toast(
-      "Pesquisa ignorada. Prosseguindo para a finalização."
-    );
+    if (processando) return;
 
-    await onNext({
+    const payloadPulada = {
       business_id: dadosWizard?.business_id || null,
       condominio_id: dadosWizard?.condominio_id || null,
       pre_cadastro_id:
         dadosWizard?.pre_cadastro_id || null,
-
       etapa_atual: 8,
-
       feedback_nps: {
         pulado: true,
         ambiente_teste: ambienteTeste,
         contabilizar_nps: false,
         enviado_em: new Date().toISOString(),
       },
-    });
+    };
+
+    try {
+      setProcessando(true);
+
+      try {
+        await persistirPesquisaSePossivel(
+          payloadPulada.feedback_nps
+        );
+      } catch (error) {
+        console.warn(
+          "Não foi possível registrar que a pesquisa foi ignorada:",
+          error
+        );
+      }
+
+      toast(
+        "Pesquisa opcional ignorada. Abrindo acompanhamento da auditoria."
+      );
+
+      await onNext?.(payloadPulada);
+    } finally {
+      setProcessando(false);
+    }
   }
+
     return (
     <div className="wm-t8-page">
       <section className="wm-t8-card">
@@ -350,8 +398,8 @@ export default function WizardMoradorTela8({
                 <h1>Sua opinião importa</h1>
 
                 <p>
-                  Antes de finalizar, conte rapidamente como foi sua experiência
-                  no cadastro.
+                  Seu cadastro já foi concluído e enviado para auditoria. Se quiser,
+                  conte rapidamente como foi sua experiência.
                 </p>
 
                 <strong>
@@ -587,27 +635,20 @@ export default function WizardMoradorTela8({
             <footer className="wm-t8-actions">
               <button
                 type="button"
-                className="secondary"
-                onClick={onBack}
-              >
-                <ArrowLeft size={17} />
-                Voltar
-              </button>
-
-              <button
-                type="button"
                 className="outline"
                 onClick={pularPesquisa}
+                disabled={processando}
               >
-                Pular pesquisa
+                {processando ? "Aguarde..." : "Pular pesquisa"}
               </button>
 
               <button
                 type="button"
                 className="primary"
                 onClick={enviarFeedback}
+                disabled={processando}
               >
-                Enviar feedback e continuar
+                {processando ? "Enviando..." : "Enviar feedback e continuar"}
                 <ArrowRight size={18} />
               </button>
             </footer>

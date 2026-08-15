@@ -154,8 +154,61 @@ function obterPreCadastro(dados) {
   return dados?.preCadastro || dados?.pre_cadastro || {};
 }
 
-function obterProgresso(etapa) {
-  return Math.round((Number(etapa || 1) / TOTAL_ETAPAS) * 100);
+function obterProgresso(etapa, cadastroFinalizado = false) {
+  if (cadastroFinalizado || Number(etapa || 1) >= 8) {
+    return 100;
+  }
+
+  return Math.round((Number(etapa || 1) / 7) * 100);
+}
+
+function wizardEstaFinalizado(dados = {}) {
+  const pre = obterPreCadastro(dados);
+
+  const statusCadastro = String(
+    dados?.status_cadastro ||
+      pre?.status_cadastro ||
+      ""
+  ).toUpperCase();
+
+  const statusAuditoria = String(
+    dados?.status_auditoria ||
+      pre?.status_auditoria ||
+      ""
+  ).toLowerCase();
+
+  const statusAcompanhamento = String(
+    dados?.status_acompanhamento ||
+      pre?.status_acompanhamento ||
+      ""
+  ).toLowerCase();
+
+  return Boolean(
+    dados?.wizard_finalizado_em ||
+      pre?.wizard_finalizado_em ||
+      [
+        "AGUARDANDO_AUDITORIA",
+        "EM_AUDITORIA",
+        "APROVADO",
+        "REJEITADO",
+        "RECUSADO",
+      ].includes(statusCadastro) ||
+      [
+        "pendente",
+        "em_analise",
+        "aprovado",
+        "rejeitado",
+        "recusado",
+      ].includes(statusAuditoria) ||
+      [
+        "fila_auditoria",
+        "auditoria_iniciada",
+        "em_analise",
+        "aprovado",
+        "recusado",
+        "rejeitado",
+      ].includes(statusAcompanhamento)
+  );
 }
 
 function rolarParaTopo() {
@@ -218,6 +271,7 @@ export default function WizardMorador({ modoTeste = false }) {
   const [estrutura, setEstrutura] = useState(estruturaInicial);
   const [termos, setTermos] = useState(termosInicial);
   const [pesquisa, setPesquisa] = useState({});
+  const [cadastroFinalizado, setCadastroFinalizado] = useState(false);
 
   const tokenUrl = useMemo(() => {
     return new URLSearchParams(window.location.search).get("token");
@@ -261,9 +315,17 @@ export default function WizardMorador({ modoTeste = false }) {
       sessionStorage.getItem("wizard_morador_etapa_atual") || 0
     );
 
-    const etapaBase = etapaLocal || etapaSalva || 1;
+    const finalizadoNoBackend = wizardEstaFinalizado(dados);
 
-    const etapaInicial = corrigirEtapaParaPerfil(etapaBase, perfilInicial);
+    const etapaBase = finalizadoNoBackend
+      ? 9
+      : etapaLocal || etapaSalva || 1;
+
+    const etapaInicial = finalizadoNoBackend
+      ? 9
+      : corrigirEtapaParaPerfil(etapaBase, perfilInicial);
+
+    setCadastroFinalizado(finalizadoNoBackend);
 
     setFormTela1({
       perfilUnidade: perfilInicial,
@@ -325,8 +387,8 @@ export default function WizardMorador({ modoTeste = false }) {
     setPesquisa(dados?.pesquisa || {});
 
     setEtapaAtual(etapaInicial);
-    setMaiorEtapaLiberada(etapaInicial);
-    setProgresso(obterProgresso(etapaInicial));
+    setMaiorEtapaLiberada(finalizadoNoBackend ? 9 : etapaInicial);
+    setProgresso(obterProgresso(etapaInicial, finalizadoNoBackend));
   }, []);
 
   useEffect(() => {
@@ -371,14 +433,17 @@ export default function WizardMorador({ modoTeste = false }) {
   }, [usarModoTeste, tokenAtual, inicializarFormulario]);
 
   useEffect(() => {
-    if (loading || erroCarga) return;
+    if (loading || erroCarga || cadastroFinalizado) {
+      setMostrarWelcome(false);
+      return;
+    }
 
     const jaViuWelcome = sessionStorage.getItem(chaveWelcome);
 
     if (!jaViuWelcome) {
       setMostrarWelcome(true);
     }
-  }, [loading, erroCarga, chaveWelcome]);
+  }, [loading, erroCarga, chaveWelcome, cadastroFinalizado]);
 
   function fecharWelcome() {
     sessionStorage.setItem(chaveWelcome, "sim");
@@ -508,11 +573,14 @@ export default function WizardMorador({ modoTeste = false }) {
   }
 
   function aplicarMudancaEtapa(novaEtapa) {
-    const etapaCorrigida = corrigirEtapaParaPerfil(novaEtapa, perfilAtual);
+    const etapaCorrigida =
+      cadastroFinalizado && Number(novaEtapa) >= 8
+        ? Math.min(Math.max(Number(novaEtapa), 8), 9)
+        : corrigirEtapaParaPerfil(novaEtapa, perfilAtual);
 
     setEtapaAtual(etapaCorrigida);
     setMaiorEtapaLiberada((old) => Math.max(old, etapaCorrigida));
-    setProgresso(obterProgresso(etapaCorrigida));
+    setProgresso(obterProgresso(etapaCorrigida, cadastroFinalizado));
 
     setTimeout(() => {
       rolarParaTopo();
@@ -521,6 +589,11 @@ export default function WizardMorador({ modoTeste = false }) {
 
   function irParaEtapa(numeroEtapa) {
     const etapa = Number(numeroEtapa);
+
+    if (cadastroFinalizado && etapa <= 7) {
+      toast("Cadastro já finalizado. As etapas anteriores estão bloqueadas.");
+      return;
+    }
 
     if (etapa > maiorEtapaLiberada) return;
 
@@ -587,33 +660,114 @@ export default function WizardMorador({ modoTeste = false }) {
     window.location.assign("/");
   }
 
-  async function handleFinalizarWizard(payloadFinal) {
+  async function concluirCadastroNaTela7(payloadTela7) {
+    const aceiteTermos = payloadTela7?.aceite_termos === true;
+    const aceiteLgpd = payloadTela7?.aceite_lgpd === true;
+
+    setTermos({
+      aceiteTermos,
+      aceiteLgpd,
+      aceiteComunicacoes: Boolean(
+        payloadTela7?.aceite_comunicacoes ||
+          payloadTela7?.aceite_comunicacao_operacional
+      ),
+    });
+
+    const dadosFinais = {
+      tela1: formTela1,
+      tela2: formMorador,
+      tela3: {
+        dependentes,
+      },
+      tela4: ecossistema,
+      tela5: estrutura,
+      tela7: payloadTela7,
+    };
+
+    if (usarModoTeste) {
+      setCadastroFinalizado(true);
+      setProgresso(100);
+      setEtapaAtual(8);
+      setMaiorEtapaLiberada(8);
+
+      setWizardData((old) => ({
+        ...(old || sandboxData),
+        status_cadastro: "AGUARDANDO_AUDITORIA",
+        status_auditoria: "pendente",
+        status_acompanhamento: "fila_auditoria",
+        wizard_finalizado_em: new Date().toISOString(),
+        bloqueado_para_edicao: true,
+        percentual_preenchimento: 100,
+      }));
+
+      rolarParaTopo();
+
+      return {
+        success: true,
+        status_cadastro: "AGUARDANDO_AUDITORIA",
+        status_acompanhamento: "fila_auditoria",
+      };
+    }
+
     try {
       const retorno = await enviarWizardParaAuditoria({
         token: tokenAtual,
-        aceiteTermos:
-          termos.aceiteTermos ||
-          payloadFinal?.tela7?.aceite_termos === true,
-
-        aceiteLgpd:
-          termos.aceiteLgpd ||
-          payloadFinal?.tela7?.aceite_lgpd === true,
-        dadosFinais: payloadFinal,
+        aceiteTermos,
+        aceiteLgpd,
+        dadosFinais,
       });
 
-      toast.success("Cadastro enviado para análise.");
+      setCadastroFinalizado(true);
+      setProgresso(100);
+      setEtapaAtual(8);
+      setMaiorEtapaLiberada(8);
+
+      setWizardData((old) => ({
+        ...(old || {}),
+        ...(retorno || {}),
+        token: tokenAtual,
+        token_convite: tokenAtual,
+        status_cadastro:
+          retorno?.status_cadastro || "AGUARDANDO_AUDITORIA",
+        status_auditoria:
+          retorno?.status_auditoria || "pendente",
+        status_acompanhamento:
+          retorno?.status_acompanhamento || "fila_auditoria",
+        wizard_finalizado_em:
+          retorno?.wizard_finalizado_em || new Date().toISOString(),
+        enviado_auditoria_em:
+          retorno?.enviado_auditoria_em || new Date().toISOString(),
+        bloqueado_para_edicao: true,
+        percentual_preenchimento: 100,
+        protocolo:
+          retorno?.protocolo ||
+          old?.protocolo ||
+          old?.codigo_protocolo ||
+          null,
+      }));
+
+      toast.success("Cadastro concluído e enviado para análise.");
+      rolarParaTopo();
 
       return retorno;
     } catch (error) {
-      console.error("Erro ao finalizar WizardMorador:", error);
+      console.error("Erro ao concluir WizardMorador na Tela 7:", error);
 
-      toast.error(error.message || "Erro ao finalizar wizard.");
+      toast.error(
+        error?.message ||
+          "Não foi possível concluir o cadastro."
+      );
 
       throw error;
     }
   }
 
   function voltarEtapa() {
+    if (cadastroFinalizado) {
+      toast("Cadastro já finalizado. As etapas anteriores estão bloqueadas.");
+      return;
+    }
+
     aplicarMudancaEtapa(obterEtapaAnterior());
   }
 
@@ -707,18 +861,7 @@ export default function WizardMorador({ modoTeste = false }) {
             {...propsBase}
             setTermos={setTermos}
             onBack={voltarEtapa}
-            onNext={(payload) => {
-              setTermos({
-                aceiteTermos: Boolean(payload?.aceite_termos),
-                aceiteLgpd: Boolean(payload?.aceite_lgpd),
-                aceiteComunicacoes: Boolean(
-                  payload?.aceite_comunicacoes ||
-                  payload?.aceite_comunicacao_operacional
-                ),
-              });
-
-              return salvarEResponder(7, payload, true);
-            }}
+            onNext={concluirCadastroNaTela7}
             onSaveDraft={(payload) => salvarEResponder(7, payload, false)}
           />
         );
@@ -728,9 +871,14 @@ export default function WizardMorador({ modoTeste = false }) {
           <WizardMoradorTela8
             {...propsBase}
             setPesquisa={setPesquisa}
-            onBack={voltarEtapa}
-            onNext={(payload) => salvarEResponder(8, payload, true)}
-            onSaveDraft={(payload) => salvarEResponder(8, payload, false)}
+            onNext={(payload) => {
+              setPesquisa(payload?.feedback_nps || payload || {});
+              setEtapaAtual(9);
+              setMaiorEtapaLiberada(9);
+              setProgresso(100);
+              rolarParaTopo();
+              return true;
+            }}
           />
         );
 
@@ -738,8 +886,6 @@ export default function WizardMorador({ modoTeste = false }) {
         return (
           <WizardMoradorTela9
             {...propsBase}
-            onBack={voltarEtapa}
-            onFinish={handleFinalizarWizard}
           />
         );
 

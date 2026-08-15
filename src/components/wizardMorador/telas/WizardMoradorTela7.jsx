@@ -192,6 +192,7 @@ export default function WizardMoradorTela7({
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
 
   const [faqAberta, setFaqAberta] = useState(null);
+  const [processando, setProcessando] = useState(false);
 
   const [modalTermos, setModalTermos] = useState(null);
 
@@ -281,6 +282,8 @@ export default function WizardMoradorTela7({
   }
 
   async function finalizarEtapa() {
+    if (processando) return;
+
     if (!senhaValida && !senhaJaPreparada) {
       toast.error("Crie uma senha forte antes de continuar.");
       return;
@@ -304,33 +307,31 @@ export default function WizardMoradorTela7({
     const modoTeste =
       dadosWizard?.modoTeste === true ||
       dadosWizard?.modo_teste === true ||
-      window.location.hostname === "localhost" ||
       tokenEhSandbox;
-    
-    if (modoTeste || tokenEhSandbox) {
-      await onNext?.({
-        etapa_atual: 7,
-        senha_preparada: true,
-        senha_definida: true,
-        aceite_termos: true,
-        aceite_lgpd: true,
-        versao_termos: versaoTermos,
-        versao_privacidade: versaoTermos,
-        user_agent: navigator.userAgent,
-        sistema_operacional: navigator.platform,
-        aceito_em: new Date().toISOString(),
-        status_conta: "PENDENTE_APROVACAO",
-        modo_teste: true,
-      });
 
-      toast.success("Etapa validada em modo teste.");
-      return;
-    }
-
-
+    const payloadFinal = {
+      etapa_atual: 7,
+      senha_preparada: true,
+      senha_definida: true,
+      aceite_termos: true,
+      aceite_lgpd: true,
+      aceite_comunicacao_operacional: true,
+      aceite_auditoria_administrativa: true,
+      aceite_dados_complementares: true,
+      versao_termos: versaoTermos,
+      versao_privacidade: versaoTermos,
+      versao_documento_juridico: versaoTermos,
+      user_agent: navigator.userAgent,
+      sistema_operacional: navigator.platform,
+      aceito_em: new Date().toISOString(),
+      status_conta: "PENDENTE_APROVACAO",
+      modo_teste: modoTeste,
+    };
 
     try {
-      if (!senhaJaPreparada) {
+      setProcessando(true);
+
+      if (!modoTeste && !senhaJaPreparada) {
         await prepararSenhaWizardMorador({
           token: tokenConvite,
           senha,
@@ -340,46 +341,17 @@ export default function WizardMoradorTela7({
         });
       }
 
-      await onNext({
-        etapa_atual: 7,
-
-        senha_preparada: true,
-        senha_definida: true,
-
-        aceite_termos: true,
-        aceite_lgpd: true,
-
-        aceite_comunicacao_operacional: true,
-
-        aceite_auditoria_administrativa: true,
-
-        aceite_dados_complementares: true,
-
-        versao_termos: versaoTermos,
-
-        versao_privacidade: versaoTermos,
-
-        versao_documento_juridico: versaoTermos,
-
-        user_agent: navigator.userAgent,
-
-        sistema_operacional: navigator.platform,
-
-        aceito_em: new Date().toISOString(),
-
-        status_conta: "PENDENTE_APROVACAO",
-        });
-
-      toast.success(
-        "Senha e aceites registrados."
-      );
+      await onNext?.(payloadFinal);
     } catch (error) {
       toast.error(
         error?.message ||
-          "Erro ao finalizar a etapa."
+          "Erro ao finalizar o cadastro."
       );
+    } finally {
+      setProcessando(false);
     }
   }
+
   return (
     <div className="wm-t7-page">
       <section className="wm-t7-card">
@@ -638,6 +610,7 @@ export default function WizardMoradorTela7({
                 type="button"
                 className="secondary"
                 onClick={onBack}
+                disabled={processando}
               >
                 <ArrowLeft size={17} />
                 Voltar
@@ -647,6 +620,7 @@ export default function WizardMoradorTela7({
                 type="button"
                 className="outline"
                 onClick={salvarRascunho}
+                disabled={processando}
               >
                 <Save size={17} />
                 Salvar e continuar depois
@@ -656,9 +630,9 @@ export default function WizardMoradorTela7({
                 type="button"
                 className="primary"
                 onClick={finalizarEtapa}
-                disabled={!podeContinuar}
+                disabled={!podeContinuar || processando}
               >
-                Finalizar cadastro
+                {processando ? "Finalizando..." : "Finalizar cadastro"}
                 <ArrowRight size={18} />
               </button>
             </footer>

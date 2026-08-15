@@ -58,28 +58,51 @@ function gerarProtocolo(dadosWizard = {}) {
 }
 
 function ehAmbienteTeste(dadosWizard = {}) {
-  const cnpj =
-    dadosWizard?.cnpj ||
-    dadosWizard?.condominio?.cnpj ||
-    dadosWizard?.empresa?.cnpj ||
+  const token =
+    new URLSearchParams(window.location.search).get("token") ||
+    dadosWizard?.token ||
+    dadosWizard?.token_convite ||
     "";
 
-  const cnpjLimpo = somenteNumeros(cnpj);
-  const host = window.location.hostname;
-
   return (
-    cnpjLimpo === "123456" ||
     dadosWizard?.modoTeste === true ||
     dadosWizard?.modo_teste === true ||
-    dadosWizard?.token === "sandbox-token-morador" ||
-    dadosWizard?.token?.startsWith("sandbox-") ||
-    host === "localhost" ||
-    host === "127.0.0.1" ||
-    host.startsWith("192.168.") ||
-    host.startsWith("10.") ||
-    host.startsWith("172.")
+    token === "sandbox-token-morador" ||
+    token?.startsWith("sandbox-") ||
+    token?.startsWith("mock-") ||
+    token?.startsWith("teste-")
   );
 }
+
+function normalizarStatusAcompanhamento(dados = {}) {
+  const bruto = String(
+    dados?.status_acompanhamento ||
+      dados?.status ||
+      dados?.status_auditoria ||
+      dados?.status_cadastro ||
+      "fila_auditoria"
+  )
+    .trim()
+    .toLowerCase();
+
+  const mapa = {
+    aguardando_auditoria: "fila_auditoria",
+    pendente: "fila_auditoria",
+    fila_auditoria: "fila_auditoria",
+    auditoria_iniciada: "auditoria_iniciada",
+    em_auditoria: "em_analise",
+    em_analise: "em_analise",
+    aprovado: "aprovado",
+    aprovada: "aprovado",
+    recusado: "recusado",
+    rejeitado: "recusado",
+    correcao_solicitada: "recusado",
+    conta_ativa: "conta_ativa",
+  };
+
+  return mapa[bruto] || "fila_auditoria";
+}
+
 function obterResumo(dadosWizard, formTela1, formMorador, dependentes = []) {
   const pre = obterPreCadastro(dadosWizard);
   const condominio = dadosWizard?.condominio || {};
@@ -310,7 +333,6 @@ export default function WizardMoradorTela9({
   estrutura = {},
   termos = {},
   pesquisa = {},
-  onFinish,
 }) {
   const resumo = useMemo(
     () => obterResumo(dadosWizard, formTela1, formMorador, dependentes),
@@ -324,13 +346,10 @@ export default function WizardMoradorTela9({
   const [statusAtual, setStatusAtual] = useState(
     ambienteTeste
       ? "fila_auditoria"
-      : dadosWizard?.status_acompanhamento || "fila_auditoria"
+      : normalizarStatusAcompanhamento(dadosWizard)
   );
 
   const [consultando, setConsultando] = useState(false);
-
-  const [finalizando, setFinalizando] = useState(false);
-  const [finalizado, setFinalizado] = useState(false);
 
   const statusInfo =
     STATUS_CONFIG[statusAtual] || STATUS_CONFIG.fila_auditoria;
@@ -362,9 +381,7 @@ export default function WizardMoradorTela9({
       });
 
       const novoStatus =
-        retorno?.status_acompanhamento ||
-        retorno?.status ||
-        "fila_auditoria";
+        normalizarStatusAcompanhamento(retorno || {});
 
       setStatusAtual(novoStatus);
 
@@ -406,55 +423,17 @@ export default function WizardMoradorTela9({
   }, []);
 
   useEffect(() => {
-    async function finalizarCadastro() {
-      const tokenReal = obterTokenConsulta(dadosWizard, resumo);
+    if (ambienteTeste) return;
 
-      const tokenSandbox =
-        !tokenReal ||
-        tokenReal === "sandbox-token-morador" ||
-        tokenReal?.startsWith("sandbox-") ||
-        tokenReal?.startsWith("mock-") ||
-        tokenReal?.startsWith("teste-");
+    const statusInicial =
+      normalizarStatusAcompanhamento(dadosWizard);
 
-      if (ambienteTeste && tokenSandbox) {
-        setFinalizado(true);
-        return;
-      }
+    setStatusAtual(statusInicial);
+  }, [dadosWizard, ambienteTeste]);
 
-      if (finalizado || finalizando) return;
-
-      if (typeof onFinish !== "function") {
-        toast.error("Função de finalização não encontrada.");
-        return;
-      }
-
-      try {
-        setFinalizando(true);
-
-        await onFinish({
-          tela1: formTela1,
-          tela2: formMorador,
-          tela3: {
-            dependentes,
-          },
-          tela4: ecossistema,
-          tela5: estrutura,
-          tela7: termos,
-          tela8: pesquisa,
-        });
-
-        setFinalizado(true);
-        setStatusAtual("fila_auditoria");
-      } catch (error) {
-        toast.error(error?.message || "Erro ao enviar cadastro para auditoria.");
-      } finally {
-        setFinalizando(false);
-      }
-    }
-
-    finalizarCadastro();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  function acessarSistema() {
+    window.location.assign("/login");
+  }
 
   return (
     <div className="wm-t9-page">
@@ -516,17 +495,38 @@ export default function WizardMoradorTela9({
                 <button
                   type="button"
                   onClick={atualizarStatus}
-                  disabled={consultando || finalizando}
+                  disabled={consultando}
                 >
                   <RefreshCcw size={17} />
-                  {finalizando
-                    ? "Enviando..."
-                    : consultando
-                      ? "Atualizando..."
-                      : "Atualizar status"}
+                  {consultando
+                    ? "Atualizando..."
+                    : "Atualizar status"}
                 </button>
               </div>
             </section>
+
+            {statusAtual === "aprovado" ? (
+              <section className="wm-t9-section-card">
+                <div className="wm-t9-card-title">
+                  <KeyRound size={20} />
+                  <h3>Cadastro aprovado</h3>
+                </div>
+
+                <p>
+                  Sua aprovação foi concluída. Use o botão abaixo para acessar a
+                  tela de login e entrar com o e-mail ou CPF cadastrado.
+                </p>
+
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={acessarSistema}
+                >
+                  <KeyRound size={17} />
+                  Acessar o Sistema
+                </button>
+              </section>
+            ) : null}
 
             <section className="wm-t9-timeline">
               <TimelineStep
@@ -545,7 +545,7 @@ export default function WizardMoradorTela9({
               />
 
               <TimelineStep
-                label="Pesquisa concluída"
+                label="Pesquisa opcional"
                 done
               />
 
@@ -763,9 +763,9 @@ export default function WizardMoradorTela9({
                 <h3>Ambiente de validação</h3>
 
                 <p>
-                  Esta tela está em localhost, sandbox ou IP local. As consultas
-                  reais de status ficam simuladas para validação visual e de
-                  fluxo.
+                  Esta tela está usando um token explicitamente marcado como sandbox
+                  ou modo de teste. Tokens reais continuam consultando o status real,
+                  mesmo quando o frontend está em localhost.
                 </p>
               </section>
             ) : null}

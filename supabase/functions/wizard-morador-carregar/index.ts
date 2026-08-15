@@ -11,7 +11,124 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+function obterIp(req: Request) {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-real-ip") ||
+    null
+  );
+}
+
+function normalizarStatus(valor: unknown) {
+  return String(valor || "").trim().toUpperCase();
+}
+
+function wizardFinalizado(
+  convite: Record<string, any>,
+  preCadastro: Record<string, any>
+) {
+  const statusCadastro = normalizarStatus(
+    preCadastro?.status_cadastro
+  );
+
+  const statusAuditoria = normalizarStatus(
+    preCadastro?.status_auditoria
+  );
+
+  return (
+    convite?.wizard_finalizado === true ||
+    Boolean(preCadastro?.wizard_finalizado_em) ||
+    preCadastro?.bloqueado_para_edicao === true ||
+    [
+      "AGUARDANDO_AUDITORIA",
+      "EM_AUDITORIA",
+      "APROVADO",
+      "REJEITADO",
+      "RECUSADO",
+      "CORRECAO_SOLICITADA",
+    ].includes(statusCadastro) ||
+    [
+      "AGUARDANDO_AUDITORIA",
+      "PENDENTE",
+      "EM_ANALISE",
+      "EM_AUDITORIA",
+      "APROVADO",
+      "REJEITADO",
+      "RECUSADO",
+      "CORRECAO_SOLICITADA",
+    ].includes(statusAuditoria)
+  );
+}
+
+function expirou(dataIso: string | null | undefined) {
+  if (!dataIso) return false;
+  return new Date(dataIso) < new Date();
+}
+
+function mapearStatusAcompanhamento(
+  preCadastro: Record<string, any>
+) {
+  const atual = String(
+    preCadastro?.status_acompanhamento || ""
+  ).trim();
+
+  if (atual) return atual;
+
+  const auditoria = normalizarStatus(
+    preCadastro?.status_auditoria
+  );
+
+  const cadastro = normalizarStatus(
+    preCadastro?.status_cadastro
+  );
+
+  if (
+    auditoria === "APROVADO" ||
+    cadastro === "APROVADO"
+  ) {
+    return "aprovado";
+  }
+
+  if (
+    auditoria === "EM_ANALISE" ||
+    auditoria === "EM_AUDITORIA"
+  ) {
+    return "em_analise";
+  }
+
+  if (
+    auditoria === "REJEITADO" ||
+    auditoria === "RECUSADO" ||
+    cadastro === "REJEITADO" ||
+    cadastro === "RECUSADO"
+  ) {
+    return "recusado";
+  }
+
+  if (
+    auditoria === "PENDENTE" ||
+    auditoria === "AGUARDANDO_AUDITORIA" ||
+    cadastro === "AGUARDANDO_AUDITORIA"
+  ) {
+    return "fila_auditoria";
+  }
+
+  return "preenchimento";
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -19,117 +136,169 @@ serve(async (req) => {
   }
 
   try {
-    // ======================================================
-    // BODY
-    // ======================================================
+    if (req.method !== "POST") {
+      return jsonResponse(
+        {
+          success: false,
+          error: "METODO_NAO_PERMITIDO",
+        },
+        405
+      );
+    }
 
     const body = await req.json();
-
     const token = body?.token;
 
     if (!token) {
-      return new Response(
-        JSON.stringify({
+      return jsonResponse(
+        {
           success: false,
           error: "TOKEN_NAO_INFORMADO",
-        }),
-        {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+        },
+        400
       );
     }
 
-    // ======================================================
-    // SUPABASE
-    // ======================================================
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return jsonResponse(
+        {
+          success: false,
+          error: "VARIAVEIS_SUPABASE_AUSENTES",
+        },
+        500
+      );
+    }
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      supabaseUrl,
+      serviceRoleKey
     );
 
     // ======================================================
-    // VALIDAR TOKEN
+    // 1. LOCALIZA O CONVITE DIRETAMENTE
+    //
+    // Isso permite que o MESMO link do e-mail continue
+    // identificando o processo após o token ter sido
+    // marcado como utilizado/revogado para ESCRITA.
     // ======================================================
 
-    const { data: tokenData, error: tokenError } = await supabase.rpc(
-      "validar_token_convite_morador",
-      {
-        p_token: token,
-      }
-    );
+    const { data: convite, error: conviteError } =
+      await supabase
+        .from("convites_morador")
+        .select("*")
+        .eq("token_convite", token)
+        .maybeSingle();
 
-    if (tokenError) {
-      console.error(tokenError);
+    if (conviteError) throw conviteError;
 
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "ERRO_VALIDACAO_TOKEN",
-        }),
+    if (!convite?.id || !convite?.pre_cadastro_id) {
+      return jsonResponse(
         {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    }
-
-    const tokenInfo = tokenData?.[0];
-
-    if (!tokenInfo?.valido) {
-      return new Response(
-        JSON.stringify({
           success: false,
           error: "TOKEN_INVALIDO",
-          detalhes: tokenInfo,
-        }),
-        {
-          status: 401,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+        },
+        401
       );
     }
 
-    // ======================================================
-    // BUSCAR PRÉ-CADASTRO
-    // ======================================================
-
-    const { data: preCadastro, error: preCadastroError } = await supabase
-      .from("pre_cadastro_moradores")
-      .select("*")
-      .eq("id", tokenInfo.pre_cadastro_id)
-      .single();
+    const { data: preCadastro, error: preCadastroError } =
+      await supabase
+        .from("pre_cadastro_moradores")
+        .select("*")
+        .eq("id", convite.pre_cadastro_id)
+        .single();
 
     if (preCadastroError || !preCadastro) {
       console.error(preCadastroError);
 
-      return new Response(
-        JSON.stringify({
+      return jsonResponse(
+        {
           success: false,
           error: "PRE_CADASTRO_NAO_ENCONTRADO",
-        }),
-        {
-          status: 404,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
+        },
+        404
+      );
+    }
+
+    const finalizado = wizardFinalizado(
+      convite,
+      preCadastro
+    );
+
+    // ======================================================
+    // 2. TOKEN DE PREENCHIMENTO
+    //
+    // Enquanto o Wizard NÃO foi concluído, continua valendo
+    // a validação forte original do convite.
+    // ======================================================
+
+    let tokenInfo: any = null;
+
+    if (!finalizado) {
+      const { data: tokenData, error: tokenError } =
+        await supabase.rpc(
+          "validar_token_convite_morador",
+          {
+            p_token: token,
+          }
+        );
+
+      if (tokenError) {
+        console.error(tokenError);
+
+        return jsonResponse(
+          {
+            success: false,
+            error: "ERRO_VALIDACAO_TOKEN",
           },
-        }
+          500
+        );
+      }
+
+      tokenInfo = tokenData?.[0];
+
+      if (!tokenInfo?.valido) {
+        return jsonResponse(
+          {
+            success: false,
+            error: "TOKEN_INVALIDO",
+            detalhes: tokenInfo,
+          },
+          401
+        );
+      }
+    }
+
+    // ======================================================
+    // 3. TOKEN DE ACOMPANHAMENTO
+    //
+    // Depois da conclusão, o link original é somente uma
+    // chave de localização READ-ONLY para a Tela 9.
+    //
+    // A validade passa a obedecer
+    // token_acompanhamento_expira_em (7 dias).
+    // ======================================================
+
+    if (
+      finalizado &&
+      expirou(preCadastro.token_acompanhamento_expira_em)
+    ) {
+      return jsonResponse(
+        {
+          success: false,
+          error: "TOKEN_ACOMPANHAMENTO_EXPIRADO",
+          status_acompanhamento:
+            mapearStatusAcompanhamento(preCadastro),
+        },
+        410
       );
     }
 
     // ======================================================
-    // CONDOMÍNIO
+    // 4. DADOS DE CONTEXTO
     // ======================================================
 
     const { data: condominio } = await supabase
@@ -138,19 +307,11 @@ serve(async (req) => {
       .eq("id", preCadastro.condominio_id)
       .single();
 
-    // ======================================================
-    // TORRES
-    // ======================================================
-
     const { data: torres } = await supabase
       .from("torres")
       .select("*")
       .eq("condominio_id", preCadastro.condominio_id)
       .order("nome", { ascending: true });
-
-    // ======================================================
-    // UNIDADES
-    // ======================================================
 
     const { data: unidades } = await supabase
       .from("unidades")
@@ -158,93 +319,169 @@ serve(async (req) => {
       .eq("condominio_id", preCadastro.condominio_id)
       .order("numero", { ascending: true });
 
+    const ip = obterIp(req);
+    const userAgent =
+      req.headers.get("user-agent") || null;
+
     // ======================================================
-    // CRIAR / RECUPERAR SESSÃO
+    // 5. SESSÃO EDITÁVEL SOMENTE DURANTE PREENCHIMENTO
     // ======================================================
 
-    const ip =
-      req.headers.get("x-forwarded-for") ||
-      req.headers.get("cf-connecting-ip") ||
-      null;
+    let sessao = null;
 
-    const userAgent = req.headers.get("user-agent") || null;
+    if (!finalizado) {
+      const { data: sessaoData, error: sessaoError } =
+        await supabase.rpc(
+          "criar_ou_recuperar_sessao_wizard",
+          {
+            p_pre_cadastro_id: preCadastro.id,
+            p_token: token,
+            p_ip: ip,
+            p_dispositivo: userAgent,
+            p_navegador: userAgent,
+            p_sistema: userAgent,
+            p_fingerprint: null,
+          }
+        );
 
-    const { data: sessaoData, error: sessaoError } = await supabase.rpc(
-      "criar_ou_recuperar_sessao_wizard",
-      {
-        p_pre_cadastro_id: preCadastro.id,
-        p_token: token,
-        p_ip: ip,
-        p_dispositivo: userAgent,
-        p_navegador: userAgent,
-        p_sistema: userAgent,
-        p_fingerprint: null,
+      if (sessaoError) {
+        console.error(sessaoError);
       }
-    );
 
-    if (sessaoError) {
-      console.error(sessaoError);
+      sessao = sessaoData?.[0] || null;
+
+      // Evento de abertura somente no fluxo editável.
+      try {
+        await supabase.rpc("marcar_convite_aberto", {
+          p_token: token,
+          p_ip: ip,
+          p_user_agent: userAgent,
+          p_dispositivo: userAgent,
+          p_sistema: userAgent,
+        });
+      } catch (error) {
+        console.error(
+          "Erro ao marcar convite aberto:",
+          error
+        );
+      }
     }
 
+    const statusAcompanhamento =
+      mapearStatusAcompanhamento(preCadastro);
+
     // ======================================================
-    // MARCAR CONVITE ABERTO
+    // 6. MODO AUTORITATIVO
     // ======================================================
 
-    await supabase.rpc("marcar_convite_aberto", {
-      p_token: token,
-      p_ip: ip,
-      p_user_agent: userAgent,
-      p_dispositivo: userAgent,
-      p_sistema: userAgent,
-    });
+    const modo =
+      finalizado
+        ? "ACOMPANHAMENTO"
+        : "PREENCHIMENTO";
+
+    const etapaAutoritativa =
+      finalizado
+        ? 9
+        : Number(preCadastro.etapa_atual || 1);
+
+    const progressoAutoritativo =
+      finalizado
+        ? 100
+        : Number(preCadastro.percentual_preenchimento || 0);
 
     // ======================================================
     // RESPONSE
     // ======================================================
 
-    return new Response(
-      JSON.stringify({
-        success: true,
+    return jsonResponse({
+      success: true,
 
-        token: {
-          valido: true,
-          expiracao: preCadastro.token_expira_em,
-        },
+      modo,
+      somente_leitura: finalizado,
 
-        sessao: sessaoData?.[0] || null,
+      token: {
+        valido: true,
+        tipo:
+          finalizado
+            ? "ACOMPANHAMENTO"
+            : "CONVITE",
+        expiracao:
+          finalizado
+            ? preCadastro.token_acompanhamento_expira_em
+            : preCadastro.token_expira_em,
+      },
 
-        preCadastro,
+      // O frontend deve usar estes campos como autoridade.
+      etapa_atual: etapaAutoritativa,
+      progresso: progressoAutoritativo,
+      percentual_preenchimento:
+        progressoAutoritativo,
 
-        condominio,
+      status_cadastro:
+        preCadastro.status_cadastro,
+      status_auditoria:
+        preCadastro.status_auditoria,
+      status_acompanhamento:
+        statusAcompanhamento,
 
-        torres: torres || [],
+      bloqueado_para_edicao:
+        finalizado ||
+        preCadastro.bloqueado_para_edicao === true,
 
-        unidades: unidades || [],
-      }),
-      {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+      wizard_finalizado:
+        finalizado,
+      wizard_finalizado_em:
+        preCadastro.wizard_finalizado_em || null,
+
+      protocolo:
+        preCadastro.protocolo_auditoria ||
+        preCadastro.protocolo ||
+        null,
+
+      token_acompanhamento:
+        preCadastro.token_acompanhamento || null,
+      token_acompanhamento_expira_em:
+        preCadastro.token_acompanhamento_expira_em ||
+        null,
+
+      sessao,
+
+      preCadastro: {
+        ...preCadastro,
+
+        // Evita que estado legado interno contradiga
+        // a navegação autoritativa do acompanhamento.
+        etapa_atual: etapaAutoritativa,
+        percentual_preenchimento:
+          progressoAutoritativo,
+        status_acompanhamento:
+          statusAcompanhamento,
+        bloqueado_para_edicao:
+          finalizado ||
+          preCadastro.bloqueado_para_edicao === true,
+
+        // Nunca devolver segredos/artefatos de senha ao browser.
+        senha_hash: undefined,
+        senha_auth_criptografada: undefined,
+      },
+
+      condominio,
+      torres: torres || [],
+      unidades: unidades || [],
+    });
   } catch (error) {
     console.error(error);
 
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(
+      {
         success: false,
         error: "ERRO_INTERNO",
-        detalhes: error?.message || null,
-      }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
+        detalhes:
+          error instanceof Error
+            ? error.message
+            : null,
+      },
+      500
     );
   }
 });
