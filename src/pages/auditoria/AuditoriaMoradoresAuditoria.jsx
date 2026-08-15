@@ -465,6 +465,7 @@ function ListaVeiculosGaragem({ item, onVerConflito }) {
 
 function DrawerAuditoria({
   item,
+  modo = "auditoria",
   abertoSecao,
   setAbertoSecao,
   onClose,
@@ -472,6 +473,8 @@ function DrawerAuditoria({
   onVerConflito,
 }) {
   if (!item) return null;
+
+  const somenteLeitura = modo === "resumo";
 
   return (
     <>
@@ -485,7 +488,7 @@ function DrawerAuditoria({
       <aside className="ama-audit-drawer">
         <header className="ama-audit-head">
           <div>
-            <span>Auditoria do Morador</span>
+            <span>{somenteLeitura ? "Resumo do Cadastro" : "Auditoria do Morador"}</span>
             <h2>{item.nome}</h2>
             <p>Cadastro finalizado em {formatarDataHora(item.wizard_finalizado_em)}</p>
           </div>
@@ -692,54 +695,64 @@ function DrawerAuditoria({
         <div className="ama-audit-warning">
           <Info size={17} />
           <div>
-            <strong>Nenhuma informação pode ser editada nesta tela.</strong>
+            <strong>
+              {somenteLeitura
+                ? "Resumo somente para consulta. Nenhuma informação ou status será alterado."
+                : "Nenhuma informação pode ser editada nesta tela."}
+            </strong>
             <span>
-              Em caso de erro ou divergência, solicite correção ao morador.
+              {somenteLeitura
+                ? "Para iniciar a análise e tomar uma decisão administrativa, feche o resumo e utilize a ação Auditar."
+                : "Em caso de erro ou divergência, solicite correção ao morador."}
             </span>
           </div>
         </div>
 
         <footer className="ama-audit-footer">
-          <button
-            type="button"
-            className="ama-footer-action approve"
-            onClick={() => onDecisao("APROVADO", item)}
-          >
-            <CheckCircle2 size={17} />
-            <span>
-              <strong>Aprovar Cadastro</strong>
-              <small>Aprova e avança para o próximo</small>
-            </span>
-          </button>
+          {!somenteLeitura ? (
+            <>
+              <button
+                type="button"
+                className="ama-footer-action approve"
+                onClick={() => onDecisao("APROVADO", item)}
+              >
+                <CheckCircle2 size={17} />
+                <span>
+                  <strong>Aprovar Cadastro</strong>
+                  <small>Aprova e avança para o próximo</small>
+                </span>
+              </button>
 
-          <button
-            type="button"
-            className="ama-footer-action correction"
-            onClick={() => onDecisao("CORRECAO_SOLICITADA", item)}
-          >
-            <AlertTriangle size={17} />
-            <span>
-              <strong>Solicitar Correção</strong>
-              <small>Envia para o morador corrigir</small>
-            </span>
-          </button>
+              <button
+                type="button"
+                className="ama-footer-action correction"
+                onClick={() => onDecisao("CORRECAO_SOLICITADA", item)}
+              >
+                <AlertTriangle size={17} />
+                <span>
+                  <strong>Solicitar Correção</strong>
+                  <small>Envia para o morador corrigir</small>
+                </span>
+              </button>
 
-          <button
-            type="button"
-            className="ama-footer-action reject"
-            onClick={() => onDecisao("REPROVADO", item)}
-          >
-            <XCircle size={17} />
-            <span>
-              <strong>Reprovar Cadastro</strong>
-              <small>Reprova e avança para o próximo</small>
-            </span>
-          </button>
+              <button
+                type="button"
+                className="ama-footer-action reject"
+                onClick={() => onDecisao("REPROVADO", item)}
+              >
+                <XCircle size={17} />
+                <span>
+                  <strong>Reprovar Cadastro</strong>
+                  <small>Reprova e avança para o próximo</small>
+                </span>
+              </button>
+            </>
+          ) : null}
 
           <button type="button" className="ama-footer-action neutral" onClick={onClose}>
             <span>
               <strong>Fechar</strong>
-              <small>Sair sem alterações</small>
+              <small>{somenteLeitura ? "Fechar resumo sem alterações" : "Sair sem alterações"}</small>
             </span>
           </button>
         </footer>
@@ -777,6 +790,7 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
 
   const [menuAberto, setMenuAberto] = useState(null);
   const [auditoriaSelecionada, setAuditoriaSelecionada] = useState(null);
+  const [modoDrawer, setModoDrawer] = useState(null); // "resumo" | "auditoria"
   const [secaoAberta, setSecaoAberta] = useState("identificacao");
   const [conflitoSelecionado, setConflitoSelecionado] = useState(null);
 
@@ -844,6 +858,7 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
       if (event.key === "Escape") {
         setMenuAberto(null);
         setAuditoriaSelecionada(null);
+        setModoDrawer(null);
         setConflitoSelecionado(null);
         setDecisaoPendente(null);
         setObservacaoDecisao("");
@@ -870,9 +885,16 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
     return registros.slice(inicio, inicio + linhasPorPagina);
   }, [pagina, registros, linhasPorPagina]);
 
+  function abrirResumo(item) {
+    setSecaoAberta("identificacao");
+    setModoDrawer("resumo");
+    setAuditoriaSelecionada(item);
+  }
+
   async function abrirAuditoria(item) {
     try {
       setSecaoAberta("identificacao");
+      setModoDrawer("auditoria");
 
       const atualizado = await marcarAuditoriaIniciada({
         perfil,
@@ -898,19 +920,29 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
         carregarDados();
       }
     } catch (error) {
+      setModoDrawer(null);
       toast.error(error?.message || "Não foi possível iniciar a auditoria.");
-      setAuditoriaSelecionada(item);
+      setAuditoriaSelecionada(null);
     }
   }
 
   function handleAcaoLinha(acao, item) {
-    if (acao === "Auditar" || acao === "Visualizar Resumo") {
+    if (acao === "Auditar") {
       abrirAuditoria(item);
       return;
+    }
+
+    if (acao === "Visualizar Resumo") {
+      abrirResumo(item);
     }
   }
 
   function handleDecisao(decisao, item) {
+    if (modoDrawer !== "auditoria") {
+      toast.error("Decisões administrativas só podem ser registradas no modo Auditoria.");
+      return;
+    }
+
     setDecisaoPendente({ decisao, item });
     setObservacaoDecisao("");
   }
@@ -980,6 +1012,7 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
 
   function fecharAuditoria() {
     setAuditoriaSelecionada(null);
+    setModoDrawer(null);
     setSecaoAberta("identificacao");
   }
 
@@ -1337,6 +1370,7 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
 
       <DrawerAuditoria
         item={auditoriaSelecionada}
+        modo={modoDrawer}
         abertoSecao={secaoAberta}
         setAbertoSecao={(secao) =>
           setSecaoAberta((atual) => (atual === secao ? "" : secao))
@@ -1456,4 +1490,3 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
     </div>
   );
 }
-

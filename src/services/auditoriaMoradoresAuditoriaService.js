@@ -18,6 +18,44 @@ function somenteNumeros(valor = "") {
   return String(valor || "").replace(/\D/g, "");
 }
 
+function gerarUuidCliente() {
+  if (globalThis?.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = [...bytes]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    hex.slice(12, 16),
+    hex.slice(16, 20),
+    hex.slice(20),
+  ].join("-");
+}
+
+function obterContextoNavegador() {
+  if (typeof window === "undefined") {
+    return {
+      ip: null,
+      user_agent: null,
+    };
+  }
+
+  return {
+    ip: null,
+    user_agent: window.navigator?.userAgent || null,
+  };
+}
+
 export function formatarStatusAuditoria(status = "") {
   return normalizarStatus(status).replaceAll("_", " ");
 }
@@ -75,12 +113,6 @@ function montarNumeroInternacional({
     return "";
   }
 
-  /*
-   * O número já está no formato internacional.
-   *
-   * Exemplo:
-   * +5511964268411
-   */
   if (telefoneOriginal.startsWith("+")) {
     return `+${somenteNumeros(telefoneOriginal)}`;
   }
@@ -91,13 +123,6 @@ function montarNumeroInternacional({
     return "";
   }
 
-  /*
-   * Remove prefixos internacionais comuns.
-   *
-   * Exemplos:
-   * 005511964268411
-   * 0115511964268411
-   */
   if (numero.startsWith("00")) {
     numero = numero.slice(2);
 
@@ -106,9 +131,6 @@ function montarNumeroInternacional({
 
   const ddiNormalizado = normalizarDdi(ddi);
 
-  /*
-   * Número já contém o DDI informado.
-   */
   if (
     ddiNormalizado &&
     numero.startsWith(ddiNormalizado) &&
@@ -117,9 +139,6 @@ function montarNumeroInternacional({
     return `+${numero}`;
   }
 
-  /*
-   * Número brasileiro já contém 55.
-   */
   if (
     paisPadrao === "BR" &&
     numero.startsWith("55") &&
@@ -128,12 +147,6 @@ function montarNumeroInternacional({
     return `+${numero}`;
   }
 
-  /*
-   * Remove zero de operadora ou tronco nacional quando houver.
-   *
-   * Exemplo:
-   * 011964268411 -> 11964268411
-   */
   if (
     paisPadrao === "BR" &&
     numero.startsWith("0") &&
@@ -146,9 +159,6 @@ function montarNumeroInternacional({
     return `+${ddiNormalizado}${numero}`;
   }
 
-  /*
-   * O projeto opera inicialmente no Brasil.
-   */
   if (paisPadrao === "BR") {
     return `+55${numero}`;
   }
@@ -175,12 +185,6 @@ function formatarTelefoneBrasil(numeroNacional = "") {
 
 /**
  * Formata telefones utilizando DDI e o padrão do país.
- *
- * Brasil:
- * +5511964268411 -> +55 (11) 96426-8411
- *
- * Outros países:
- * utiliza o formato internacional fornecido por libphonenumber-js.
  */
 export function formatarTelefoneInternacional({
   telefone,
@@ -236,10 +240,6 @@ function converterDataNascimento(dataNascimento) {
 
   const valor = String(dataNascimento).trim();
 
-  /*
-   * Formato brasileiro:
-   * DD/MM/AAAA
-   */
   const formatoBrasileiro = valor.match(
     /^(\d{2})\/(\d{2})\/(\d{4})$/
   );
@@ -264,11 +264,6 @@ function converterDataNascimento(dataNascimento) {
     return null;
   }
 
-  /*
-   * Formatos ISO:
-   * AAAA-MM-DD
-   * AAAA-MM-DDTHH:mm:ss
-   */
   const data = new Date(valor);
 
   return Number.isNaN(data.getTime()) ? null : data;
@@ -457,9 +452,6 @@ function normalizarDependente(dependente = {}) {
       dependente.relacao ||
       "",
 
-    /*
-     * CPF de dependentes permanece parcialmente oculto.
-     */
     cpf_mascarado: mascararCpf(cpfDependente),
 
     telefone: whatsappFormatado,
@@ -801,10 +793,6 @@ function normalizarRegistroAuditoria(item = {}) {
         ? `+${normalizarDdi(ddiResponsavel)}`
         : "Não informado",
 
-    /*
-     * CPF do titular exibido integralmente
-     * para conferência administrativa.
-     */
     cpf: formatarCpfCompleto(
       cpfResponsavel
     ),
@@ -1164,69 +1152,52 @@ export async function marcarAuditoriaIniciada({
     );
   }
 
-  const {
-    data: atual,
-    error: erroBusca,
-  } = await supabase
-    .from("pre_cadastro_moradores")
-    .select(
-      "id, status_auditoria"
-    )
-    .eq(
-      "id",
-      preCadastroId
-    )
-    .eq(
-      "condominio_id",
-      perfil.condominio_id
-    )
-    .maybeSingle();
+  const contexto = obterContextoNavegador();
 
-  if (erroBusca) {
-    throw erroBusca;
-  }
-
-  if (!atual?.id) {
-    throw new Error(
-      "Cadastro não encontrado para auditoria."
-    );
-  }
-
-  if (
-    normalizarStatus(
-      atual.status_auditoria
-    ) !== "AGUARDANDO_AUDITORIA"
-  ) {
-    return atual;
-  }
-
-  const { data, error } =
-    await supabase
-      .from(
-        "pre_cadastro_moradores"
-      )
-      .update({
-        status_auditoria:
-          "AUDITORIA_INICIADA",
-        atualizado_em:
-          new Date().toISOString(),
-      })
-      .eq(
-        "id",
-        preCadastroId
-      )
-      .eq(
-        "condominio_id",
-        perfil.condominio_id
-      )
-      .select("*")
-      .single();
+  const { data, error } = await supabase.rpc(
+    "rpc_admin_morador_auditoria_iniciar_v1",
+    {
+      p_pre_cadastro_id: preCadastroId,
+      p_ip: contexto.ip,
+      p_user_agent: contexto.user_agent,
+    }
+  );
 
   if (error) {
     throw error;
   }
 
-  return data;
+  if (data?.success === false) {
+    throw new Error(
+      data?.error ||
+      "Não foi possível iniciar a auditoria."
+    );
+  }
+
+  /*
+   * O backend é a autoridade da transição.
+   * Recarregamos o pré-cadastro para que a UI receba
+   * o estado efetivamente persistido e não um estado presumido.
+   */
+  const { data: atualizado, error: erroAtualizacao } =
+    await supabase
+      .from("pre_cadastro_moradores")
+      .select("*")
+      .eq("id", preCadastroId)
+      .eq("condominio_id", perfil.condominio_id)
+      .maybeSingle();
+
+  if (erroAtualizacao) {
+    throw erroAtualizacao;
+  }
+
+  if (!atualizado?.id) {
+    throw new Error(
+      "Auditoria iniciada, mas o cadastro atualizado não foi encontrado."
+    );
+  }
+
+  return atualizado;
 }
 
 export async function registrarDecisaoAuditoriaMorador({
@@ -1250,81 +1221,96 @@ export async function registrarDecisaoAuditoriaMorador({
   const statusDecisao =
     normalizarStatus(decisao);
 
-  const statusPermitidos = [
-    "APROVADO",
-    "CORRECAO_SOLICITADA",
-    "REPROVADO",
-  ];
+  const contexto = obterContextoNavegador();
 
-  if (
-    !statusPermitidos.includes(
-      statusDecisao
-    )
-  ) {
+  if (statusDecisao === "REPROVADO") {
+    const motivo = String(observacao || "").trim();
+
+    if (!motivo) {
+      throw new Error(
+        "Informe o motivo da reprovação."
+      );
+    }
+
+    const { data, error } = await supabase.rpc(
+      "rpc_admin_morador_auditoria_decidir_v1",
+      {
+        p_pre_cadastro_id: preCadastroId,
+        p_acao: "REPROVAR",
+        p_correlation_id: gerarUuidCliente(),
+        p_idempotency_key: gerarUuidCliente(),
+        p_observacoes: null,
+        p_motivo: motivo,
+        p_ip: contexto.ip,
+        p_user_agent: contexto.user_agent,
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    if (data?.success === false) {
+      throw new Error(
+        data?.error ||
+        "Não foi possível reprovar o cadastro."
+      );
+    }
+
+    return data;
+  }
+
+  if (statusDecisao === "CORRECAO_SOLICITADA") {
+    const observacoes = String(observacao || "").trim();
+
+    if (!observacoes) {
+      throw new Error(
+        "Informe a orientação para correção."
+      );
+    }
+
+    const { data, error } = await supabase.rpc(
+      "solicitar_correcao_morador",
+      {
+        p_pre_cadastro_id: preCadastroId,
+        p_admin_id: perfil?.id || null,
+        p_campos: [],
+        p_observacoes: observacoes,
+        p_ip: contexto.ip,
+        p_user_agent: contexto.user_agent,
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    const retorno = Array.isArray(data)
+      ? data[0]
+      : data;
+
+    if (retorno?.success === false) {
+      throw new Error(
+        retorno?.error ||
+        "Não foi possível solicitar a correção."
+      );
+    }
+
+    return retorno || {
+      success: true,
+      status: "CORRECAO_SOLICITADA",
+    };
+  }
+
+  if (statusDecisao === "APROVADO") {
     throw new Error(
-      "Decisão de auditoria inválida."
+      "A aprovação deve utilizar o contrato autoritativo de aprovação já conectado à tela."
     );
   }
 
-  if (
-    [
-      "CORRECAO_SOLICITADA",
-      "REPROVADO",
-    ].includes(statusDecisao) &&
-    !String(observacao || "").trim()
-  ) {
-    throw new Error(
-      "Informe a observação para esta decisão."
-    );
-  }
-
-  const payload = {
-    status_auditoria: statusDecisao,
-    atualizado_em:
-      new Date().toISOString(),
-  };
-
-  if (
-    statusDecisao ===
-    "CORRECAO_SOLICITADA"
-  ) {
-    payload.observacoes_correcao =
-      String(
-        observacao || ""
-      ).trim();
-  }
-
-  if (
-    statusDecisao === "REPROVADO"
-  ) {
-    payload.motivo_reprovacao =
-      String(
-        observacao || ""
-      ).trim();
-  }
-
-  const { data, error } =
-    await supabase
-      .from(
-        "pre_cadastro_moradores"
-      )
-      .update(payload)
-      .eq(
-        "id",
-        preCadastroId
-      )
-      .eq(
-        "condominio_id",
-        perfil.condominio_id
-      )
-      .select("*")
-      .single();
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  throw new Error(
+    "Decisão de auditoria inválida."
+  );
 }
 
 export async function buscarTorresAuditoriaMoradores({
