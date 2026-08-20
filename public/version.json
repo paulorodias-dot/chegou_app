@@ -1,21 +1,17 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.14.001",
-  "appVersion": "1.2.1",
+  "releaseId": "2026.08.20.001",
+  "appVersion": "1.2.2",
   "scope": "GLOBAL",
   "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-08-14T16:26:00-03:00",
-  "title": "Melhorias de acesso e experiência no Sistema Chegou!",
-  "message": "Atualizamos o Sistema Chegou! com melhorias de acesso, navegação e experiência visual para deixar o uso no celular e no computador ainda mais simples e consistente.",
+  "publishedAt": "2026-08-20T18:45:00-03:00",
+  "title": "Melhorias no acesso às informações do Morador",
+  "message": "Atualizamos o Sistema Chegou! com melhorias na apresentação das informações da unidade e do perfil do Morador.",
   "highlights": [
-    "Melhoria na opção Lembrar-me para facilitar o retorno ao sistema quando a sessão ainda estiver válida.",
-    "Ajustes de visualização no iPhone para manter os controles do sistema acessíveis no topo da tela.",
-    "Melhorias na experiência dos modos Claro, Escuro e Sistema, inclusive nos menus do celular.",
-    "Aprimoramento dos indicadores de novidade para destacar novos recursos e opções de menu.",
-    "Novo destaque para a opção Entrada no menu de Encomendas da Portaria.",
-    "Melhorias na abertura do aplicativo e na apresentação do ícone oficial do Sistema Chegou!.",
-    "Ajustes no controle de atualizações para que páginas públicas, como Landing e Parceiros, não exibam avisos destinados aos usuários do sistema.",
-    "Aprimoramentos gerais de navegação, responsividade e experiência visual."
+    "Melhoria na apresentação das informações do Morador na tela inicial.",
+    "Aprimoramento da identificação do condomínio, torre e unidade vinculados ao Morador.",
+    "Melhoria na apresentação do tipo de vínculo do Morador com a unidade.",
+    "Aprimoramentos internos de segurança e consistência no carregamento das informações do Morador."
   ]
 }

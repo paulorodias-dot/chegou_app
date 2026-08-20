@@ -14,41 +14,36 @@ import {
 
 const INDICADORES_INICIAIS = {
   encomendasAguardando: null,
-
   emprestimosGaragem: null,
-
   servicosAgendados: null,
 };
 
-function resolverPerfilMorador(usuario) {
-  const nivelId = Number(
-    usuario?.nivel_id
-  );
-
-  if (nivelId === 7) {
-    return "Morador Dependente";
-  }
-
-  if (nivelId === 6) {
-    return "Morador Responsável";
-  }
-
-  return "Morador";
-}
-
-function resolverPrimeiroNome(usuario) {
-  const nome =
-    usuario?.nome_social ||
-    usuario?.nome ||
-    usuario?.nome_completo ||
-    "";
-
-  const partes = String(nome)
+function resolverPrimeiroNome(nome) {
+  const partes = String(nome || "")
     .trim()
     .split(/\s+/)
     .filter(Boolean);
 
   return partes[0] || "Morador";
+}
+
+function resolverPerfilMorador({
+  nivelId,
+  tipoMorador,
+}) {
+  if (Number(nivelId) === 7) {
+    return "Morador Dependente";
+  }
+
+  if (Number(nivelId) === 6) {
+    return "Morador Responsável";
+  }
+
+  if (tipoMorador) {
+    return "Morador";
+  }
+
+  return "Morador";
 }
 
 export default function useDashboardMorador({
@@ -96,35 +91,69 @@ export default function useDashboardMorador({
   const condominioId =
     usuario?.condominio_id || null;
 
-  const businessId =
-    usuario?.business_id || null;
+  /*
+   * O nome vindo do objeto de sessão é somente
+   * fallback de apresentação inicial.
+   *
+   * Assim que o resumo oficial chega,
+   * pessoas.nome_completo passa a prevalecer.
+   */
+
+  const nomeFallback =
+    usuario?.nome_social ||
+    usuario?.nome ||
+    usuario?.nome_completo ||
+    "";
 
   const primeiroNome = useMemo(
     () =>
-      resolverPrimeiroNome(usuario),
+      resolverPrimeiroNome(
+        resumo?.nomeMorador ||
+          nomeFallback
+      ),
     [
-      usuario?.nome_social,
-      usuario?.nome,
-      usuario?.nome_completo,
+      resumo?.nomeMorador,
+      nomeFallback,
     ]
   );
 
   const perfilDescricao = useMemo(
     () =>
-      resolverPerfilMorador(usuario),
-    [usuario?.nivel_id]
+      resolverPerfilMorador({
+        nivelId:
+          resumo?.nivelId ??
+          usuario?.nivel_id,
+
+        tipoMorador:
+          resumo?.tipoMorador,
+      }),
+    [
+      resumo?.nivelId,
+      resumo?.tipoMorador,
+      usuario?.nivel_id,
+    ]
   );
 
   const contexto = useMemo(
     () => ({
+      /*
+       * usuarioId não é autoridade.
+       *
+       * É enviado apenas para conferência.
+       * O service começa em auth.uid().
+       */
       usuarioId,
+
+      /*
+       * Mesmo princípio:
+       * condominioId é contexto solicitado.
+       * O service exige vínculo ativo.
+       */
       condominioId,
-      businessId,
     }),
     [
       usuarioId,
       condominioId,
-      businessId,
     ]
   );
 
@@ -143,13 +172,10 @@ export default function useDashboardMorador({
           setEventos([]);
 
           setErroResumo(null);
-
           setErroIndicadores(null);
-
           setErroAgenda(null);
 
           setCarregando(false);
-
           setRecarregando(false);
         }
 
@@ -187,6 +213,10 @@ export default function useDashboardMorador({
         resultadoAgenda,
       ] = resultados;
 
+      /*
+       * RESUMO
+       */
+
       if (
         resultadoResumo.status ===
         "fulfilled"
@@ -209,6 +239,10 @@ export default function useDashboardMorador({
           resultadoResumo.reason
         );
       }
+
+      /*
+       * INDICADORES
+       */
 
       if (
         resultadoIndicadores.status ===
@@ -237,6 +271,10 @@ export default function useDashboardMorador({
         );
       }
 
+      /*
+       * AGENDA
+       */
+
       if (
         resultadoAgenda.status ===
         "fulfilled"
@@ -264,7 +302,6 @@ export default function useDashboardMorador({
       }
 
       setCarregando(false);
-
       setRecarregando(false);
     },
     [

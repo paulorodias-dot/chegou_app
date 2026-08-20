@@ -12,310 +12,191 @@ function normalizarValor(valor) {
   return valor;
 }
 
-export async function carregarResumoOperacionalMorador({
-  usuarioId,
-  condominioId,
-  businessId,
-}) {
-  if (!usuarioId) {
-    return {
-      unidade: null,
-      torre: null,
-      garagem: null,
-      localGaragem: null,
-      dependentes: null,
-      vinculoTipo: null,
-    };
-  }
-
-  /*
-   * 1. Vínculo operacional do usuário com a unidade.
-   */
-
-  let vinculoQuery = supabase
-    .from("usuario_unidade")
-    .select(`
-      id,
-      usuario_id,
-      unidade_id,
-      tipo,
-      created_at
-    `)
-    .eq("usuario_id", usuarioId)
-    .order("created_at", {
-      ascending: false,
-    })
-    .limit(1);
-
-  const {
-    data: vinculos,
-    error: vinculoError,
-  } = await vinculoQuery;
-
-  if (vinculoError) {
-    throw vinculoError;
-  }
-
-  const vinculo = vinculos?.[0] || null;
-
-  if (!vinculo?.unidade_id) {
-    return {
-      unidade: null,
-      torre: null,
-      garagem: null,
-      localGaragem: null,
-      dependentes: null,
-      vinculoTipo:
-        normalizarValor(vinculo?.tipo),
-    };
-  }
-
-  /*
-   * 2. Unidade.
-   */
-
-  let unidadeQuery = supabase
-    .from("unidades")
-    .select(`
-      id,
-      business_id,
-      condominio_id,
-      torre_id,
-      numero
-    `)
-    .eq("id", vinculo.unidade_id)
-    .limit(1);
-
-  if (condominioId) {
-    unidadeQuery = unidadeQuery.eq(
-      "condominio_id",
-      condominioId
-    );
-  }
-
-  if (businessId) {
-    unidadeQuery = unidadeQuery.eq(
-      "business_id",
-      businessId
-    );
-  }
-
-  const {
-    data: unidades,
-    error: unidadeError,
-  } = await unidadeQuery;
-
-  if (unidadeError) {
-    throw unidadeError;
-  }
-
-  const unidade = unidades?.[0] || null;
-
-  if (!unidade) {
-    return {
-      unidade: null,
-      torre: null,
-      garagem: null,
-      localGaragem: null,
-      dependentes: null,
-      vinculoTipo:
-        normalizarValor(vinculo.tipo),
-    };
-  }
-
-  /*
-   * 3. Torre.
-   */
-
-  let torre = null;
-
-  if (unidade.torre_id) {
-    let torreQuery = supabase
-      .from("torres")
-      .select(`
-        id,
-        business_id,
-        condominio_id,
-        nome,
-        identificador
-      `)
-      .eq("id", unidade.torre_id)
-      .limit(1);
-
-    if (condominioId) {
-      torreQuery = torreQuery.eq(
-        "condominio_id",
-        condominioId
-      );
-    }
-
-    if (businessId) {
-      torreQuery = torreQuery.eq(
-        "business_id",
-        businessId
-      );
-    }
-
-    const {
-      data: torres,
-      error: torreError,
-    } = await torreQuery;
-
-    if (torreError) {
-      console.warn(
-        "[Dashboard Morador] Falha ao carregar torre:",
-        torreError
-      );
-    } else {
-      torre = torres?.[0] || null;
-    }
-  }
-
-  /*
-   * 4. Garagem.
-   *
-   * Falha aqui NÃO bloqueia o Dashboard.
-   */
-
-  let vaga = null;
-
-  try {
-    let vagaQuery = supabase
-      .from("vagas_unidade")
-      .select(`
-        id,
-        business_id,
-        condominio_id,
-        unidade_id,
-        morador_responsavel_id,
-        numero_vaga,
-        identificacao_vaga,
-        localizacao,
-        localizacao_vaga,
-        tipo_vaga,
-        tipo_fisico_vaga,
-        vaga_pertence_unidade,
-        modo_uso_vaga,
-        status_vaga,
-        status,
-        criado_em
-      `)
-      .eq("unidade_id", unidade.id)
-      .order("criado_em", {
-        ascending: true,
-      })
-      .limit(1);
-
-    if (condominioId) {
-      vagaQuery = vagaQuery.eq(
-        "condominio_id",
-        condominioId
-      );
-    }
-
-    if (businessId) {
-      vagaQuery = vagaQuery.eq(
-        "business_id",
-        businessId
-      );
-    }
-
-    const {
-      data: vagas,
-      error: vagaError,
-    } = await vagaQuery;
-
-    if (vagaError) {
-      console.warn(
-        "[Dashboard Morador] Falha ao carregar garagem:",
-        vagaError
-      );
-    } else {
-      vaga = vagas?.[0] || null;
-    }
-  } catch (error) {
-    console.warn(
-      "[Dashboard Morador] Falha isolada ao consultar garagem:",
-      error
-    );
-  }
-
-  /*
-   * 5. Dependentes.
-   *
-   * Contagem operacional.
-   */
-
-  let dependentes = null;
-
-  try {
-    const {
-      count,
-      error: dependentesError,
-    } = await supabase
-      .from("dependentes_unidade")
-      .select("id", {
-        count: "exact",
-        head: true,
-      })
-      .eq("unidade_id", unidade.id);
-
-    if (dependentesError) {
-      console.warn(
-        "[Dashboard Morador] Falha ao carregar dependentes:",
-        dependentesError
-      );
-    } else {
-      dependentes = count ?? 0;
-    }
-  } catch (error) {
-    console.warn(
-      "[Dashboard Morador] Falha isolada ao consultar dependentes:",
-      error
-    );
-  }
-
+function criarResumoVazio() {
   return {
-    unidade:
-      normalizarValor(unidade.numero),
+    pessoaId: null,
+    nomeMorador: null,
 
-    torre:
-      normalizarValor(torre?.nome) ||
-      normalizarValor(
-        torre?.identificador
-      ),
+    usuarioId: null,
+    nivelId: null,
+    tipoUsuario: null,
 
-    garagem:
-      normalizarValor(
-        vaga?.identificacao_vaga
-      ) ||
-      normalizarValor(
-        vaga?.numero_vaga
-      ),
+    condominioId: null,
+    condominioNome: null,
 
-    localGaragem:
-      normalizarValor(
-        vaga?.localizacao_vaga
-      ) ||
-      normalizarValor(
-        vaga?.localizacao
-      ),
+    moradorVinculoId: null,
+    tipoMorador: null,
+    vinculoPrincipal: null,
+    vinculoAtivo: null,
 
-    dependentes,
+    unidadeOperacionalId: null,
+    unidadeOficialId: null,
+    unidade: null,
 
-    vinculoTipo:
-      normalizarValor(vinculo.tipo),
+    torreId: null,
+    torre: null,
+    torreIdentificador: null,
+
+    garagem: null,
+    localGaragem: null,
+
+    dependentes: null,
   };
 }
 
-/*
- * Os contratos reais dos três indicadores
- * ainda serão ligados aos respectivos domínios.
+/**
+ * CONTEXTO OFICIAL DO MORADOR
  *
- * Produção:
- * não inventamos números.
+ * Fonte:
+ *
+ * auth.uid()
+ * ↓
+ * rpc_morador_dashboard_contexto_v1()
+ * ↓
+ * usuários / pessoa / condomínio /
+ * vínculo residencial / unidade / torre
+ *
+ * O frontend NÃO determina a identidade
+ * nem a unidade autorizada.
  */
+export async function carregarResumoOperacionalMorador() {
+  const resumoVazio = criarResumoVazio();
 
+  const {
+    data,
+    error,
+  } = await supabase.rpc(
+    "rpc_morador_dashboard_contexto_v1"
+  );
+
+  if (error) {
+    console.error(
+      "[Dashboard Morador] Erro na RPC de contexto:",
+      error
+    );
+
+    throw error;
+  }
+
+  const contexto =
+    Array.isArray(data)
+      ? data[0] || null
+      : data || null;
+
+  if (!contexto) {
+    console.warn(
+      "[Dashboard Morador] A RPC não retornou contexto para o usuário autenticado."
+    );
+
+    return resumoVazio;
+  }
+
+  /*
+   * IMPORTANTE:
+   *
+   * A RPC retorna snake_case.
+   * Aqui transformamos para o contrato
+   * utilizado pelos componentes React.
+   */
+
+  return {
+    pessoaId:
+      contexto.pessoa_id || null,
+
+    nomeMorador:
+      normalizarValor(
+        contexto.nome_completo
+      ),
+
+    usuarioId:
+      contexto.usuario_id || null,
+
+    nivelId:
+      contexto.nivel_id ?? null,
+
+    tipoUsuario:
+      normalizarValor(
+        contexto.tipo_usuario
+      ),
+
+    condominioId:
+      contexto.condominio_id || null,
+
+    condominioNome:
+      normalizarValor(
+        contexto.condominio_nome
+      ),
+
+    moradorVinculoId:
+      contexto.morador_unidade_vinculo_id ||
+      null,
+
+    tipoMorador:
+      normalizarValor(
+        contexto.tipo_morador
+      ),
+
+    vinculoPrincipal:
+      contexto.principal === true,
+
+    /*
+     * A RPC já retorna somente vínculo ativo.
+     */
+    vinculoAtivo: true,
+
+    unidadeOperacionalId:
+      contexto.unidade_operacional_id ||
+      null,
+
+    unidadeOficialId:
+      contexto.unidade_oficial_id ||
+      null,
+
+    unidade:
+      normalizarValor(
+        contexto.unidade
+      ),
+
+    torreId:
+      contexto.torre_id || null,
+
+    torre:
+      normalizarValor(
+        contexto.torre
+      ),
+
+    torreIdentificador:
+      normalizarValor(
+        contexto.torre_identificador
+      ),
+
+    /*
+     * Garagem será ligada ao domínio oficial
+     * de vagas separadamente.
+     *
+     * Não inventamos dado.
+     */
+    garagem: null,
+
+    localGaragem: null,
+
+    dependentes:
+      contexto.dependentes_total ===
+        null ||
+      contexto.dependentes_total ===
+        undefined
+        ? null
+        : Number(
+            contexto.dependentes_total
+          ),
+  };
+}
+
+/**
+ * INDICADORES
+ *
+ * Ainda sem contratos reais homologados.
+ */
 export async function carregarIndicadoresDashboardMorador() {
   return {
     encomendasAguardando: null,
@@ -326,13 +207,12 @@ export async function carregarIndicadoresDashboardMorador() {
   };
 }
 
-/*
- * O calendário deve receber somente eventos
- * autorizados pelo domínio Serviços/Agenda.
+/**
+ * AGENDA
  *
- * Não utilizar calendar.fake.js em produção.
+ * Será alimentada futuramente pelo domínio
+ * Serviços/Agenda.
  */
-
 export async function carregarAgendaDashboardMorador() {
   return [];
 }

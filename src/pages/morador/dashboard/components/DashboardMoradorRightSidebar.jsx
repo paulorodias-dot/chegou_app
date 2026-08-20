@@ -36,6 +36,47 @@ function exibir(valor) {
   return valor;
 }
 
+function formatarTipoMorador(valor) {
+  if (!valor) {
+    return DASHBOARD_MORADOR_EMPTY_VALUE;
+  }
+
+  const texto = String(valor)
+    .trim()
+    .toLowerCase();
+
+  const mapa = {
+    proprietario: "Proprietário",
+    proprietário: "Proprietário",
+
+    inquilino: "Inquilino",
+
+    residente: "Residente",
+
+    "proprietario_residente":
+      "Proprietário Residente",
+
+    "proprietário_residente":
+      "Proprietário Residente",
+
+    "proprietario_nao_residente":
+      "Proprietário Não Residente",
+
+    "proprietário_não_residente":
+      "Proprietário Não Residente",
+  };
+
+  if (mapa[texto]) {
+    return mapa[texto];
+  }
+
+  return texto
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letra) =>
+      letra.toUpperCase()
+    );
+}
+
 export default function DashboardMoradorRightSidebar({
   perfilDescricao,
 
@@ -85,12 +126,72 @@ export default function DashboardMoradorRightSidebar({
                   aria-hidden="true"
                 />
 
+                Nome
+              </span>
+
+              <strong
+                title={
+                  resumo?.nomeMorador || ""
+                }
+              >
+                {exibir(
+                  resumo?.nomeMorador
+                )}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                <UserRound
+                  size={15}
+                  aria-hidden="true"
+                />
+
                 Perfil
               </span>
 
               <strong>
                 {exibir(
                   perfilDescricao
+                )}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                <Home
+                  size={15}
+                  aria-hidden="true"
+                />
+
+                Vínculo
+              </span>
+
+              <strong>
+                {formatarTipoMorador(
+                  resumo?.tipoMorador
+                )}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                <Building2
+                  size={15}
+                  aria-hidden="true"
+                />
+
+                Condomínio
+              </span>
+
+              <strong
+                title={
+                  resumo?.condominioNome ||
+                  ""
+                }
+              >
+                {exibir(
+                  resumo?.condominioNome
                 )}
               </strong>
             </div>
@@ -156,7 +257,12 @@ export default function DashboardMoradorRightSidebar({
                 Local
               </span>
 
-              <strong>
+              <strong
+                title={
+                  resumo?.localGaragem ||
+                  ""
+                }
+              >
                 {exibir(
                   resumo?.localGaragem
                 )}
@@ -183,13 +289,6 @@ export default function DashboardMoradorRightSidebar({
         )}
       </article>
 
-      {/*
-        COMPONENTE GLOBAL.
-
-        Nenhum layout interno do card
-        é configurado neste Dashboard.
-      */}
-
       <PartnerAdCard
         slides={
           TEMPORARY_PARTNER_AD_SLIDES
@@ -205,13 +304,6 @@ export default function DashboardMoradorRightSidebar({
           DASHBOARD_MORADOR_PARTNER_PLACEMENT
         }
       />
-
-      {/*
-        COMPONENTE GLOBAL.
-
-        Nenhuma estrutura interna do calendário
-        pertence ao Dashboard Morador.
-      */}
 
       {erroAgenda ? (
         <div className="dashboard-morador-calendar-error">
