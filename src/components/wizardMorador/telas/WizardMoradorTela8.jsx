@@ -124,8 +124,8 @@ const opcoesProblema = [
   { id: "layout", label: "Layout" },
   { id: "mobile", label: "Mobile" },
   { id: "validacao", label: "Validação" },
-  { id: "upload_foto", label: "Upload de foto" },
   { id: "outro", label: "Outro" },
+  { id: "nenhuma", label: "Nenhum" },
 ];
 
 const opcoesInfluencia = [
@@ -272,6 +272,16 @@ export default function WizardMoradorTela8({
     );
   }
 
+  function aguardarRenderTransicao() {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.setTimeout(resolve, 220);
+        });
+      });
+    });
+  }
+
   async function persistirPesquisaSePossivel(feedbackNps) {
     const tokenPesquisa = obterTokenPesquisa();
 
@@ -313,6 +323,12 @@ export default function WizardMoradorTela8({
 
     try {
       setProcessando(true);
+
+      /*
+       * Exibe a mesma transição visual adotada nas etapas anteriores
+       * antes de persistir a pesquisa e abrir o acompanhamento.
+       */
+      await aguardarRenderTransicao();
 
       try {
         await persistirPesquisaSePossivel(
@@ -360,6 +376,12 @@ export default function WizardMoradorTela8({
 
     try {
       setProcessando(true);
+
+      /*
+       * Mesmo ao pular a pesquisa, mantém a transição visual
+       * para que a troca para o acompanhamento não pareça travada.
+       */
+      await aguardarRenderTransicao();
 
       try {
         await persistirPesquisaSePossivel(
@@ -639,7 +661,7 @@ export default function WizardMoradorTela8({
                 onClick={pularPesquisa}
                 disabled={processando}
               >
-                {processando ? "Aguarde..." : "Pular pesquisa"}
+                {processando ? "Salvando..." : "Pular pesquisa"}
               </button>
 
               <button
@@ -648,7 +670,7 @@ export default function WizardMoradorTela8({
                 onClick={enviarFeedback}
                 disabled={processando}
               >
-                {processando ? "Enviando..." : "Enviar feedback e continuar"}
+                {processando ? "Salvando informações..." : "Enviar feedback e continuar"}
                 <ArrowRight size={18} />
               </button>
             </footer>
@@ -762,6 +784,16 @@ export default function WizardMoradorTela8({
           </aside>
         </div>
       </section>
+
+      {processando ? (
+        <div className="wm-t8-processing" role="status" aria-live="polite">
+          <div className="wm-t8-processing-card">
+            <span className="wm-t8-spinner" />
+            <strong>Salvando suas informações</strong>
+            <p>Aguarde um instante. Estamos preparando a próxima etapa.</p>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

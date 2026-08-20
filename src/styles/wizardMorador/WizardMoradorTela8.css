@@ -644,3 +644,144 @@
     text-align: center;
   }
 }
+
+/* =========================================================
+   ESTADO DOS BOTÕES / TRANSIÇÃO
+========================================================= */
+
+.wm-t8-actions button {
+  transition: 0.18s ease;
+  touch-action: manipulation;
+}
+
+.wm-t8-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.wm-t8-actions button:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.wm-t8-processing {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  padding: 20px;
+  background: rgba(248, 250, 252, 0.76);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t8-processing-card {
+  width: min(380px, 92vw);
+  padding: 28px;
+  border: 1px solid #dbe5f0;
+  border-radius: 22px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.wm-t8-spinner {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 4px;
+  border: 3px solid #e5edf7;
+  border-top-color: #ff7900;
+  border-radius: 999px;
+  animation: wm-t8-spin 0.75s linear infinite;
+}
+
+.wm-t8-processing-card strong {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.wm-t8-processing-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+@keyframes wm-t8-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   IPHONE / MOBILE
+========================================================= */
+
+@supports (-webkit-touch-callout: none) {
+  .wm-t8-page {
+    -webkit-text-size-adjust: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .wm-t8-page,
+  .wm-t8-card,
+  .wm-t8-main-grid,
+  .wm-t8-main,
+  .wm-t8-section-card,
+  .wm-t8-question,
+  .wm-t8-side {
+    min-width: 0;
+  }
+
+  /*
+   * O Safari do iPhone aplica zoom automático em campos
+   * com fonte abaixo de 16px.
+   */
+  .wm-t8-textarea {
+    font-size: 16px;
+  }
+
+  .wm-t8-textarea {
+    min-height: 132px;
+  }
+
+  .wm-t8-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .wm-t8-actions button {
+    width: 100%;
+    min-height: 48px;
+    font-size: 13px;
+  }
+
+  .wm-t8-processing {
+    padding:
+      max(12px, env(safe-area-inset-top))
+      12px
+      max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+[data-theme="dark"] .wm-t8-processing-card {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+[data-theme="dark"] .wm-t8-processing-card strong {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .wm-t8-processing-card p {
+  color: #cbd5e1;
+}

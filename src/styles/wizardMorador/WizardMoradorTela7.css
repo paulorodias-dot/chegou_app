@@ -714,30 +714,32 @@
 
 .wm-t7-actions {
   margin-top: 24px;
-
+  padding-top: 18px;
+  border-top: 1px solid #e5edf7;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .wm-t7-actions button {
   min-height: 46px;
-  border-radius: 16px;
-  border: none;
-
   padding: 0 18px;
-
+  border: none;
+  border-radius: 16px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-
   font-size: 11px;
   font-weight: 900;
-
   cursor: pointer;
+  transition: 0.18s ease;
+  touch-action: manipulation;
 }
 
 .wm-t7-actions .secondary {
+  margin-right: auto;
   background: #ffffff;
   border: 1px solid #dbe5f0;
   color: #475569;
@@ -749,23 +751,80 @@
 }
 
 .wm-t7-actions .primary {
-  background: linear-gradient(
-    135deg,
-    #ff9a00 0%,
-    #ff7900 100%
-  );
+  background: linear-gradient(135deg, #ff9a00 0%, #ff7900 100%);
   color: #ffffff;
-  box-shadow: 0 14px 28px rgba(
-    255,
-    121,
-    0,
-    0.22
-  );
+  box-shadow: 0 14px 28px rgba(255, 121, 0, 0.22);
 }
 
-.wm-t7-actions .primary:disabled {
+.wm-t7-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.wm-t7-actions button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* =========================================================
+   PROCESSAMENTO
+========================================================= */
+
+.wm-t7-processing {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  padding: 20px;
+  background: rgba(248, 250, 252, 0.76);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t7-processing-card {
+  width: min(380px, 92vw);
+  padding: 28px;
+  border: 1px solid #dbe5f0;
+  border-radius: 22px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.wm-t7-spinner {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 4px;
+  border: 3px solid #e5edf7;
+  border-top-color: #ff7900;
+  border-radius: 999px;
+  animation: wm-t7-spin 0.75s linear infinite;
+}
+
+.wm-t7-processing-card strong {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.wm-t7-processing-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+@keyframes wm-t7-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* =========================================================
@@ -827,8 +886,8 @@
 ========================================================= */
 
 @supports (-webkit-touch-callout: none) {
-  .wm-t7-password-field input {
-    font-size: 16px !important;
+  .wm-t7-page {
+    -webkit-text-size-adjust: 100%;
   }
 }
 
@@ -938,4 +997,91 @@
   font-size: 11px;
   font-weight: 900;
   cursor: pointer;
+}
+/* =========================================================
+   MOBILE / IPHONE
+========================================================= */
+
+@media (max-width: 560px) {
+  .wm-t7-page,
+  .wm-t7-card,
+  .wm-t7-main-grid,
+  .wm-t7-left,
+  .wm-t7-side,
+  .wm-t7-section-card,
+  .wm-t7-password-layout,
+  .wm-t7-password-fields,
+  .wm-t7-password-field {
+    min-width: 0;
+  }
+
+  /*
+   * 16px impede o zoom automático do Safari/iPhone
+   * ao tocar nos campos de senha.
+   */
+  .wm-t7-password-field input {
+    font-size: 16px;
+  }
+
+  .wm-t7-password-field div {
+    min-height: 48px;
+  }
+
+  .wm-t7-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .wm-t7-actions button {
+    width: 100%;
+    min-height: 48px;
+    font-size: 13px;
+  }
+
+  .wm-t7-actions .secondary {
+    margin-right: 0;
+  }
+
+  .wm-t7-modal-overlay {
+    padding:
+      max(8px, env(safe-area-inset-top))
+      8px
+      max(8px, env(safe-area-inset-bottom));
+    align-items: stretch;
+  }
+
+  .wm-t7-modal {
+    width: 100%;
+    max-height: none;
+    height: 100dvh;
+    border-radius: 18px;
+  }
+
+  .wm-t7-modal-head {
+    padding: 15px 16px;
+  }
+
+  .wm-t7-modal-body {
+    padding: 16px;
+  }
+
+  .wm-t7-modal-actions {
+    padding:
+      14px
+      16px
+      max(14px, env(safe-area-inset-bottom));
+  }
+
+  .wm-t7-modal-actions button {
+    width: 100%;
+    min-height: 48px;
+    font-size: 13px;
+  }
+
+  .wm-t7-processing {
+    padding:
+      max(12px, env(safe-area-inset-top))
+      12px
+      max(12px, env(safe-area-inset-bottom));
+  }
 }

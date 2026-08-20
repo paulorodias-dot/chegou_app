@@ -558,10 +558,37 @@ export default function WizardMoradorLayout({
           style={{ "--wm-progress": `${progresso}%` }}
         >
           {ETAPAS.slice(0, totalEtapas).map((etapa) => {
-            const desabilitada = etapasDesabilitadas.includes(etapa.numero);
+            const desabilitadaPorPerfil =
+              etapasDesabilitadas.includes(etapa.numero);
+
+            /*
+             * Depois que o cadastro foi enviado (Tela 8 em diante),
+             * as Telas 1 a 7 permanecem visíveis como concluídas,
+             * porém não podem mais ser abertas ou editadas.
+             */
+            const bloqueadaAposEnvio =
+              (Number(etapaAtual) === 8 && etapa.numero <= 7) ||
+              (Number(etapaAtual) >= 9 && etapa.numero <= 8);
+
             const ativa = etapa.numero === etapaAtual;
-            const concluida = etapa.numero < etapaAtual && !desabilitada;
-            const liberada = etapa.numero <= maiorEtapaLiberada && !desabilitada;
+
+            const concluida =
+              etapa.numero < etapaAtual &&
+              !desabilitadaPorPerfil;
+
+            const liberada =
+              etapa.numero <= maiorEtapaLiberada &&
+              !desabilitadaPorPerfil &&
+              !bloqueadaAposEnvio;
+
+            const bloqueada =
+              desabilitadaPorPerfil || bloqueadaAposEnvio;
+
+            const motivoBloqueio = desabilitadaPorPerfil
+              ? "Esta etapa não se aplica ao perfil selecionado"
+              : bloqueadaAposEnvio
+                ? "Cadastro enviado. Esta etapa está concluída e bloqueada para edição."
+                : undefined;
 
             return (
               <button
@@ -570,23 +597,30 @@ export default function WizardMoradorLayout({
                 className={`wm-step ${ativa ? "active" : ""} ${
                   concluida ? "done" : ""
                 } ${liberada ? "clickable" : "locked"} ${
-                  desabilitada ? "disabled-by-profile" : ""
-                }`}
+                  desabilitadaPorPerfil ? "disabled-by-profile" : ""
+                } ${bloqueadaAposEnvio ? "locked-after-submit" : ""}`}
                 onClick={() => irParaEtapa(etapa.numero)}
-                disabled={!liberada}
+                disabled={bloqueada || !liberada}
                 aria-current={ativa ? "step" : undefined}
-                title={
-                  desabilitada
-                    ? "Esta etapa não se aplica ao perfil selecionado"
-                    : undefined
-                }
+                aria-disabled={bloqueada || !liberada}
+                title={motivoBloqueio}
               >
-                <span className="wm-step-circle">{etapa.numero}</span>
+                <span className="wm-step-circle">
+                  {bloqueadaAposEnvio ? (
+                    <LockKeyhole size={14} aria-hidden="true" />
+                  ) : (
+                    etapa.numero
+                  )}
+                </span>
 
                 <span className="wm-step-label">
                   <strong>{etapa.titulo}</strong>
                   <small>
-                    {desabilitada ? "Não se aplica" : etapa.subtitulo}
+                    {desabilitadaPorPerfil
+                      ? "Não se aplica"
+                      : bloqueadaAposEnvio
+                        ? "Concluída"
+                        : etapa.subtitulo}
                   </small>
                 </span>
               </button>
@@ -678,19 +712,31 @@ export default function WizardMoradorLayout({
             <ShieldCheck size={18} />
           </span>
 
-          <div>
+          <div className="wm-footer-copy">
             <strong>Ambiente seguro</strong>
-            <span>Dados protegidos com criptografia de ponta.</span>
+            <span>Seus dados são protegidos durante todo o cadastro.</span>
           </div>
         </div>
 
-        <div className="wm-footer-brand">
+        <div className="wm-footer-brand" aria-label="Sistema Chegou!">
           <img src={logoAzulRoyal} alt="Sistema Chegou!" />
         </div>
 
         <div className="wm-footer-right">
-          <strong>Precisa de ajuda?</strong>
-          <span>Fale com o condomínio ou suporte <MarcaChegou /></span>
+          <button
+            type="button"
+            className="wm-footer-help"
+            onClick={() => setAjudaAberta(true)}
+          >
+            <span className="wm-footer-help-icon">
+              <HelpCircle size={17} />
+            </span>
+
+            <span className="wm-footer-help-copy">
+              <strong>Precisa de ajuda?</strong>
+              <small>Ver orientações e contatos</small>
+            </span>
+          </button>
         </div>
       </footer>
 

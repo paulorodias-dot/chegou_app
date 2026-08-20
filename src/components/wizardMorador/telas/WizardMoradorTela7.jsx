@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
   ArrowLeft,
@@ -193,6 +193,7 @@ export default function WizardMoradorTela7({
 
   const [faqAberta, setFaqAberta] = useState(null);
   const [processando, setProcessando] = useState(false);
+  const [salvandoRascunho, setSalvandoRascunho] = useState(false);
 
   const [modalTermos, setModalTermos] = useState(null);
 
@@ -251,6 +252,36 @@ export default function WizardMoradorTela7({
 
   const versaoTermos = obterVersaoTermos();
 
+  useEffect(() => {
+    if (!modalTermos) return undefined;
+
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function fecharComEsc(event) {
+      if (event.key === "Escape") {
+        setModalTermos(null);
+      }
+    }
+
+    window.addEventListener("keydown", fecharComEsc);
+
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+      window.removeEventListener("keydown", fecharComEsc);
+    };
+  }, [modalTermos]);
+
+  function aguardarRenderTransicao() {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.setTimeout(resolve, 220);
+        });
+      });
+    });
+  }
+
   function alterarAceite(chave) {
     setAceites((old) => ({
       ...old,
@@ -269,20 +300,25 @@ export default function WizardMoradorTela7({
     }
 
   async function salvarRascunho() {
-    await onSaveDraft?.({
-      etapa_atual: 7,
-      status_conta: "PENDENTE_APROVACAO",
-      senha_preparada: false,
-      atualizado_em: new Date().toISOString(),
-    });
+    if (salvandoRascunho || processando) return;
 
-    toast.success(
-      "Rascunho salvo com sucesso."
-    );
+    try {
+      setSalvandoRascunho(true);
+
+      const salvou = await onSaveDraft?.({
+        senha_preparada: false,
+      });
+
+      if (salvou !== false) {
+        toast.success("Suas informações foram salvas.");
+      }
+    } finally {
+      setSalvandoRascunho(false);
+    }
   }
 
   async function finalizarEtapa() {
-    if (processando) return;
+    if (processando || salvandoRascunho) return;
 
     if (!senhaValida && !senhaJaPreparada) {
       toast.error("Crie uma senha forte antes de continuar.");
@@ -290,9 +326,7 @@ export default function WizardMoradorTela7({
     }
 
     if (!aceitouTudo) {
-      toast.error(
-        "É necessário aceitar todos os termos obrigatórios."
-      );
+      toast.error("Aceite os termos obrigatórios para continuar.");
       return;
     }
 
@@ -310,7 +344,6 @@ export default function WizardMoradorTela7({
       tokenEhSandbox;
 
     const payloadFinal = {
-      etapa_atual: 7,
       senha_preparada: true,
       senha_definida: true,
       aceite_termos: true,
@@ -321,15 +354,18 @@ export default function WizardMoradorTela7({
       versao_termos: versaoTermos,
       versao_privacidade: versaoTermos,
       versao_documento_juridico: versaoTermos,
-      user_agent: navigator.userAgent,
-      sistema_operacional: navigator.platform,
-      aceito_em: new Date().toISOString(),
-      status_conta: "PENDENTE_APROVACAO",
       modo_teste: modoTeste,
     };
 
     try {
       setProcessando(true);
+
+      /*
+       * Mantém a mesma experiência visual das demais etapas:
+       * primeiro mostra o feedback de salvamento, depois executa
+       * a preparação da senha e a transição para a próxima tela.
+       */
+      await aguardarRenderTransicao();
 
       if (!modoTeste && !senhaJaPreparada) {
         await prepararSenhaWizardMorador({
@@ -345,7 +381,7 @@ export default function WizardMoradorTela7({
     } catch (error) {
       toast.error(
         error?.message ||
-          "Erro ao finalizar o cadastro."
+          "Não foi possível continuar. Confira as informações e tente novamente."
       );
     } finally {
       setProcessando(false);
@@ -376,8 +412,7 @@ export default function WizardMoradorTela7({
               <strong>Conta pendente de aprovação</strong>
 
               <p>
-                Sua senha ficará preparada, mas o acesso só será liberado após
-                validação administrativa.
+                Sua senha ficará pronta, mas o acesso ao sistema será liberado somente após a aprovação do cadastro.
               </p>
             </div>
           </div>
@@ -395,7 +430,7 @@ export default function WizardMoradorTela7({
 
                 <div>
                   <h2>1. Dados de acesso</h2>
-                  <p>Confira os dados que poderão ser usados para identificação.</p>
+                  <p>Confira os dados que serão associados ao seu acesso.</p>
                 </div>
               </div>
 
@@ -428,8 +463,7 @@ export default function WizardMoradorTela7({
               <div className="wm-t7-info-note">
                 <Info size={17} />
                 <span>
-                  Após a aprovação, você poderá acessar com o e-mail cadastrado
-                  ou CPF, conforme regras de autenticação do Sistema Chegou<span className="wm-orange">!</span>.
+                  Após a aprovação, você poderá acessar com o e-mail cadastrado ou com o CPF.
                 </span>
               </div>
             </section>
@@ -443,7 +477,7 @@ export default function WizardMoradorTela7({
                 <div>
                   <h2>2. Crie sua senha segura</h2>
                   <p>
-                    Use uma senha forte. O preenchimento automático fica desativado nesta etapa.
+                    Crie uma senha forte para proteger seu acesso.
                   </p>
                 </div>
               </div>
@@ -468,8 +502,7 @@ export default function WizardMoradorTela7({
                   <div className="wm-t7-security-note">
                     <ShieldCheck size={18} />
                     <span>
-                      A senha será preparada com segurança. Sua conta permanecerá
-                      bloqueada até aprovação administrativa.
+                      Sua senha será protegida e o acesso permanecerá indisponível até a aprovação do cadastro.
                     </span>
                   </div>
                 </div>
@@ -498,7 +531,7 @@ export default function WizardMoradorTela7({
                 <div>
                   <h2>3. Aceites obrigatórios</h2>
                   <p>
-                    Leia e confirme os termos necessários para continuidade do cadastro.
+                    Leia e confirme os termos necessários para continuar.
                   </p>
                 </div>
               </div>
@@ -513,8 +546,7 @@ export default function WizardMoradorTela7({
                 <div>
                   <strong>Selecionar e aceitar todos os termos</strong>
                   <small>
-                    Versão dos termos: {versaoTermos}. O aceite será registrado
-                    com data, hora e dispositivo.
+                    Versão dos termos: {versaoTermos}. Sua confirmação ficará registrada.
                   </small>
                 </div>
               </button>
@@ -565,7 +597,7 @@ export default function WizardMoradorTela7({
                   <h2>4. Segurança e responsabilidade</h2>
 
                   <p>
-                    Transparência sobre o tratamento dos dados e uso da plataforma.
+                    Veja como suas informações serão utilizadas no Chegou!.
                   </p>
                 </div>
               </div>
@@ -586,9 +618,7 @@ export default function WizardMoradorTela7({
                 </p>
 
                 <p>
-                  Toda alteração relevante poderá ser registrada em logs de
-                  auditoria para garantir segurança, conformidade e
-                  rastreabilidade operacional.
+                  Alterações importantes poderão ser registradas para proteção do cadastro e segurança do condomínio.
                 </p>
 
                 <div className="wm-t7-version-box">
@@ -610,9 +640,9 @@ export default function WizardMoradorTela7({
                 type="button"
                 className="secondary"
                 onClick={onBack}
-                disabled={processando}
+                disabled={processando || salvandoRascunho}
               >
-                <ArrowLeft size={17} />
+                <ArrowLeft size={16} />
                 Voltar
               </button>
 
@@ -620,19 +650,19 @@ export default function WizardMoradorTela7({
                 type="button"
                 className="outline"
                 onClick={salvarRascunho}
-                disabled={processando}
+                disabled={processando || salvandoRascunho}
               >
-                <Save size={17} />
-                Salvar e continuar depois
+                <Save size={16} />
+                {salvandoRascunho ? "Salvando..." : "Salvar e continuar depois"}
               </button>
 
               <button
                 type="button"
                 className="primary"
                 onClick={finalizarEtapa}
-                disabled={!podeContinuar || processando}
+                disabled={!podeContinuar || processando || salvandoRascunho}
               >
-                {processando ? "Finalizando..." : "Finalizar cadastro"}
+                {processando ? "Salvando informações..." : "Continuar"}
                 <ArrowRight size={18} />
               </button>
             </footer>
@@ -694,8 +724,7 @@ export default function WizardMoradorTela7({
 
               <h3>Jurídico</h3>
               <p>
-                Após o aceite, estes termos não serão solicitados novamente no
-                Módulo Morador, exceto se houver alteração de versão jurídica.
+                Após o aceite, estes termos só precisarão ser confirmados novamente se houver uma atualização relevante.
               </p>
             </section>
 
@@ -741,6 +770,16 @@ export default function WizardMoradorTela7({
           onClose={() => setModalTermos(null)}
         />
       ) : null}
+
+      {processando ? (
+        <div className="wm-t7-processing" role="status" aria-live="polite">
+          <div className="wm-t7-processing-card">
+            <span className="wm-t7-spinner" />
+            <strong>Salvando suas informações</strong>
+            <p>Aguarde um instante. Estamos preparando a próxima etapa.</p>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -755,7 +794,7 @@ function ModalTermos({ titulo, termos = [], onClose }) {
             <p>Leia os termos antes de confirmar o aceite.</p>
           </div>
 
-          <button type="button" onClick={onClose}>
+          <button type="button" onClick={onClose} aria-label="Fechar">
             <X size={20} />
           </button>
         </header>

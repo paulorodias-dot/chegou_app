@@ -1,4 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   AlertTriangle,
   CheckCircle2,
@@ -14,135 +19,308 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+
 import toast from "react-hot-toast";
 
+import DateRangePickerPremium
+  from "../../components/premium/DateRangePickerPremium";
 
-
-import DateRangePickerPremium from "../../components/premium/DateRangePickerPremium";
-import { supabase } from "../../services/supabase";
 import "./AuditoriaMoradoresAuditoria.css";
+
 import {
+  aprovarMoradorAuditoria,
   buscarTorresAuditoriaMoradores,
   formatarStatusAuditoria,
-  marcarAuditoriaIniciada,
-  registrarDecisaoAuditoriaMorador,
   listarMoradoresParaAuditoria,
+  marcarAuditoriaIniciada,
+  obterDetalheAuditoriaMorador,
   obterResumoAuditoriaMoradores,
+  registrarDecisaoAuditoriaMorador,
 } from "../../services/auditoriaMoradoresAuditoriaService";
 
 const STATUS_FILTROS = [
-  { value: "TODOS", label: "Todos" },
-  { value: "AGUARDANDO_AUDITORIA", label: "Aguardando Auditoria" },
-  { value: "AUDITORIA_INICIADA", label: "Auditoria Iniciada" },
-  { value: "REAUDITORIA_PENDENTE", label: "Reauditoria Pendente" },
+  {
+    value: "TODOS",
+    label: "Todos",
+  },
+  {
+    value: "AGUARDANDO_AUDITORIA",
+    label: "Aguardando Auditoria",
+  },
+  {
+    value: "AUDITORIA_INICIADA",
+    label: "Auditoria Iniciada",
+  },
+  {
+    value: "REAUDITORIA_PENDENTE",
+    label: "Reauditoria Pendente",
+  },
 ];
 
 function formatarDataHora(valor) {
-  if (!valor) return "—";
+  if (!valor) {
+    return "—";
+  }
 
   try {
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(valor));
+    return new Intl
+      .DateTimeFormat(
+        "pt-BR",
+        {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }
+      )
+      .format(
+        new Date(valor)
+      );
   } catch {
     return "—";
   }
 }
 
-function valor(valorCampo) {
-  if (valorCampo === null || valorCampo === undefined || String(valorCampo).trim() === "") {
+function valor(
+  valorCampo
+) {
+  if (
+    valorCampo === null ||
+    valorCampo === undefined ||
+    String(
+      valorCampo
+    ).trim() === ""
+  ) {
     return "Não informado";
   }
 
   return valorCampo;
 }
 
-function obterIniciais(nome = "") {
-  const partes = String(nome).trim().split(" ").filter(Boolean);
+function obterIniciais(
+  nome = ""
+) {
+  const partes =
+    String(nome)
+      .trim()
+      .split(" ")
+      .filter(Boolean);
 
-  if (!partes.length) return "CH";
-  if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+  if (!partes.length) {
+    return "CH";
+  }
 
-  return `${partes[0][0]}${partes[partes.length - 1][0]}`.toUpperCase();
+  if (
+    partes.length === 1
+  ) {
+    return partes[0]
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  return `${partes[0][0]}${
+    partes[
+      partes.length - 1
+    ][0]
+  }`.toUpperCase();
 }
 
-function classeStatus(status = "") {
-  const valorStatus = String(status || "").toUpperCase();
+function classeStatus(
+  status = ""
+) {
+  const atual =
+    String(
+      status || ""
+    ).toUpperCase();
 
-  if (valorStatus === "AGUARDANDO_AUDITORIA") return "aguardando";
-  if (valorStatus === "AUDITORIA_INICIADA") return "iniciada";
-  if (valorStatus === "REAUDITORIA_PENDENTE") return "reauditoria";
-  if (valorStatus === "CORRECAO_SOLICITADA") return "correcao";
-  if (valorStatus === "APROVADO") return "aprovado";
-  if (valorStatus === "REPROVADO") return "reprovado";
+  if (
+    atual ===
+    "AGUARDANDO_AUDITORIA"
+  ) {
+    return "aguardando";
+  }
+
+  if (
+    atual ===
+    "AUDITORIA_INICIADA"
+  ) {
+    return "iniciada";
+  }
+
+  if (
+    atual ===
+    "REAUDITORIA_PENDENTE"
+  ) {
+    return "reauditoria";
+  }
+
+  if (
+    atual ===
+    "CORRECAO_SOLICITADA"
+  ) {
+    return "correcao";
+  }
+
+  if (
+    atual === "APROVADO"
+  ) {
+    return "aprovado";
+  }
+
+  if (
+    atual === "REPROVADO"
+  ) {
+    return "reprovado";
+  }
 
   return "neutro";
 }
 
 function dataHojeInput() {
-  return new Date().toISOString().slice(0, 10);
+  return new Date()
+    .toISOString()
+    .slice(0, 10);
 }
 
-function dataMenosDiasInput(dias = 30) {
-  const data = new Date();
-  data.setDate(data.getDate() - dias);
-  return data.toISOString().slice(0, 10);
+function dataMenosDiasInput(
+  dias = 30
+) {
+  const data =
+    new Date();
+
+  data.setDate(
+    data.getDate() -
+    dias
+  );
+
+  return data
+    .toISOString()
+    .slice(0, 10);
 }
 
-function KpiCard({ icon: Icon, titulo, valor, detalhe, variante = "azul" }) {
+function KpiCard({
+  icon: Icon,
+  titulo,
+  valor: numero,
+  detalhe,
+  variante = "azul",
+}) {
   return (
     <div className="ama-kpi-card">
-      <div className={`ama-kpi-icon ama-kpi-icon-${variante}`}>
-        <Icon size={22} strokeWidth={2.1} />
+      <div
+        className={`ama-kpi-icon ama-kpi-icon-${variante}`}
+      >
+        <Icon
+          size={22}
+          strokeWidth={2.1}
+        />
       </div>
 
       <div className="ama-kpi-content">
-        <span>{titulo}</span>
-        <strong>{valor}</strong>
+        <span>
+          {titulo}
+        </span>
+
+        <strong>
+          {numero}
+        </strong>
 
         <div className="ama-kpi-footer">
-          <small>{detalhe}</small>
+          <small>
+            {detalhe}
+          </small>
         </div>
       </div>
     </div>
   );
 }
 
-function AcaoLinhaMenu({ item, aberto, onToggle, onAcao }) {
-  const [posicao, setPosicao] = useState({ top: 0, left: 0 });
+function AcaoLinhaMenu({
+  item,
+  aberto,
+  onToggle,
+  onAcao,
+}) {
+  const [
+    posicao,
+    setPosicao,
+  ] = useState({
+    top: 0,
+    left: 0,
+  });
 
-  const opcoes = ["Auditar", "Visualizar Resumo"];
+  const opcoes = [
+    "Auditar",
+    "Visualizar Resumo",
+  ];
 
-  function abrirMenu(event) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const larguraMenu = 196;
-    const alturaMenu = Math.min(180, opcoes.length * 34 + 14);
+  function abrirMenu(
+    event
+  ) {
+    const rect =
+      event.currentTarget
+        .getBoundingClientRect();
 
-    let left = rect.right - larguraMenu - 25;
-    let top = rect.top - alturaMenu + 28;
+    const largura = 196;
 
-    if (left < 12) left = 12;
-    if (left + larguraMenu > window.innerWidth - 12) {
-      left = window.innerWidth - larguraMenu - 12;
+    const altura =
+      Math.min(
+        180,
+        opcoes.length *
+          34 +
+          14
+      );
+
+    let left =
+      rect.right -
+      largura -
+      25;
+
+    let top =
+      rect.top -
+      altura +
+      28;
+
+    if (left < 12) {
+      left = 12;
     }
 
-    if (top < 12) top = rect.bottom + 8;
-
-    if (top + alturaMenu > window.innerHeight - 12) {
-      top = window.innerHeight - alturaMenu - 12;
+    if (
+      left + largura >
+      window.innerWidth - 12
+    ) {
+      left =
+        window.innerWidth -
+        largura -
+        12;
     }
 
-    setPosicao({ top, left });
-    onToggle(aberto ? null : item.id);
-  }
+    if (top < 12) {
+      top =
+        rect.bottom + 8;
+    }
 
-  function executarOpcao(opcao) {
-    onToggle(null);
-    onAcao(opcao, item);
+    if (
+      top + altura >
+      window.innerHeight - 12
+    ) {
+      top =
+        window.innerHeight -
+        altura -
+        12;
+    }
+
+    setPosicao({
+      top,
+      left,
+    });
+
+    onToggle(
+      aberto
+        ? null
+        : item.id
+    );
   }
 
   return (
@@ -150,10 +328,14 @@ function AcaoLinhaMenu({ item, aberto, onToggle, onAcao }) {
       <button
         type="button"
         className="ama-icon-action ama-row-menu-btn"
-        onClick={abrirMenu}
+        onClick={
+          abrirMenu
+        }
         aria-label="Abrir ações"
       >
-        <MoreVertical size={18} />
+        <MoreVertical
+          size={18}
+        />
       </button>
 
       {aberto ? (
@@ -161,22 +343,42 @@ function AcaoLinhaMenu({ item, aberto, onToggle, onAcao }) {
           <button
             type="button"
             className="ama-menu-overlay"
-            onClick={() => onToggle(null)}
+            onClick={() =>
+              onToggle(null)
+            }
             aria-label="Fechar menu"
           />
 
           <div
             className="ama-row-menu ama-row-menu-fixed"
             style={{
-              top: `${posicao.top}px`,
-              left: `${posicao.left}px`,
+              top:
+                `${posicao.top}px`,
+
+              left:
+                `${posicao.left}px`,
             }}
           >
-            {opcoes.map((opcao) => (
-              <button key={opcao} type="button" onClick={() => executarOpcao(opcao)}>
-                {opcao}
-              </button>
-            ))}
+            {opcoes.map(
+              (opcao) => (
+                <button
+                  key={opcao}
+                  type="button"
+                  onClick={() => {
+                    onToggle(
+                      null
+                    );
+
+                    onAcao(
+                      opcao,
+                      item
+                    );
+                  }}
+                >
+                  {opcao}
+                </button>
+              )
+            )}
           </div>
         </>
       ) : null}
@@ -184,11 +386,43 @@ function AcaoLinhaMenu({ item, aberto, onToggle, onAcao }) {
   );
 }
 
-function CampoLeitura({ label, value }) {
+function CampoLeitura({
+  label,
+  value,
+}) {
   return (
     <div className="ama-read-field">
-      <span>{label}</span>
-      <strong>{valor(value)}</strong>
+      <span>
+        {label}
+      </span>
+
+      <strong>
+        {valor(value)}
+      </strong>
+    </div>
+  );
+}
+
+function ListaCampos({
+  campos = [],
+}) {
+  return (
+    <div className="ama-fields-grid">
+      {campos.map(
+        (campo) => (
+          <CampoLeitura
+            key={
+              campo.label
+            }
+            label={
+              campo.label
+            }
+            value={
+              campo.value
+            }
+          />
+        )
+      )}
     </div>
   );
 }
@@ -204,259 +438,455 @@ function AccordionItem({
   children,
 }) {
   return (
-    <section className={aberto ? "ama-accordion-item open" : "ama-accordion-item"}>
-      <button type="button" className="ama-accordion-head" onClick={() => onToggle(id)}>
+    <section
+      className={
+        aberto
+          ? "ama-accordion-item open"
+          : "ama-accordion-item"
+      }
+    >
+      <button
+        type="button"
+        className="ama-accordion-head"
+        onClick={() =>
+          onToggle(id)
+        }
+      >
         <div className="ama-accordion-title">
           <div className="ama-accordion-icon">
-            <Icon size={18} />
+            <Icon
+              size={18}
+            />
           </div>
 
           <div>
-            <strong>{titulo}</strong>
-            <span>{subtitulo}</span>
+            <strong>
+              {titulo}
+            </strong>
+
+            <span>
+              {subtitulo}
+            </span>
           </div>
         </div>
 
         <div className="ama-accordion-status">
-          <span>{status}</span>
-          <ChevronRight size={17} />
+          <span>
+            {status}
+          </span>
+
+          <ChevronRight
+            size={17}
+          />
         </div>
       </button>
 
-      {aberto ? <div className="ama-accordion-body">{children}</div> : null}
+      {aberto ? (
+        <div className="ama-accordion-body">
+          {children}
+        </div>
+      ) : null}
     </section>
   );
 }
 
-function ModalConflitoGaragem({ item, onClose }) {
-  if (!item) return null;
-
-  const conflitos = item.garagem?.filter((vaga) => vaga?.conflito) || [];
-
-  return (
-    <>
-      <button
-        type="button"
-        className="ama-drawer-backdrop"
-        onClick={onClose}
-        aria-label="Fechar conflito"
-      />
-
-      <div className="ama-conflict-modal">
-        <header>
-          <div>
-            <span>Conflito de Garagem</span>
-            <h2>Verificação de conflito</h2>
-          </div>
-
-          <button type="button" onClick={onClose} aria-label="Fechar">
-            <X size={18} />
-          </button>
-        </header>
-
-        <div className="ama-conflict-content">
-          <div className="ama-conflict-card">
-            <span>Unidade em auditoria</span>
-            <strong>
-              {item.torre} / Apto {item.unidade}
-            </strong>
-            <p>{item.nome}</p>
-          </div>
-
-          <div className="ama-conflict-card danger">
-            <span>Conflito identificado</span>
-            <strong>
-              {valor(conflitos[0]?.torre_conflito)} / Apto{" "}
-              {valor(conflitos[0]?.unidade_conflito)}
-            </strong>
-            <p>{valor(conflitos[0]?.morador_conflito)}</p>
-          </div>
-        </div>
-
-        <p className="ama-conflict-note">
-          Se houver erro nos dados de garagem, solicite correção ao morador. O
-          Administrativo não deve editar placa, vaga ou vínculo informado no Wizard.
-        </p>
-      </div>
-    </>
-  );
-}
-function ListaCampos({ campos = [] }) {
-  return (
-    <div className="ama-fields-grid">
-      {campos.map((campo) => (
-        <CampoLeitura key={campo.label} label={campo.label} value={campo.value} />
-      ))}
-    </div>
-  );
-}
-
-function ListaDependentes({ dependentes = [] }) {
+function ListaDependentes({
+  dependentes = [],
+}) {
   if (!dependentes.length) {
-    return <div className="ama-empty-inline">Nenhum dependente informado.</div>;
+    return (
+      <div className="ama-empty-inline">
+        Nenhum dependente informado.
+      </div>
+    );
   }
 
   return (
     <div className="ama-list-stack">
-      {dependentes.map((dependente, index) => (
-        <div className="ama-dependent-card" key={dependente.id || `${dependente.nome}-${index}`}>
-          <div className="ama-dependent-head">
-            <div>
-              <strong>{valor(dependente.nome)}</strong>
-              <span>
-                {valor(dependente.parentesco || dependente.vinculo)} •{" "}
-                {dependente.idade !== null && dependente.idade !== undefined
-                  ? `${dependente.idade} anos`
-                  : "Idade não informada"}
-              </span>
+      {dependentes.map(
+        (
+          dependente,
+          index
+        ) => (
+          <div
+            className="ama-dependent-card"
+            key={
+              dependente.id ||
+              `${dependente.nome}-${index}`
+            }
+          >
+            <div className="ama-dependent-head">
+              <div>
+                <strong>
+                  {valor(
+                    dependente.nome
+                  )}
+                </strong>
+
+                <span>
+                  {valor(
+                    dependente.parentesco
+                  )}
+
+                  {" • "}
+
+                  {dependente.idade !==
+                    null &&
+                  dependente.idade !==
+                    undefined
+                    ? `${dependente.idade} anos`
+                    : "Idade não informada"}
+                </span>
+              </div>
+
+              <em
+                className={
+                  dependente.login_proprio
+                    ? "ama-tag ama-tag-blue"
+                    : "ama-tag"
+                }
+              >
+                {dependente.login_proprio
+                  ? "Acesso próprio"
+                  : "Sem acesso próprio"}
+              </em>
             </div>
 
-            {dependente.login_proprio ? (
-              <em className="ama-tag ama-tag-blue">Login próprio</em>
-            ) : (
-              <em className="ama-tag">Sem login</em>
-            )}
+            <ListaCampos
+              campos={[
+                {
+                  label:
+                    "Data de nascimento",
+                  value:
+                    dependente
+                      .data_nascimento,
+                },
+                {
+                  label: "CPF",
+                  value:
+                    dependente
+                      .cpf_mascarado,
+                },
+                {
+                  label:
+                    "E-mail",
+                  value:
+                    dependente
+                      .login_proprio
+                      ? dependente.email
+                      : "Não informado",
+                },
+                {
+                  label:
+                    "WhatsApp",
+                  value:
+                    dependente
+                      .login_proprio
+                      ? dependente.telefone
+                      : "Não informado",
+                },
+                {
+                  label:
+                    "Pode retirar encomendas",
+                  value:
+                    dependente
+                      .permite_retirada
+                      ? "Sim"
+                      : "Não",
+                },
+                {
+                  label:
+                    "Autorização necessária",
+                  value:
+                    dependente
+                      .autorizacao_menor_16
+                      ? "Informada"
+                      : "Não informada",
+                },
+              ]}
+            />
           </div>
-
-          <ListaCampos
-            campos={[
-              { label: "Data de nascimento", value: dependente.data_nascimento },
-              { label: "CPF", value: dependente.cpf_mascarado || dependente.cpf || "Não informado" },
-              { label: "E-mail", value: dependente.login_proprio ? dependente.email : "Não informado" },
-              { label: "WhatsApp", value: dependente.login_proprio ? dependente.telefone : "Não informado" },
-              { label: "Permissão de retirada", value: dependente.permite_retirada ? "Sim" : "Não informado" },
-              {
-                label: "Autorização menor de 16",
-                value: dependente.autorizacao_menor_16 ? "Informada" : "Não informado",
-              },
-            ]}
-          />
-        </div>
-      ))}
+        )
+      )}
     </div>
   );
 }
 
-function ListaFuncionariosPets({ funcionarios = [], pets = [] }) {
+function ListaFuncionariosPets({
+  funcionarios = [],
+  pets = [],
+}) {
   return (
     <div className="ama-list-stack">
       <div className="ama-subsection">
-        <h4>Funcionários do lar</h4>
+        <h4>
+          Funcionários do lar
+        </h4>
 
         {funcionarios.length ? (
-          funcionarios.map((funcionario, index) => (
-            <div className="ama-simple-card" key={funcionario.id || `${funcionario.nome}-${index}`}>
-              <ListaCampos
-                campos={[
-                  { label: "Nome", value: funcionario.nome },
-                  { label: "Função", value: funcionario.funcao },
-                  { label: "CPF", value: funcionario.cpf_mascarado || funcionario.cpf || "Não informado" },
-                  { label: "WhatsApp", value: funcionario.telefone },
-                  { label: "Dias autorizados", value: funcionario.dias_autorizados },
-                  { label: "Observações", value: funcionario.observacoes },
-                ]}
-              />
-            </div>
-          ))
+          funcionarios.map(
+            (
+              funcionario,
+              index
+            ) => (
+              <div
+                className="ama-simple-card"
+                key={
+                  funcionario.id ||
+                  `${funcionario.nome}-${index}`
+                }
+              >
+                <ListaCampos
+                  campos={[
+                    {
+                      label:
+                        "Nome",
+                      value:
+                        funcionario.nome,
+                    },
+                    {
+                      label:
+                        "Função",
+                      value:
+                        funcionario.funcao,
+                    },
+                    {
+                      label:
+                        "WhatsApp",
+                      value:
+                        funcionario.telefone,
+                    },
+                    {
+                      label:
+                        "Observações",
+                      value:
+                        funcionario.observacoes,
+                    },
+                  ]}
+                />
+              </div>
+            )
+          )
         ) : (
-          <div className="ama-empty-inline">Nenhum funcionário do lar informado.</div>
+          <div className="ama-empty-inline">
+            Nenhum funcionário informado.
+          </div>
         )}
       </div>
 
       <div className="ama-subsection">
-        <h4>Pets</h4>
+        <h4>
+          Pets
+        </h4>
 
         {pets.length ? (
-          pets.map((pet, index) => (
-            <div className="ama-simple-card" key={pet.id || `${pet.nome}-${index}`}>
-              <ListaCampos
-                campos={[
-                  { label: "Nome", value: pet.nome },
-                  { label: "Tipo", value: pet.tipo },
-                  { label: "Raça", value: pet.raca },
-                  { label: "Porte", value: pet.porte },
-                  { label: "Observações", value: pet.observacoes },
-                ]}
-              />
-            </div>
-          ))
+          pets.map(
+            (
+              pet,
+              index
+            ) => (
+              <div
+                className="ama-simple-card"
+                key={
+                  pet.id ||
+                  `${pet.nome}-${index}`
+                }
+              >
+                <ListaCampos
+                  campos={[
+                    {
+                      label:
+                        "Nome",
+                      value:
+                        pet.nome,
+                    },
+                    {
+                      label:
+                        "Tipo",
+                      value:
+                        pet.tipo,
+                    },
+                    {
+                      label:
+                        "Raça",
+                      value:
+                        pet.raca,
+                    },
+                    {
+                      label:
+                        "Porte",
+                      value:
+                        pet.porte,
+                    },
+                  ]}
+                />
+              </div>
+            )
+          )
         ) : (
-          <div className="ama-empty-inline">Nenhum pet informado.</div>
+          <div className="ama-empty-inline">
+            Nenhum pet informado.
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-function ListaVeiculosGaragem({ item, onVerConflito }) {
-  const veiculos = item.veiculos || [];
-  const garagem = item.garagem || [];
-  const possuiConflito = item.resumo?.possuiConflitoGaragem;
+function ListaVeiculosGaragem({
+  item,
+}) {
+  const veiculos =
+    item.veiculos || [];
+
+  const garagem =
+    item.garagem || [];
 
   return (
     <div className="ama-list-stack">
       <div className="ama-subsection">
-        <h4>Veículos</h4>
+        <h4>
+          Veículos
+        </h4>
 
         {veiculos.length ? (
-          veiculos.map((veiculo, index) => (
-            <div className="ama-simple-card" key={veiculo.id || `${veiculo.placa}-${index}`}>
-              <ListaCampos
-                campos={[
-                  { label: "Tipo", value: veiculo.tipo },
-                  { label: "Marca", value: veiculo.marca },
-                  { label: "Modelo", value: veiculo.modelo },
-                  { label: "Cor", value: veiculo.cor },
-                  { label: "Placa", value: veiculo.placa },
-                  { label: "Observações", value: veiculo.observacoes },
-                ]}
-              />
-            </div>
-          ))
+          veiculos.map(
+            (
+              veiculo,
+              index
+            ) => (
+              <div
+                className="ama-simple-card"
+                key={
+                  veiculo.id ||
+                  `${veiculo.placa}-${index}`
+                }
+              >
+                <ListaCampos
+                  campos={[
+                    {
+                      label:
+                        "Tipo",
+                      value:
+                        veiculo.tipo,
+                    },
+                    {
+                      label:
+                        "Marca",
+                      value:
+                        veiculo.marca,
+                    },
+                    {
+                      label:
+                        "Modelo",
+                      value:
+                        veiculo.modelo,
+                    },
+                    {
+                      label:
+                        "Cor",
+                      value:
+                        veiculo.cor,
+                    },
+                    {
+                      label:
+                        "Placa",
+                      value:
+                        veiculo.placa,
+                    },
+                  ]}
+                />
+              </div>
+            )
+          )
         ) : (
-          <div className="ama-empty-inline">Nenhum veículo informado.</div>
+          <div className="ama-empty-inline">
+            Nenhum veículo informado.
+          </div>
         )}
       </div>
 
       <div className="ama-subsection">
-        <h4>Garagem</h4>
+        <h4>
+          Garagem
+        </h4>
 
-        {possuiConflito ? (
+        {item.resumo
+          ?.possuiConflitoGaragem ? (
           <div className="ama-conflict-alert">
             <div>
-              <strong>Conflito de garagem identificado</strong>
+              <strong>
+                Atenção aos dados da garagem
+              </strong>
+
               <p>
-                Existe vaga ou vínculo de garagem em conflito com outra unidade.
-                Solicite correção ao morador se a informação estiver incorreta.
+                Há informação que precisa ser
+                conferida antes da aprovação.
               </p>
             </div>
-
-            <button type="button" onClick={() => onVerConflito(item)}>
-              Verificar Conflito
-            </button>
           </div>
         ) : null}
 
         {garagem.length ? (
-          garagem.map((vaga, index) => (
-            <div
-              className={vaga.conflito ? "ama-simple-card danger" : "ama-simple-card"}
-              key={vaga.id || `${vaga.numero_vaga}-${index}`}
-            >
-              <ListaCampos
-                campos={[
-                  { label: "Tipo de vaga", value: vaga.tipo_vaga },
-                  { label: "Número da vaga", value: vaga.numero_vaga },
-                  { label: "Vínculo", value: vaga.vinculo },
-                  { label: "Unidade vinculada", value: vaga.unidade_vinculada },
-                  { label: "Situação", value: vaga.conflito ? "Conflito identificado" : "Sem conflito" },
-                  { label: "Observações", value: vaga.observacoes },
-                ]}
-              />
-            </div>
-          ))
+          garagem.map(
+            (
+              vaga,
+              index
+            ) => (
+              <div
+                className={
+                  vaga.conflito
+                    ? "ama-simple-card danger"
+                    : "ama-simple-card"
+                }
+                key={
+                  vaga.id ||
+                  `${vaga.numero_vaga}-${index}`
+                }
+              >
+                <ListaCampos
+                  campos={[
+                    {
+                      label:
+                        "Tipo de vaga",
+                      value:
+                        vaga.tipo_vaga,
+                    },
+                    {
+                      label:
+                        "Número da vaga",
+                      value:
+                        vaga.numero_vaga,
+                    },
+                    {
+                      label:
+                        "Vínculo",
+                      value:
+                        vaga.vinculo,
+                    },
+                    {
+                      label:
+                        "Unidade vinculada",
+                      value:
+                        vaga.unidade_vinculada,
+                    },
+                    {
+                      label:
+                        "Situação",
+                      value:
+                        vaga.conflito
+                          ? "Requer conferência"
+                          : "Sem pendência",
+                    },
+                  ]}
+                />
+              </div>
+            )
+          )
         ) : (
-          <div className="ama-empty-inline">Nenhuma garagem/vaga informada.</div>
+          <div className="ama-empty-inline">
+            Nenhuma vaga informada.
+          </div>
         )}
       </div>
     </div>
@@ -465,16 +895,18 @@ function ListaVeiculosGaragem({ item, onVerConflito }) {
 
 function DrawerAuditoria({
   item,
-  modo = "auditoria",
+  modo,
   abertoSecao,
   setAbertoSecao,
   onClose,
   onDecisao,
-  onVerConflito,
 }) {
-  if (!item) return null;
+  if (!item) {
+    return null;
+  }
 
-  const somenteLeitura = modo === "resumo";
+  const somenteLeitura =
+    modo === "resumo";
 
   return (
     <>
@@ -482,80 +914,124 @@ function DrawerAuditoria({
         type="button"
         className="ama-drawer-backdrop"
         onClick={onClose}
-        aria-label="Fechar auditoria"
+        aria-label="Fechar"
       />
 
       <aside className="ama-audit-drawer">
         <header className="ama-audit-head">
           <div>
-            <span>{somenteLeitura ? "Resumo do Cadastro" : "Auditoria do Morador"}</span>
-            <h2>{item.nome}</h2>
-            <p>Cadastro finalizado em {formatarDataHora(item.wizard_finalizado_em)}</p>
+            <span>
+              {somenteLeitura
+                ? "Resumo do Cadastro"
+                : "Auditoria do Morador"}
+            </span>
+
+            <h2>
+              {item.nome}
+            </h2>
+
+            <p>
+              Cadastro finalizado em{" "}
+              {formatarDataHora(
+                item.wizard_finalizado_em
+              )}
+            </p>
           </div>
 
-          <button type="button" onClick={onClose} aria-label="Fechar">
-            <X size={18} />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar"
+          >
+            <X
+              size={18}
+            />
           </button>
         </header>
 
         <section className="ama-audit-profile">
           <div className="ama-profile-avatar">
-            {obterIniciais(item.nome)}
+            {obterIniciais(
+              item.nome
+            )}
           </div>
 
           <div className="ama-profile-main">
             <div className="ama-profile-title">
-              <h3>{item.nome}</h3>
-              <span>{item.perfil_morador}</span>
+              <h3>
+                {item.nome}
+              </h3>
+
+              <span>
+                {item.perfil_morador}
+              </span>
             </div>
 
             <p>
-              Unidade {item.unidade} • Torre {item.torre}
+              Unidade {item.unidade}
+              {" • "}
+              Torre {item.torre}
             </p>
 
             <div className="ama-profile-grid">
-              <CampoLeitura label="CPF" value={item.cpf} />
-              <CampoLeitura label="E-mail" value={item.email} />
-              <CampoLeitura label="WhatsApp" value={item.telefone} />
               <CampoLeitura
-                label="Status atual"
-                value={formatarStatusAuditoria(item.status_auditoria)}
+                label="CPF"
+                value={
+                  item.cpf
+                }
+              />
+
+              <CampoLeitura
+                label="E-mail"
+                value={
+                  item.email
+                }
+              />
+
+              <CampoLeitura
+                label="WhatsApp"
+                value={
+                  item.telefone
+                }
+              />
+
+              <CampoLeitura
+                label="Status"
+                value={formatarStatusAuditoria(
+                  item.status_auditoria
+                )}
               />
             </div>
           </div>
 
           <div className="ama-profile-summary">
-            <span>Resumo rápido</span>
+            <span>
+              Resumo rápido
+            </span>
 
             <strong>
-              Dependentes: {item.resumo.dependentes}
+              Dependentes:{" "}
+              {item.resumo
+                ?.dependentes || 0}
             </strong>
 
             <strong>
-              Pets: {item.resumo.pets}
+              Pets:{" "}
+              {item.resumo
+                ?.pets || 0}
             </strong>
 
             <strong>
-              Veículos: {item.resumo.veiculos}
+              Veículos:{" "}
+              {item.resumo
+                ?.veiculos || 0}
             </strong>
 
-            <div className="ama-profile-garage-summary">
-              <span>Garagem</span>
-
-              <strong>
-                {item.resumo.garagem === 1
-                  ? "1 vaga cadastrada"
-                  : `${item.resumo.garagem} vagas cadastradas`}
-              </strong>
-
-              {item.resumo.possuiConflitoGaragem ? (
-                <em className="danger">
-                  ⚠ Conflito identificado
-                </em>
-              ) : (
-                <em>✓ Sem conflito</em>
-              )}
-            </div>
+            <strong>
+              Vagas:{" "}
+              {item.resumo
+                ?.garagem || 0}
+            </strong>
           </div>
         </section>
 
@@ -563,39 +1039,98 @@ function DrawerAuditoria({
           <AccordionItem
             id="identificacao"
             titulo="1. Identificação da Unidade"
-            subtitulo="Dados da unidade, torre e apartamento"
+            subtitulo="Torre, unidade e perfil"
             icon={ClipboardCheck}
             status="Conferir"
-            aberto={abertoSecao === "identificacao"}
-            onToggle={setAbertoSecao}
+            aberto={
+              abertoSecao ===
+              "identificacao"
+            }
+            onToggle={
+              setAbertoSecao
+            }
           >
             <ListaCampos
               campos={[
-                { label: "Torre", value: item.torre },
-                { label: "Unidade", value: item.unidade },
-                { label: "Perfil do cadastro", value: item.perfil_morador },
-                { label: "Business ID", value: item.business_id },
+                {
+                  label: "Torre",
+                  value:
+                    item.torre,
+                },
+                {
+                  label:
+                    "Unidade",
+                  value:
+                    item.unidade,
+                },
+                {
+                  label:
+                    "Perfil",
+                  value:
+                    item.perfil_morador,
+                },
+                {
+                  label:
+                    "ID",
+                  value:
+                    item.business_id,
+                },
               ]}
             />
           </AccordionItem>
 
           <AccordionItem
             id="responsavel"
-            titulo="2. Dados do Morador Responsável"
-            subtitulo="Dados pessoais, contato e perfil"
+            titulo="2. Dados do Morador"
+            subtitulo="Dados pessoais e contato"
             icon={UserRound}
             status="Conferir"
-            aberto={abertoSecao === "responsavel"}
-            onToggle={setAbertoSecao}
+            aberto={
+              abertoSecao ===
+              "responsavel"
+            }
+            onToggle={
+              setAbertoSecao
+            }
           >
             <ListaCampos
               campos={[
-                { label: "Nome completo", value: item.nome },
-                { label: "CPF", value: item.cpf },
-                { label: "E-mail", value: item.email },
-                { label: "WhatsApp", value: item.telefone },
-                { label: "Perfil", value: item.perfil_morador },
-                { label: "Observações", value: item.raw?.observacoes },
+                {
+                  label:
+                    "Nome completo",
+                  value:
+                    item.nome,
+                },
+                {
+                  label:
+                    "CPF",
+                  value:
+                    item.cpf,
+                },
+                {
+                  label:
+                    "E-mail",
+                  value:
+                    item.email,
+                },
+                {
+                  label:
+                    "WhatsApp",
+                  value:
+                    item.telefone,
+                },
+                {
+                  label:
+                    "Perfil",
+                  value:
+                    item.perfil_morador,
+                },
+                {
+                  label:
+                    "Observações",
+                  value:
+                    item.observacoes,
+                },
               ]}
             />
           </AccordionItem>
@@ -603,107 +1138,205 @@ function DrawerAuditoria({
           <AccordionItem
             id="dependentes"
             titulo="3. Dependentes"
-            subtitulo="Ordenados por idade, do maior para o menor"
+            subtitulo="Pessoas vinculadas ao cadastro"
             icon={UserRound}
-            status={`${item.resumo.dependentes} dependentes`}
-            aberto={abertoSecao === "dependentes"}
-            onToggle={setAbertoSecao}
+            status={`${
+              item.resumo
+                ?.dependentes || 0
+            } dependentes`}
+            aberto={
+              abertoSecao ===
+              "dependentes"
+            }
+            onToggle={
+              setAbertoSecao
+            }
           >
-            <ListaDependentes dependentes={item.dependentes} />
+            <ListaDependentes
+              dependentes={
+                item.dependentes
+              }
+            />
           </AccordionItem>
 
           <AccordionItem
             id="funcionarios-pets"
             titulo="4. Funcionários do Lar e Pets"
-            subtitulo="Funcionários autorizados e animais de estimação"
+            subtitulo="Informações adicionais da residência"
             icon={UserRound}
-            status={`${item.resumo.funcionarios + item.resumo.pets} registros`}
-            aberto={abertoSecao === "funcionarios-pets"}
-            onToggle={setAbertoSecao}
+            status={`${
+              (item.resumo
+                ?.funcionarios || 0) +
+              (item.resumo
+                ?.pets || 0)
+            } registros`}
+            aberto={
+              abertoSecao ===
+              "funcionarios-pets"
+            }
+            onToggle={
+              setAbertoSecao
+            }
           >
             <ListaFuncionariosPets
-              funcionarios={item.funcionarios_lar}
-              pets={item.pets}
+              funcionarios={
+                item.funcionarios_lar
+              }
+              pets={
+                item.pets
+              }
             />
           </AccordionItem>
 
           <AccordionItem
             id="veiculos-garagem"
             titulo="5. Veículos e Garagem"
-            subtitulo="Veículos, vagas e estrutura de garagem"
+            subtitulo="Veículos e vagas informadas"
             icon={AlertTriangle}
             status={
-              item.resumo.possuiConflitoGaragem
-                ? "Conflito identificado"
-                : "Sem conflito"
+              item.resumo
+                ?.possuiConflitoGaragem
+                ? "Requer atenção"
+                : "Conferir"
             }
-            aberto={abertoSecao === "veiculos-garagem"}
-            onToggle={setAbertoSecao}
+            aberto={
+              abertoSecao ===
+              "veiculos-garagem"
+            }
+            onToggle={
+              setAbertoSecao
+            }
           >
-            <ListaVeiculosGaragem item={item} onVerConflito={onVerConflito} />
+            <ListaVeiculosGaragem
+              item={item}
+            />
           </AccordionItem>
 
           <AccordionItem
             id="preferencias"
-            titulo="6. Preferências e Comunicação"
-            subtitulo="Preferências do morador e canais de comunicação"
+            titulo="6. Preferências"
+            subtitulo="Preferências de comunicação"
             icon={Info}
             status="Conferir"
-            aberto={abertoSecao === "preferencias"}
-            onToggle={setAbertoSecao}
+            aberto={
+              abertoSecao ===
+              "preferencias"
+            }
+            onToggle={
+              setAbertoSecao
+            }
           >
             <ListaCampos
               campos={[
-                { label: "Canal preferencial", value: item.preferencias?.canal_preferencial },
-                { label: "Receber notificações", value: item.preferencias?.notificacoes ? "Sim" : "Não informado" },
-                { label: "Privacidade", value: item.preferencias?.privacidade },
-                { label: "Observações", value: item.preferencias?.observacoes },
+                {
+                  label:
+                    "Canal preferencial",
+                  value:
+                    item.preferencias
+                      ?.canal_preferencial,
+                },
+                {
+                  label:
+                    "Receber avisos",
+                  value:
+                    item.preferencias
+                      ?.notificacoes
+                      ? "Sim"
+                      : "Não informado",
+                },
+                {
+                  label:
+                    "Observações",
+                  value:
+                    item.preferencias
+                      ?.observacoes,
+                },
               ]}
             />
           </AccordionItem>
 
           <AccordionItem
             id="divergencias"
-            titulo="7. Divergências e Observações"
-            subtitulo="Pontos de atenção e histórico de auditoria"
+            titulo="7. Pontos de Atenção"
+            subtitulo="Informações que precisam ser conferidas"
             icon={AlertTriangle}
-            status={`${item.divergencias?.length || 0} divergências`}
-            aberto={abertoSecao === "divergencias"}
-            onToggle={setAbertoSecao}
+            status={`${
+              item.divergencias
+                ?.length || 0
+            } registros`}
+            aberto={
+              abertoSecao ===
+              "divergencias"
+            }
+            onToggle={
+              setAbertoSecao
+            }
           >
-            {item.divergencias?.length ? (
+            {item.divergencias
+              ?.length ? (
               <div className="ama-list-stack">
-                {item.divergencias.map((divergencia, index) => (
-                  <div className="ama-simple-card danger" key={divergencia.id || index}>
-                    <ListaCampos
-                      campos={[
-                        { label: "Tipo", value: divergencia.tipo },
-                        { label: "Campo", value: divergencia.campo },
-                        { label: "Descrição", value: divergencia.descricao },
-                        { label: "Severidade", value: divergencia.severidade },
-                      ]}
-                    />
-                  </div>
-                ))}
+                {item.divergencias.map(
+                  (
+                    divergencia,
+                    index
+                  ) => (
+                    <div
+                      className="ama-simple-card danger"
+                      key={
+                        divergencia.id ||
+                        index
+                      }
+                    >
+                      <ListaCampos
+                        campos={[
+                          {
+                            label:
+                              "Tipo",
+                            value:
+                              divergencia.tipo,
+                          },
+                          {
+                            label:
+                              "Campo",
+                            value:
+                              divergencia.campo,
+                          },
+                          {
+                            label:
+                              "Descrição",
+                            value:
+                              divergencia.descricao,
+                          },
+                        ]}
+                      />
+                    </div>
+                  )
+                )}
               </div>
             ) : (
-              <div className="ama-empty-inline">Nenhuma divergência registrada.</div>
+              <div className="ama-empty-inline">
+                Nenhum ponto de atenção registrado.
+              </div>
             )}
           </AccordionItem>
         </main>
 
         <div className="ama-audit-warning">
-          <Info size={17} />
+          <Info
+            size={17}
+          />
+
           <div>
             <strong>
               {somenteLeitura
-                ? "Resumo somente para consulta. Nenhuma informação ou status será alterado."
-                : "Nenhuma informação pode ser editada nesta tela."}
+                ? "Este resumo é somente para consulta."
+                : "Os dados do morador não podem ser alterados nesta tela."}
             </strong>
+
             <span>
               {somenteLeitura
-                ? "Para iniciar a análise e tomar uma decisão administrativa, feche o resumo e utilize a ação Auditar."
-                : "Em caso de erro ou divergência, solicite correção ao morador."}
+                ? "Para analisar e tomar uma decisão, utilize a opção Auditar."
+                : "Se algum dado estiver incorreto, solicite a correção ao morador."}
             </span>
           </div>
         </div>
@@ -714,45 +1347,93 @@ function DrawerAuditoria({
               <button
                 type="button"
                 className="ama-footer-action approve"
-                onClick={() => onDecisao("APROVADO", item)}
+                onClick={() =>
+                  onDecisao(
+                    "APROVADO",
+                    item
+                  )
+                }
               >
-                <CheckCircle2 size={17} />
+                <CheckCircle2
+                  size={17}
+                />
+
                 <span>
-                  <strong>Aprovar Cadastro</strong>
-                  <small>Aprova e avança para o próximo</small>
+                  <strong>
+                    Aprovar Cadastro
+                  </strong>
+
+                  <small>
+                    Confirmar cadastro
+                  </small>
                 </span>
               </button>
 
               <button
                 type="button"
                 className="ama-footer-action correction"
-                onClick={() => onDecisao("CORRECAO_SOLICITADA", item)}
+                onClick={() =>
+                  onDecisao(
+                    "CORRECAO_SOLICITADA",
+                    item
+                  )
+                }
               >
-                <AlertTriangle size={17} />
+                <AlertTriangle
+                  size={17}
+                />
+
                 <span>
-                  <strong>Solicitar Correção</strong>
-                  <small>Envia para o morador corrigir</small>
+                  <strong>
+                    Solicitar Correção
+                  </strong>
+
+                  <small>
+                    Pedir ajuste ao morador
+                  </small>
                 </span>
               </button>
 
               <button
                 type="button"
                 className="ama-footer-action reject"
-                onClick={() => onDecisao("REPROVADO", item)}
+                onClick={() =>
+                  onDecisao(
+                    "REPROVADO",
+                    item
+                  )
+                }
               >
-                <XCircle size={17} />
+                <XCircle
+                  size={17}
+                />
+
                 <span>
-                  <strong>Reprovar Cadastro</strong>
-                  <small>Reprova e avança para o próximo</small>
+                  <strong>
+                    Reprovar Cadastro
+                  </strong>
+
+                  <small>
+                    Encerrar esta análise
+                  </small>
                 </span>
               </button>
             </>
           ) : null}
 
-          <button type="button" className="ama-footer-action neutral" onClick={onClose}>
+          <button
+            type="button"
+            className="ama-footer-action neutral"
+            onClick={onClose}
+          >
             <span>
-              <strong>Fechar</strong>
-              <small>{somenteLeitura ? "Fechar resumo sem alterações" : "Sair sem alterações"}</small>
+              <strong>
+                Fechar
+              </strong>
+
+              <small>
+                Sair desta visualização
+              </small>
             </span>
           </button>
         </footer>
@@ -760,289 +1441,853 @@ function DrawerAuditoria({
     </>
   );
 }
-export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
-  
+
+export default function AuditoriaMoradoresAuditoria({
+  perfil,
+  onNavigate,
+}) {
   const condominioId =
     perfil?.condominio_id ||
     perfil?.condominio_atual_id ||
-    perfil?.usuario_condominio?.condominio_id ||
+    perfil?.usuario_condominio
+      ?.condominio_id ||
     null;
 
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState("");
-  const [registros, setRegistros] = useState([]);
-  const [resumo, setResumo] = useState({
+  const [
+    carregando,
+    setCarregando,
+  ] = useState(true);
+
+  const [
+    erro,
+    setErro,
+  ] = useState("");
+
+  const [
+    registros,
+    setRegistros,
+  ] = useState([]);
+
+  const [
+    resumo,
+    setResumo,
+  ] = useState({
     aguardando: 0,
     iniciada: 0,
     reauditoraPendente: 0,
-    conflitosGaragem: 0,
     aprovadosHoje: 0,
     total: 0,
   });
 
-  const [torres, setTorres] = useState([]);
-  const [busca, setBusca] = useState("");
-  const [status, setStatus] = useState("TODOS");
-  const [torre, setTorre] = useState("TODAS");
-  const [unidade, setUnidade] = useState("TODAS");
-  const [dataInicio, setDataInicio] = useState(() => dataMenosDiasInput(30));
-  const [dataFim, setDataFim] = useState(() => dataHojeInput());
+  const [
+    torres,
+    setTorres,
+  ] = useState([]);
 
-  const [menuAberto, setMenuAberto] = useState(null);
-  const [auditoriaSelecionada, setAuditoriaSelecionada] = useState(null);
-  const [modoDrawer, setModoDrawer] = useState(null); // "resumo" | "auditoria"
-  const [secaoAberta, setSecaoAberta] = useState("identificacao");
-  const [conflitoSelecionado, setConflitoSelecionado] = useState(null);
+  const [
+    busca,
+    setBusca,
+  ] = useState("");
 
-  const [decisaoPendente, setDecisaoPendente] = useState(null);
-  const [observacaoDecisao, setObservacaoDecisao] = useState("");
-  const [salvandoDecisao, setSalvandoDecisao] = useState(false);
+  const [
+    buscaAplicada,
+    setBuscaAplicada,
+  ] = useState("");
 
-  const [pagina, setPagina] = useState(1);
-  const [linhasPorPagina, setLinhasPorPagina] = useState(10);
+  const [
+    status,
+    setStatus,
+  ] = useState("TODOS");
 
-  async function carregarDados() {
-    if (!condominioId) {
-      setErro("Condomínio autenticado não encontrado.");
-      setCarregando(false);
-      return;
-    }
+  const [
+    torre,
+    setTorre,
+  ] = useState("TODAS");
 
-    try {
-      setCarregando(true);
-      setErro("");
+  const [
+    unidade,
+    setUnidade,
+  ] = useState("TODAS");
 
-      const [lista, resumoAtual, torresAtual] = await Promise.all([
-        listarMoradoresParaAuditoria({
-          condominioId,
-          busca,
-          status,
-          torre,
-          unidade,
-          dataInicio,
-          dataFim,
-          limite: 100,
-        }),
-        obterResumoAuditoriaMoradores({ condominioId }),
-        buscarTorresAuditoriaMoradores({ condominioId }),
-      ]);
+  const [
+    dataInicio,
+    setDataInicio,
+  ] = useState(
+    () =>
+      dataMenosDiasInput(
+        30
+      )
+  );
 
-      setRegistros(lista);
-      setResumo(resumoAtual);
-      setTorres(torresAtual);
-      setPagina(1);
-    } catch (error) {
-      console.error(error);
-      setErro(error?.message || "Erro ao carregar auditoria de moradores.");
-    } finally {
-      setCarregando(false);
-    }
-  }
+  const [
+    dataFim,
+    setDataFim,
+  ] = useState(
+    () =>
+      dataHojeInput()
+  );
 
+  const [
+    pagina,
+    setPagina,
+  ] = useState(1);
+
+  const [
+    linhasPorPagina,
+    setLinhasPorPagina,
+  ] = useState(10);
+
+  const [
+    possuiProxima,
+    setPossuiProxima,
+  ] = useState(false);
+
+  const [
+    total,
+    setTotal,
+  ] = useState(0);
+
+  const [
+    menuAberto,
+    setMenuAberto,
+  ] = useState(null);
+
+  const [
+    auditoriaSelecionada,
+    setAuditoriaSelecionada,
+  ] = useState(null);
+
+  const [
+    modoDrawer,
+    setModoDrawer,
+  ] = useState(null);
+
+  const [
+    secaoAberta,
+    setSecaoAberta,
+  ] = useState(
+    "identificacao"
+  );
+
+  const [
+    decisaoPendente,
+    setDecisaoPendente,
+  ] = useState(null);
+
+  const [
+    observacaoDecisao,
+    setObservacaoDecisao,
+  ] = useState("");
+
+  const [
+    salvandoDecisao,
+    setSalvandoDecisao,
+  ] = useState(false);
+
+  const [
+    carregandoDetalhe,
+    setCarregandoDetalhe,
+  ] = useState(false);
+
+  const [
+    refreshToken,
+    setRefreshToken,
+  ] = useState(0);
+
+  /*
+   * A busca espera o usuário parar de digitar.
+   *
+   * Existe somente uma carga da tabela.
+   */
   useEffect(() => {
-    carregarDados();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [condominioId, status, torre, unidade, dataInicio, dataFim]);
+    const timeout =
+      setTimeout(() => {
+        setBuscaAplicada(
+          busca.trim()
+        );
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      carregarDados();
-    }, 450);
+        setPagina(1);
+      }, 450);
 
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () =>
+      clearTimeout(timeout);
   }, [busca]);
 
+  /*
+   * Torres são carregadas separadamente
+   * e não repetidas a cada troca de página.
+   */
   useEffect(() => {
-    function handleEsc(event) {
-      if (event.key === "Escape") {
-        setMenuAberto(null);
-        setAuditoriaSelecionada(null);
-        setModoDrawer(null);
-        setConflitoSelecionado(null);
-        setDecisaoPendente(null);
-        setObservacaoDecisao("");
+    if (!condominioId) {
+      return;
+    }
+
+    let ativo = true;
+
+    async function carregarTorres() {
+      try {
+        const dados =
+          await buscarTorresAuditoriaMoradores({
+            condominioId,
+          });
+
+        if (ativo) {
+          setTorres(
+            dados
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Erro ao carregar torres:",
+          error
+        );
       }
     }
 
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, []);
+    carregarTorres();
 
-  const unidades = useMemo(() => {
-    const lista = registros
-      .map((item) => item.unidade)
-      .filter(Boolean)
-      .filter((valorUnidade) => valorUnidade !== "Não informado");
+    return () => {
+      ativo = false;
+    };
+  }, [condominioId]);
 
-    return [...new Set(lista)].sort((a, b) => String(a).localeCompare(String(b)));
-  }, [registros]);
+  /*
+   * Lista e resumo.
+   *
+   * Sem segunda carga automática.
+   */
+  useEffect(() => {
+    if (!condominioId) {
+      setErro(
+        "Condomínio não identificado."
+      );
 
-  const totalPaginas = Math.max(1, Math.ceil(registros.length / linhasPorPagina));
+      setCarregando(false);
 
-  const registrosPagina = useMemo(() => {
-    const inicio = (pagina - 1) * linhasPorPagina;
-    return registros.slice(inicio, inicio + linhasPorPagina);
-  }, [pagina, registros, linhasPorPagina]);
+      return;
+    }
 
-  function abrirResumo(item) {
-    setSecaoAberta("identificacao");
-    setModoDrawer("resumo");
-    setAuditoriaSelecionada(item);
+    let ativo = true;
+
+    async function carregar() {
+      try {
+        setCarregando(
+          true
+        );
+
+        setErro("");
+
+        const [
+          lista,
+          resumoAtual,
+        ] =
+          await Promise.all([
+            listarMoradoresParaAuditoria({
+              condominioId,
+              busca:
+                buscaAplicada,
+              status,
+              torre,
+              unidade,
+              dataInicio,
+              dataFim,
+              pagina,
+              limite:
+                linhasPorPagina,
+            }),
+
+            obterResumoAuditoriaMoradores({
+              condominioId,
+            }),
+          ]);
+
+        if (!ativo) {
+          return;
+        }
+
+        setRegistros(
+          lista.registros ||
+            []
+        );
+
+        setTotal(
+          Number(
+            lista.total || 0
+          )
+        );
+
+        setPossuiProxima(
+          Boolean(
+            lista.possuiProxima
+          )
+        );
+
+        setResumo(
+          resumoAtual
+        );
+      } catch (error) {
+        if (!ativo) {
+          return;
+        }
+
+        console.error(error);
+
+        setErro(
+          error?.message ||
+          "Não foi possível carregar as auditorias."
+        );
+      } finally {
+        if (ativo) {
+          setCarregando(
+            false
+          );
+        }
+      }
+    }
+
+    carregar();
+
+    return () => {
+      ativo = false;
+    };
+  }, [
+    condominioId,
+    buscaAplicada,
+    status,
+    torre,
+    unidade,
+    dataInicio,
+    dataFim,
+    pagina,
+    linhasPorPagina,
+    refreshToken,
+  ]);
+
+  useEffect(() => {
+    function handleEsc(
+      event
+    ) {
+      if (
+        event.key !== "Escape"
+      ) {
+        return;
+      }
+
+      if (
+        salvandoDecisao ||
+        carregandoDetalhe
+      ) {
+        return;
+      }
+
+      setMenuAberto(null);
+      setAuditoriaSelecionada(
+        null
+      );
+      setModoDrawer(null);
+      setDecisaoPendente(
+        null
+      );
+      setObservacaoDecisao(
+        ""
+      );
+    }
+
+    window.addEventListener(
+      "keydown",
+      handleEsc
+    );
+
+    return () =>
+      window.removeEventListener(
+        "keydown",
+        handleEsc
+      );
+  }, [
+    salvandoDecisao,
+    carregandoDetalhe,
+  ]);
+
+  const unidades =
+    useMemo(() => {
+      const lista =
+        registros
+          .map(
+            (item) =>
+              item.unidade
+          )
+          .filter(Boolean)
+          .filter(
+            (item) =>
+              item !==
+              "Não informado"
+          );
+
+      return [
+        ...new Set(lista),
+      ].sort(
+        (a, b) =>
+          String(a)
+            .localeCompare(
+              String(b)
+            )
+      );
+    }, [registros]);
+
+  const numeroInicial =
+    registros.length
+      ? (pagina - 1) *
+          linhasPorPagina +
+        1
+      : 0;
+
+  const numeroFinal =
+    registros.length
+      ? numeroInicial +
+        registros.length -
+        1
+      : 0;
+
+  async function carregarDetalhe(
+    item
+  ) {
+    setCarregandoDetalhe(
+      true
+    );
+
+    try {
+      return await obterDetalheAuditoriaMorador({
+        condominioId,
+        preCadastroId:
+          item.pre_cadastro_id,
+      });
+    } finally {
+      setCarregandoDetalhe(
+        false
+      );
+    }
   }
 
-  async function abrirAuditoria(item) {
+  async function abrirResumo(
+    item
+  ) {
     try {
-      setSecaoAberta("identificacao");
-      setModoDrawer("auditoria");
+      const detalhe =
+        await carregarDetalhe(
+          item
+        );
 
-      const atualizado = await marcarAuditoriaIniciada({
-        perfil,
-        preCadastroId: item.pre_cadastro_id,
-      });
+      setSecaoAberta(
+        "identificacao"
+      );
 
-      const itemAtualizado =
-        atualizado?.id
-          ? {
-              ...item,
-              raw: {
-                ...item.raw,
-                ...atualizado,
-              },
-              status_auditoria: atualizado.status_auditoria || item.status_auditoria,
-              atualizado_em: atualizado.atualizado_em || item.atualizado_em,
-            }
-          : item;
+      setModoDrawer(
+        "resumo"
+      );
 
-      setAuditoriaSelecionada(itemAtualizado);
+      setAuditoriaSelecionada(
+        detalhe
+      );
+    } catch (error) {
+      toast.error(
+        error?.message ||
+        "Não foi possível abrir o resumo."
+      );
+    }
+  }
 
-      if (item.status_auditoria === "AGUARDANDO_AUDITORIA") {
-        carregarDados();
+  async function abrirAuditoria(
+    item
+  ) {
+    try {
+      setCarregandoDetalhe(
+        true
+      );
+
+      if (
+        item.status_auditoria ===
+        "AGUARDANDO_AUDITORIA"
+      ) {
+        await marcarAuditoriaIniciada({
+          perfil,
+          preCadastroId:
+            item.pre_cadastro_id,
+        });
+
+        /*
+         * Atualiza somente esta linha.
+         * Não recarrega a lista inteira.
+         */
+        setRegistros(
+          (atuais) =>
+            atuais.map(
+              (registro) =>
+                registro.id ===
+                item.id
+                  ? {
+                      ...registro,
+                      status_auditoria:
+                        "AUDITORIA_INICIADA",
+                    }
+                  : registro
+            )
+        );
+
+        setResumo(
+          (atual) => ({
+            ...atual,
+
+            aguardando:
+              Math.max(
+                0,
+                Number(
+                  atual.aguardando ||
+                    0
+                ) - 1
+              ),
+
+            iniciada:
+              Number(
+                atual.iniciada ||
+                  0
+              ) + 1,
+          })
+        );
       }
+
+      const detalhe =
+        await obterDetalheAuditoriaMorador({
+          condominioId,
+          preCadastroId:
+            item.pre_cadastro_id,
+        });
+
+      setSecaoAberta(
+        "identificacao"
+      );
+
+      setModoDrawer(
+        "auditoria"
+      );
+
+      setAuditoriaSelecionada({
+        ...detalhe,
+
+        status_auditoria:
+          item.status_auditoria ===
+          "AGUARDANDO_AUDITORIA"
+            ? "AUDITORIA_INICIADA"
+            : detalhe
+                .status_auditoria,
+      });
     } catch (error) {
       setModoDrawer(null);
-      toast.error(error?.message || "Não foi possível iniciar a auditoria.");
-      setAuditoriaSelecionada(null);
+
+      setAuditoriaSelecionada(
+        null
+      );
+
+      toast.error(
+        error?.message ||
+        "Não foi possível iniciar a auditoria."
+      );
+    } finally {
+      setCarregandoDetalhe(
+        false
+      );
     }
   }
 
-  function handleAcaoLinha(acao, item) {
-    if (acao === "Auditar") {
-      abrirAuditoria(item);
+  function handleAcaoLinha(
+    acao,
+    item
+  ) {
+    if (
+      acao === "Auditar"
+    ) {
+      abrirAuditoria(
+        item
+      );
+
       return;
     }
 
-    if (acao === "Visualizar Resumo") {
-      abrirResumo(item);
+    if (
+      acao ===
+      "Visualizar Resumo"
+    ) {
+      abrirResumo(
+        item
+      );
     }
   }
 
-  function handleDecisao(decisao, item) {
-    if (modoDrawer !== "auditoria") {
-      toast.error("Decisões administrativas só podem ser registradas no modo Auditoria.");
+  function handleDecisao(
+    decisao,
+    item
+  ) {
+    if (
+      modoDrawer !==
+      "auditoria"
+    ) {
+      toast.error(
+        "Abra a auditoria para registrar uma decisão."
+      );
+
       return;
     }
 
-    setDecisaoPendente({ decisao, item });
-    setObservacaoDecisao("");
+    setDecisaoPendente({
+      decisao,
+      item,
+    });
+
+    setObservacaoDecisao(
+      ""
+    );
   }
 
   async function confirmarDecisaoAuditoria() {
-    if (!decisaoPendente?.item || !decisaoPendente?.decisao) return;
+    if (
+      !decisaoPendente
+        ?.item ||
+      !decisaoPendente
+        ?.decisao
+    ) {
+      return;
+    }
 
     try {
-      setSalvandoDecisao(true);
+      setSalvandoDecisao(
+        true
+      );
 
-      if (decisaoPendente.decisao === "APROVADO") {
-        const { data, error } = await supabase.functions.invoke("aprovar-morador", {
-          body: {
-            pre_cadastro_id: decisaoPendente.item.pre_cadastro_id,
-            condominio_id: condominioId,
-            aprovado_por: perfil?.id || null,
-            aprovado_por_nome: perfil?.nome || null,
-            aprovado_por_email: perfil?.email || null,
-          },
+      const {
+        item,
+        decisao,
+      } =
+        decisaoPendente;
+
+      if (
+        decisao ===
+        "APROVADO"
+      ) {
+        await aprovarMoradorAuditoria({
+          perfil,
+          preCadastroId:
+            item.pre_cadastro_id,
         });
-
-        if (error || data?.error) {
-          throw new Error(
-            data?.error ||
-              error?.message ||
-              "Não foi possível aprovar o morador."
-          );
-        }
       } else {
         await registrarDecisaoAuditoriaMorador({
           perfil,
-          preCadastroId: decisaoPendente.item.pre_cadastro_id,
-          decisao: decisaoPendente.decisao,
-          observacao: observacaoDecisao,
+          preCadastroId:
+            item.pre_cadastro_id,
+          decisao,
+          observacao:
+            observacaoDecisao,
         });
       }
 
       const mensagens = {
-        APROVADO: "Cadastro aprovado, conta criada e acesso liberado.",
-        CORRECAO_SOLICITADA: "Correção solicitada ao morador.",
-        REPROVADO: "Cadastro reprovado com sucesso.",
+        APROVADO:
+          "Cadastro aprovado com sucesso.",
+
+        CORRECAO_SOLICITADA:
+          "Correção solicitada ao morador.",
+
+        REPROVADO:
+          "Cadastro reprovado.",
       };
 
-      toast.success(mensagens[decisaoPendente.decisao] || "Auditoria atualizada.");
+      toast.success(
+        mensagens[decisao] ||
+        "Auditoria atualizada."
+      );
 
-      const idAtual = decisaoPendente.item.id;
-      const listaAtualizada = registros.filter((item) => item.id !== idAtual);
+      /*
+       * Remove somente o morador decidido.
+       *
+       * Não refaz toda a consulta.
+       */
+      setRegistros(
+        (atuais) =>
+          atuais.filter(
+            (registro) =>
+              registro.id !==
+              item.id
+          )
+      );
 
-      setRegistros(listaAtualizada);
-      setDecisaoPendente(null);
-      setObservacaoDecisao("");
+      setTotal(
+        (atual) =>
+          Math.max(
+            0,
+            atual - 1
+          )
+      );
 
-      const proximo = listaAtualizada[0] || null;
+      setResumo(
+        (atual) => {
+          const novo = {
+            ...atual,
+            total:
+              Math.max(
+                0,
+                Number(
+                  atual.total || 0
+                ) - 1
+              ),
+          };
 
-      if (proximo) {
-        abrirAuditoria(proximo);
-      } else {
-        setAuditoriaSelecionada(null);
-        await carregarDados();
+          if (
+            item.status_auditoria ===
+            "AUDITORIA_INICIADA"
+          ) {
+            novo.iniciada =
+              Math.max(
+                0,
+                Number(
+                  atual.iniciada ||
+                    0
+                ) - 1
+              );
+          }
+
+          if (
+            item.status_auditoria ===
+            "REAUDITORIA_PENDENTE"
+          ) {
+            novo.reauditoraPendente =
+              Math.max(
+                0,
+                Number(
+                  atual.reauditoraPendente ||
+                    0
+                ) - 1
+              );
+          }
+
+          return novo;
+        }
+      );
+
+      setDecisaoPendente(
+        null
+      );
+
+      setObservacaoDecisao(
+        ""
+      );
+
+      setAuditoriaSelecionada(
+        null
+      );
+
+      setModoDrawer(
+        null
+      );
+
+      /*
+       * Se a página ficar vazia e não for a primeira,
+       * volta uma página.
+       */
+      if (
+        registros.length <=
+          1 &&
+        pagina > 1
+      ) {
+        setPagina(
+          (atual) =>
+            Math.max(
+              1,
+              atual - 1
+            )
+        );
       }
     } catch (error) {
-      toast.error(error?.message || "Não foi possível registrar a decisão.");
+      toast.error(
+        error?.message ||
+        "Não foi possível registrar a decisão."
+      );
     } finally {
-      setSalvandoDecisao(false);
+      setSalvandoDecisao(
+        false
+      );
     }
   }
 
   function fecharAuditoria() {
-    setAuditoriaSelecionada(null);
+    setAuditoriaSelecionada(
+      null
+    );
+
     setModoDrawer(null);
-    setSecaoAberta("identificacao");
+
+    setSecaoAberta(
+      "identificacao"
+    );
   }
 
-  function handleAcaoTopo(acao) {
-    toast(`${acao} será conectado na próxima etapa.`, {
-      icon: "⚙️",
-    });
+  function limparFiltros() {
+    setBusca("");
+    setBuscaAplicada("");
+    setStatus("TODOS");
+    setTorre("TODAS");
+    setUnidade("TODAS");
+
+    setDataInicio(
+      dataMenosDiasInput(
+        30
+      )
+    );
+
+    setDataFim(
+      dataHojeInput()
+    );
+
+    setPagina(1);
   }
 
   return (
     <div className="ama-page">
       <div className="ama-main">
         <div className="ama-breadcrumb">
-          <span>Auditoria</span>
-          <ChevronRight size={14} />
-          <span>Moradores</span>
-          <ChevronRight size={14} />
-          <strong>Auditoria</strong>
+          <span>
+            Auditoria
+          </span>
+
+          <ChevronRight
+            size={14}
+          />
+
+          <span>
+            Moradores
+          </span>
+
+          <ChevronRight
+            size={14}
+          />
+
+          <strong>
+            Auditoria
+          </strong>
         </div>
 
         <div className="ama-header">
           <div>
             <h1>
               Auditoria de Moradores
-              <Info size={17} />
+
+              <Info
+                size={17}
+              />
             </h1>
 
             <p>
-              Analise os cadastros finalizados pelos moradores, valide informações,
-              solicite correções quando necessário e aprove apenas dados consistentes.
+              Confira os cadastros enviados pelos
+              moradores, solicite ajustes quando
+              necessário e aprove as informações
+              consistentes.
             </p>
           </div>
         </div>
@@ -1050,25 +2295,40 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
         <div className="ama-tabs">
           <button
             type="button"
-            onClick={() => onNavigate?.("admin-auditoria-moradores-pre-cadastro")}
+            onClick={() =>
+              onNavigate?.(
+                "admin-auditoria-moradores-pre-cadastro"
+              )
+            }
           >
             Pré-Cadastro
           </button>
 
           <button
             type="button"
-            onClick={() => onNavigate?.("admin-auditoria-moradores-convite")}
+            onClick={() =>
+              onNavigate?.(
+                "admin-auditoria-moradores-convite"
+              )
+            }
           >
             Convite
           </button>
 
-          <button type="button" className="active">
+          <button
+            type="button"
+            className="active"
+          >
             Auditoria
           </button>
 
           <button
             type="button"
-            onClick={() => onNavigate?.("admin-auditoria-moradores-historico")}
+            onClick={() =>
+              onNavigate?.(
+                "admin-auditoria-moradores-historico"
+              )
+            }
           >
             Histórico
           </button>
@@ -1076,93 +2336,206 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
 
         <section className="ama-kpis">
           <KpiCard
-            icon={ClipboardCheck}
+            icon={
+              ClipboardCheck
+            }
             titulo="Aguardando Auditoria"
-            valor={resumo.aguardando}
-            detalhe="Wizard finalizado"
+            valor={
+              resumo.aguardando
+            }
+            detalhe="Prontos para análise"
             variante="azul"
           />
 
           <KpiCard
-            icon={ShieldCheck}
+            icon={
+              ShieldCheck
+            }
             titulo="Auditoria Iniciada"
-            valor={resumo.iniciada}
+            valor={
+              resumo.iniciada
+            }
             detalhe="Em análise"
             variante="roxo"
           />
 
           <KpiCard
-            icon={AlertTriangle}
+            icon={
+              AlertTriangle
+            }
             titulo="Reauditoria Pendente"
-            valor={resumo.reauditoraPendente}
-            detalhe="Correção reenviada"
+            valor={
+              resumo.reauditoraPendente
+            }
+            detalhe="Retornaram para nova análise"
             variante="laranja"
-          />
-
-          <KpiCard
-            icon={XCircle}
-            titulo="Conflitos Garagem"
-            valor={resumo.conflitosGaragem}
-            detalhe="Atenção operacional"
-            variante="vermelho"
           />
         </section>
 
         <section className="ama-table-card">
           <div className="ama-filters">
             <div className="ama-search">
-              <Search size={18} />
+              <Search
+                size={18}
+              />
+
               <input
                 value={busca}
-                onChange={(event) => setBusca(event.target.value)}
+                onChange={(
+                  event
+                ) =>
+                  setBusca(
+                    event.target
+                      .value
+                  )
+                }
                 placeholder="Buscar por nome, unidade, torre ou ID do morador..."
               />
             </div>
 
             <label>
-              <span>Status Auditoria</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value)}>
-                {STATUS_FILTROS.map((opcao) => (
-                  <option key={opcao.value} value={opcao.value}>
-                    {opcao.label}
-                  </option>
-                ))}
+              <span>
+                Status
+              </span>
+
+              <select
+                value={status}
+                onChange={(
+                  event
+                ) => {
+                  setStatus(
+                    event.target
+                      .value
+                  );
+
+                  setPagina(1);
+                }}
+              >
+                {STATUS_FILTROS.map(
+                  (opcao) => (
+                    <option
+                      key={
+                        opcao.value
+                      }
+                      value={
+                        opcao.value
+                      }
+                    >
+                      {
+                        opcao.label
+                      }
+                    </option>
+                  )
+                )}
               </select>
             </label>
 
             <label>
-              <span>Torre</span>
-              <select value={torre} onChange={(event) => setTorre(event.target.value)}>
-                <option value="TODAS">Todas</option>
-                {torres.map((item) => (
-                  <option key={item.id} value={item.nome}>
-                    {item.nome}
-                  </option>
-                ))}
+              <span>
+                Torre
+              </span>
+
+              <select
+                value={torre}
+                onChange={(
+                  event
+                ) => {
+                  setTorre(
+                    event.target
+                      .value
+                  );
+
+                  setPagina(1);
+                }}
+              >
+                <option value="TODAS">
+                  Todas
+                </option>
+
+                {torres.map(
+                  (item) => (
+                    <option
+                      key={
+                        item.id
+                      }
+                      value={
+                        item.nome
+                      }
+                    >
+                      {
+                        item.nome
+                      }
+                    </option>
+                  )
+                )}
               </select>
             </label>
 
             <label>
-              <span>Unidade</span>
-              <select value={unidade} onChange={(event) => setUnidade(event.target.value)}>
-                <option value="TODAS">Todas</option>
-                {unidades.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
+              <span>
+                Unidade
+              </span>
+
+              <select
+                value={
+                  unidade
+                }
+                onChange={(
+                  event
+                ) => {
+                  setUnidade(
+                    event.target
+                      .value
+                  );
+
+                  setPagina(1);
+                }}
+              >
+                <option value="TODAS">
+                  Todas
+                </option>
+
+                {unidades.map(
+                  (item) => (
+                    <option
+                      key={
+                        item
+                      }
+                      value={
+                        item
+                      }
+                    >
+                      {item}
+                    </option>
+                  )
+                )}
               </select>
             </label>
 
             <div className="ama-periodo-premium">
               <DateRangePickerPremium
-                dataInicio={dataInicio}
-                dataFim={dataFim}
+                dataInicio={
+                  dataInicio
+                }
+                dataFim={
+                  dataFim
+                }
                 persistKey="admin-auditoria-moradores-auditoria-periodo"
-                onChange={({ inicio, fim }) => {
-                  setDataInicio(inicio);
-                  setDataFim(fim);
-                  setPagina(1);
+                onChange={({
+                  inicio,
+                  fim,
+                }) => {
+                  setDataInicio(
+                    inicio
+                  );
+
+                  setDataFim(
+                    fim
+                  );
+
+                  setPagina(
+                    1
+                  );
                 }}
               />
             </div>
@@ -1170,32 +2543,47 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
             <button
               type="button"
               className="ama-filter-extra"
-              onClick={() => {
-                setBusca("");
-                setStatus("TODOS");
-                setTorre("TODAS");
-                setUnidade("TODAS");
-                setDataInicio(dataMenosDiasInput(30));
-                setDataFim(dataHojeInput());
-                setPagina(1);
-              }}
+              onClick={
+                limparFiltros
+              }
             >
               Limpar
             </button>
           </div>
 
-          {erro ? <div className="ama-error">{erro}</div> : null}
+          {erro ? (
+            <div className="ama-error">
+              {erro}
+            </div>
+          ) : null}
 
           <div className="ama-table-wrap">
             <table className="ama-table">
               <thead>
                 <tr>
-                  <th>Unidade</th>
-                  <th>Torre</th>
-                  <th>Nome Completo</th>
-                  <th>Status de Preenchimento</th>
-                  <th>Status Auditoria</th>
-                  <th>Ações</th>
+                  <th>
+                    Unidade
+                  </th>
+
+                  <th>
+                    Torre
+                  </th>
+
+                  <th>
+                    Nome Completo
+                  </th>
+
+                  <th>
+                    Preenchimento
+                  </th>
+
+                  <th>
+                    Status
+                  </th>
+
+                  <th>
+                    Ações
+                  </th>
                 </tr>
               </thead>
 
@@ -1204,60 +2592,119 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
                   <tr>
                     <td colSpan="6">
                       <div className="ama-loading">
-                        <RefreshCw size={18} className="ama-spin" />
+                        <RefreshCw
+                          size={18}
+                          className="ama-spin"
+                        />
+
                         Carregando auditorias...
                       </div>
                     </td>
                   </tr>
-                ) : registrosPagina.length ? (
-                  registrosPagina.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        <strong>Apto {item.unidade}</strong>
-                      </td>
+                ) : registros.length ? (
+                  registros.map(
+                    (item) => (
+                      <tr
+                        key={
+                          item.id
+                        }
+                      >
+                        <td>
+                          <strong>
+                            Apto{" "}
+                            {
+                              item.unidade
+                            }
+                          </strong>
+                        </td>
 
-                      <td>
-                        <strong>{item.torre}</strong>
-                      </td>
+                        <td>
+                          <strong>
+                            {
+                              item.torre
+                            }
+                          </strong>
+                        </td>
 
-                      <td>
-                        <div className="ama-person">
-                          <div className="ama-avatar">{obterIniciais(item.nome)}</div>
-                          <div>
-                            <strong>{item.nome}</strong>
-                            <span>ID: {item.business_id || "—"}</span>
+                        <td>
+                          <div className="ama-person">
+                            <div className="ama-avatar">
+                              {obterIniciais(
+                                item.nome
+                              )}
+                            </div>
+
+                            <div>
+                              <strong>
+                                {
+                                  item.nome
+                                }
+                              </strong>
+
+                              <span>
+                                ID:{" "}
+                                {item.business_id ||
+                                  "—"}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td>
-                        <strong>{item.percentual_preenchimento || 100}%</strong>
-                        <span>WIZARD FINALIZADO</span>
-                      </td>
+                        <td>
+                          <strong>
+                            {item.percentual_preenchimento ||
+                              100}
+                            %
+                          </strong>
 
-                      <td>
-                        <span className={`ama-status ama-status-${classeStatus(item.status_auditoria)}`}>
-                          {formatarStatusAuditoria(item.status_auditoria)}
-                        </span>
-                      </td>
+                          <span>
+                            Cadastro finalizado
+                          </span>
+                        </td>
 
-                      <td>
-                        <AcaoLinhaMenu
-                          item={item}
-                          aberto={menuAberto === item.id}
-                          onToggle={setMenuAberto}
-                          onAcao={handleAcaoLinha}
-                        />
-                      </td>
-                    </tr>
-                  ))
+                        <td>
+                          <span
+                            className={`ama-status ama-status-${classeStatus(
+                              item.status_auditoria
+                            )}`}
+                          >
+                            {formatarStatusAuditoria(
+                              item.status_auditoria
+                            )}
+                          </span>
+                        </td>
+
+                        <td>
+                          <AcaoLinhaMenu
+                            item={
+                              item
+                            }
+                            aberto={
+                              menuAberto ===
+                              item.id
+                            }
+                            onToggle={
+                              setMenuAberto
+                            }
+                            onAcao={
+                              handleAcaoLinha
+                            }
+                          />
+                        </td>
+                      </tr>
+                    )
+                  )
                 ) : (
                   <tr>
                     <td colSpan="6">
                       <div className="ama-empty">
-                        <strong>Nenhum cadastro aguardando auditoria</strong>
+                        <strong>
+                          Nenhum cadastro aguardando análise
+                        </strong>
+
                         <p>
-                          Cadastros em preenchimento continuam sendo acompanhados na aba Convite.
+                          Não há registros compatíveis com os
+                          filtros selecionados.
                         </p>
                       </div>
                     </td>
@@ -1266,44 +2713,93 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
               </tbody>
             </table>
           </div>
-                    <div className="ama-table-footer">
+
+          <div className="ama-table-footer">
             <span>
-              Mostrando {registrosPagina.length ? (pagina - 1) * linhasPorPagina + 1 : 0} a{" "}
-              {Math.min(pagina * linhasPorPagina, registros.length)} de {registros.length} registros
+              Mostrando{" "}
+              {numeroInicial} a{" "}
+              {numeroFinal} de{" "}
+              {total} registros
             </span>
 
             <div className="ama-pagination">
               <button
                 type="button"
-                disabled={pagina === 1}
-                onClick={() => setPagina((atual) => Math.max(1, atual - 1))}
+                disabled={
+                  pagina === 1 ||
+                  carregando
+                }
+                onClick={() =>
+                  setPagina(
+                    (atual) =>
+                      Math.max(
+                        1,
+                        atual - 1
+                      )
+                  )
+                }
               >
-                <ChevronLeft size={16} />
+                <ChevronLeft
+                  size={16}
+                />
               </button>
 
-              <strong>{pagina}</strong>
+              <strong>
+                {pagina}
+              </strong>
 
               <button
                 type="button"
-                disabled={pagina === totalPaginas}
-                onClick={() => setPagina((atual) => Math.min(totalPaginas, atual + 1))}
+                disabled={
+                  !possuiProxima ||
+                  carregando
+                }
+                onClick={() =>
+                  setPagina(
+                    (atual) =>
+                      atual + 1
+                  )
+                }
               >
-                <ChevronRight size={16} />
+                <ChevronRight
+                  size={16}
+                />
               </button>
             </div>
 
             <label className="ama-per-page">
               Linhas por página:
+
               <select
-                value={linhasPorPagina}
-                onChange={(event) => {
-                  setLinhasPorPagina(Number(event.target.value));
-                  setPagina(1);
+                value={
+                  linhasPorPagina
+                }
+                onChange={(
+                  event
+                ) => {
+                  setLinhasPorPagina(
+                    Number(
+                      event.target
+                        .value
+                    )
+                  );
+
+                  setPagina(
+                    1
+                  );
                 }}
               >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={30}>30</option>
+                <option value={10}>
+                  10
+                </option>
+
+                <option value={20}>
+                  20
+                </option>
+
+                <option value={30}>
+                  30
+                </option>
               </select>
             </label>
           </div>
@@ -1313,77 +2809,144 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
       <aside className="ama-rightbar">
         <section className="ama-side-card">
           <div className="ama-side-title">
-            <ClipboardCheck size={17} />
-            <strong>Resumo da Auditoria</strong>
+            <ClipboardCheck
+              size={17}
+            />
+
+            <strong>
+              Resumo da Auditoria
+            </strong>
           </div>
 
           <div className="ama-side-metrics">
             <div>
-              <span>Aguardando</span>
-              <strong>{resumo.aguardando}</strong>
+              <span>
+                Aguardando
+              </span>
+
+              <strong>
+                {resumo.aguardando}
+              </strong>
             </div>
 
             <div>
-              <span>Iniciadas</span>
-              <strong>{resumo.iniciada}</strong>
+              <span>
+                Em análise
+              </span>
+
+              <strong>
+                {resumo.iniciada}
+              </strong>
             </div>
 
             <div>
-              <span>Conflitos garagem</span>
-              <strong>{resumo.conflitosGaragem}</strong>
+              <span>
+                Para nova análise
+              </span>
+
+              <strong>
+                {
+                  resumo.reauditoraPendente
+                }
+              </strong>
             </div>
           </div>
         </section>
 
         <section className="ama-side-card ama-side-card-orange">
           <div className="ama-side-title">
-            <Info size={17} />
+            <Info
+              size={17}
+            />
+
             <strong>
-              Painel de Comunicados Chegou<span className="ama-orange">!</span>
+              Painel de Comunicados Chegou
+              <span className="ama-orange">
+                !
+              </span>
             </strong>
           </div>
 
           <div className="ama-communication-placeholder">
             <div>
-              <strong>Comunicados do Módulo</strong>
-              <span>Espaço reservado para avisos do Master ou Administrativo.</span>
+              <strong>
+                Comunicados do Módulo
+              </strong>
+
+              <span>
+                Espaço reservado para avisos importantes.
+              </span>
             </div>
           </div>
-
-          <p>
-            Este espaço será padronizado futuramente no componente global de comunicados.
-          </p>
         </section>
 
         <section className="ama-side-card">
-          <h3>Critérios e Boas Práticas</h3>
+          <h3>
+            Orientações
+          </h3>
 
           <ul className="ama-orientation-list">
-            <li>Não edite dados do morador nesta etapa.</li>
-            <li>Se houver erro, solicite correção ao morador.</li>
-            <li>Confira dependentes, permissões e menores de idade.</li>
-            <li>Revise conflitos de garagem antes de aprovar.</li>
-            <li>Aprovar somente cadastros consistentes.</li>
+            <li>
+              Confira as informações antes de aprovar.
+            </li>
+
+            <li>
+              Se houver erro, solicite a correção ao morador.
+            </li>
+
+            <li>
+              Confira dependentes e permissões.
+            </li>
+
+            <li>
+              Revise as informações de garagem quando necessário.
+            </li>
+
+            <li>
+              Aprove somente cadastros consistentes.
+            </li>
           </ul>
         </section>
       </aside>
 
       <DrawerAuditoria
-        item={auditoriaSelecionada}
-        modo={modoDrawer}
-        abertoSecao={secaoAberta}
-        setAbertoSecao={(secao) =>
-          setSecaoAberta((atual) => (atual === secao ? "" : secao))
+        item={
+          auditoriaSelecionada
         }
-        onClose={fecharAuditoria}
-        onDecisao={handleDecisao}
-        onVerConflito={setConflitoSelecionado}
+        modo={
+          modoDrawer
+        }
+        abertoSecao={
+          secaoAberta
+        }
+        setAbertoSecao={(
+          secao
+        ) =>
+          setSecaoAberta(
+            (atual) =>
+              atual === secao
+                ? ""
+                : secao
+          )
+        }
+        onClose={
+          fecharAuditoria
+        }
+        onDecisao={
+          handleDecisao
+        }
       />
 
-      <ModalConflitoGaragem
-        item={conflitoSelecionado}
-        onClose={() => setConflitoSelecionado(null)}
-      />
+      {carregandoDetalhe ? (
+        <div className="ama-loading">
+          <RefreshCw
+            size={18}
+            className="ama-spin"
+          />
+
+          Abrindo cadastro...
+        </div>
+      ) : null}
 
       {decisaoPendente ? (
         <>
@@ -1391,65 +2954,125 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
             type="button"
             className="ama-drawer-backdrop"
             onClick={() => {
-              if (!salvandoDecisao) {
-                setDecisaoPendente(null);
-                setObservacaoDecisao("");
+              if (
+                !salvandoDecisao
+              ) {
+                setDecisaoPendente(
+                  null
+                );
+
+                setObservacaoDecisao(
+                  ""
+                );
               }
             }}
-            aria-label="Fechar decisão"
+            aria-label="Fechar"
           />
 
           <aside className="ama-decision-modal">
             <header className="ama-decision-modal-header">
               <div>
-                <span>Decisão da Auditoria</span>
-                <h2>{formatarStatusAuditoria(decisaoPendente.decisao)}</h2>
+                <span>
+                  Decisão da Auditoria
+                </span>
+
+                <h2>
+                  {formatarStatusAuditoria(
+                    decisaoPendente
+                      .decisao
+                  )}
+                </h2>
               </div>
 
               <button
                 type="button"
-                disabled={salvandoDecisao}
+                disabled={
+                  salvandoDecisao
+                }
                 onClick={() => {
-                  setDecisaoPendente(null);
-                  setObservacaoDecisao("");
+                  setDecisaoPendente(
+                    null
+                  );
+
+                  setObservacaoDecisao(
+                    ""
+                  );
                 }}
-                aria-label="Fechar decisão"
               >
                 ×
               </button>
             </header>
 
             <section className="ama-decision-modal-section">
-              <h3>Morador</h3>
+              <h3>
+                Morador
+              </h3>
+
               <p>
-                <strong>{decisaoPendente.item.nome}</strong>
+                <strong>
+                  {
+                    decisaoPendente
+                      .item.nome
+                  }
+                </strong>
+
                 <br />
-                Unidade {decisaoPendente.item.unidade} • Torre {decisaoPendente.item.torre}
+
+                Unidade{" "}
+                {
+                  decisaoPendente
+                    .item.unidade
+                }
+
+                {" • "}
+
+                Torre{" "}
+                {
+                  decisaoPendente
+                    .item.torre
+                }
               </p>
             </section>
 
-            {decisaoPendente.decisao === "APROVADO" ? (
+            {decisaoPendente
+              .decisao ===
+            "APROVADO" ? (
               <section className="ama-decision-modal-section">
-                <h3>Confirmação</h3>
+                <h3>
+                  Confirmação
+                </h3>
+
                 <p>
-                  Ao confirmar, o cadastro será aprovado e o sistema seguirá para o próximo
-                  responsável pendente de auditoria.
+                  Confirme somente se as informações estiverem corretas.
                 </p>
               </section>
             ) : (
               <section className="ama-decision-modal-section">
                 <h3>
-                  {decisaoPendente.decisao === "CORRECAO_SOLICITADA"
+                  {decisaoPendente
+                    .decisao ===
+                  "CORRECAO_SOLICITADA"
                     ? "Orientação para correção"
                     : "Motivo da reprovação"}
                 </h3>
 
                 <textarea
-                  value={observacaoDecisao}
-                  onChange={(event) => setObservacaoDecisao(event.target.value)}
+                  value={
+                    observacaoDecisao
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setObservacaoDecisao(
+                      event.target
+                        .value
+                    )
+                  }
                   placeholder={
-                    decisaoPendente.decisao === "CORRECAO_SOLICITADA"
-                      ? "Descreva claramente o que o morador deve corrigir..."
+                    decisaoPendente
+                      .decisao ===
+                    "CORRECAO_SOLICITADA"
+                      ? "Explique o que precisa ser corrigido..."
                       : "Informe o motivo da reprovação..."
                   }
                   rows={6}
@@ -1457,7 +3080,7 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
                 />
 
                 <p className="ama-decision-modal-helper">
-                  Esta informação será usada no fluxo de comunicação com o morador.
+                  Esta mensagem ficará registrada no acompanhamento do cadastro.
                 </p>
               </section>
             )}
@@ -1466,10 +3089,17 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
               <button
                 type="button"
                 className="ama-btn ama-btn-outline"
-                disabled={salvandoDecisao}
+                disabled={
+                  salvandoDecisao
+                }
                 onClick={() => {
-                  setDecisaoPendente(null);
-                  setObservacaoDecisao("");
+                  setDecisaoPendente(
+                    null
+                  );
+
+                  setObservacaoDecisao(
+                    ""
+                  );
                 }}
               >
                 Voltar
@@ -1478,10 +3108,16 @@ export default function AuditoriaMoradoresAuditoria({ perfil, onNavigate }) {
               <button
                 type="button"
                 className="ama-btn ama-btn-primary"
-                disabled={salvandoDecisao}
-                onClick={confirmarDecisaoAuditoria}
+                disabled={
+                  salvandoDecisao
+                }
+                onClick={
+                  confirmarDecisaoAuditoria
+                }
               >
-                {salvandoDecisao ? "Salvando..." : "Confirmar"}
+                {salvandoDecisao
+                  ? "Salvando..."
+                  : "Confirmar"}
               </button>
             </footer>
           </aside>

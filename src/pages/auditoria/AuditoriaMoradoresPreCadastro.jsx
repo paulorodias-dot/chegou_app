@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
-  CalendarDays,
   CheckCircle2,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
@@ -13,9 +11,7 @@ import {
   Info,
   MoreVertical,
   Search,
-  ShieldCheck,
   UserRound,
-  XCircle,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
@@ -30,6 +26,7 @@ import "./AuditoriaMoradoresPreCadastro.css";
 import {
   buscarTorresPreCadastro,
   listarPreCadastrosMoradores,
+  obterPreCadastroMoradorDetalhe,
   obterResumoPreCadastro,
 } from "../../services/auditoriaMoradoresPreCadastroService";
 
@@ -85,26 +82,6 @@ function obterDataFimPadrao() {
   return formatarDataInput(new Date());
 }
 
-function dataDentroPeriodo(item, dataInicio, dataFim) {
-  const referencia = item.atualizado_em || item.criado_em;
-
-  if (!referencia) return true;
-
-  const data = new Date(referencia);
-
-  if (dataInicio) {
-    const inicio = new Date(`${dataInicio}T00:00:00`);
-    if (data < inicio) return false;
-  }
-
-  if (dataFim) {
-    const fim = new Date(`${dataFim}T23:59:59`);
-    if (data > fim) return false;
-  }
-
-  return true;
-}
-
 function formatarUltimaAtualizacao(valor) {
   if (!valor) return "—";
 
@@ -145,9 +122,10 @@ function formatarStatus(status) {
 function classeStatus(status) {
   const valor = normalizarStatus(status);
 
-  if (["RASCUNHO"].includes(valor)) return "rascunho";
+  if (valor === "RASCUNHO") return "rascunho";
   if (["PRE_CADASTRO", "PRONTO_CONVITE"].includes(valor)) return "pre-cadastro";
-  if (["IMPORTADO"].includes(valor)) return "importado";
+  if (valor === "IMPORTADO") return "importado";
+
   if (["REVOGADO", "CANCELADO", "EXPIRADO", "TOKEN_EXPIRADO"].includes(valor)) {
     return "alerta";
   }
@@ -246,9 +224,7 @@ function AcaoLinhaMenu({ item, aberto, onToggle, onAcao }) {
       left = window.innerWidth - larguraMenu - 12;
     }
 
-    if (top < 12) {
-      top = rect.bottom + 8;
-    }
+    if (top < 12) top = rect.bottom + 8;
 
     if (top + alturaMenu > window.innerHeight - 12) {
       top = window.innerHeight - alturaMenu - 12;
@@ -396,6 +372,7 @@ function DrawerCadastro({ item, onClose }) {
     </>
   );
 }
+
 export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
   const condominioId =
     perfil?.condominio_id ||
@@ -414,135 +391,168 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
   });
 
   const [torres, setTorres] = useState([]);
+
+  // Busca digitada e busca aplicada são separadas para evitar double-fetch.
   const [busca, setBusca] = useState("");
+  const [buscaAplicada, setBuscaAplicada] = useState("");
+
   const [status, setStatus] = useState("TODOS");
   const [origem, setOrigem] = useState("TODAS");
   const [torre, setTorre] = useState("TODAS");
   const [dataInicio, setDataInicio] = useState(obterDataInicioPadrao());
   const [dataFim, setDataFim] = useState(obterDataFimPadrao());
   const dataHoje = obterDataFimPadrao();
+
   const [menuAberto, setMenuAberto] = useState(null);
   const [cadastroSelecionado, setCadastroSelecionado] = useState(null);
   const [moradorEdicao, setMoradorEdicao] = useState(null);
   const [cancelamentoSelecionado, setCancelamentoSelecionado] = useState(null);
   const [motivoCancelamento, setMotivoCancelamento] = useState("");
   const [cancelando, setCancelando] = useState(false);
+  const [carregandoDetalhe, setCarregandoDetalhe] = useState(false);
+
   const [pagina, setPagina] = useState(1);
   const [linhasPorPagina, setLinhasPorPagina] = useState(10);
+  const [possuiProxima, setPossuiProxima] = useState(false);
+  const [totalReferencia, setTotalReferencia] = useState(0);
+  const [reloadToken, setReloadToken] = useState(0);
 
-  async function carregarDados() {
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setBuscaAplicada(busca.trim());
+      setPagina(1);
+    }, 450);
+
+    return () => clearTimeout(timeout);
+  }, [busca]);
+
+  useEffect(() => {
+    if (!condominioId) {
+      setTorres([]);
+      return;
+    }
+
+    let ativo = true;
+
+    async function carregarTorres() {
+      try {
+        const dados = await buscarTorresPreCadastro({ condominioId });
+
+        if (ativo) setTorres(dados);
+      } catch (error) {
+        console.error("Erro ao carregar torres do pré-cadastro:", error);
+      }
+    }
+
+    carregarTorres();
+
+    return () => {
+      ativo = false;
+    };
+  }, [condominioId]);
+
+  useEffect(() => {
     if (!condominioId) {
       setErro("Condomínio autenticado não encontrado.");
       setCarregando(false);
       return;
     }
 
-    try {
-      setCarregando(true);
-      setErro("");
+    let ativo = true;
 
-      const [lista, resumoAtual, torresAtual] = await Promise.all([
-        listarPreCadastrosMoradores({
-          condominioId,
-          busca,
-          status,
-          origem,
-          torre,
-          dataInicio,
-          dataFim,
-          limite: 500,
-        }),
-        obterResumoPreCadastro({ condominioId }),
-        buscarTorresPreCadastro({ condominioId }),
-      ]);
+    async function carregarDados() {
+      try {
+        setCarregando(true);
+        setErro("");
 
-      const listaVisivel = lista.filter((item) => {
-        const statusNormalizado = normalizarStatus(item.status);
+        const [listaAtual, resumoAtual] = await Promise.all([
+          listarPreCadastrosMoradores({
+            condominioId,
+            busca: buscaAplicada,
+            status,
+            origem,
+            torre,
+            dataInicio,
+            dataFim,
+            pagina,
+            limite: linhasPorPagina,
+          }),
+          obterResumoPreCadastro({
+            condominioId,
+            dataInicio,
+            dataFim,
+          }),
+        ]);
 
-        if (statusNormalizado === "CANCELADO") return false;
+        if (!ativo) return;
 
-        return dataDentroPeriodo(item, dataInicio, dataFim);
-      });
+        setRegistros(listaAtual.registros || []);
+        setResumo(resumoAtual);
+        setPossuiProxima(Boolean(listaAtual.possuiProxima));
+        setTotalReferencia(Number(listaAtual.total || 0));
+      } catch (error) {
+        if (!ativo) return;
 
-      const resumoVisivel = listaVisivel.reduce(
-        (acc, item) => {
-          const percentual = Number(item.percentual || 0);
-
-          acc.total += 1;
-
-          if (percentual === 100) {
-            acc.prontos += 1;
-          } else {
-            acc.pendencias += 1;
-          }
-
-          const origemNormalizada = normalizarStatus(item.origem);
-          const criadoHoje =
-            item.criado_em &&
-            new Date(item.criado_em).toISOString().slice(0, 10) ===
-              new Date().toISOString().slice(0, 10);
-
-          if ((origemNormalizada === "XLSX" || origemNormalizada === "PDF") && criadoHoje) {
-            acc.importadosHoje += 1;
-          }
-
-          return acc;
-        },
-        {
-          total: 0,
-          prontos: 0,
-          pendencias: 0,
-          importadosHoje: 0,
-        }
-      );
-
-      setRegistros(listaVisivel);
-      setResumo(resumoVisivel);
-      setTorres(torresAtual);
-      setPagina(1);
-    } catch (error) {
-      console.error(error);
-      setErro(error?.message || "Erro ao carregar pré-cadastros.");
-    } finally {
-      setCarregando(false);
+        console.error(error);
+        setErro(error?.message || "Erro ao carregar pré-cadastros.");
+      } finally {
+        if (ativo) setCarregando(false);
+      }
     }
-  }
 
-  useEffect(() => {
     carregarDados();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [condominioId, status, origem, torre, dataInicio, dataFim]);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      carregarDados();
-    }, 450);
-
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busca]);
+    return () => {
+      ativo = false;
+    };
+  }, [
+    condominioId,
+    buscaAplicada,
+    status,
+    origem,
+    torre,
+    dataInicio,
+    dataFim,
+    pagina,
+    linhasPorPagina,
+    reloadToken,
+  ]);
 
   useEffect(() => {
     function handleEsc(event) {
-      if (event.key === "Escape") {
-        setMenuAberto(null);
-        setCadastroSelecionado(null);
+      if (event.key !== "Escape") return;
+
+      setMenuAberto(null);
+      setCadastroSelecionado(null);
+
+      if (!carregandoDetalhe && !cancelando) {
+        setMoradorEdicao(null);
+        setCancelamentoSelecionado(null);
       }
     }
 
     window.addEventListener("keydown", handleEsc);
+
     return () => window.removeEventListener("keydown", handleEsc);
-  }, []);
+  }, [carregandoDetalhe, cancelando]);
 
-  const totalPaginas = Math.max(1, Math.ceil(registros.length / linhasPorPagina));
+  const numeroInicial = registros.length
+    ? (pagina - 1) * linhasPorPagina + 1
+    : 0;
 
-  const registrosPagina = useMemo(() => {
-    const inicio = (pagina - 1) * linhasPorPagina;
-    return registros.slice(inicio, inicio + linhasPorPagina);
-  }, [pagina, registros, linhasPorPagina]);
+  const numeroFinal = registros.length
+    ? numeroInicial + registros.length - 1
+    : 0;
+
+  const totalExibicao = useMemo(() => {
+    // totalReferencia é o conjunto-base informado pelo PostgREST.
+    // O total autoritativo virá futuramente do contrato backend consolidado.
+    return Math.max(totalReferencia, numeroFinal);
+  }, [totalReferencia, numeroFinal]);
 
   function limparFiltros() {
     setBusca("");
+    setBuscaAplicada("");
     setStatus("TODOS");
     setOrigem("TODAS");
     setTorre("TODAS");
@@ -551,27 +561,54 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
     setPagina(1);
   }
 
-  function handleAcaoLinha(acao, item) {
-    if (acao === "Visualizar Cadastro") {
-      setCadastroSelecionado(item);
-      return;
+  async function carregarDetalhe(item) {
+    setCarregandoDetalhe(true);
+
+    try {
+      return await obterPreCadastroMoradorDetalhe({
+        condominioId,
+        preCadastroId: item.pre_cadastro_id || item.id,
+      });
+    } finally {
+      setCarregandoDetalhe(false);
     }
+  }
 
-    if (acao === "Editar Dados") {
+  async function handleAcaoLinha(acao, item) {
+    try {
+      if (acao === "Visualizar Cadastro") {
+        // A visualização simples usa os dados leves já carregados.
+        setCadastroSelecionado(item);
+        return;
+      }
+
+      if (acao === "Editar Dados") {
+        const detalhe = await carregarDetalhe(item);
+
         setMoradorEdicao({
-            ...item,
-            raw: item.raw || item,
+          ...item,
+          ...detalhe,
+          raw: detalhe,
         });
-        return;
-        }
 
-    if (acao === "Cancelar Pré-Cadastro") {
-        setCancelamentoSelecionado({
-            ...item,
-            raw: item.raw || item,
-        });
-        setMotivoCancelamento("");
         return;
+      }
+
+      if (acao === "Cancelar Pré-Cadastro") {
+        const detalhe = await carregarDetalhe(item);
+
+        setCancelamentoSelecionado({
+          ...item,
+          ...detalhe,
+          raw: detalhe,
+        });
+
+        setMotivoCancelamento("");
+      }
+    } catch (error) {
+      toast.error(
+        error?.message || "Não foi possível carregar os dados do pré-cadastro."
+      );
     }
   }
 
@@ -582,7 +619,7 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
 
   function exportarListaPreCadastro() {
     if (!registros.length) {
-      toast.error("Não há dados para exportar com os filtros atuais.");
+      toast.error("Não há dados na página atual para exportar.");
       return;
     }
 
@@ -594,7 +631,9 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
       "E-mail": item.email || "—",
       WhatsApp: item.telefone || "—",
       Completude: `${item.percentual || 0}%`,
-      Pendências: item.pendencias?.length ? item.pendencias.join(", ") : "Sem pendências",
+      Pendências: item.pendencias?.length
+        ? item.pendencias.join(", ")
+        : "Sem pendências",
       Origem: formatarOrigem(item.origem),
       Status: formatarStatus(item.status),
       "Criado em": formatarDataHora(item.criado_em),
@@ -623,21 +662,11 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
 
     XLSX.writeFile(workbook, gerarNomeArquivoPreCadastro());
 
-    toast.success("Lista exportada com sucesso.");
+    toast.success("Página atual exportada com sucesso.");
   }
 
-  function handleAcaoTopo(acao) {
-    toast(`${acao} será conectado na próxima etapa.`, {
-      icon: "⚙️",
-    });
-  }
-
-  function fecharEdicaoMorador(atualizou = false) {
+  function fecharEdicaoMorador() {
     setMoradorEdicao(null);
-
-    if (atualizou) {
-        carregarDados();
-    }
   }
 
   async function salvarEdicaoMorador(payload) {
@@ -650,32 +679,51 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
       metadadosEdicao: payload.metadados_edicao,
     });
 
-    await carregarDados();
+    toast.success("Pré-cadastro atualizado com sucesso.");
+    setMoradorEdicao(null);
+
+    // Recarrega somente ao voltar para a primeira página ou via pequena mudança controlada.
+    // Como etapa transitória, voltamos para página 1 para garantir consistência.
+    setPagina(1);
+    setReloadToken((atual) => atual + 1);
   }
 
   async function confirmarCancelamentoPreCadastro() {
     if (!cancelamentoSelecionado) return;
 
     try {
-        setCancelando(true);
+      setCancelando(true);
 
-        await cancelarPreCadastroMorador({
+      await cancelarPreCadastroMorador({
         perfil,
         condominio: null,
         preCadastro: cancelamentoSelecionado,
         motivo: motivoCancelamento,
-        });
+      });
 
-        toast.success("Pré-cadastro cancelado com sucesso.");
+      toast.success("Pré-cadastro cancelado com sucesso.");
 
-        setCancelamentoSelecionado(null);
-        setMotivoCancelamento("");
+      const idCancelado =
+        cancelamentoSelecionado.pre_cadastro_id ||
+        cancelamentoSelecionado.id;
 
-        await carregarDados();
+      setRegistros((atuais) =>
+        atuais.filter(
+          (item) => (item.pre_cadastro_id || item.id) !== idCancelado
+        )
+      );
+
+      setResumo((atual) => ({
+        ...atual,
+        total: Math.max(0, Number(atual.total || 0) - 1),
+      }));
+
+      setCancelamentoSelecionado(null);
+      setMotivoCancelamento("");
     } catch (error) {
-        toast.error(error?.message || "Não foi possível cancelar o pré-cadastro.");
+      toast.error(error?.message || "Não foi possível cancelar o pré-cadastro.");
     } finally {
-        setCancelando(false);
+      setCancelando(false);
     }
   }
 
@@ -696,6 +744,7 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
               Pré-Cadastro de Moradores
               <Info size={17} />
             </h1>
+
             <p>
               Gerencie os moradores que ainda não receberam convite para acesso ao Sistema
               Chegou<span className="amp-orange">!</span>.
@@ -709,37 +758,37 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
               onClick={exportarListaPreCadastro}
             >
               <Download size={17} />
-              Exportar Lista
+              Exportar Página
             </button>
           </div>
         </div>
 
         <div className="amp-tabs">
-            <button type="button" className="active">
-                Pré-Cadastro
-            </button>
+          <button type="button" className="active">
+            Pré-Cadastro
+          </button>
 
-            <button
-                type="button"
-                onClick={() => onNavigate?.("admin-auditoria-moradores-convite")}
-            >
-                Convite
-            </button>
+          <button
+            type="button"
+            onClick={() => onNavigate?.("admin-auditoria-moradores-convite")}
+          >
+            Convite
+          </button>
 
-            <button
-              type="button"
-              onClick={() => onNavigate?.("admin-auditoria-moradores-auditoria")}
-            >
-              Auditoria
-            </button>
+          <button
+            type="button"
+            onClick={() => onNavigate?.("admin-auditoria-moradores-auditoria")}
+          >
+            Auditoria
+          </button>
 
-            <button
-              type="button"
-              onClick={() => onNavigate?.("admin-auditoria-moradores-historico")}
-            >
-              Histórico
-            </button>
-            </div>
+          <button
+            type="button"
+            onClick={() => onNavigate?.("admin-auditoria-moradores-historico")}
+          >
+            Histórico
+          </button>
+        </div>
 
         <section className="amp-kpis">
           <KpiCard
@@ -787,13 +836,19 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
-                name={`amp-pre-cadastro-busca-${Date.now()}`}
+                name="amp-pre-cadastro-busca"
               />
             </div>
 
             <label>
               <span>Status</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value)}>
+              <select
+                value={status}
+                onChange={(event) => {
+                  setStatus(event.target.value);
+                  setPagina(1);
+                }}
+              >
                 {STATUS_FILTROS.map((opcao) => (
                   <option key={opcao.value} value={opcao.value}>
                     {opcao.label}
@@ -804,7 +859,13 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
 
             <label>
               <span>Origem</span>
-              <select value={origem} onChange={(event) => setOrigem(event.target.value)}>
+              <select
+                value={origem}
+                onChange={(event) => {
+                  setOrigem(event.target.value);
+                  setPagina(1);
+                }}
+              >
                 {ORIGEM_FILTROS.map((opcao) => (
                   <option key={opcao.value} value={opcao.value}>
                     {opcao.label}
@@ -815,7 +876,13 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
 
             <label>
               <span>Torre</span>
-              <select value={torre} onChange={(event) => setTorre(event.target.value)}>
+              <select
+                value={torre}
+                onChange={(event) => {
+                  setTorre(event.target.value);
+                  setPagina(1);
+                }}
+              >
                 <option value="TODAS">Todas</option>
                 {torres.map((item) => (
                   <option key={item.id} value={item.nome}>
@@ -835,6 +902,7 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
                   const novaDataInicio = event.target.value;
 
                   setDataInicio(novaDataInicio);
+                  setPagina(1);
 
                   if (dataFim && novaDataInicio && dataFim < novaDataInicio) {
                     setDataFim(novaDataInicio);
@@ -850,11 +918,18 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
                 value={dataFim}
                 min={dataInicio || undefined}
                 max={dataHoje}
-                onChange={(event) => setDataFim(event.target.value)}
+                onChange={(event) => {
+                  setDataFim(event.target.value);
+                  setPagina(1);
+                }}
               />
             </label>
 
-            <button type="button" className="amp-filter-extra amp-filter-clear" onClick={limparFiltros}>
+            <button
+              type="button"
+              className="amp-filter-extra amp-filter-clear"
+              onClick={limparFiltros}
+            >
               <Filter size={16} />
               Limpar
             </button>
@@ -863,7 +938,8 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
           <div className="amp-hint">
             <Info size={15} />
             <span>
-              Dica: no desktop, dê dois cliques em uma linha para visualizar rapidamente o cadastro.
+              A lista carrega somente a página necessária. Dados completos são buscados
+              apenas ao editar ou cancelar um pré-cadastro.
             </span>
           </div>
 
@@ -891,8 +967,8 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
                       <div className="amp-loading">Carregando pré-cadastros...</div>
                     </td>
                   </tr>
-                ) : registrosPagina.length ? (
-                  registrosPagina.map((item) => (
+                ) : registros.length ? (
+                  registros.map((item) => (
                     <tr
                       key={item.id}
                       onDoubleClick={() => handleDuploCliqueLinha(item)}
@@ -971,14 +1047,13 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
 
           <div className="amp-table-footer">
             <span>
-              Mostrando {registrosPagina.length ? (pagina - 1) * linhasPorPagina + 1 : 0} a{" "}
-              {Math.min(pagina * linhasPorPagina, registros.length)} de {registros.length} registros
+              Mostrando {numeroInicial} a {numeroFinal} de até {totalExibicao} registros
             </span>
 
             <div className="amp-pagination">
               <button
                 type="button"
-                disabled={pagina === 1}
+                disabled={pagina === 1 || carregando}
                 onClick={() => setPagina((atual) => Math.max(1, atual - 1))}
               >
                 <ChevronLeft size={16} />
@@ -988,8 +1063,8 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
 
               <button
                 type="button"
-                disabled={pagina === totalPaginas}
-                onClick={() => setPagina((atual) => Math.min(totalPaginas, atual + 1))}
+                disabled={!possuiProxima || carregando}
+                onClick={() => setPagina((atual) => atual + 1)}
               >
                 <ChevronRight size={16} />
               </button>
@@ -1012,7 +1087,8 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
           </div>
         </section>
       </div>
-            <aside className="amp-rightbar">
+
+      <aside className="amp-rightbar">
         <section className="amp-side-card">
           <div className="amp-side-title">
             <ClipboardCheck size={17} />
@@ -1075,99 +1151,98 @@ export default function AuditoriaMoradoresPreCadastro({ perfil, onNavigate }) {
         onClose={() => setCadastroSelecionado(null)}
       />
 
-        <ModalEditarMorador
-          aberto={Boolean(moradorEdicao)}
-          morador={moradorEdicao}
-          torres={torres}
-          preCadastros={registros}
-          onClose={() => fecharEdicaoMorador(false)}
-          onSalvar={salvarEdicaoMorador}
-        />
+      <ModalEditarMorador
+        aberto={Boolean(moradorEdicao)}
+        morador={moradorEdicao}
+        torres={torres}
+        preCadastros={registros}
+        onClose={fecharEdicaoMorador}
+        onSalvar={salvarEdicaoMorador}
+      />
 
-        {cancelamentoSelecionado ? (
-            <>
-                <button
+      {cancelamentoSelecionado ? (
+        <>
+          <button
+            type="button"
+            className="amp-drawer-backdrop"
+            onClick={() => {
+              if (!cancelando) {
+                setCancelamentoSelecionado(null);
+                setMotivoCancelamento("");
+              }
+            }}
+            aria-label="Fechar cancelamento"
+          />
+
+          <aside className="amp-cancel-modal">
+            <div className="amp-cancel-header">
+              <div>
+                <span>Cancelar Pré-Cadastro</span>
+                <h2>{cancelamentoSelecionado.nome}</h2>
+              </div>
+
+              <button
                 type="button"
-                className="amp-drawer-backdrop"
                 onClick={() => {
-                    if (!cancelando) {
+                  if (!cancelando) {
                     setCancelamentoSelecionado(null);
                     setMotivoCancelamento("");
-                    }
+                  }
                 }}
-                aria-label="Fechar cancelamento"
-                />
+                aria-label="Fechar"
+              >
+                ×
+              </button>
+            </div>
 
-                <aside className="amp-cancel-modal">
-                <div className="amp-cancel-header">
-                    <div>
-                    <span>Cancelar Pré-Cadastro</span>
-                    <h2>{cancelamentoSelecionado.nome}</h2>
-                    </div>
+            <div className="amp-cancel-section">
+              <h3>Confirmação</h3>
+              <p>
+                Esta ação cancelará o pré-cadastro do morador e bloqueará a edição
+                administrativa deste registro. O histórico será mantido.
+              </p>
+            </div>
 
-                    <button
-                    type="button"
-                    onClick={() => {
-                        if (!cancelando) {
-                        setCancelamentoSelecionado(null);
-                        setMotivoCancelamento("");
-                        }
-                    }}
-                    aria-label="Fechar"
-                    >
-                    ×
-                    </button>
-                </div>
+            <div className="amp-cancel-section">
+              <h3>Motivo do cancelamento</h3>
 
-                <div className="amp-cancel-section">
-                    <h3>Confirmação</h3>
-                    <p>
-                    Esta ação cancelará o pré-cadastro do morador e bloqueará a edição administrativa
-                    deste registro. O histórico será mantido.
-                    </p>
-                </div>
+              <textarea
+                value={motivoCancelamento}
+                onChange={(event) => setMotivoCancelamento(event.target.value)}
+                placeholder="Informe o motivo do cancelamento..."
+                rows={5}
+              />
 
-                <div className="amp-cancel-section">
-                    <h3>Motivo do cancelamento</h3>
+              <p className="amp-cancel-help">
+                Este motivo será registrado no histórico do pré-cadastro.
+              </p>
+            </div>
 
-                    <textarea
-                      value={motivoCancelamento}
-                      onChange={(event) => setMotivoCancelamento(event.target.value)}
-                      placeholder="Informe o motivo do cancelamento..."
-                      rows={5}
-                    />
+            <div className="amp-cancel-actions">
+              <button
+                type="button"
+                className="amp-btn amp-btn-outline"
+                disabled={cancelando}
+                onClick={() => {
+                  setCancelamentoSelecionado(null);
+                  setMotivoCancelamento("");
+                }}
+              >
+                Voltar
+              </button>
 
-                    <p className="amp-cancel-help">
-                      Este motivo será registrado no histórico do pré-cadastro.
-                    </p>
-                </div>
-
-                <div className="amp-cancel-actions">
-                    <button
-                    type="button"
-                    className="amp-btn amp-btn-outline"
-                    disabled={cancelando}
-                    onClick={() => {
-                        setCancelamentoSelecionado(null);
-                        setMotivoCancelamento("");
-                    }}
-                    >
-                    Voltar
-                    </button>
-
-                    <button
-                    type="button"
-                    className="amp-btn amp-btn-primary"
-                    disabled={cancelando}
-                    onClick={confirmarCancelamentoPreCadastro}
-                    >
-                    {cancelando ? "Cancelando..." : "Confirmar Cancelamento"}
-                    </button>
-                </div>
-                </aside>
-            </>
-            ) : null}
-
+              <button
+                type="button"
+                className="amp-btn amp-btn-primary"
+                disabled={cancelando}
+                onClick={confirmarCancelamentoPreCadastro}
+              >
+                {cancelando ? "Cancelando..." : "Confirmar Cancelamento"}
+              </button>
+            </div>
+          </aside>
+        </>
+      ) : null}
     </div>
   );
 }

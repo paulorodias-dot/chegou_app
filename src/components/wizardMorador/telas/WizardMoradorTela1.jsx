@@ -19,31 +19,31 @@ const PERFIS_UNIDADE = [
   {
     id: "proprietario_residente",
     titulo: "Proprietário residente",
-    descricao: "Moro na unidade e sou o proprietário.",
+    descricao: "Sou proprietário e moro nesta unidade.",
     icon: Home,
   },
   {
     id: "proprietario_nao_residente",
     titulo: "Proprietário não residente",
-    descricao: "Sou proprietário, mas a unidade está alugada ou cedida.",
+    descricao: "Sou proprietário, mas não moro nesta unidade.",
     icon: DoorClosed,
   },
   {
     id: "inquilino",
     titulo: "Morador inquilino",
-    descricao: "Alugo a unidade e sou o morador responsável.",
+    descricao: "Alugo esta unidade e sou o morador responsável.",
     icon: UserRound,
   },
   {
     id: "responsavel_unidade_corporativa",
     titulo: "Responsável por unidade corporativa",
-    descricao: "Represento uma empresa que ocupa esta unidade.",
+    descricao: "Sou responsável por uma empresa que ocupa esta unidade.",
     icon: Building2,
   },
   {
     id: "unidade_vazia",
-    titulo: "Unidade vazia",
-    descricao: "A unidade está vazia, mas sou o proprietário ou responsável.",
+    titulo: "Responsável por unidade vazia",
+    descricao: "A unidade está vazia e sou o proprietário ou responsável.",
     icon: DoorClosed,
   },
 ];
@@ -72,9 +72,15 @@ function formatarTelefoneBR(numero = "") {
   return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`;
 }
 
-function formatarTelefoneInternacional({ ddi = "55", numero = "" }) {
-  const ddiLimpo = somenteNumeros(ddi) || "55";
-  const numeroLimpo = somenteNumeros(numero);
+function formatarTelefoneInternacional({
+  ddi = "55",
+  numero = "",
+}) {
+  const ddiLimpo =
+    somenteNumeros(ddi) || "55";
+
+  const numeroLimpo =
+    somenteNumeros(numero);
 
   if (!numeroLimpo) return "";
 
@@ -82,13 +88,23 @@ function formatarTelefoneInternacional({ ddi = "55", numero = "" }) {
     return `+55 ${formatarTelefoneBR(numeroLimpo)}`;
   }
 
-  const agrupado = numeroLimpo.replace(/(\d{3})(?=\d)/g, "$1 ").trim();
+  const agrupado = numeroLimpo
+    .replace(/(\d{3})(?=\d)/g, "$1 ")
+    .trim();
 
   return `+${ddiLimpo} ${agrupado}`;
 }
 
-function extrairTelefoneConvite(pre = {}, dadosWizard = {}) {
-  const ddi = somenteNumeros(pre.ddi || dadosWizard?.ddi || "55") || "55";
+function extrairTelefoneConvite(
+  pre = {},
+  dadosWizard = {}
+) {
+  const ddi =
+    somenteNumeros(
+      pre.ddi ||
+        dadosWizard?.ddi ||
+        "55"
+    ) || "55";
 
   let telefoneBruto = somenteNumeros(
     pre.telefone ||
@@ -98,8 +114,12 @@ function extrairTelefoneConvite(pre = {}, dadosWizard = {}) {
       ""
   );
 
-  if (telefoneBruto.startsWith(ddi) && telefoneBruto.length > 10) {
-    telefoneBruto = telefoneBruto.slice(ddi.length);
+  if (
+    telefoneBruto.startsWith(ddi) &&
+    telefoneBruto.length > 10
+  ) {
+    telefoneBruto =
+      telefoneBruto.slice(ddi.length);
   }
 
   return formatarTelefoneInternacional({
@@ -109,18 +129,37 @@ function extrairTelefoneConvite(pre = {}, dadosWizard = {}) {
 }
 
 function obterDadosConvite(dadosWizard) {
-  const pre = dadosWizard?.preCadastro || dadosWizard?.pre_cadastro || {};
-  const condominio = dadosWizard?.condominio || {};
+  const pre =
+    dadosWizard?.preCadastro ||
+    dadosWizard?.pre_cadastro ||
+    {};
+
+  const condominio =
+    dadosWizard?.condominio || {};
 
   return {
-    nome: pre.nome || dadosWizard?.nome || "",
-    email: pre.email || dadosWizard?.email || "",
-    whatsapp: extrairTelefoneConvite(pre, dadosWizard),
+    nome:
+      pre.nome ||
+      dadosWizard?.nome ||
+      "",
+
+    email:
+      pre.email ||
+      dadosWizard?.email ||
+      "",
+
+    whatsapp:
+      extrairTelefoneConvite(
+        pre,
+        dadosWizard
+      ),
+
     condominio:
       condominio.nome_fantasia ||
       condominio.nome ||
       dadosWizard?.nome_condominio ||
       "",
+
     torre:
       pre.torre_nome ||
       pre.torre ||
@@ -130,6 +169,7 @@ function obterDadosConvite(dadosWizard) {
       dadosWizard?.torre ||
       dadosWizard?.bloco ||
       "",
+
     unidade:
       pre.unidade_nome ||
       pre.unidade ||
@@ -139,23 +179,24 @@ function obterDadosConvite(dadosWizard) {
   };
 }
 
-function montarPayloadTela1({ dadosWizard, formTela1 }) {
-  const pre = dadosWizard?.preCadastro || dadosWizard?.pre_cadastro || {};
-
+function montarPayloadTela1({
+  formTela1,
+}) {
   return {
-    id_business: dadosWizard?.business_id || null,
-    business_id: dadosWizard?.business_id || null,
-    pre_cadastro_id: dadosWizard?.pre_cadastro_id || null,
-    condominio_id: dadosWizard?.condominio_id || null,
-    torre_id: pre.torre_id || null,
-    unidade_id: pre.unidade_id || null,
-    perfil_unidade: formTela1.perfilUnidade,
-    confirmou_dados_convite: true,
-    status: "RASCUNHO",
-    etapa_atual: 1,
-    atualizado_em: new Date().toISOString(),
+    tela1: {
+      perfilUnidade:
+        formTela1.perfilUnidade,
+
+      perfil_unidade:
+        formTela1.perfilUnidade,
+
+      confirmouDadosConvite: true,
+
+      confirmou_dados_convite: true,
+    },
   };
 }
+
 export default function WizardMoradorTela1({
   dadosWizard,
   formTela1,
@@ -163,50 +204,113 @@ export default function WizardMoradorTela1({
   onNext,
   onCancel,
 }) {
-  const [tentouAvancar, setTentouAvancar] = useState(false);
+  const [
+    tentouAvancar,
+    setTentouAvancar,
+  ] = useState(false);
 
-  const dadosConvite = useMemo(() => obterDadosConvite(dadosWizard), [dadosWizard]);
+  const [
+    processando,
+    setProcessando,
+  ] = useState(false);
+
+  const dadosConvite = useMemo(
+    () => obterDadosConvite(dadosWizard),
+    [dadosWizard]
+  );
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo({
+      top: 0,
+      behavior: "instant",
+    });
   }, []);
 
   function selecionarPerfil(perfil) {
-    setFormTela1("perfilUnidade", perfil);
-    setFormTela1("confirmouDadosConvite", true);
+    setTentouAvancar(false);
+
+    setFormTela1(
+      "perfilUnidade",
+      perfil
+    );
+
+    setFormTela1(
+      "confirmouDadosConvite",
+      true
+    );
   }
 
   function mensagemFluxoPorPerfil() {
-    if (formTela1?.perfilUnidade === "unidade_vazia") {
-      return "Como a unidade foi marcada como vazia, algumas etapas poderão ser simplificadas para agilizar o cadastro.";
+    if (
+      formTela1?.perfilUnidade ===
+      "unidade_vazia"
+    ) {
+      return "Como a unidade está vazia, algumas etapas serão adaptadas ao seu cadastro.";
     }
 
-    if (formTela1?.perfilUnidade === "proprietario_nao_residente") {
-      return "Como proprietário não residente, seu acesso será separado do morador/inquilino para evitar mistura de notificações.";
+    if (
+      formTela1?.perfilUnidade ===
+      "proprietario_nao_residente"
+    ) {
+      return "Como você não reside na unidade, algumas informações solicitadas serão diferentes.";
     }
 
     return "";
   }
 
   async function avancar() {
-    if (!formTela1?.perfilUnidade) {
-      setTentouAvancar(true);
-      toast.error("Selecione seu perfil em relação à unidade.");
+    if (processando) {
       return;
     }
 
-    const msg = mensagemFluxoPorPerfil();
-    if (msg) toast(msg);
+    if (!formTela1?.perfilUnidade) {
+      setTentouAvancar(true);
 
-    await onNext(
-      montarPayloadTela1({
-        dadosWizard,
-        formTela1: {
-          ...formTela1,
-          confirmouDadosConvite: true,
-        },
-      })
-    );
+      toast.error(
+        "Selecione sua relação com a unidade para continuar."
+      );
+
+      return;
+    }
+
+    const mensagem =
+      mensagemFluxoPorPerfil();
+
+    if (mensagem) {
+      toast(mensagem);
+    }
+
+    try {
+      setProcessando(true);
+
+      const sucesso =
+        await onNext(
+          montarPayloadTela1({
+            formTela1: {
+              ...formTela1,
+              confirmouDadosConvite:
+                true,
+            },
+          })
+        );
+
+      /*
+      * O WizardMorador.jsx troca a etapa somente
+      * quando o salvamento realmente funciona.
+      *
+      * Se retornar false, permanecemos nesta tela.
+      */
+      if (sucesso === false) {
+        setProcessando(false);
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao continuar a Tela 1:",
+        error
+      );
+
+      setProcessando(false);
+    }
   }
 
   return (
@@ -218,8 +322,13 @@ export default function WizardMoradorTela1({
           </span>
 
           <div>
-            <h1>1. Identificação da Unidade e do Perfil</h1>
-            <p>Confirme os dados da unidade e selecione o seu perfil para continuarmos.</p>
+            <h1>
+              1. Unidade e sua relação
+            </h1>
+
+            <p>
+              Confira as informações recebidas e informe sua relação com esta unidade.
+            </p>
           </div>
         </header>
 
@@ -233,28 +342,72 @@ export default function WizardMoradorTela1({
 
             <div className="wm-t1-section-title-block">
               <div className="wm-t1-title-row">
-                <h2>Dados do convite</h2>
-                <small>Preenchidos automaticamente</small>
+                <h2>
+                  Informações do convite
+                </h2>
+
+                <small>
+                  Preenchidas automaticamente
+                </small>
               </div>
 
-              <p>Confira as informações recebidas.</p>
+              <p>
+                Confira se as informações abaixo estão corretas.
+              </p>
             </div>
           </div>
 
           <div className="wm-t1-readonly-grid">
-            <ReadOnlyField label="Nome completo" value={dadosConvite.nome} icon={<UserRound size={15} />} />
-            <ReadOnlyField label="E-mail" value={dadosConvite.email} icon={<Mail size={15} />} />
-            <ReadOnlyField label="WhatsApp" value={dadosConvite.whatsapp} icon={<Phone size={15} />} />
-            <ReadOnlyField label="Condomínio" value={dadosConvite.condominio} icon={<Building2 size={15} />} />
-            <ReadOnlyField label="Torre / Bloco" value={dadosConvite.torre} icon={<Building2 size={15} />} />
-            <ReadOnlyField label="Unidade" value={dadosConvite.unidade} icon={<DoorClosed size={15} />} />
+            <ReadOnlyField
+              label="Nome completo"
+              value={dadosConvite.nome}
+              icon={
+                <UserRound size={15} />
+              }
+            />
+
+            <ReadOnlyField
+              label="E-mail"
+              value={dadosConvite.email}
+              icon={<Mail size={15} />}
+            />
+
+            <ReadOnlyField
+              label="WhatsApp"
+              value={dadosConvite.whatsapp}
+              icon={<Phone size={15} />}
+            />
+
+            <ReadOnlyField
+              label="Condomínio"
+              value={dadosConvite.condominio}
+              icon={
+                <Building2 size={15} />
+              }
+            />
+
+            <ReadOnlyField
+              label="Torre / Bloco"
+              value={dadosConvite.torre}
+              icon={
+                <Building2 size={15} />
+              }
+            />
+
+            <ReadOnlyField
+              label="Unidade"
+              value={dadosConvite.unidade}
+              icon={
+                <DoorClosed size={15} />
+              }
+            />
           </div>
 
           <div className="wm-t1-info-note">
             <Info size={16} />
+
             <span>
-              Se algum dado estiver incorreto, você poderá corrigir ou atualizar na próxima etapa
-              (Dados Pessoais).
+              Você poderá revisar seus dados pessoais e de contato na próxima etapa. Se o condomínio, a torre, o bloco ou a unidade estiverem incorretos, entre em contato com a administração do condomínio.
             </span>
           </div>
         </section>
@@ -266,51 +419,107 @@ export default function WizardMoradorTela1({
             </span>
 
             <div className="wm-t1-section-title-block">
-              <h2>Qual é o seu perfil em relação a esta Unidade?</h2>
-              <p>Essa informação nos ajuda a personalizar sua experiência no sistema.</p>
+              <h2>
+                Qual é a sua relação com esta unidade?
+              </h2>
+
+              <p>
+                Sua resposta define quais informações serão necessárias nas próximas etapas.
+              </p>
             </div>
           </div>
-                    <div
+
+          <div
             className={`wm-t1-profile-grid ${
-              tentouAvancar && !formTela1?.perfilUnidade ? "invalid" : ""
+              tentouAvancar &&
+              !formTela1?.perfilUnidade
+                ? "invalid"
+                : ""
             }`}
           >
-            {PERFIS_UNIDADE.map((perfil) => {
-              const Icon = perfil.icon;
-              const ativo = formTela1?.perfilUnidade === perfil.id;
+            {PERFIS_UNIDADE.map(
+              (perfil) => {
+                const Icon =
+                  perfil.icon;
 
-              return (
-                <button
-                  key={perfil.id}
-                  type="button"
-                  className={`wm-t1-profile-card ${ativo ? "active" : ""}`}
-                  onClick={() => selecionarPerfil(perfil.id)}
-                >
-                  <span className="wm-t1-profile-radio">
-                    {ativo ? <CheckCircle2 size={16} /> : null}
-                  </span>
+                const ativo =
+                  formTela1?.perfilUnidade ===
+                  perfil.id;
 
-                  <span className="wm-t1-profile-icon">
-                    <Icon size={23} />
-                  </span>
+                return (
+                  <button
+                    key={perfil.id}
+                    type="button"
+                    className={`wm-t1-profile-card ${
+                      ativo
+                        ? "active"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      selecionarPerfil(
+                        perfil.id
+                      )
+                    }
+                    aria-pressed={ativo}
+                  >
+                    <span className="wm-t1-profile-radio">
+                      {ativo ? (
+                        <CheckCircle2
+                          size={16}
+                        />
+                      ) : null}
+                    </span>
 
-                  <strong>{perfil.titulo}</strong>
-                  <p>{perfil.descricao}</p>
-                </button>
-              );
-            })}
+                    <span className="wm-t1-profile-icon">
+                      <Icon size={23} />
+                    </span>
+
+                    <strong>
+                      {perfil.titulo}
+                    </strong>
+
+                    <p>
+                      {perfil.descricao}
+                    </p>
+                  </button>
+                );
+              }
+            )}
           </div>
         </section>
 
         <footer className="wm-t1-actions">
-          <button type="button" className="wm-t1-btn secondary" onClick={onCancel}>
+          <button
+            type="button"
+            className="wm-t1-btn secondary"
+            onClick={onCancel}
+            disabled={processando}
+          >
             <X size={16} />
             Sair do cadastro
           </button>
 
-          <button type="button" className="wm-t1-btn primary" onClick={avancar}>
-            Continuar
-            <ArrowRight size={18} />
+          <button
+            type="button"
+            className="wm-t1-btn primary"
+            onClick={avancar}
+            disabled={processando}
+            aria-busy={processando}
+          >
+            {processando ? (
+              <>
+                <span
+                  className="wm-t1-btn-spinner"
+                  aria-hidden="true"
+                />
+                Salvando...
+              </>
+            ) : (
+              <>
+                Continuar
+                <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </footer>
       </section>
@@ -318,15 +527,29 @@ export default function WizardMoradorTela1({
   );
 }
 
-function ReadOnlyField({ label, value, icon }) {
+function ReadOnlyField({
+  label,
+  value,
+  icon,
+}) {
+  const valorExibido =
+    String(value || "").trim() ||
+    "Não informado";
+
   return (
     <label className="wm-t1-readonly-field">
       <span>{label}</span>
 
       <div className="wm-t1-readonly-input">
         {icon ? <i>{icon}</i> : null}
-        <input value={value || "Não informado"} readOnly tabIndex={-1} />
+
+        <input
+          value={valorExibido}
+          readOnly
+          tabIndex={-1}
+          aria-label={label}
+        />
       </div>
     </label>
   );
-} 
+}

@@ -5,6 +5,8 @@
 
 .wm-t6-page {
   width: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 .wm-t6-card {
@@ -564,6 +566,14 @@
   font-weight: 900;
 
   cursor: pointer;
+  touch-action: manipulation;
+}
+
+.wm-t6-actions button:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .wm-t6-actions .secondary {
@@ -705,14 +715,98 @@
 }
 
 /* =========================================================
-   FIX ZOOM IPHONE
+   PROCESSAMENTO
 ========================================================= */
 
-@supports (-webkit-touch-callout: none) {
-  .wm-t6-review-head,
-  .wm-t6-review-body,
-  .wm-t6-side-card,
-  .wm-t6-actions button {
-    font-size: 16px;
+.wm-t6-processing {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  padding: 20px;
+  background: rgba(248, 250, 252, 0.78);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-t6-processing-card {
+  width: min(380px, 92vw);
+  padding: 28px;
+  border: 1px solid #dbe5f0;
+  border-radius: 22px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.wm-t6-spinner {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 4px;
+  border: 3px solid #e5edf7;
+  border-top-color: #ff7900;
+  border-radius: 999px;
+  animation: wm-t6-spin 0.75s linear infinite;
+}
+
+.wm-t6-processing-card strong {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.wm-t6-processing-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+@keyframes wm-t6-spin {
+  to {
+    transform: rotate(360deg);
   }
+}
+
+/* =========================================================
+   IPHONE / SAFARI
+========================================================= */
+
+.wm-t6-page button,
+.wm-t6-page summary {
+  touch-action: manipulation;
+}
+
+@media (max-width: 560px) {
+  .wm-t6-page input,
+  .wm-t6-page select,
+  .wm-t6-page textarea {
+    font-size: 16px !important;
+  }
+
+  .wm-t6-processing {
+    padding:
+      max(12px, env(safe-area-inset-top))
+      12px
+      max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+[data-theme="dark"] .wm-t6-processing-card {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+[data-theme="dark"] .wm-t6-processing-card strong {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .wm-t6-processing-card p {
+  color: #cbd5e1;
 }

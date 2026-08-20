@@ -227,6 +227,8 @@ export default function WizardMoradorTela6({
   irParaEtapa,
 }) {
   const [abertos, setAbertos] = useState([1]);
+  const [processandoContinuar, setProcessandoContinuar] = useState(false);
+  const [salvandoRascunho, setSalvandoRascunho] = useState(false);
 
   const resumoUnidade = useMemo(
     () => obterResumoUnidade(dadosWizard, formTela1),
@@ -257,6 +259,51 @@ export default function WizardMoradorTela6({
   const totalVagas = contar(
     estruturaGaragem?.vagas
   );
+
+  async function salvarRascunho() {
+    if (salvandoRascunho || processandoContinuar) return;
+
+    try {
+      setSalvandoRascunho(true);
+
+      if (typeof onSalvarRascunho === "function") {
+        await onSalvarRascunho();
+      }
+    } finally {
+      setSalvandoRascunho(false);
+    }
+  }
+
+  function aguardarRenderTransicao() {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.setTimeout(resolve, 220);
+        });
+      });
+    });
+  }
+
+  async function continuar() {
+    if (processandoContinuar || salvandoRascunho) return;
+
+    try {
+      setProcessandoContinuar(true);
+
+      /*
+       * Garante que o feedback visual apareça antes da troca de etapa,
+       * inclusive quando o callback do componente pai muda de tela
+       * praticamente de forma instantânea.
+       */
+      await aguardarRenderTransicao();
+
+      if (typeof onContinuar === "function") {
+        await onContinuar();
+      }
+    } finally {
+      setProcessandoContinuar(false);
+    }
+  }
 
   return (
     <div className="wm-t6-page">
@@ -477,6 +524,7 @@ export default function WizardMoradorTela6({
                 onVoltar();
               }
             }}
+            disabled={processandoContinuar || salvandoRascunho}
           >
             <ArrowLeft size={16} />
             Voltar
@@ -485,30 +533,36 @@ export default function WizardMoradorTela6({
           <button
             type="button"
             className="outline"
-            onClick={() => {
-              if (typeof onSalvarRascunho === "function") {
-                onSalvarRascunho();
-              }
-            }}
+            onClick={salvarRascunho}
+            disabled={processandoContinuar || salvandoRascunho}
           >
             <Save size={16} />
-            Salvar e continuar depois
+            {salvandoRascunho ? "Salvando..." : "Salvar e continuar depois"}
           </button>
 
           <button
             type="button"
             className="primary"
-            onClick={() => {
-              if (typeof onContinuar === "function") {
-                onContinuar();
-              }
-            }}
+            onClick={continuar}
+            disabled={processandoContinuar || salvandoRascunho}
           >
-            Confirmar revisão e continuar
+            {processandoContinuar
+              ? "Preparando próxima etapa..."
+              : "Confirmar revisão e continuar"}
             <ArrowRight size={16} />
           </button>
         </footer>
       </section>
+
+      {processandoContinuar ? (
+        <div className="wm-t6-processing" role="status" aria-live="polite">
+          <div className="wm-t6-processing-card">
+            <span className="wm-t6-spinner" />
+            <strong>Salvando suas informações</strong>
+            <p>Aguarde um instante. Estamos preparando a próxima etapa.</p>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

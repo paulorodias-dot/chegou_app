@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   ArrowLeft,
@@ -15,16 +15,12 @@ import {
   Save,
   ShieldCheck,
   Trash2,
-  Upload,
   UserRound,
   UsersRound,
   X,
 } from "lucide-react";
 
 import "../../../styles/wizardMorador/WizardMoradorTela3.css";
-
-const LIMITE_UPLOAD_FOTO_MB = 5;
-const LIMITE_UPLOAD_FOTO_BYTES = LIMITE_UPLOAD_FOTO_MB * 1024 * 1024;
 
 const TIPOS_VINCULO = [
   "Cônjuge / Companheiro(a)",
@@ -45,10 +41,6 @@ const pessoaInicial = {
   cpf: "",
   cpf_pendente_validacao: false,
   tentativas_cpf_invalidas: 0,
-  foto_base64: "",
-  foto_nome: "",
-  foto_mime: "",
-  foto_tamanho: "",
   recebe_encomendas: false,
   retira_portaria: false,
   acesso_proprio_futuro: false,
@@ -56,7 +48,6 @@ const pessoaInicial = {
   ddi: "+55",
   whatsapp: "",
   menor_16_ciencia: false,
-  status: "PENDENTE",
 };
 
 function somenteNumeros(valor = "") {
@@ -77,7 +68,9 @@ function formatarTelefoneBrasil(valor = "") {
 
   if (!numeros) return "";
   if (numeros.length <= 2) return `(${numeros}`;
-  if (numeros.length <= 6) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+  if (numeros.length <= 6) {
+    return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+  }
 
   if (numeros.length <= 10) {
     return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
@@ -114,16 +107,21 @@ function capitalizarNome(valor = "") {
   return String(valor)
     .trimStart()
     .toLowerCase()
-    .replace(/(^|\s|-|')([\p{L}]+)/gu, (_, sep, palavra) => {
-      if (sep === " " && minusculas.has(palavra)) return `${sep}${palavra}`;
-      return `${sep}${palavra.charAt(0).toUpperCase()}${palavra.slice(1)}`;
+    .replace(/(^|\s|-|')([\p{L}]+)/gu, (_, separador, palavra) => {
+      if (separador === " " && minusculas.has(palavra)) {
+        return `${separador}${palavra}`;
+      }
+
+      return `${separador}${palavra.charAt(0).toUpperCase()}${palavra.slice(1)}`;
     });
 }
 
 function iniciais(nome = "") {
-  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  const partes = String(nome).trim().split(/\s+/).filter(Boolean);
+
   return `${partes[0]?.[0] || "P"}${partes[1]?.[0] || ""}`.toUpperCase();
 }
+
 function formatarCpf(valor = "") {
   const v = somenteNumeros(valor).slice(0, 11);
 
@@ -200,7 +198,10 @@ function calcularIdade(data = "") {
   let idade = hoje.getFullYear() - nascimento.getFullYear();
   const diffMes = hoje.getMonth() - nascimento.getMonth();
 
-  if (diffMes < 0 || (diffMes === 0 && hoje.getDate() < nascimento.getDate())) {
+  if (
+    diffMes < 0 ||
+    (diffMes === 0 && hoje.getDate() < nascimento.getDate())
+  ) {
     idade -= 1;
   }
 
@@ -211,13 +212,19 @@ function validarDataNascimento(valor = "") {
   const iso = dataBrParaISO(valor);
   if (!iso) return false;
 
+  const [ano, mes, dia] = iso.split("-").map(Number);
   const data = new Date(`${iso}T00:00:00`);
   const hoje = new Date();
 
   if (Number.isNaN(data.getTime())) return false;
   if (data > hoje) return false;
+  if (ano < 1900) return false;
 
-  return data.getFullYear() >= 1900;
+  return (
+    data.getFullYear() === ano &&
+    data.getMonth() + 1 === mes &&
+    data.getDate() === dia
+  );
 }
 
 function validarEmail(email = "") {
@@ -230,27 +237,16 @@ function gerarId() {
 
 function traduzirPerfil(perfil = "") {
   const mapa = {
-    proprietario_residente: "Proprietário Residente",
-    proprietario_morador: "Proprietário Residente",
-    proprietario_nao_residente: "Proprietário Não Residente",
-    proprietario_unidade_alugada: "Proprietário Não Residente",
-    inquilino: "Morador Inquilino",
-    responsavel_unidade_corporativa: "Unidade Corporativa",
-    unidade_vazia: "Unidade Vazia",
+    proprietario_residente: "Proprietário residente",
+    proprietario_morador: "Proprietário residente",
+    proprietario_nao_residente: "Proprietário não residente",
+    proprietario_unidade_alugada: "Proprietário não residente",
+    inquilino: "Morador inquilino",
+    responsavel_unidade_corporativa: "Responsável por unidade corporativa",
+    unidade_vazia: "Responsável por unidade vazia",
   };
 
-  return mapa[perfil] || perfil || "Perfil não informado";
-}
-
-function mascararToken(token = "") {
-  const limpo = String(token).replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-
-  if (!limpo) return "PEN-NÃO-INFORMADO";
-
-  const prefixoStatus = "PEN";
-  const miolo = limpo.slice(0, 9);
-
-  return `${prefixoStatus}-${miolo.slice(0, 3)}-${miolo.slice(3, 6)}-${miolo.slice(6, 9)}`;
+  return mapa[perfil] || "Não informado";
 }
 
 function obterResumo(dadosWizard, formTela1, formMorador) {
@@ -288,139 +284,65 @@ function obterResumo(dadosWizard, formTela1, formMorador) {
       dadosWizard?.cidade_uf ||
       "",
     cep: condominio.cep || dadosWizard?.cep || "",
-    idCondominio:
-      dadosWizard?.condominio_id ||
-      pre.condominio_id ||
-      "ID não informado",
-    token:
-      dadosWizard?.token_publico ||
-      dadosWizard?.codigo_convite ||
-      dadosWizard?.token ||
-      "Token não informado",
-    torre: pre.torre_nome || pre.torre || pre.bloco_nome || pre.bloco || dadosWizard?.torre || "Torre",
-    unidade: pre.unidade_nome || pre.unidade || dadosWizard?.unidade || "Unidade",
+    torre:
+      pre.torre_nome ||
+      pre.torre ||
+      pre.bloco_nome ||
+      pre.bloco ||
+      dadosWizard?.torre_nome ||
+      dadosWizard?.torre ||
+      dadosWizard?.bloco ||
+      "Não informado",
+    unidade:
+      pre.unidade_nome ||
+      pre.unidade ||
+      dadosWizard?.unidade_nome ||
+      dadosWizard?.unidade ||
+      "Não informado",
     perfil: traduzirPerfil(perfil),
-    unidadeVazia: perfil === "unidade_vazia",
     morador: nomeExibicao,
     cpf: formMorador?.cpf || pre.cpf || "",
     email: formMorador?.emailPrincipal || pre.email || "",
-    whatsapp: montarTelefoneE164({
-      ddi: formMorador?.ddi || "+55",
-      numero: formMorador?.whatsapp || "",
-    }),
-  };
-}
-async function processarImagemLocal(file) {
-  const tiposPermitidos = [
-    "image/png",
-    "image/jpeg",
-    "image/jpg",
-    "image/webp",
-    "image/heic",
-    "image/heif",
-  ];
-
-  if (!tiposPermitidos.includes(file.type)) {
-    throw new Error("Envie uma imagem PNG, JPG, HEIC ou WebP.");
-  }
-
-  if (file.size > LIMITE_UPLOAD_FOTO_BYTES) {
-    throw new Error(`A imagem deve ter no máximo ${LIMITE_UPLOAD_FOTO_MB}MB.`);
-  }
-
-  const dataUrlOriginal = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error("Não foi possível carregar a foto."));
-
-    reader.readAsDataURL(file);
-  });
-
-  const imagem = await new Promise((resolve, reject) => {
-    const img = new Image();
-
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Não foi possível processar a imagem."));
-
-    img.src = dataUrlOriginal;
-  });
-
-  const maxLado = 1024;
-  const proporcao = Math.min(maxLado / imagem.width, maxLado / imagem.height, 1);
-  const largura = Math.round(imagem.width * proporcao);
-  const altura = Math.round(imagem.height * proporcao);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = largura;
-  canvas.height = altura;
-
-  const ctx = canvas.getContext("2d", { alpha: false });
-  ctx.drawImage(imagem, 0, 0, largura, altura);
-
-  const webpBase64 = canvas.toDataURL("image/webp", 0.86);
-  const nomeBase = file.name.replace(/\.[^/.]+$/, "") || "foto-dependente";
-
-  return {
-    previewBase64: webpBase64,
-    nome: `${nomeBase}.webp`,
-    mime: "image/webp",
-    tamanhoEstimado: Math.round((webpBase64.length * 3) / 4),
   };
 }
 
-function montarPayloadTela3({ dadosWizard, dependentes, possuiPessoas }) {
-  const pre = dadosWizard?.preCadastro || dadosWizard?.pre_cadastro || {};
-
+function montarPayloadTela3({ dependentes, possuiPessoas }) {
   return {
-    business_id: dadosWizard?.business_id || null,
-    condominio_id: dadosWizard?.condominio_id || null,
-    pre_cadastro_id: dadosWizard?.pre_cadastro_id || null,
-    unidade_id: pre.unidade_id || dadosWizard?.unidade_id || null,
     possui_pessoas_vinculadas: Boolean(possuiPessoas),
-    pessoas_vinculadas: dependentes.map((pessoa) => {
-      const telefoneE164 = montarTelefoneE164({
-        ddi: pessoa.ddi || "+55",
-        numero: pessoa.whatsapp,
-      });
+    pessoas_vinculadas: possuiPessoas
+      ? dependentes.map((pessoa) => {
+          const telefoneE164 = montarTelefoneE164({
+            ddi: pessoa.ddi || "+55",
+            numero: pessoa.whatsapp,
+          });
 
-      return {
-        id: pessoa.id,
-        nome: pessoa.nome,
-        tipo_vinculo: pessoa.tipo_vinculo,
-        data_nascimento: pessoa.data_nascimento,
-        data_nascimento_iso: dataBrParaISO(pessoa.data_nascimento),
-        idade: pessoa.idade,
-        cpf: somenteNumeros(pessoa.cpf),
-        cpf_formatado: pessoa.cpf,
-        cpf_pendente_validacao: pessoa.cpf_pendente_validacao,
-
-        foto_base64: pessoa.foto_base64 || null,
-        foto_nome: pessoa.foto_nome || null,
-        foto_mime: pessoa.foto_mime || null,
-        foto_tamanho: pessoa.foto_tamanho || null,
-
-        recebe_encomendas: Boolean(pessoa.recebe_encomendas),
-        retira_portaria: Boolean(pessoa.retira_portaria),
-        acesso_proprio_futuro: Boolean(pessoa.acesso_proprio_futuro),
-
-        email: pessoa.acesso_proprio_futuro
-          ? pessoa.email?.trim().toLowerCase()
-          : "",
-        ddi: obterDDINumerico(pessoa.ddi || "+55"),
-        whatsapp: pessoa.acesso_proprio_futuro
-          ? somenteNumeros(pessoa.whatsapp)
-          : "",
-        whatsapp_e164: pessoa.acesso_proprio_futuro ? telefoneE164 : "",
-
-        menor_16_ciencia: Boolean(pessoa.menor_16_ciencia),
-        status: pessoa.status || "PENDENTE",
-        auditoria_status: "AGUARDANDO_AUDITORIA",
-      };
-    }),
-    status: "RASCUNHO",
-    etapa_atual: 3,
-    atualizado_em: new Date().toISOString(),
+          return {
+            id: pessoa.id,
+            nome: pessoa.nome?.trim() || "",
+            tipo_vinculo: pessoa.tipo_vinculo || "",
+            data_nascimento: pessoa.data_nascimento || "",
+            data_nascimento_iso: dataBrParaISO(pessoa.data_nascimento),
+            idade: pessoa.idade === "" ? null : Number(pessoa.idade),
+            cpf: somenteNumeros(pessoa.cpf),
+            cpf_formatado: pessoa.cpf || "",
+            cpf_pendente_validacao: Boolean(pessoa.cpf_pendente_validacao),
+            recebe_encomendas: Boolean(pessoa.recebe_encomendas),
+            retira_portaria: Boolean(pessoa.retira_portaria),
+            acesso_proprio_futuro: Boolean(pessoa.acesso_proprio_futuro),
+            email: pessoa.acesso_proprio_futuro
+              ? pessoa.email?.trim().toLowerCase() || ""
+              : "",
+            ddi: pessoa.acesso_proprio_futuro
+              ? obterDDINumerico(pessoa.ddi || "+55")
+              : "",
+            whatsapp: pessoa.acesso_proprio_futuro
+              ? somenteNumeros(pessoa.whatsapp)
+              : "",
+            whatsapp_e164: pessoa.acesso_proprio_futuro ? telefoneE164 : "",
+            menor_16_ciencia: Boolean(pessoa.menor_16_ciencia),
+          };
+        })
+      : [],
   };
 }
 
@@ -441,6 +363,16 @@ export default function WizardMoradorTela3({
   const [pessoaDetalhe, setPessoaDetalhe] = useState(null);
   const [camposInvalidos, setCamposInvalidos] = useState({});
   const [modalExcluir, setModalExcluir] = useState(null);
+
+  const [
+    processando,
+    setProcessando,
+  ] = useState(false);
+
+  const [
+    salvandoRascunho,
+    setSalvandoRascunho,
+  ] = useState(false);
 
   const resumo = useMemo(
     () => obterResumo(dadosWizard, formTela1 || formData, formMorador),
@@ -465,7 +397,8 @@ export default function WizardMoradorTela3({
     setCamposInvalidos({});
     setModalAberto(false);
   }
-    function cpfJaUsado(cpf, idAtual) {
+
+  function cpfJaUsado(cpf, idAtual) {
     const cpfLimpo = somenteNumeros(cpf);
     const cpfResponsavel = somenteNumeros(formMorador?.cpf);
 
@@ -487,11 +420,19 @@ export default function WizardMoradorTela3({
     const idade = pessoa?.idade !== "" ? Number(pessoa.idade) : null;
     const menor16 = idade !== null && idade < 16;
 
-    if (!pessoa?.nome?.trim()) invalidos.nome = true;
-    if (!pessoa?.tipo_vinculo) invalidos.tipo_vinculo = true;
+    if (!pessoa?.nome?.trim()) {
+      invalidos.nome = true;
+      toast.error("Informe o nome completo do dependente.");
+    }
+
+    if (!pessoa?.tipo_vinculo) {
+      invalidos.tipo_vinculo = true;
+      toast.error("Selecione o parentesco.");
+    }
 
     if (!pessoa?.data_nascimento) {
       invalidos.data_nascimento = true;
+      toast.error("Informe a data de nascimento.");
     } else if (!validarDataNascimento(pessoa.data_nascimento)) {
       invalidos.data_nascimento = true;
       toast.error("Informe uma data de nascimento válida.");
@@ -502,15 +443,11 @@ export default function WizardMoradorTela3({
 
       if (cpfDuplicado === "responsavel") {
         invalidos.cpf = true;
-        toast.error("Este CPF já pertence ao morador responsável.");
-      }
-
-      if (cpfDuplicado === "dependente") {
+        toast.error("Este CPF já foi informado para o responsável pela unidade.");
+      } else if (cpfDuplicado === "dependente") {
         invalidos.cpf = true;
-        toast.error("Este CPF já foi informado em outro dependente.");
-      }
-
-      if (!validarCpf(pessoa.cpf)) {
+        toast.error("Este CPF já foi informado para outro dependente.");
+      } else if (!validarCpf(pessoa.cpf) && !pessoa.cpf_pendente_validacao) {
         const tentativas = (pessoa.tentativas_cpf_invalidas || 0) + 1;
 
         if (tentativas < 3) {
@@ -521,16 +458,17 @@ export default function WizardMoradorTela3({
             tentativas_cpf_invalidas: tentativas,
           }));
 
-          toast.error(
-            `CPF inválido. Verifique os números informados. Tentativa ${tentativas}/3.`
-          );
+          toast.error("Confira os números do CPF informado.");
         } else {
           setPessoaAtual((old) => ({
             ...old,
+            tentativas_cpf_invalidas: tentativas,
             cpf_pendente_validacao: true,
           }));
 
-          toast("CPF seguirá para auditoria administrativa.");
+          toast(
+            "Você pode continuar. A administração conferirá o CPF informado antes da aprovação do cadastro."
+          );
         }
       }
     }
@@ -538,7 +476,7 @@ export default function WizardMoradorTela3({
     if (pessoa?.acesso_proprio_futuro) {
       if (!pessoa.email?.trim() || !validarEmail(pessoa.email)) {
         invalidos.email = true;
-        toast.error("Informe um e-mail válido para futuro acesso próprio.");
+        toast.error("Informe um e-mail válido para este dependente.");
       }
 
       const ddi = obterDDINumerico(pessoa.ddi || "+55");
@@ -546,17 +484,18 @@ export default function WizardMoradorTela3({
 
       if (!ddi) {
         invalidos.ddi = true;
+        toast.error("Informe o código do país.");
       }
 
       if (!whatsapp) {
         invalidos.whatsapp = true;
-        toast.error("Informe o WhatsApp para futuro convite de acesso.");
+        toast.error("Informe o WhatsApp do dependente.");
       } else if (ddi === "55" && whatsapp.length < 10) {
         invalidos.whatsapp = true;
-        toast.error("Informe um WhatsApp válido com DDD.");
+        toast.error("Informe o WhatsApp com DDD.");
       } else if (ddi !== "55" && whatsapp.length < 6) {
         invalidos.whatsapp = true;
-        toast.error("Informe um telefone internacional válido.");
+        toast.error("Confira o número de telefone informado.");
       }
     }
 
@@ -566,7 +505,7 @@ export default function WizardMoradorTela3({
       !pessoa?.menor_16_ciencia
     ) {
       invalidos.menor_16_ciencia = true;
-      toast.error("Confirme a ciência para menor de 16 anos.");
+      toast.error("Confirme sua ciência sobre as permissões concedidas ao menor.");
     }
 
     setCamposInvalidos(invalidos);
@@ -574,13 +513,16 @@ export default function WizardMoradorTela3({
   }
 
   function salvarPessoa() {
-    if (!validarPessoa(pessoaAtual)) return;
+    if (!pessoaAtual || !validarPessoa(pessoaAtual)) return;
 
     const pessoaFinal = {
       ...pessoaAtual,
       nome: capitalizarNome(pessoaAtual.nome),
-      email: pessoaAtual.email?.trim().toLowerCase(),
-      status: pessoaAtual.status || "PENDENTE",
+      email: pessoaAtual.acesso_proprio_futuro
+        ? pessoaAtual.email?.trim().toLowerCase() || ""
+        : "",
+      ddi: pessoaAtual.acesso_proprio_futuro ? pessoaAtual.ddi || "+55" : "+55",
+      whatsapp: pessoaAtual.acesso_proprio_futuro ? pessoaAtual.whatsapp || "" : "",
     };
 
     setDependentes((old) => {
@@ -592,7 +534,7 @@ export default function WizardMoradorTela3({
     });
 
     setPossuiPessoas(true);
-    toast.success("Dependente salvo com sucesso.");
+    toast.success("Dependente salvo.");
     fecharModal();
   }
 
@@ -603,33 +545,94 @@ export default function WizardMoradorTela3({
     toast.success("Dependente removido.");
   }
 
-  async function salvarRascunho() {
-    await onSaveDraft(
-      montarPayloadTela3({
-        dadosWizard,
-        dependentes,
-        possuiPessoas,
-      })
-    );
+  function selecionarSemDependentes() {
+    if (dependentes.length > 0) {
+      const confirmar = window.confirm(
+        "Ao escolher esta opção, os dependentes já adicionados nesta etapa serão removidos. Deseja continuar?"
+      );
 
-    toast.success("Rascunho salvo com sucesso.");
+      if (!confirmar) return;
+      setDependentes([]);
+    }
+
+    setPossuiPessoas(false);
   }
 
-  async function avancar() {
-    if (possuiPessoas && dependentes.length === 0) {
-      toast.error(
-        "Adicione um dependente ou marque que não deseja cadastrar agora."
-      );
+  async function salvarRascunho() {
+    if (
+      salvandoRascunho ||
+      processando
+    ) {
       return;
     }
 
-    await onNext(
-      montarPayloadTela3({
-        dadosWizard,
-        dependentes,
-        possuiPessoas,
-      })
-    );
+    try {
+      setSalvandoRascunho(true);
+
+      const salvou =
+        await onSaveDraft(
+          montarPayloadTela3({
+            dependentes,
+            possuiPessoas,
+          })
+        );
+
+      if (salvou !== false) {
+        toast.success(
+          "Suas informações foram salvas."
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao salvar a Tela 3:",
+        error
+      );
+    } finally {
+      setSalvandoRascunho(false);
+    }
+  }
+
+  async function avancar() {
+    if (
+      processando ||
+      salvandoRascunho
+    ) {
+      return;
+    }
+
+    if (
+      possuiPessoas &&
+      dependentes.length === 0
+    ) {
+      toast.error(
+        "Adicione pelo menos um dependente ou escolha continuar sem cadastrar."
+      );
+
+      return;
+    }
+
+    try {
+      setProcessando(true);
+
+      const salvou =
+        await onNext(
+          montarPayloadTela3({
+            dependentes,
+            possuiPessoas,
+          })
+        );
+
+      if (salvou === false) {
+        setProcessando(false);
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao continuar a Tela 3:",
+        error
+      );
+
+      setProcessando(false);
+    }
   }
 
   return (
@@ -642,10 +645,9 @@ export default function WizardMoradorTela3({
             </span>
 
             <div>
-              <h1>3. Dependentes e Pessoas Vinculadas</h1>
+              <h1>3. Dependentes e familiares</h1>
               <p>
-                Cadastre familiares vinculados à unidade. Funcionários, prestadores e terceiros
-                serão cadastrados em área específica posteriormente.
+                Cadastre familiares ligados à sua unidade e defina quais permissões cada pessoa poderá ter.
               </p>
             </div>
           </header>
@@ -659,7 +661,9 @@ export default function WizardMoradorTela3({
               lines={[
                 resumo.condominio,
                 resumo.endereco,
-                resumo.cidadeUf || resumo.cep ? `${resumo.cidadeUf}${resumo.cep ? ` • CEP ${resumo.cep}` : ""}` : "",
+                resumo.cidadeUf || resumo.cep
+                  ? `${resumo.cidadeUf}${resumo.cep ? ` • CEP ${resumo.cep}` : ""}`
+                  : "",
               ]}
             />
 
@@ -668,34 +672,26 @@ export default function WizardMoradorTela3({
               title="Unidade"
               lines={[
                 `${resumo.torre} • ${resumo.unidade}`,
-                `Perfil: ${resumo.perfil}`,
-                resumo.unidadeVazia ? "Unidade vazia" : "Unidade ocupada",
+                `Relação com a unidade: ${resumo.perfil}`,
               ]}
             />
 
             <SummaryCard
               icon={<UserRound size={21} />}
-              title="Morador responsável"
+              title="Responsável pela unidade"
               lines={[
                 resumo.morador,
                 resumo.cpf ? `CPF: ${resumo.cpf}` : "CPF não informado",
                 resumo.email,
               ]}
             />
-
-            <SummaryCard
-              icon={<ShieldCheck size={21} />}
-              title="Token"
-              lines={[mascararToken(resumo.token), "Status: pendente"]}
-            />
           </section>
 
           <section className="wm-t3-choice-card">
             <div>
-              <h2>Deseja cadastrar dependentes agora?</h2>
+              <h2>Deseja cadastrar dependentes ou familiares agora?</h2>
               <p>
-                Você pode cadastrar familiares que possam receber encomendas, retirar na portaria
-                ou receber convite de acesso futuramente.
+                Você pode informar quem está ligado à unidade e escolher, quando necessário, permissões para encomendas e acesso próprio.
               </p>
             </div>
 
@@ -704,6 +700,7 @@ export default function WizardMoradorTela3({
                 type="button"
                 className={possuiPessoas ? "active" : ""}
                 onClick={() => setPossuiPessoas(true)}
+                aria-pressed={possuiPessoas}
               >
                 <Check size={15} />
                 Sim, quero cadastrar
@@ -712,18 +709,20 @@ export default function WizardMoradorTela3({
               <button
                 type="button"
                 className={!possuiPessoas ? "active light" : "light"}
-                onClick={() => setPossuiPessoas(false)}
+                onClick={selecionarSemDependentes}
+                aria-pressed={!possuiPessoas}
               >
-                Não quero cadastrar agora
+                Continuar sem cadastrar
               </button>
             </div>
           </section>
-                    {possuiPessoas ? (
+
+          {possuiPessoas ? (
             <section className="wm-t3-list-section">
               <div className="wm-t3-list-head">
                 <div>
                   <h2>Dependentes cadastrados ({dependentes.length})</h2>
-                  <p>Todos iniciam com status pendente até a auditoria administrativa.</p>
+                  <p>Revise os dados e permissões antes de continuar.</p>
                 </div>
 
                 <button type="button" onClick={abrirNovaPessoa}>
@@ -742,9 +741,8 @@ export default function WizardMoradorTela3({
                           <th>Idade</th>
                           <th>Recebe encomendas</th>
                           <th>Retira na portaria</th>
-                          <th>Acesso futuro</th>
+                          <th>Acesso próprio depois</th>
                           <th>CPF</th>
-                          <th>Status</th>
                           <th>Ações</th>
                         </tr>
                       </thead>
@@ -755,35 +753,26 @@ export default function WizardMoradorTela3({
                             <td>
                               <PessoaMini pessoa={pessoa} />
                             </td>
-
                             <td>{pessoa.tipo_vinculo}</td>
-
-                            <td>{pessoa.idade !== "" ? `${pessoa.idade} anos` : "—"}</td>
-
+                            <td>
+                              {pessoa.idade !== "" ? `${pessoa.idade} anos` : "—"}
+                            </td>
                             <td>
                               <Bool ativo={pessoa.recebe_encomendas} />
                             </td>
-
                             <td>
                               <Bool ativo={pessoa.retira_portaria} />
                             </td>
-
                             <td>
                               <Bool ativo={pessoa.acesso_proprio_futuro} />
                             </td>
-
                             <td>{pessoa.cpf || "—"}</td>
-
-                            <td>
-                              <Status status={pessoa.status} />
-                            </td>
-
                             <td>
                               <div className="wm-t3-actions-mini">
                                 <button
                                   type="button"
                                   onClick={() => editarPessoa(pessoa)}
-                                  aria-label="Editar dependente"
+                                  aria-label={`Editar ${pessoa.nome}`}
                                 >
                                   <Edit3 size={15} />
                                 </button>
@@ -791,7 +780,7 @@ export default function WizardMoradorTela3({
                                 <button
                                   type="button"
                                   onClick={() => setModalExcluir(pessoa)}
-                                  aria-label="Excluir dependente"
+                                  aria-label={`Excluir ${pessoa.nome}`}
                                 >
                                   <Trash2 size={15} />
                                 </button>
@@ -808,13 +797,28 @@ export default function WizardMoradorTela3({
                       <article key={pessoa.id} className="wm-t3-mobile-card">
                         <Avatar pessoa={pessoa} />
 
-                        <div>
+                        <div className="wm-t3-mobile-person">
                           <strong>{pessoa.nome}</strong>
                           <span>{pessoa.tipo_vinculo}</span>
-                          <small>{pessoa.idade !== "" ? `${pessoa.idade} anos` : "Idade não informada"}</small>
+                          <small>
+                            {pessoa.idade !== "" ? `${pessoa.idade} anos` : "Idade não informada"}
+                          </small>
                         </div>
 
-                        <Status status={pessoa.status} />
+                        <div className="wm-t3-mobile-permissions">
+                          <MobilePermission
+                            label="Recebe encomendas"
+                            ativo={pessoa.recebe_encomendas}
+                          />
+                          <MobilePermission
+                            label="Retira na portaria"
+                            ativo={pessoa.retira_portaria}
+                          />
+                          <MobilePermission
+                            label="Acesso próprio depois"
+                            ativo={pessoa.acesso_proprio_futuro}
+                          />
+                        </div>
 
                         <div className="wm-t3-mobile-actions">
                           <button type="button" onClick={() => editarPessoa(pessoa)}>
@@ -827,10 +831,14 @@ export default function WizardMoradorTela3({
                       </article>
                     ))}
 
-                    <button type="button" className="wm-t3-mobile-add" onClick={abrirNovaPessoa}>
+                    <button
+                      type="button"
+                      className="wm-t3-mobile-add"
+                      onClick={abrirNovaPessoa}
+                    >
                       <i>+</i>
                       <strong>Adicionar dependente</strong>
-                      <span>Familiar vinculado à unidade</span>
+                      <span>Familiar ligado à unidade</span>
                     </button>
                   </div>
                 </>
@@ -838,76 +846,102 @@ export default function WizardMoradorTela3({
                 <div className="wm-t3-empty">
                   <UsersRound size={34} />
                   <strong>Nenhum dependente cadastrado</strong>
-                  <p>
-                    Clique em “Adicionar dependente” para incluir familiares vinculados à unidade.
-                  </p>
+                  <p>Adicione um familiar ou escolha continuar sem cadastrar nesta etapa.</p>
                 </div>
               )}
 
               <div className="wm-t3-note">
                 <Info size={16} />
                 <span>
-                  O convite do dependente não será enviado agora. Após aprovação, o responsável
-                  poderá enviar um token temporário e de uso único pelo WhatsApp no Portal do Morador.
+                  Se você marcar que um dependente poderá ter acesso próprio, o convite será enviado somente depois, a partir da área do Morador.
                 </span>
               </div>
             </section>
           ) : (
             <section className="wm-t3-empty">
               <UsersRound size={34} />
-              <strong>Cadastro de dependentes pulado</strong>
-              <p>
-                Você poderá adicionar dependentes posteriormente no Portal do Morador.
-              </p>
+              <strong>Nenhum dependente será incluído agora</strong>
+              <p>Você poderá cadastrar familiares posteriormente pela área do Morador.</p>
             </section>
           )}
 
           <section className="wm-t3-good-practices">
             <PracticeCard
               icon={<ShieldCheck size={20} />}
-              title="Autorização controlada"
-              text="Dependentes não iniciam autorizados para retirada. Toda permissão deve ser marcada pelo responsável."
+              title="Permissões sob seu controle"
+              text="Escolha separadamente quem pode receber encomendas, retirar na portaria ou ter acesso próprio depois."
             />
 
             <PracticeCard
               icon={<Mail size={20} />}
-              title="Convite posterior"
-              text="O acesso próprio poderá ser enviado depois pelo WhatsApp do responsável, com token temporário."
+              title="Acesso enviado depois"
+              text="Cadastrar um dependente aqui não envia convite neste momento."
             />
 
             <PracticeCard
               icon={<Info size={20} />}
-              title="Somente parentesco"
-              text="Funcionários domésticos, prestadores e terceiros serão cadastrados em área própria."
+              title="Funcionários ficam em outra etapa"
+              text="Funcionários do lar não devem ser cadastrados como dependentes."
             />
           </section>
 
           <footer className="wm-t3-actions">
-            <button type="button" className="secondary" onClick={onBack}>
+            <button
+              type="button"
+              className="secondary"
+              onClick={onBack}
+              disabled={
+                processando ||
+                salvandoRascunho
+              }
+            >
               <ArrowLeft size={16} />
               Voltar
             </button>
 
-            <button type="button" className="outline" onClick={salvarRascunho}>
+            <button
+              type="button"
+              className="outline"
+              onClick={salvarRascunho}
+              disabled={
+                processando ||
+                salvandoRascunho
+              }
+            >
               <Save size={16} />
-              Salvar e continuar depois
+
+              {salvandoRascunho
+                ? "Salvando..."
+                : "Salvar e continuar depois"}
             </button>
 
-            <button type="button" className="primary" onClick={avancar}>
-              Salvar e continuar
+            <button
+              type="button"
+              className="primary"
+              onClick={avancar}
+              disabled={
+                processando ||
+                salvandoRascunho
+              }
+              aria-busy={processando}
+            >
+              {processando
+                ? "Salvando informações..."
+                : "Continuar"}
+
               <ArrowRight size={18} />
             </button>
           </footer>
         </section>
       </div>
 
-      {modalAberto ? (
+      {modalAberto && pessoaAtual ? (
         <ModalPessoa
           pessoa={pessoaAtual}
           setPessoa={setPessoaAtual}
           camposInvalidos={camposInvalidos}
           dependentes={dependentes}
-          cpfResponsavel={formMorador?.cpf}
+          cpfResponsavel={formMorador?.cpf || ""}
           onClose={fecharModal}
           onSave={salvarPessoa}
         />
@@ -925,30 +959,52 @@ export default function WizardMoradorTela3({
       {modalExcluir ? (
         <ModalConfirmacao
           titulo="Excluir dependente?"
-          texto={`Deseja remover ${modalExcluir.nome} da lista de dependentes?`}
+          texto={`Deseja remover ${modalExcluir.nome} deste cadastro?`}
           onClose={() => setModalExcluir(null)}
           onConfirm={() => excluirPessoa(modalExcluir.id)}
         />
       ) : null}
+
+      {processando ? (
+        <div
+          className="wm-t3-processing"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="wm-t3-processing-card">
+            <span className="wm-t3-processing-spinner" />
+
+            <strong>
+              Salvando suas informações
+            </strong>
+
+            <p>
+              Aguarde um instante. Estamos preparando a próxima etapa.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }
+
 function SummaryCard({ icon, title, lines = [] }) {
   return (
-    <div className="wm-t3-summary-card">
+    <article className="wm-t3-summary-card">
       <span>{icon}</span>
 
       <div>
         <strong>{title}</strong>
-
-        {lines
-          .filter(Boolean)
-          .map((line) => (
-            <small key={line}>{line}</small>
-          ))}
+        {lines.filter(Boolean).map((line, index) => (
+          <small key={`${title}-${index}`}>{line}</small>
+        ))}
       </div>
-    </div>
+    </article>
   );
+}
+
+function Avatar({ pessoa }) {
+  return <span className="wm-t3-avatar fallback">{iniciais(pessoa?.nome)}</span>;
 }
 
 function PessoaMini({ pessoa }) {
@@ -958,43 +1014,31 @@ function PessoaMini({ pessoa }) {
 
       <div>
         <strong>{pessoa.nome}</strong>
-        {pessoa.acesso_proprio_futuro ? <small>Acesso futuro</small> : null}
+        <small>{pessoa.email || "Sem acesso próprio definido"}</small>
       </div>
     </div>
   );
 }
 
-function Avatar({ pessoa }) {
-  if (pessoa.foto_base64) {
-    return (
-      <img
-        className="wm-t3-avatar"
-        src={pessoa.foto_base64}
-        alt={pessoa.nome}
-      />
-    );
-  }
-
-  return <span className="wm-t3-avatar fallback">{iniciais(pessoa.nome)}</span>;
-}
-
 function Bool({ ativo }) {
   return (
-    <span className={`wm-t3-bool ${ativo ? "ok" : "no"}`}>
+    <span
+      className={`wm-t3-bool ${ativo ? "ok" : "no"}`}
+      aria-label={ativo ? "Sim" : "Não"}
+      title={ativo ? "Sim" : "Não"}
+    >
       {ativo ? <Check size={12} /> : <X size={12} />}
     </span>
   );
 }
 
-function Status({ status = "PENDENTE" }) {
-  const label = {
-    PENDENTE: "Pendente",
-    REVISAO: "Revisão",
-    APROVADO: "Aprovado",
-    REJEITADO: "Rejeitado",
-  }[status] || "Pendente";
-
-  return <span className={`wm-t3-status ${status.toLowerCase()}`}>{label}</span>;
+function MobilePermission({ label, ativo }) {
+  return (
+    <span className="wm-t3-mobile-permission">
+      <Bool ativo={ativo} />
+      {label}
+    </span>
+  );
 }
 
 function PracticeCard({ icon, title, text }) {
@@ -1019,14 +1063,7 @@ function ModalPessoa({
   onClose,
   onSave,
 }) {
-  const inputFotoGaleriaRef = useRef(null);
-  const inputFotoCameraRef = useRef(null);
   const inputDataRef = useRef(null);
-
-  const [processandoFoto, setProcessandoFoto] = useState(false);
-
-  const ehMobile =
-    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
   const idadeNumerica = pessoa?.idade !== "" ? Number(pessoa.idade) : null;
   const menor16 = idadeNumerica !== null && idadeNumerica < 16;
@@ -1037,13 +1074,23 @@ function ModalPessoa({
   const cpfLimpo = somenteNumeros(pessoa?.cpf);
   const cpfValido = cpfLimpo.length === 11 && validarCpf(pessoa?.cpf);
 
-  function salvarEtapaLocalAntesFoto() {
-    try {
-      sessionStorage.setItem("wizard_morador_etapa_atual", "3");
-    } catch (error) {
-      console.warn("Não foi possível salvar etapa local:", error);
+  useEffect(() => {
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function aoPressionarTecla(event) {
+      if (event.key === "Escape") {
+        onClose();
+      }
     }
-  }
+
+    window.addEventListener("keydown", aoPressionarTecla);
+
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+      window.removeEventListener("keydown", aoPressionarTecla);
+    };
+  }, [onClose]);
 
   function cpfDuplicadoLocal(cpf) {
     const cpfAtual = somenteNumeros(cpf);
@@ -1071,16 +1118,7 @@ function ModalPessoa({
       if (campo === "cpf") {
         novo.cpf = formatarCpf(valor);
         novo.cpf_pendente_validacao = false;
-
-        const duplicado = cpfDuplicadoLocal(novo.cpf);
-
-        if (duplicado === "responsavel") {
-          toast.error("Este CPF já pertence ao morador responsável.");
-        }
-
-        if (duplicado === "dependente") {
-          toast.error("Este CPF já foi informado em outro dependente.");
-        }
+        novo.tentativas_cpf_invalidas = 0;
       }
 
       if (campo === "data_nascimento") {
@@ -1110,41 +1148,12 @@ function ModalPessoa({
 
       if (campo === "acesso_proprio_futuro" && !valor) {
         novo.email = "";
+        novo.ddi = "+55";
         novo.whatsapp = "";
       }
 
       return novo;
     });
-  }
-
-  async function selecionarFoto(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setProcessandoFoto(true);
-
-      const foto = await processarImagemLocal(file);
-
-      atualizar("foto_base64", foto.previewBase64);
-      atualizar("foto_nome", foto.nome);
-      atualizar("foto_mime", foto.mime);
-      atualizar("foto_tamanho", foto.tamanhoEstimado);
-
-      toast.success("Foto otimizada com sucesso.");
-    } catch (error) {
-      toast.error(error.message || "Não foi possível processar a foto.");
-    } finally {
-      setProcessandoFoto(false);
-      if (event.target) event.target.value = "";
-    }
-  }
-
-  function removerFoto() {
-    atualizar("foto_base64", "");
-    atualizar("foto_nome", "");
-    atualizar("foto_mime", "");
-    atualizar("foto_tamanho", "");
   }
 
   function abrirCalendario() {
@@ -1165,262 +1174,211 @@ function ModalPessoa({
       <div className="wm-t3-modal">
         <header className="wm-t3-modal-head">
           <div>
-            <h2>Adicionar dependente</h2>
-            <p>Informe os dados do familiar e defina as permissões com cuidado.</p>
+            <h2>{pessoa.nome ? "Editar dependente" : "Adicionar dependente"}</h2>
+            <p>Informe os dados do familiar e escolha as permissões que deseja conceder.</p>
           </div>
 
-          <button type="button" onClick={onClose} aria-label="Fechar modal">
+          <button type="button" onClick={onClose} aria-label="Fechar">
             <X size={20} />
           </button>
         </header>
 
         <div className="wm-t3-modal-body">
-          <section className="wm-t3-modal-section">
-            <h3>1. Dados básicos</h3>
+          <div className="wm-t3-modal-main">
+            <section className="wm-t3-modal-section">
+              <h3>Dados do dependente</h3>
 
-            <div className="wm-t3-photo-line">
-              <div className="wm-t3-photo-preview">
-                {pessoa.foto_base64 ? (
-                  <img src={pessoa.foto_base64} alt="Foto do dependente" />
-                ) : (
-                  <UserRound size={36} />
-                )}
-              </div>
-
-              <div className="wm-t3-photo-info">
-                <strong>Foto do dependente (opcional)</strong>
-                <span>JPG, PNG, HEIC ou WebP até 5MB. Otimização automática para WebP.</span>
-
-                <div className="wm-t3-photo-actions">
-                  <button
-                    type="button"
-                    className="wm-t3-mini-btn"
-                    onClick={() => {
-                      salvarEtapaLocalAntesFoto();
-                      inputFotoGaleriaRef.current?.click();
-                    }}
-                    disabled={processandoFoto}
-                  >
-                    <Upload size={14} />
-                    {processandoFoto ? "Processando..." : "Galeria"}
-                  </button>
-
-                  {ehMobile ? (
-                    <button
-                      type="button"
-                      className="wm-t3-mini-btn"
-                      onClick={() => {
-                        salvarEtapaLocalAntesFoto();
-                        inputFotoCameraRef.current?.click();
-                      }}
-                      disabled={processandoFoto}
-                    >
-                      <UserRound size={14} />
-                      Câmera
-                    </button>
-                  ) : null}
-
-                  {pessoa.foto_base64 ? (
-                    <button
-                      type="button"
-                      className="wm-t3-mini-btn ghost"
-                      onClick={removerFoto}
-                      disabled={processandoFoto}
-                    >
-                      Remover
-                    </button>
-                  ) : null}
-
-                  <input
-                    ref={inputFotoGaleriaRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp,image/heic,image/heif"
-                    onChange={selecionarFoto}
-                    hidden
-                  />
-
-                  {ehMobile ? (
-                    <input
-                      ref={inputFotoCameraRef}
-                      type="file"
-                      accept="image/*"
-                      capture="user"
-                      onChange={selecionarFoto}
-                      hidden
-                    />
-                  ) : null}
-                </div>
-              </div>
-            </div>
-
-            <div className="wm-t3-modal-grid two">
-              <Field
-                label="Nome completo *"
-                value={pessoa.nome}
-                onChange={(v) => atualizar("nome", v)}
-                invalid={camposInvalidos.nome}
-                placeholder="Nome do dependente"
-              />
-
-              <label className="wm-t3-field">
-                <span>Parentesco *</span>
-
-                <select
-                  value={pessoa.tipo_vinculo}
-                  onChange={(e) => atualizar("tipo_vinculo", e.target.value)}
-                  className={camposInvalidos.tipo_vinculo ? "invalid" : ""}
-                  autoComplete="off"
-                >
-                  <option value="">Selecione</option>
-
-                  {TIPOS_VINCULO.map((tipo) => (
-                    <option key={tipo} value={tipo}>
-                      {tipo}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="wm-t3-modal-grid three">
-              <FieldDate
-                label="Data de nascimento *"
-                value={pessoa.data_nascimento}
-                onChange={(v) => atualizar("data_nascimento", v)}
-                invalid={camposInvalidos.data_nascimento}
-                inputRef={inputDataRef}
-                onOpenCalendar={abrirCalendario}
-              />
-
-              <Field
-                label="Idade"
-                value={pessoa.idade !== "" ? `${pessoa.idade} anos` : "—"}
-                disabled
-              />
-
-              <Field
-                label="CPF (opcional)"
-                value={pessoa.cpf}
-                onChange={(v) => atualizar("cpf", v)}
-                invalid={camposInvalidos.cpf}
-                inputMode="numeric"
-                valid={cpfValido && !cpfDuplicadoLocal(pessoa.cpf)}
-                placeholder="000.000.000-00"
-              />
-            </div>
-
-            {pessoa.cpf_pendente_validacao ? (
-              <div className="wm-t3-cpf-audit">
-                CPF será encaminhado para auditoria administrativa.
-              </div>
-            ) : null}
-          </section>
-
-          <section className="wm-t3-modal-section">
-            <h3>2. Permissões</h3>
-
-            <PermissionCard
-              checked={pessoa.recebe_encomendas}
-              title="Pode receber encomendas em seu nome"
-              text="Permite registrar encomendas destinadas a este dependente."
-              onChange={(v) => atualizar("recebe_encomendas", v)}
-            />
-
-            <PermissionCard
-              checked={pessoa.retira_portaria}
-              title="Pode retirar encomendas na portaria"
-              text="Permite retirada somente quando houver autorização ativa registrada no sistema."
-              onChange={(v) => atualizar("retira_portaria", v)}
-              green
-            />
-
-            <PermissionCard
-              checked={pessoa.acesso_proprio_futuro}
-              title="Poderá receber acesso próprio futuramente"
-              text="O convite não será enviado agora. Após aprovação, o responsável poderá enviar pelo WhatsApp no Portal do Morador."
-              onChange={(v) => atualizar("acesso_proprio_futuro", v)}
-              purple
-            />
-
-            {pessoa.acesso_proprio_futuro ? (
-              <div className="wm-t3-access-fields">
+              <div className="wm-t3-modal-grid two">
                 <Field
-                  label="E-mail *"
-                  value={pessoa.email}
-                  onChange={(v) => atualizar("email", v.toLowerCase())}
-                  invalid={camposInvalidos.email}
-                  placeholder="email@exemplo.com"
+                  label="Nome completo *"
+                  value={pessoa.nome}
+                  onChange={(v) => atualizar("nome", v)}
+                  invalid={camposInvalidos.nome}
+                  placeholder="Nome do dependente"
+                  autoComplete="name"
                 />
 
-                <div className="wm-t3-modal-grid phone">
-                  <Field
-                    label="DDI *"
-                    value={pessoa.ddi || "+55"}
-                    onChange={(v) => atualizar("ddi", v)}
-                    invalid={camposInvalidos.ddi}
-                    inputMode="tel"
-                    placeholder="+55"
-                  />
+                <label className="wm-t3-field">
+                  <span>Parentesco *</span>
 
-                  <Field
-                    label="WhatsApp *"
-                    value={pessoa.whatsapp}
-                    onChange={(v) => atualizar("whatsapp", v)}
-                    invalid={camposInvalidos.whatsapp}
-                    inputMode="tel"
-                    icon={<Phone size={15} />}
-                    placeholder="(11) 99999-9999"
-                  />
-                </div>
+                  <select
+                    value={pessoa.tipo_vinculo}
+                    onChange={(e) => atualizar("tipo_vinculo", e.target.value)}
+                    className={camposInvalidos.tipo_vinculo ? "invalid" : ""}
+                    autoComplete="off"
+                  >
+                    <option value="">Selecione</option>
+                    {TIPOS_VINCULO.map((tipo) => (
+                      <option key={tipo} value={tipo}>
+                        {tipo}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
 
-                <div className="wm-t3-access-note">
+              <div className="wm-t3-modal-grid three">
+                <FieldDate
+                  label="Data de nascimento *"
+                  value={pessoa.data_nascimento}
+                  onChange={(v) => atualizar("data_nascimento", v)}
+                  invalid={camposInvalidos.data_nascimento}
+                  inputRef={inputDataRef}
+                  onOpenCalendar={abrirCalendario}
+                />
+
+                <Field
+                  label="Idade"
+                  value={pessoa.idade !== "" ? `${pessoa.idade} anos` : "—"}
+                  disabled
+                />
+
+                <Field
+                  label="CPF (opcional)"
+                  value={pessoa.cpf}
+                  onChange={(v) => atualizar("cpf", v)}
+                  invalid={camposInvalidos.cpf}
+                  inputMode="numeric"
+                  valid={
+                    cpfValido &&
+                    !cpfDuplicadoLocal(pessoa.cpf) &&
+                    !pessoa.cpf_pendente_validacao
+                  }
+                  placeholder="000.000.000-00"
+                  autoComplete="off"
+                />
+              </div>
+
+              {pessoa.cpf_pendente_validacao ? (
+                <div className="wm-t3-cpf-note">
                   <Info size={15} />
                   <span>
-                    O convite será enviado posteriormente pelo WhatsApp do responsável,
-                    com token temporário e de uso único.
+                    Você pode continuar. A administração conferirá o CPF informado antes da aprovação do cadastro.
                   </span>
                 </div>
-              </div>
-            ) : null}
-          </section>
-
-          {menor18 ? (
-            <section className={`wm-t3-minor-alert ${menor16 ? "strong" : ""}`}>
-              <h3>{menor16 ? "3. Menor de 16 anos" : "3. Menor de idade"}</h3>
-
-              <p>
-                Idade da pessoa: <strong>{pessoa.idade} anos</strong>
-              </p>
-
-              <div>
-                <Info size={16} />
-                <span>
-                  {menor16
-                    ? "Retirada na portaria e futuro acesso próprio exigem ciência e responsabilidade do morador responsável."
-                    : "Dependentes menores de 18 anos exigem responsabilidade do morador responsável para permissões operacionais."}
-                </span>
-              </div>
-
-              {exigeCiencia ? (
-                <label
-                  className={`wm-t3-check ${
-                    camposInvalidos.menor_16_ciencia ? "invalid" : ""
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={pessoa.menor_16_ciencia}
-                    onChange={() =>
-                      atualizar("menor_16_ciencia", !pessoa.menor_16_ciencia)
-                    }
-                  />
-                  <span>
-                    Declaro ciência e assumo responsabilidade pelas autorizações concedidas.
-                  </span>
-                </label>
               ) : null}
             </section>
-          ) : null}
+
+            <section className="wm-t3-modal-section">
+              <h3>Permissões</h3>
+
+              <PermissionCard
+                checked={pessoa.recebe_encomendas}
+                title="Pode receber encomendas em seu nome"
+                text="Permite que encomendas destinadas a este dependente sejam associadas à unidade."
+                onChange={(v) => atualizar("recebe_encomendas", v)}
+              />
+
+              <PermissionCard
+                checked={pessoa.retira_portaria}
+                title="Pode retirar encomendas na portaria"
+                text="Autoriza este dependente a retirar encomendas quando as demais condições de entrega estiverem atendidas."
+                onChange={(v) => atualizar("retira_portaria", v)}
+                green
+              />
+
+              <PermissionCard
+                checked={pessoa.acesso_proprio_futuro}
+                title="Poderá ter acesso próprio depois"
+                text="Nenhum convite será enviado agora. Você poderá liberar o acesso posteriormente pela área do Morador."
+                onChange={(v) => atualizar("acesso_proprio_futuro", v)}
+                purple
+              />
+
+              {pessoa.acesso_proprio_futuro ? (
+                <div className="wm-t3-access-fields">
+                  <Field
+                    label="E-mail *"
+                    value={pessoa.email}
+                    onChange={(v) => atualizar("email", v.toLowerCase())}
+                    invalid={camposInvalidos.email}
+                    placeholder="email@exemplo.com"
+                    inputMode="email"
+                    autoComplete="email"
+                  />
+
+                  <div className="wm-t3-modal-grid phone">
+                    <Field
+                      label="Código do país *"
+                      value={pessoa.ddi || "+55"}
+                      onChange={(v) => atualizar("ddi", v)}
+                      invalid={camposInvalidos.ddi}
+                      inputMode="tel"
+                      placeholder="+55"
+                      autoComplete="tel-country-code"
+                    />
+
+                    <Field
+                      label="WhatsApp *"
+                      value={pessoa.whatsapp}
+                      onChange={(v) => atualizar("whatsapp", v)}
+                      invalid={camposInvalidos.whatsapp}
+                      inputMode="tel"
+                      icon={<Phone size={15} />}
+                      placeholder="(11) 99999-9999"
+                      autoComplete="tel-national"
+                    />
+                  </div>
+
+                  <div className="wm-t3-access-note">
+                    <Info size={15} />
+                    <span>
+                      Esses contatos ficarão preparados para quando você decidir liberar o acesso próprio deste dependente.
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+            </section>
+
+            {menor18 ? (
+              <section className={`wm-t3-minor-alert ${menor16 ? "strong" : ""}`}>
+                <h3>{menor16 ? "Dependente menor de 16 anos" : "Dependente menor de idade"}</h3>
+
+                <p>
+                  Idade: <strong>{pessoa.idade} anos</strong>
+                </p>
+
+                <div>
+                  <Info size={16} />
+                  <span>
+                    {menor16
+                      ? "Revise com atenção as permissões de retirada e de acesso próprio concedidas a este dependente."
+                      : "As permissões concedidas a um menor permanecem sob responsabilidade do responsável pela unidade."}
+                  </span>
+                </div>
+
+                {exigeCiencia ? (
+                  <label
+                    className={`wm-t3-check ${
+                      camposInvalidos.menor_16_ciencia ? "invalid" : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={pessoa.menor_16_ciencia}
+                      onChange={() =>
+                        atualizar("menor_16_ciencia", !pessoa.menor_16_ciencia)
+                      }
+                    />
+                    <span>
+                      Estou ciente das permissões escolhidas e assumo a responsabilidade por elas.
+                    </span>
+                  </label>
+                ) : null}
+              </section>
+            ) : null}
+          </div>
+
+          <aside className="wm-t3-guidance-card">
+            <ShieldCheck size={22} />
+            <strong>Antes de salvar</strong>
+            <p>
+              Confira o parentesco e marque apenas as permissões que realmente deseja conceder.
+            </p>
+            <p>
+              Nenhum acesso será enviado ao dependente durante este cadastro.
+            </p>
+          </aside>
         </div>
 
         <footer className="wm-t3-modal-actions">
@@ -1448,6 +1406,7 @@ function Field({
   disabled,
   valid,
   placeholder,
+  autoComplete = "off",
 }) {
   return (
     <label className="wm-t3-field">
@@ -1458,17 +1417,16 @@ function Field({
           disabled ? "disabled" : ""
         } ${valid ? "valid" : ""}`}
       >
-        {icon}
+        {icon ? <i className="wm-t3-input-icon">{icon}</i> : null}
 
         <input
-          value={value || ""}
+          value={value ?? ""}
           onChange={(e) => onChange?.(e.target.value)}
           inputMode={inputMode}
           disabled={disabled}
           placeholder={placeholder}
-          autoComplete="off"
+          autoComplete={autoComplete}
           autoCorrect="off"
-          autoCapitalize="off"
           spellCheck={false}
         />
 
@@ -1490,21 +1448,23 @@ function FieldDate({ label, value, onChange, invalid, inputRef, onOpenCalendar }
       <span>{label}</span>
 
       <div className={`wm-t3-input ${invalid ? "invalid" : ""}`}>
-        <CalendarDays size={15} />
+        <i className="wm-t3-input-icon">
+          <CalendarDays size={15} />
+        </i>
 
         <input
           value={value || ""}
           onChange={(e) => onChange(formatarData(e.target.value))}
           inputMode="numeric"
           placeholder="DD/MM/AAAA"
-          autoComplete="off"
+          autoComplete="bday"
         />
 
         <button
           type="button"
           className="wm-t3-calendar-btn"
           onClick={onOpenCalendar}
-          aria-label="Abrir calendário"
+          aria-label="Escolher data"
         >
           <CalendarDays size={15} />
         </button>
@@ -1515,7 +1475,7 @@ function FieldDate({ label, value, onChange, invalid, inputRef, onOpenCalendar }
           className="wm-t3-date-native"
           value={iso}
           onChange={(e) => onChange(dataISOParaBR(e.target.value))}
-          aria-label="Selecionar data"
+          aria-label="Selecionar data de nascimento"
         />
       </div>
     </label>
@@ -1530,6 +1490,7 @@ function PermissionCard({ checked, title, text, onChange, green, purple }) {
         green ? "green" : ""
       } ${purple ? "purple" : ""}`}
       onClick={() => onChange(!checked)}
+      aria-pressed={checked}
     >
       <span>{checked ? <Check size={13} /> : null}</span>
 
@@ -1542,10 +1503,19 @@ function PermissionCard({ checked, title, text, onChange, green, purple }) {
 }
 
 function ModalDetalhePessoa({ pessoa, onClose, onEdit, onDelete }) {
+  useEffect(() => {
+    function aoPressionarTecla(event) {
+      if (event.key === "Escape") onClose();
+    }
+
+    window.addEventListener("keydown", aoPressionarTecla);
+    return () => window.removeEventListener("keydown", aoPressionarTecla);
+  }, [onClose]);
+
   return (
     <div className="wm-modal-overlay" role="dialog" aria-modal="true">
       <div className="wm-t3-detail-sheet">
-        <button type="button" className="close" onClick={onClose}>
+        <button type="button" className="close" onClick={onClose} aria-label="Fechar">
           <X size={18} />
         </button>
 
@@ -1569,7 +1539,7 @@ function ModalDetalhePessoa({ pessoa, onClose, onEdit, onDelete }) {
 
           <p>
             <UserRound size={16} />
-            Acesso futuro ao sistema
+            Acesso próprio depois
             <Bool ativo={pessoa.acesso_proprio_futuro} />
           </p>
         </div>
@@ -1591,10 +1561,24 @@ function ModalDetalhePessoa({ pessoa, onClose, onEdit, onDelete }) {
 }
 
 function ModalConfirmacao({ titulo, texto, onClose, onConfirm }) {
+  useEffect(() => {
+    function aoPressionarTecla(event) {
+      if (event.key === "Escape") onClose();
+    }
+
+    window.addEventListener("keydown", aoPressionarTecla);
+    return () => window.removeEventListener("keydown", aoPressionarTecla);
+  }, [onClose]);
+
   return (
     <div className="wm-modal-overlay" role="dialog" aria-modal="true">
       <div className="wm-modal-card">
-        <button type="button" className="wm-modal-close" onClick={onClose}>
+        <button
+          type="button"
+          className="wm-modal-close"
+          onClick={onClose}
+          aria-label="Fechar"
+        >
           <X size={18} />
         </button>
 
@@ -1602,11 +1586,17 @@ function ModalConfirmacao({ titulo, texto, onClose, onConfirm }) {
         <p>{texto}</p>
 
         <div className="wm-modal-actions">
+          <button type="button" className="wm-modal-secondary" onClick={onClose}>
+            Cancelar
+          </button>
+
           <button type="button" className="wm-modal-primary" onClick={onConfirm}>
-            Confirmar
+            Excluir
           </button>
         </div>
       </div>
     </div>
+
+    
   );
 }

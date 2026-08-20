@@ -414,6 +414,14 @@
 }
 
 @media (max-width: 560px) {
+  .wm-t1-page,
+  .wm-t1-card,
+  .wm-t1-section,
+  .wm-t1-section-title-block,
+  .wm-t1-readonly-field {
+    min-width: 0;
+  }
+
   .wm-t1-title {
     gap: 11px;
   }
@@ -441,24 +449,9 @@
     font-size: 15px;
   }
 
-  .wm-t1-readonly-input {
-    min-height: 48px;
-  }
-
-  .wm-t1-readonly-input input {
-    font-size: 16px; /* evita zoom iOS */
-  }
-
-  .wm-t1-readonly-field:nth-child(5),
-  .wm-t1-readonly-field:nth-child(6) {
-    width: 100%;
-  }
-}
-
-/* Torre/Bloco + Unidade lado a lado em celular */
-@media (max-width: 560px) {
   .wm-t1-readonly-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 12px;
   }
 
   .wm-t1-readonly-field:nth-child(1),
@@ -471,11 +464,65 @@
   .wm-t1-readonly-field:nth-child(5),
   .wm-t1-readonly-field:nth-child(6) {
     grid-column: auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .wm-t1-readonly-input {
+    min-height: 48px;
+    min-width: 0;
+    padding-inline: 12px;
+  }
+
+  /*
+   * 16px impede o zoom automático do Safari/iPhone
+   * quando o campo recebe foco programaticamente
+   * ou por comportamento do navegador.
+   */
+  .wm-t1-readonly-input input {
+    min-width: 0;
+    font-size: 16px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
   }
 
   .wm-t1-readonly-field:nth-child(5) input,
   .wm-t1-readonly-field:nth-child(6) input {
-    font-size: 13px;
+    font-size: 16px;
+  }
+
+  .wm-t1-profile-card {
+    padding-left: 70px;
+    padding-right: 48px;
+  }
+
+  .wm-t1-profile-card strong,
+  .wm-t1-profile-card p {
+    overflow-wrap: anywhere;
+  }
+
+  .wm-t1-info-note span {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 430px) {
+  .wm-t1-readonly-grid {
+    gap: 10px;
+  }
+
+  .wm-t1-readonly-input {
+    padding-inline: 10px;
+  }
+
+  .wm-t1-readonly-input i {
+    display: none;
+  }
+
+  .wm-t1-profile-card {
+    padding-left: 66px;
+    padding-right: 46px;
   }
 }
 
@@ -527,4 +574,37 @@
   background: #111827;
   border-color: #1e293b;
   color: #cbd5e1;
+}
+
+/* =========================
+   TRANSIÇÃO / SALVAMENTO
+========================= */
+
+.wm-t1-btn:disabled {
+  cursor: wait;
+  pointer-events: none;
+  opacity: 0.78;
+  transform: none;
+}
+
+.wm-t1-btn-spinner {
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.42);
+  border-top-color: #ffffff;
+  animation: wm-t1-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes wm-t1-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-t1-btn-spinner {
+    animation-duration: 1.4s;
+  }
 }

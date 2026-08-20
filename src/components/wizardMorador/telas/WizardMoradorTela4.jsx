@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
   ArrowLeft,
@@ -13,16 +13,12 @@ import {
   Save,
   ShieldCheck,
   Trash2,
-  Upload,
   UserRound,
   UsersRound,
   X,
 } from "lucide-react";
 
 import "../../../styles/wizardMorador/WizardMoradorTela4.css";
-
-const LIMITE_UPLOAD_FOTO_MB = 5;
-const LIMITE_UPLOAD_FOTO_BYTES = LIMITE_UPLOAD_FOTO_MB * 1024 * 1024;
 
 const TIPOS_FUNCAO = [
   "Babá",
@@ -60,14 +56,9 @@ const funcionarioInicial = {
   ddi: "+55",
   whatsapp: "",
   email: "",
-  foto_base64: "",
-  foto_nome: "",
-  foto_mime: "",
-  foto_tamanho: "",
   autorizado_acesso_condominio: false,
   autorizado_receber_orientacoes: false,
   observacoes: "",
-  status: "PENDENTE",
 };
 
 const petInicial = {
@@ -77,12 +68,7 @@ const petInicial = {
   raca: "",
   porte: "",
   cor: "",
-  foto_base64: "",
-  foto_nome: "",
-  foto_mime: "",
-  foto_tamanho: "",
   observacoes: "",
-  status: "PENDENTE",
 };
 
 function somenteNumeros(valor = "") {
@@ -103,7 +89,9 @@ function formatarTelefoneBrasil(valor = "") {
 
   if (!numeros) return "";
   if (numeros.length <= 2) return `(${numeros}`;
-  if (numeros.length <= 6) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+  if (numeros.length <= 6) {
+    return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+  }
 
   if (numeros.length <= 10) {
     return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
@@ -133,25 +121,26 @@ function montarTelefoneE164({ ddi = "+55", numero = "" }) {
 
   return `+${ddiNumerico}${telefoneNumerico}`;
 }
+
 function capitalizarNome(valor = "") {
   const minusculas = new Set(["da", "de", "do", "das", "dos", "e"]);
 
   return String(valor)
     .trimStart()
     .toLowerCase()
-    .replace(/(^|\s|-|')([\p{L}]+)/gu, (_, sep, palavra) => {
-      if (sep === " " && minusculas.has(palavra)) return `${sep}${palavra}`;
-      return `${sep}${palavra.charAt(0).toUpperCase()}${palavra.slice(1)}`;
+    .replace(/(^|\s|-|')([\p{L}]+)/gu, (_, separador, palavra) => {
+      if (separador === " " && minusculas.has(palavra)) {
+        return `${separador}${palavra}`;
+      }
+
+      return `${separador}${palavra.charAt(0).toUpperCase()}${palavra.slice(1)}`;
     });
 }
 
-function primeiroNome(nome = "") {
-  return nome.trim().split(/\s+/)[0] || "Funcionário";
-}
-
 function iniciais(nome = "") {
-  const partes = nome.trim().split(/\s+/).filter(Boolean);
-  return `${partes[0]?.[0] || "F"}${partes[1]?.[0] || ""}`.toUpperCase();
+  const partes = String(nome).trim().split(/\s+/).filter(Boolean);
+
+  return `${partes[0]?.[0] || "P"}${partes[1]?.[0] || ""}`.toUpperCase();
 }
 
 function formatarCpf(valor = "") {
@@ -194,33 +183,26 @@ function validarCpf(cpf = "") {
 
 function validarEmail(email = "") {
   if (!email) return true;
+
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
 }
 
-function gerarId() {
-  return `func-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-function mascararToken(token = "") {
-  const limpo = String(token).replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-
-  if (!limpo) return "PEN-NÃO-INFORMADO";
-
-  const miolo = limpo.slice(0, 9);
-  return `PEN-${miolo.slice(0, 3)}-${miolo.slice(3, 6)}-${miolo.slice(6, 9)}`;
+function gerarId(prefixo) {
+  return `${prefixo}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function traduzirPerfil(perfil = "") {
   const mapa = {
-    proprietario_residente: "Proprietário Residente",
-    proprietario_morador: "Proprietário Residente",
-    proprietario_nao_residente: "Proprietário Não Residente",
-    inquilino: "Morador Inquilino",
-    responsavel_unidade_corporativa: "Unidade Corporativa",
-    unidade_vazia: "Unidade Vazia",
+    proprietario_residente: "Proprietário residente",
+    proprietario_morador: "Proprietário residente",
+    proprietario_nao_residente: "Proprietário não residente",
+    proprietario_unidade_alugada: "Proprietário não residente",
+    inquilino: "Morador inquilino",
+    responsavel_unidade_corporativa: "Responsável por unidade corporativa",
+    unidade_vazia: "Responsável por unidade vazia",
   };
 
-  return mapa[perfil] || perfil || "Perfil não informado";
+  return mapa[perfil] || "Não informado";
 }
 
 function obterResumo(dadosWizard, formTela1, formMorador) {
@@ -229,13 +211,14 @@ function obterResumo(dadosWizard, formTela1, formMorador) {
 
   const perfil =
     formTela1?.perfilUnidade ||
+    formTela1?.perfil_unidade ||
+    pre.perfil_unidade ||
     pre.relacao_unidade ||
     dadosWizard?.perfil_unidade ||
     "";
 
   const nomeExibicao =
     formMorador?.nomeSocial ||
-    formMorador?.nome_exibicao ||
     formMorador?.nomeCompleto ||
     pre.nome ||
     "Não informado";
@@ -245,158 +228,90 @@ function obterResumo(dadosWizard, formTela1, formMorador) {
       condominio.nome_fantasia ||
       condominio.nome ||
       dadosWizard?.nome_condominio ||
-      "Condomínio",
+      "Condomínio não informado",
+
     torre:
       pre.torre_nome ||
       pre.torre ||
       pre.bloco_nome ||
       pre.bloco ||
+      dadosWizard?.torre_nome ||
       dadosWizard?.torre ||
-      "Torre",
+      dadosWizard?.bloco ||
+      "Torre / bloco não informado",
+
     unidade:
-      pre.unidade_nome || pre.unidade || dadosWizard?.unidade || "Unidade",
+      pre.unidade_nome ||
+      pre.unidade ||
+      dadosWizard?.unidade_nome ||
+      dadosWizard?.unidade ||
+      "Unidade não informada",
+
     perfil: traduzirPerfil(perfil),
     morador: nomeExibicao,
     cpf: formMorador?.cpf || pre.cpf || "",
-    token:
-      dadosWizard?.token_publico ||
-      dadosWizard?.codigo_convite ||
-      dadosWizard?.token ||
-      "Token não informado",
-  };
-}
-async function processarImagemLocal(file) {
-  const tiposPermitidos = [
-    "image/png",
-    "image/jpeg",
-    "image/jpg",
-    "image/webp",
-    "image/heic",
-    "image/heif",
-  ];
-
-  if (!tiposPermitidos.includes(file.type)) {
-    throw new Error("Envie uma imagem PNG, JPG, HEIC ou WebP.");
-  }
-
-  if (file.size > LIMITE_UPLOAD_FOTO_BYTES) {
-    throw new Error(`A imagem deve ter no máximo ${LIMITE_UPLOAD_FOTO_MB}MB.`);
-  }
-
-  const dataUrlOriginal = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error("Não foi possível carregar a foto."));
-
-    reader.readAsDataURL(file);
-  });
-
-  const imagem = await new Promise((resolve, reject) => {
-    const img = new Image();
-
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Não foi possível processar a imagem."));
-
-    img.src = dataUrlOriginal;
-  });
-
-  const maxLado = 1024;
-  const proporcao = Math.min(maxLado / imagem.width, maxLado / imagem.height, 1);
-  const largura = Math.round(imagem.width * proporcao);
-  const altura = Math.round(imagem.height * proporcao);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = largura;
-  canvas.height = altura;
-
-  const ctx = canvas.getContext("2d", { alpha: false });
-  ctx.drawImage(imagem, 0, 0, largura, altura);
-
-  const webpBase64 = canvas.toDataURL("image/webp", 0.86);
-  const nomeBase = file.name.replace(/\.[^/.]+$/, "") || "foto-funcionario-lar";
-
-  return {
-    previewBase64: webpBase64,
-    nome: `${nomeBase}.webp`,
-    mime: "image/webp",
-    tamanhoEstimado: Math.round((webpBase64.length * 3) / 4),
   };
 }
 
-function montarPayloadTela4({ dadosWizard, ecossistema }) {
-  const pre = dadosWizard?.preCadastro || dadosWizard?.pre_cadastro || {};
+function montarPayloadTela4({ ecossistema }) {
   const funcionariosLar = Array.isArray(ecossistema?.funcionariosLar)
     ? ecossistema.funcionariosLar
     : [];
 
-  const pets = Array.isArray(ecossistema?.pets) ? ecossistema.pets : [];
+  const pets = Array.isArray(ecossistema?.pets)
+    ? ecossistema.pets
+    : [];
 
   return {
-    business_id: dadosWizard?.business_id || null,
-    condominio_id: dadosWizard?.condominio_id || null,
-    pre_cadastro_id: dadosWizard?.pre_cadastro_id || null,
-    unidade_id: pre.unidade_id || dadosWizard?.unidade_id || null,
-
     possui_funcionarios_lar: Boolean(ecossistema?.possuiFuncionarioLar),
-    funcionarios_lar: funcionariosLar.map((funcionario) => {
-      const telefoneE164 = montarTelefoneE164({
-        ddi: funcionario.ddi || "+55",
-        numero: funcionario.whatsapp,
-      });
 
-      return {
-        id: funcionario.id,
-        nome: funcionario.nome,
-        funcao: funcionario.funcao,
-        cpf: somenteNumeros(funcionario.cpf),
-        cpf_formatado: funcionario.cpf,
-        cpf_pendente_validacao: funcionario.cpf_pendente_validacao,
+    funcionarios_lar: Boolean(ecossistema?.possuiFuncionarioLar)
+      ? funcionariosLar.map((funcionario) => {
+          const telefoneE164 = montarTelefoneE164({
+            ddi: funcionario.ddi || "+55",
+            numero: funcionario.whatsapp,
+          });
 
-        ddi: obterDDINumerico(funcionario.ddi || "+55"),
-        whatsapp: somenteNumeros(funcionario.whatsapp),
-        whatsapp_e164: telefoneE164,
-        email: funcionario.email?.trim().toLowerCase() || "",
+          return {
+            id: funcionario.id,
+            nome: funcionario.nome?.trim() || "",
+            funcao: funcionario.funcao || "",
+            cpf: somenteNumeros(funcionario.cpf),
+            cpf_formatado: funcionario.cpf || "",
+            cpf_pendente_validacao: Boolean(funcionario.cpf_pendente_validacao),
+            ddi: funcionario.whatsapp
+              ? obterDDINumerico(funcionario.ddi || "+55")
+              : "",
+            whatsapp: funcionario.whatsapp
+              ? somenteNumeros(funcionario.whatsapp)
+              : "",
+            whatsapp_e164: funcionario.whatsapp ? telefoneE164 : "",
+            email: funcionario.email?.trim().toLowerCase() || "",
+            autorizado_acesso_condominio: Boolean(
+              funcionario.autorizado_acesso_condominio
+            ),
+            autorizado_receber_orientacoes: Boolean(
+              funcionario.autorizado_receber_orientacoes
+            ),
+            observacoes: funcionario.observacoes?.trim() || "",
+          };
+        })
+      : [],
 
-        foto_base64: funcionario.foto_base64 || null,
-        foto_nome: funcionario.foto_nome || null,
-        foto_mime: funcionario.foto_mime || null,
-        foto_tamanho: funcionario.foto_tamanho || null,
-
-        autorizado_acesso_condominio: Boolean(funcionario.autorizado_acesso_condominio),
-        autorizado_receber_orientacoes: Boolean(funcionario.autorizado_receber_orientacoes),
-        observacoes: funcionario.observacoes || "",
-
-        status: funcionario.status || "PENDENTE",
-        auditoria_status: "AGUARDANDO_AUDITORIA",
-      };
-    }),
-
-    possui_pets: Boolean(ecossistema?.possuiPet),
+    possui_pets: pets.length > 0,
 
     pets: pets.map((pet) => ({
       id: pet.id,
-      nome: pet.nome,
-      tipo: pet.tipo,
-      raca: pet.raca || "",
+      nome: pet.nome?.trim() || "",
+      tipo: pet.tipo || "",
+      raca: pet.raca?.trim() || "",
       porte: pet.porte || "",
-      cor: pet.cor || "",
-
-      foto_base64: pet.foto_base64 || null,
-      foto_nome: pet.foto_nome || null,
-      foto_mime: pet.foto_mime || null,
-      foto_tamanho: pet.foto_tamanho || null,
-
-      observacoes: pet.observacoes || "",
-      status: pet.status || "PENDENTE",
-      auditoria_status: "AGUARDANDO_AUDITORIA",
+      cor: pet.cor?.trim() || "",
+      observacoes: pet.observacoes?.trim() || "",
     })),
-
-    status: "RASCUNHO",
-    etapa_atual: 4,
-    atualizado_em: new Date().toISOString(),
   };
 }
+
 export default function WizardMoradorTela4({
   dadosWizard,
   formTela1,
@@ -411,7 +326,9 @@ export default function WizardMoradorTela4({
     ? ecossistema.funcionariosLar
     : [];
 
-  const pets = Array.isArray(ecossistema?.pets) ? ecossistema.pets : [];
+  const pets = Array.isArray(ecossistema?.pets)
+    ? ecossistema.pets
+    : [];
 
   const [modalAberto, setModalAberto] = useState(false);
   const [funcionarioAtual, setFuncionarioAtual] = useState(null);
@@ -423,10 +340,61 @@ export default function WizardMoradorTela4({
   const [camposPetInvalidos, setCamposPetInvalidos] = useState({});
   const [modalExcluirPet, setModalExcluirPet] = useState(null);
 
+  const [
+    processando,
+    setProcessando,
+  ] = useState(false);
+
+  const [
+    salvandoRascunho,
+    setSalvandoRascunho,
+  ] = useState(false);
+
   const resumo = useMemo(
     () => obterResumo(dadosWizard, formTela1, formMorador),
     [dadosWizard, formTela1, formMorador]
   );
+
+  const algumModalAberto = Boolean(
+    modalAberto || modalPetAberto || modalExcluir || modalExcluirPet
+  );
+
+  useEffect(() => {
+    if (!algumModalAberto) return undefined;
+
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function fecharComEsc(event) {
+      if (event.key !== "Escape") return;
+
+      if (modalExcluir) {
+        setModalExcluir(null);
+        return;
+      }
+
+      if (modalExcluirPet) {
+        setModalExcluirPet(null);
+        return;
+      }
+
+      if (modalAberto) {
+        fecharModal();
+        return;
+      }
+
+      if (modalPetAberto) {
+        fecharModalPet();
+      }
+    }
+
+    window.addEventListener("keydown", fecharComEsc);
+
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+      window.removeEventListener("keydown", fecharComEsc);
+    };
+  }, [algumModalAberto, modalAberto, modalPetAberto, modalExcluir, modalExcluirPet]);
 
   function atualizarEcossistema(dados) {
     setEcossistema({
@@ -436,13 +404,19 @@ export default function WizardMoradorTela4({
   }
 
   function abrirNovoFuncionario() {
-    setFuncionarioAtual({ ...funcionarioInicial, id: gerarId() });
+    setFuncionarioAtual({
+      ...funcionarioInicial,
+      id: gerarId("func"),
+    });
     setCamposInvalidos({});
     setModalAberto(true);
   }
 
   function editarFuncionario(funcionario) {
-    setFuncionarioAtual({ ...funcionarioInicial, ...funcionario });
+    setFuncionarioAtual({
+      ...funcionarioInicial,
+      ...funcionario,
+    });
     setCamposInvalidos({});
     setModalAberto(true);
   }
@@ -464,7 +438,9 @@ export default function WizardMoradorTela4({
     }
 
     const repetido = funcionariosLar.some(
-      (item) => item.id !== idAtual && somenteNumeros(item.cpf) === cpfLimpo
+      (item) =>
+        item.id !== idAtual &&
+        somenteNumeros(item.cpf) === cpfLimpo
     );
 
     return repetido ? "funcionario" : false;
@@ -473,23 +449,24 @@ export default function WizardMoradorTela4({
   function validarFuncionario(funcionario) {
     const invalidos = {};
 
-    if (!funcionario?.nome?.trim()) invalidos.nome = true;
-    if (!funcionario?.funcao) invalidos.funcao = true;
+    if (!funcionario?.nome?.trim()) {
+      invalidos.nome = true;
+    }
+
+    if (!funcionario?.funcao) {
+      invalidos.funcao = true;
+    }
 
     if (funcionario?.cpf) {
       const cpfDuplicado = cpfJaUsado(funcionario.cpf, funcionario.id);
 
       if (cpfDuplicado === "responsavel") {
         invalidos.cpf = true;
-        toast.error("Este CPF já pertence ao morador responsável.");
-      }
-
-      if (cpfDuplicado === "funcionario") {
+        toast.error("Este CPF já foi informado para o responsável pela unidade.");
+      } else if (cpfDuplicado === "funcionario") {
         invalidos.cpf = true;
-        toast.error("Este CPF já foi informado em outro funcionário do lar.");
-      }
-
-      if (!validarCpf(funcionario.cpf)) {
+        toast.error("Este CPF já foi informado para outra pessoa nesta etapa.");
+      } else if (!validarCpf(funcionario.cpf)) {
         const tentativas = (funcionario.tentativas_cpf_invalidas || 0) + 1;
 
         if (tentativas < 3) {
@@ -500,16 +477,17 @@ export default function WizardMoradorTela4({
             tentativas_cpf_invalidas: tentativas,
           }));
 
-          toast.error(
-            `CPF inválido. Verifique os números informados. Tentativa ${tentativas}/3.`
-          );
+          toast.error("Confira os números do CPF informado.");
         } else {
           setFuncionarioAtual((old) => ({
             ...old,
+            tentativas_cpf_invalidas: tentativas,
             cpf_pendente_validacao: true,
           }));
 
-          toast("CPF seguirá para auditoria administrativa.");
+          toast(
+            "Você poderá continuar. A administração conferirá este CPF antes da aprovação do cadastro."
+          );
         }
       }
     }
@@ -525,14 +503,15 @@ export default function WizardMoradorTela4({
     if (whatsapp) {
       if (ddi === "55" && whatsapp.length < 10) {
         invalidos.whatsapp = true;
-        toast.error("Informe um WhatsApp válido com DDD.");
+        toast.error("Informe o WhatsApp com DDD.");
       } else if (ddi !== "55" && whatsapp.length < 6) {
         invalidos.whatsapp = true;
-        toast.error("Informe um telefone internacional válido.");
+        toast.error("Confira o número de telefone informado.");
       }
     }
 
     setCamposInvalidos(invalidos);
+
     return Object.keys(invalidos).length === 0;
   }
 
@@ -543,10 +522,11 @@ export default function WizardMoradorTela4({
       ...funcionarioAtual,
       nome: capitalizarNome(funcionarioAtual.nome),
       email: funcionarioAtual.email?.trim().toLowerCase() || "",
-      status: funcionarioAtual.status || "PENDENTE",
     };
 
-    const novaLista = funcionariosLar.some((item) => item.id === funcionarioFinal.id)
+    const novaLista = funcionariosLar.some(
+      (item) => item.id === funcionarioFinal.id
+    )
       ? funcionariosLar.map((item) =>
           item.id === funcionarioFinal.id ? funcionarioFinal : item
         )
@@ -557,7 +537,7 @@ export default function WizardMoradorTela4({
       funcionariosLar: novaLista,
     });
 
-    toast.success("Funcionário do lar salvo com sucesso.");
+    toast.success("Funcionário do lar adicionado.");
     fecharModal();
   }
 
@@ -573,14 +553,35 @@ export default function WizardMoradorTela4({
     toast.success("Funcionário do lar removido.");
   }
 
+  function selecionarSemFuncionarios() {
+    if (funcionariosLar.length > 0) {
+      const confirmar = window.confirm(
+        "Existem funcionários cadastrados nesta etapa. Deseja remover esses dados e continuar sem funcionários do lar?"
+      );
+
+      if (!confirmar) return;
+    }
+
+    atualizarEcossistema({
+      possuiFuncionarioLar: false,
+      funcionariosLar: [],
+    });
+  }
+
   function abrirNovoPet() {
-    setPetAtual({ ...petInicial, id: `pet-${Date.now()}-${Math.random().toString(16).slice(2)}` });
+    setPetAtual({
+      ...petInicial,
+      id: gerarId("pet"),
+    });
     setCamposPetInvalidos({});
     setModalPetAberto(true);
   }
 
   function editarPet(pet) {
-    setPetAtual({ ...petInicial, ...pet });
+    setPetAtual({
+      ...petInicial,
+      ...pet,
+    });
     setCamposPetInvalidos({});
     setModalPetAberto(true);
   }
@@ -594,13 +595,18 @@ export default function WizardMoradorTela4({
   function validarPet(pet) {
     const invalidos = {};
 
-    if (!pet?.nome?.trim()) invalidos.nome = true;
-    if (!pet?.tipo) invalidos.tipo = true;
+    if (!pet?.nome?.trim()) {
+      invalidos.nome = true;
+    }
+
+    if (!pet?.tipo) {
+      invalidos.tipo = true;
+    }
 
     setCamposPetInvalidos(invalidos);
 
     if (Object.keys(invalidos).length > 0) {
-      toast.error("Informe pelo menos nome e tipo do pet.");
+      toast.error("Informe o nome e o tipo do pet.");
       return false;
     }
 
@@ -615,7 +621,6 @@ export default function WizardMoradorTela4({
       nome: capitalizarNome(petAtual.nome),
       raca: capitalizarNome(petAtual.raca || ""),
       cor: capitalizarNome(petAtual.cor || ""),
-      status: petAtual.status || "PENDENTE",
     };
 
     const novaLista = pets.some((item) => item.id === petFinal.id)
@@ -627,7 +632,7 @@ export default function WizardMoradorTela4({
       pets: novaLista,
     });
 
-    toast.success("Pet salvo com sucesso.");
+    toast.success("Pet adicionado.");
     fecharModalPet();
   }
 
@@ -643,24 +648,91 @@ export default function WizardMoradorTela4({
     toast.success("Pet removido.");
   }
 
-    async function salvarRascunho() {
-    await onSaveDraft(
-      montarPayloadTela4({
-        dadosWizard,
-        ecossistema,
-      })
-    );
+  async function salvarRascunho() {
+    if (
+      salvandoRascunho ||
+      processando
+    ) {
+      return;
+    }
 
-    toast.success("Rascunho salvo com sucesso.");
+    try {
+      setSalvandoRascunho(true);
+
+      const salvou =
+        await onSaveDraft(
+          montarPayloadTela4({
+            ecossistema,
+          })
+        );
+
+      if (salvou !== false) {
+        toast.success(
+          "Suas informações foram salvas."
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao salvar a Tela 4:",
+        error
+      );
+    } finally {
+      setSalvandoRascunho(false);
+    }
   }
 
   async function avancar() {
-    await onNext(
-      montarPayloadTela4({
-        dadosWizard,
-        ecossistema,
-      })
-    );
+    if (
+      processando ||
+      salvandoRascunho
+    ) {
+      return;
+    }
+
+    if (
+      ecossistema?.possuiFuncionarioLar &&
+      funcionariosLar.length === 0
+    ) {
+      toast.error(
+        "Adicione pelo menos um funcionário do lar ou escolha continuar sem cadastrar."
+      );
+
+      return;
+    }
+
+    try {
+      setProcessando(true);
+
+      /*
+      * Dá tempo para o navegador exibir
+      * o estado de transição antes do salvamento.
+      */
+      await new Promise(
+        (resolve) =>
+          setTimeout(
+            resolve,
+            300
+          )
+      );
+
+      const salvou =
+        await onNext(
+          montarPayloadTela4({
+            ecossistema,
+          })
+        );
+
+      if (salvou === false) {
+        setProcessando(false);
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao continuar a Tela 4:",
+        error
+      );
+
+      setProcessando(false);
+    }
   }
 
   return (
@@ -673,11 +745,10 @@ export default function WizardMoradorTela4({
             </span>
 
             <div>
-              <h1>4. Funcionários do Lar</h1>
+              <h1>4. Funcionários do lar e pets</h1>
               <p>
-                Cadastre funcionários recorrentes vinculados ao morador responsável.
-                Horários, dias de trabalho e regras detalhadas poderão ser configurados
-                depois no Portal do Morador.
+                Informe pessoas que trabalham com frequência na unidade e, se desejar,
+                cadastre também os pets.
               </p>
             </div>
           </header>
@@ -688,19 +759,19 @@ export default function WizardMoradorTela4({
             <SummaryCard
               icon={<Building2 size={21} />}
               title="Unidade"
-              lines={[`${resumo.torre} • ${resumo.unidade}`, `Perfil: ${resumo.perfil}`]}
+              lines={[
+                `${resumo.torre} • ${resumo.unidade}`,
+                resumo.perfil,
+              ]}
             />
 
             <SummaryCard
               icon={<UserRound size={21} />}
-              title="Morador responsável"
-              lines={[resumo.morador, resumo.cpf ? `CPF: ${resumo.cpf}` : "CPF não informado"]}
-            />
-
-            <SummaryCard
-              icon={<ShieldCheck size={21} />}
-              title="Token"
-              lines={[mascararToken(resumo.token), "Status: pendente"]}
+              title="Responsável"
+              lines={[
+                resumo.morador,
+                resumo.cpf ? `CPF: ${resumo.cpf}` : "CPF não informado",
+              ]}
             />
           </section>
 
@@ -708,8 +779,8 @@ export default function WizardMoradorTela4({
             <div>
               <h2>Deseja cadastrar funcionários do lar agora?</h2>
               <p>
-                Inclua babá, cuidador(a), diarista, doméstica, motorista particular
-                ou outro profissional recorrente vinculado à sua rotina.
+                Inclua apenas pessoas que trabalham com frequência na rotina da unidade.
+                Cadastros ocasionais poderão ser tratados posteriormente.
               </p>
             </div>
 
@@ -717,7 +788,11 @@ export default function WizardMoradorTela4({
               <button
                 type="button"
                 className={ecossistema?.possuiFuncionarioLar ? "active" : ""}
-                onClick={() => atualizarEcossistema({ possuiFuncionarioLar: true })}
+                onClick={() =>
+                  atualizarEcossistema({
+                    possuiFuncionarioLar: true,
+                  })
+                }
               >
                 <Check size={15} />
                 Sim, quero cadastrar
@@ -725,15 +800,12 @@ export default function WizardMoradorTela4({
 
               <button
                 type="button"
-                className={!ecossistema?.possuiFuncionarioLar ? "active light" : "light"}
-                onClick={() =>
-                  atualizarEcossistema({
-                    possuiFuncionarioLar: false,
-                    funcionariosLar: [],
-                  })
+                className={
+                  !ecossistema?.possuiFuncionarioLar ? "active light" : "light"
                 }
+                onClick={selecionarSemFuncionarios}
               >
-                Não quero cadastrar agora
+                Continuar sem cadastrar
               </button>
             </div>
           </section>
@@ -742,8 +814,10 @@ export default function WizardMoradorTela4({
             <section className="wm-t4-list-section">
               <div className="wm-t4-list-head">
                 <div>
-                  <h2>Funcionários cadastrados ({funcionariosLar.length})</h2>
-                  <p>Todos iniciam com status pendente até a auditoria administrativa.</p>
+                  <h2>Funcionários do lar ({funcionariosLar.length})</h2>
+                  <p>
+                    Confira os dados antes de seguir para a próxima etapa.
+                  </p>
                 </div>
 
                 <button type="button" onClick={abrirNovoFuncionario}>
@@ -760,10 +834,9 @@ export default function WizardMoradorTela4({
                           <th>Funcionário</th>
                           <th>Função</th>
                           <th>WhatsApp</th>
-                          <th>Acesso ao condomínio</th>
-                          <th>Recebe orientações</th>
+                          <th>Identificação na portaria</th>
+                          <th>Pode receber orientações</th>
                           <th>CPF</th>
-                          <th>Status</th>
                           <th>Ações</th>
                         </tr>
                       </thead>
@@ -776,7 +849,14 @@ export default function WizardMoradorTela4({
                             </td>
 
                             <td>{funcionario.funcao}</td>
-                            <td>{montarTelefoneE164({ ddi: funcionario.ddi, numero: funcionario.whatsapp }) || "—"}</td>
+
+                            <td>
+                              {funcionario.whatsapp
+                                ? `+${obterDDINumerico(
+                                    funcionario.ddi
+                                  )} ${funcionario.whatsapp}`
+                                : "—"}
+                            </td>
 
                             <td>
                               <Bool ativo={funcionario.autorizado_acesso_condominio} />
@@ -789,16 +869,20 @@ export default function WizardMoradorTela4({
                             <td>{funcionario.cpf || "—"}</td>
 
                             <td>
-                              <Status status={funcionario.status} />
-                            </td>
-
-                            <td>
                               <div className="wm-t4-actions-mini">
-                                <button type="button" onClick={() => editarFuncionario(funcionario)}>
+                                <button
+                                  type="button"
+                                  onClick={() => editarFuncionario(funcionario)}
+                                  aria-label={`Editar ${funcionario.nome}`}
+                                >
                                   <Edit3 size={15} />
                                 </button>
 
-                                <button type="button" onClick={() => setModalExcluir(funcionario)}>
+                                <button
+                                  type="button"
+                                  onClick={() => setModalExcluir(funcionario)}
+                                  aria-label={`Excluir ${funcionario.nome}`}
+                                >
                                   <Trash2 size={15} />
                                 </button>
                               </div>
@@ -812,29 +896,39 @@ export default function WizardMoradorTela4({
                   <div className="wm-t4-mobile-cards">
                     {funcionariosLar.map((funcionario) => (
                       <article key={funcionario.id} className="wm-t4-mobile-card">
-                        <Avatar pessoa={funcionario} />
+                        <Avatar nome={funcionario.nome} />
 
-                        <div>
+                        <div className="wm-t4-mobile-card-main">
                           <strong>{funcionario.nome}</strong>
                           <span>{funcionario.funcao}</span>
-                          <small>{funcionario.whatsapp || "WhatsApp não informado"}</small>
+                          <small>
+                            {funcionario.whatsapp || "WhatsApp não informado"}
+                          </small>
                         </div>
 
-                        <Status status={funcionario.status} />
-
                         <div className="wm-t4-mobile-actions">
-                          <button type="button" onClick={() => editarFuncionario(funcionario)}>
+                          <button
+                            type="button"
+                            onClick={() => editarFuncionario(funcionario)}
+                          >
                             Editar
                           </button>
 
-                          <button type="button" onClick={() => setModalExcluir(funcionario)}>
+                          <button
+                            type="button"
+                            onClick={() => setModalExcluir(funcionario)}
+                          >
                             Excluir
                           </button>
                         </div>
                       </article>
                     ))}
 
-                    <button type="button" className="wm-t4-mobile-add" onClick={abrirNovoFuncionario}>
+                    <button
+                      type="button"
+                      className="wm-t4-mobile-add"
+                      onClick={abrirNovoFuncionario}
+                    >
                       <i>+</i>
                       <strong>Adicionar funcionário</strong>
                       <span>Funcionário do lar</span>
@@ -844,10 +938,10 @@ export default function WizardMoradorTela4({
               ) : (
                 <div className="wm-t4-empty">
                   <UsersRound size={34} />
-                  <strong>Nenhum funcionário do lar cadastrado</strong>
+                  <strong>Nenhum funcionário adicionado</strong>
                   <p>
-                    Clique em “Adicionar funcionário” para incluir pessoas recorrentes
-                    da rotina da unidade.
+                    Adicione uma pessoa ou escolha continuar sem cadastrar funcionários
+                    do lar.
                   </p>
                 </div>
               )}
@@ -855,17 +949,18 @@ export default function WizardMoradorTela4({
               <div className="wm-t4-note">
                 <Info size={16} />
                 <span>
-                  Este cadastro não define horários de trabalho. Dias, horários,
-                  recorrência e regras detalhadas poderão ser configurados depois
-                  no Portal do Morador.
+                  Horários, dias de trabalho e outras regras poderão ser informados
+                  posteriormente, quando necessário.
                 </span>
               </div>
             </section>
           ) : (
             <section className="wm-t4-empty">
               <UsersRound size={34} />
-              <strong>Cadastro de funcionários pulado</strong>
-              <p>Você poderá adicionar funcionários do lar posteriormente no Portal do Morador.</p>
+              <strong>Nenhum funcionário será informado agora</strong>
+              <p>
+                Você poderá cadastrar funcionários do lar posteriormente pelo Chegou!.
+              </p>
             </section>
           )}
 
@@ -874,8 +969,7 @@ export default function WizardMoradorTela4({
               <div>
                 <h2>Pets da unidade ({pets.length})</h2>
                 <p>
-                  Cadastre pets vinculados à unidade para facilitar identificação e orientações
-                  administrativas quando necessário.
+                  O cadastro é opcional e ajuda na identificação quando necessário.
                 </p>
               </div>
 
@@ -888,7 +982,7 @@ export default function WizardMoradorTela4({
               <div className="wm-t4-pets-grid">
                 {pets.map((pet) => (
                   <article key={pet.id} className="wm-t4-pet-card">
-                    <AvatarPet pet={pet} />
+                    <Avatar nome={pet.nome} pet />
 
                     <div className="wm-t4-pet-info">
                       <strong>{pet.nome}</strong>
@@ -899,14 +993,15 @@ export default function WizardMoradorTela4({
                       </small>
                     </div>
 
-                    <Status status={pet.status} />
-
                     <div className="wm-t4-mobile-actions">
                       <button type="button" onClick={() => editarPet(pet)}>
                         Editar
                       </button>
 
-                      <button type="button" onClick={() => setModalExcluirPet(pet)}>
+                      <button
+                        type="button"
+                        onClick={() => setModalExcluirPet(pet)}
+                      >
                         Excluir
                       </button>
                     </div>
@@ -917,58 +1012,90 @@ export default function WizardMoradorTela4({
               <div className="wm-t4-empty compact">
                 <UsersRound size={30} />
                 <strong>Nenhum pet cadastrado</strong>
-                <p>Você pode cadastrar agora ou adicionar depois no Portal do Morador.</p>
+                <p>Você pode deixar esta parte em branco e continuar normalmente.</p>
               </div>
             )}
 
             <div className="wm-t4-note">
               <Info size={16} />
               <span>
-                O cadastro de pet é informativo. Regras de circulação, vacinação, áreas permitidas
-                ou restrições específicas poderão ser tratadas em telas administrativas próprias.
+                Informe apenas dados úteis para identificação. Regras específicas do
+                condomínio continuam sendo definidas pela administração.
               </span>
             </div>
-          </section>          
+          </section>
 
           <section className="wm-t4-good-practices">
             <PracticeCard
               icon={<ShieldCheck size={20} />}
-              title="Cadastro recorrente"
-              text="Use esta etapa apenas para funcionários frequentes vinculados à rotina da unidade."
+              title="Cadastre apenas pessoas recorrentes"
+              text="Use esta etapa para quem trabalha com frequência na rotina da unidade."
             />
 
             <PracticeCard
               icon={<Info size={20} />}
-              title="Horários depois"
-              text="Horários e regras de acesso serão definidos no Portal do Morador, não neste cadastro."
+              title="Você poderá atualizar depois"
+              text="Mudanças na rotina poderão ser informadas posteriormente pelo Chegou!."
             />
 
             <PracticeCard
               icon={<Mail size={20} />}
-              title="Comunicação"
-              text="WhatsApp e e-mail ajudam em orientações administrativas quando necessário."
+              title="Contato é opcional"
+              text="WhatsApp e e-mail só precisam ser informados se forem úteis para contato."
             />
           </section>
 
           <footer className="wm-t4-actions">
-            <button type="button" className="secondary" onClick={onBack}>
+            <button
+              type="button"
+              className="secondary"
+              onClick={onBack}
+              disabled={
+                processando ||
+                salvandoRascunho
+              }
+            >
               <ArrowLeft size={16} />
               Voltar
             </button>
 
-            <button type="button" className="outline" onClick={salvarRascunho}>
+            <button
+              type="button"
+              className="outline"
+              onClick={salvarRascunho}
+              disabled={
+                processando ||
+                salvandoRascunho
+              }
+            >
               <Save size={16} />
-              Salvar e continuar depois
+
+              {salvandoRascunho
+                ? "Salvando..."
+                : "Salvar e continuar depois"}
             </button>
 
-            <button type="button" className="primary" onClick={avancar}>
-              Salvar e continuar
+            <button
+              type="button"
+              className="primary"
+              onClick={avancar}
+              disabled={
+                processando ||
+                salvandoRascunho
+              }
+              aria-busy={processando}
+            >
+              {processando
+                ? "Salvando informações..."
+                : "Continuar"}
+
               <ArrowRight size={18} />
             </button>
           </footer>
         </section>
       </div>
-            {modalAberto ? (
+
+      {modalAberto && funcionarioAtual ? (
         <ModalFuncionario
           funcionario={funcionarioAtual}
           setFuncionario={setFuncionarioAtual}
@@ -980,7 +1107,7 @@ export default function WizardMoradorTela4({
         />
       ) : null}
 
-      {modalPetAberto ? (
+      {modalPetAberto && petAtual ? (
         <ModalPet
           pet={petAtual}
           setPet={setPetAtual}
@@ -993,7 +1120,7 @@ export default function WizardMoradorTela4({
       {modalExcluir ? (
         <ModalConfirmacao
           titulo="Excluir funcionário?"
-          texto={`Deseja remover ${modalExcluir.nome} da lista de funcionários do lar?`}
+          texto={`Deseja remover ${modalExcluir.nome} desta etapa?`}
           onClose={() => setModalExcluir(null)}
           onConfirm={() => excluirFuncionario(modalExcluir.id)}
         />
@@ -1002,12 +1129,31 @@ export default function WizardMoradorTela4({
       {modalExcluirPet ? (
         <ModalConfirmacao
           titulo="Excluir pet?"
-          texto={`Deseja remover ${modalExcluirPet.nome} da lista de pets da unidade?`}
+          texto={`Deseja remover ${modalExcluirPet.nome} desta etapa?`}
           onClose={() => setModalExcluirPet(null)}
           onConfirm={() => excluirPet(modalExcluirPet.id)}
         />
       ) : null}
 
+      {processando ? (
+        <div
+          className="wm-t4-processing"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="wm-t4-processing-card">
+            <span className="wm-t4-processing-spinner" />
+
+            <strong>
+              Salvando suas informações
+            </strong>
+
+            <p>
+              Aguarde um instante. Estamos preparando a próxima etapa.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }
@@ -1031,7 +1177,7 @@ function SummaryCard({ icon, title, lines = [] }) {
 function PessoaMini({ pessoa }) {
   return (
     <div className="wm-t4-person-mini">
-      <Avatar pessoa={pessoa} />
+      <Avatar nome={pessoa.nome} />
 
       <div>
         <strong>{pessoa.nome}</strong>
@@ -1041,37 +1187,24 @@ function PessoaMini({ pessoa }) {
   );
 }
 
-function Avatar({ pessoa }) {
-  if (pessoa.foto_base64) {
-    return (
-      <img
-        className="wm-t4-avatar"
-        src={pessoa.foto_base64}
-        alt={pessoa.nome}
-      />
-    );
-  }
-
-  return <span className="wm-t4-avatar fallback">{iniciais(pessoa.nome)}</span>;
-}
-
-function Bool({ ativo }) {
+function Avatar({ nome, pet = false }) {
   return (
-    <span className={`wm-t4-bool ${ativo ? "ok" : "no"}`}>
-      {ativo ? <Check size={12} /> : <X size={12} />}
+    <span className={pet ? "wm-t4-pet-avatar fallback" : "wm-t4-avatar fallback"}>
+      {iniciais(nome)}
     </span>
   );
 }
 
-function Status({ status = "PENDENTE" }) {
-  const label = {
-    PENDENTE: "Pendente",
-    REVISAO: "Revisão",
-    APROVADO: "Aprovado",
-    REJEITADO: "Rejeitado",
-  }[status] || "Pendente";
-
-  return <span className={`wm-t4-status ${status.toLowerCase()}`}>{label}</span>;
+function Bool({ ativo }) {
+  return (
+    <span
+      className={`wm-t4-bool ${ativo ? "ok" : "no"}`}
+      aria-label={ativo ? "Sim" : "Não"}
+      title={ativo ? "Sim" : "Não"}
+    >
+      {ativo ? <Check size={12} /> : <X size={12} />}
+    </span>
+  );
 }
 
 function PracticeCard({ icon, title, text }) {
@@ -1096,14 +1229,14 @@ function ModalFuncionario({
   onClose,
   onSave,
 }) {
-  const inputFotoRef = useRef(null);
-  const [processandoFoto, setProcessandoFoto] = useState(false);
-
   const cpfLimpo = somenteNumeros(funcionario?.cpf);
-  const cpfValido = cpfLimpo.length === 11 && validarCpf(funcionario?.cpf);
+  const cpfValido =
+    cpfLimpo.length === 11 &&
+    validarCpf(funcionario?.cpf);
 
   function cpfDuplicadoLocal(cpf) {
     const cpfAtual = somenteNumeros(cpf);
+
     if (!cpfAtual) return false;
 
     if (somenteNumeros(cpfResponsavel) === cpfAtual) {
@@ -1111,7 +1244,9 @@ function ModalFuncionario({
     }
 
     const existe = funcionariosLar.some(
-      (item) => item.id !== funcionario.id && somenteNumeros(item.cpf) === cpfAtual
+      (item) =>
+        item.id !== funcionario.id &&
+        somenteNumeros(item.cpf) === cpfAtual
     );
 
     return existe ? "funcionario" : false;
@@ -1119,7 +1254,10 @@ function ModalFuncionario({
 
   function atualizar(campo, valor) {
     setFuncionario((old) => {
-      const novo = { ...old, [campo]: valor };
+      const novo = {
+        ...old,
+        [campo]: valor,
+      };
 
       if (campo === "nome") {
         novo.nome = capitalizarNome(valor);
@@ -1128,16 +1266,6 @@ function ModalFuncionario({
       if (campo === "cpf") {
         novo.cpf = formatarCpf(valor);
         novo.cpf_pendente_validacao = false;
-
-        const duplicado = cpfDuplicadoLocal(novo.cpf);
-
-        if (duplicado === "responsavel") {
-          toast.error("Este CPF já pertence ao morador responsável.");
-        }
-
-        if (duplicado === "funcionario") {
-          toast.error("Este CPF já foi informado em outro funcionário.");
-        }
       }
 
       if (campo === "ddi") {
@@ -1160,102 +1288,34 @@ function ModalFuncionario({
     });
   }
 
-  async function selecionarFoto(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setProcessandoFoto(true);
-
-      const foto = await processarImagemLocal(file);
-
-      atualizar("foto_base64", foto.previewBase64);
-      atualizar("foto_nome", foto.nome);
-      atualizar("foto_mime", foto.mime);
-      atualizar("foto_tamanho", foto.tamanhoEstimado);
-
-      toast.success("Foto otimizada com sucesso.");
-    } catch (error) {
-      toast.error(error.message || "Não foi possível processar a foto.");
-    } finally {
-      setProcessandoFoto(false);
-      if (event.target) event.target.value = "";
-    }
-  }
-
-  function removerFoto() {
-    atualizar("foto_base64", "");
-    atualizar("foto_nome", "");
-    atualizar("foto_mime", "");
-    atualizar("foto_tamanho", "");
-  }
-
   return (
     <div className="wm-modal-overlay" role="dialog" aria-modal="true">
       <div className="wm-t4-modal">
         <header className="wm-t4-modal-head">
           <div>
-            <h2>Adicionar funcionário do lar</h2>
-            <p>Informe os dados principais. Horários poderão ser configurados depois.</p>
+            <h2>
+              {funcionario.id ? "Funcionário do lar" : "Adicionar funcionário do lar"}
+            </h2>
+            <p>Informe os dados que você souber. CPF e contatos são opcionais.</p>
           </div>
 
-          <button type="button" onClick={onClose} aria-label="Fechar modal">
+          <button type="button" onClick={onClose} aria-label="Fechar">
             <X size={20} />
           </button>
         </header>
 
         <div className="wm-t4-modal-body">
           <section className="wm-t4-modal-section">
-            <h3>1. Dados básicos</h3>
-
-            <div className="wm-t4-photo-line">
-              <div className="wm-t4-photo-preview">
-                {funcionario.foto_base64 ? (
-                  <img src={funcionario.foto_base64} alt="Foto do funcionário" />
-                ) : (
-                  <UserRound size={36} />
-                )}
-              </div>
-
-              <div className="wm-t4-photo-info">
-                <strong>Foto do funcionário (opcional)</strong>
-                <span>JPG, PNG, HEIC ou WebP até 5MB. Otimização automática para WebP.</span>
-
-                <div className="wm-t4-photo-actions">
-                  <button
-                    type="button"
-                    className="wm-t4-mini-btn"
-                    onClick={() => inputFotoRef.current?.click()}
-                    disabled={processandoFoto}
-                  >
-                    <Upload size={14} />
-                    {processandoFoto ? "Processando..." : "Escolher foto"}
-                  </button>
-
-                  {funcionario.foto_base64 ? (
-                    <button type="button" className="wm-t4-mini-btn ghost" onClick={removerFoto}>
-                      Remover
-                    </button>
-                  ) : null}
-
-                  <input
-                    ref={inputFotoRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp,image/heic,image/heif"
-                    onChange={selecionarFoto}
-                    hidden
-                  />
-                </div>
-              </div>
-            </div>
+            <h3>Dados principais</h3>
 
             <div className="wm-t4-modal-grid two">
               <Field
                 label="Nome completo *"
                 value={funcionario.nome}
-                onChange={(v) => atualizar("nome", v)}
+                onChange={(valor) => atualizar("nome", valor)}
                 invalid={camposInvalidos.nome}
                 placeholder="Nome do funcionário"
+                autoComplete="name"
               />
 
               <label className="wm-t4-field">
@@ -1263,9 +1323,8 @@ function ModalFuncionario({
 
                 <select
                   value={funcionario.funcao}
-                  onChange={(e) => atualizar("funcao", e.target.value)}
+                  onChange={(event) => atualizar("funcao", event.target.value)}
                   className={camposInvalidos.funcao ? "invalid" : ""}
-                  autoComplete="off"
                 >
                   <option value="">Selecione</option>
 
@@ -1282,58 +1341,68 @@ function ModalFuncionario({
               <Field
                 label="CPF (opcional)"
                 value={funcionario.cpf}
-                onChange={(v) => atualizar("cpf", v)}
+                onChange={(valor) => atualizar("cpf", valor)}
                 invalid={camposInvalidos.cpf}
                 inputMode="numeric"
                 valid={cpfValido && !cpfDuplicadoLocal(funcionario.cpf)}
                 placeholder="000.000.000-00"
+                icon={<IdCard size={15} />}
               />
 
               <Field
                 label="E-mail (opcional)"
                 value={funcionario.email}
-                onChange={(v) => atualizar("email", v.toLowerCase())}
+                onChange={(valor) => atualizar("email", valor.toLowerCase())}
                 invalid={camposInvalidos.email}
                 placeholder="email@exemplo.com"
+                inputMode="email"
+                icon={<Mail size={15} />}
+                autoComplete="email"
               />
             </div>
 
             <div className="wm-t4-modal-grid phone-full">
               <Field
-                label="DDI"
+                label="Código do país"
                 value={funcionario.ddi || "+55"}
-                onChange={(v) => atualizar("ddi", v)}
+                onChange={(valor) => atualizar("ddi", valor)}
                 inputMode="tel"
                 placeholder="+55"
+                autoComplete="tel-country-code"
               />
 
               <Field
-                label="WhatsApp"
+                label="WhatsApp (opcional)"
                 value={funcionario.whatsapp}
-                onChange={(v) => atualizar("whatsapp", v)}
+                onChange={(valor) => atualizar("whatsapp", valor)}
                 invalid={camposInvalidos.whatsapp}
                 inputMode="tel"
                 icon={<Phone size={15} />}
                 placeholder="(11) 99999-9999"
+                autoComplete="tel-national"
               />
             </div>
           </section>
 
           <section className="wm-t4-modal-section">
-            <h3>2. Autorizações iniciais</h3>
+            <h3>Informações adicionais</h3>
 
             <PermissionCard
               checked={funcionario.autorizado_acesso_condominio}
-              title="Pode ser identificado como funcionário recorrente"
-              text="Permite que a portaria visualize este cadastro como funcionário do lar vinculado ao morador."
-              onChange={(v) => atualizar("autorizado_acesso_condominio", v)}
+              title="Pode ser identificado na portaria como funcionário do lar"
+              text="Ajuda a portaria a reconhecer esta pessoa como vinculada à unidade."
+              onChange={(valor) =>
+                atualizar("autorizado_acesso_condominio", valor)
+              }
             />
 
             <PermissionCard
               checked={funcionario.autorizado_receber_orientacoes}
-              title="Pode receber orientações administrativas"
-              text="Permite contato para orientações operacionais quando necessário. Não define horários de entrada."
-              onChange={(v) => atualizar("autorizado_receber_orientacoes", v)}
+              title="Pode receber orientações quando necessário"
+              text="Use esta opção se a administração puder entrar em contato para orientações relacionadas à rotina da unidade."
+              onChange={(valor) =>
+                atualizar("autorizado_receber_orientacoes", valor)
+              }
               green
             />
 
@@ -1342,8 +1411,10 @@ function ModalFuncionario({
 
               <textarea
                 value={funcionario.observacoes || ""}
-                onChange={(e) => atualizar("observacoes", e.target.value)}
-                placeholder="Ex.: trabalha com a família há anos, cuidadora da moradora, etc."
+                onChange={(event) =>
+                  atualizar("observacoes", event.target.value)
+                }
+                placeholder="Ex.: cuidadora da moradora, trabalha com a família há anos."
               />
             </label>
           </section>
@@ -1373,22 +1444,26 @@ function Field({
   icon,
   valid,
   placeholder,
+  autoComplete = "off",
 }) {
   return (
     <label className="wm-t4-field">
       <span>{label}</span>
 
-      <div className={`wm-t4-input ${invalid ? "invalid" : ""} ${valid ? "valid" : ""}`}>
-        {icon}
+      <div
+        className={`wm-t4-input ${invalid ? "invalid" : ""} ${
+          valid ? "valid" : ""
+        }`}
+      >
+        {icon ? <i className="wm-t4-field-icon">{icon}</i> : null}
 
         <input
           value={value || ""}
-          onChange={(e) => onChange?.(e.target.value)}
+          onChange={(event) => onChange?.(event.target.value)}
           inputMode={inputMode}
           placeholder={placeholder}
-          autoComplete="off"
+          autoComplete={autoComplete}
           autoCorrect="off"
-          autoCapitalize="off"
           spellCheck={false}
         />
 
@@ -1406,8 +1481,11 @@ function PermissionCard({ checked, title, text, onChange, green }) {
   return (
     <button
       type="button"
-      className={`wm-t4-permission ${checked ? "active" : ""} ${green ? "green" : ""}`}
+      className={`wm-t4-permission ${checked ? "active" : ""} ${
+        green ? "green" : ""
+      }`}
       onClick={() => onChange(!checked)}
+      aria-pressed={checked}
     >
       <span>{checked ? <Check size={13} /> : null}</span>
 
@@ -1419,64 +1497,34 @@ function PermissionCard({ checked, title, text, onChange, green }) {
   );
 }
 
-function AvatarPet({ pet }) {
-  if (pet.foto_base64) {
-    return (
-      <img
-        className="wm-t4-pet-avatar"
-        src={pet.foto_base64}
-        alt={pet.nome}
-      />
-    );
-  }
-
-  return <span className="wm-t4-pet-avatar fallback">{iniciais(pet.nome)}</span>;
-}
-
-function ModalPet({ pet, setPet, camposInvalidos, onClose, onSave }) {
-  const inputFotoRef = useRef(null);
-  const [processandoFoto, setProcessandoFoto] = useState(false);
-
+function ModalPet({
+  pet,
+  setPet,
+  camposInvalidos,
+  onClose,
+  onSave,
+}) {
   function atualizar(campo, valor) {
     setPet((old) => {
-      const novo = { ...old, [campo]: valor };
+      const novo = {
+        ...old,
+        [campo]: valor,
+      };
 
-      if (campo === "nome") novo.nome = capitalizarNome(valor);
-      if (campo === "raca") novo.raca = capitalizarNome(valor);
-      if (campo === "cor") novo.cor = capitalizarNome(valor);
+      if (campo === "nome") {
+        novo.nome = capitalizarNome(valor);
+      }
+
+      if (campo === "raca") {
+        novo.raca = capitalizarNome(valor);
+      }
+
+      if (campo === "cor") {
+        novo.cor = capitalizarNome(valor);
+      }
 
       return novo;
     });
-  }
-
-  async function selecionarFoto(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setProcessandoFoto(true);
-
-      const foto = await processarImagemLocal(file);
-
-      atualizar("foto_base64", foto.previewBase64);
-      atualizar("foto_nome", foto.nome);
-      atualizar("foto_mime", foto.mime);
-      atualizar("foto_tamanho", foto.tamanhoEstimado);
-
-      toast.success("Foto do pet otimizada com sucesso.");
-    } catch (error) {
-      toast.error(error.message || "Não foi possível processar a foto.");
-    } finally {
-      setProcessandoFoto(false);
-      if (event.target) event.target.value = "";
-    }
-  }
-
-  function removerFoto() {
-    atualizar("foto_base64", "");
-    atualizar("foto_nome", "");
-    atualizar("foto_mime", "");
-    atualizar("foto_tamanho", "");
   }
 
   return (
@@ -1484,65 +1532,24 @@ function ModalPet({ pet, setPet, camposInvalidos, onClose, onSave }) {
       <div className="wm-t4-modal wm-t4-pet-modal">
         <header className="wm-t4-modal-head">
           <div>
-            <h2>Adicionar pet</h2>
-            <p>Cadastre os dados principais do pet vinculado à unidade.</p>
+            <h2>Pet da unidade</h2>
+            <p>Informe apenas os dados necessários para identificação.</p>
           </div>
 
-          <button type="button" onClick={onClose} aria-label="Fechar modal">
+          <button type="button" onClick={onClose} aria-label="Fechar">
             <X size={20} />
           </button>
         </header>
 
         <div className="wm-t4-modal-body">
           <section className="wm-t4-modal-section">
-            <h3>1. Dados do pet</h3>
-
-            <div className="wm-t4-photo-line">
-              <div className="wm-t4-photo-preview">
-                {pet.foto_base64 ? (
-                  <img src={pet.foto_base64} alt="Foto do pet" />
-                ) : (
-                  <UserRound size={36} />
-                )}
-              </div>
-
-              <div className="wm-t4-photo-info">
-                <strong>Foto do pet (opcional)</strong>
-                <span>JPG, PNG, HEIC ou WebP até 5MB. Otimização automática para WebP.</span>
-
-                <div className="wm-t4-photo-actions">
-                  <button
-                    type="button"
-                    className="wm-t4-mini-btn"
-                    onClick={() => inputFotoRef.current?.click()}
-                    disabled={processandoFoto}
-                  >
-                    <Upload size={14} />
-                    {processandoFoto ? "Processando..." : "Escolher foto"}
-                  </button>
-
-                  {pet.foto_base64 ? (
-                    <button type="button" className="wm-t4-mini-btn ghost" onClick={removerFoto}>
-                      Remover
-                    </button>
-                  ) : null}
-
-                  <input
-                    ref={inputFotoRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp,image/heic,image/heif"
-                    onChange={selecionarFoto}
-                    hidden
-                  />
-                </div>
-              </div>
-            </div>
+            <h3>Dados do pet</h3>
 
             <div className="wm-t4-modal-grid two">
               <Field
                 label="Nome do pet *"
                 value={pet.nome}
-                onChange={(v) => atualizar("nome", v)}
+                onChange={(valor) => atualizar("nome", valor)}
                 invalid={camposInvalidos.nome}
                 placeholder="Nome do pet"
               />
@@ -1552,9 +1559,8 @@ function ModalPet({ pet, setPet, camposInvalidos, onClose, onSave }) {
 
                 <select
                   value={pet.tipo}
-                  onChange={(e) => atualizar("tipo", e.target.value)}
+                  onChange={(event) => atualizar("tipo", event.target.value)}
                   className={camposInvalidos.tipo ? "invalid" : ""}
-                  autoComplete="off"
                 >
                   <option value="">Selecione</option>
 
@@ -1571,7 +1577,7 @@ function ModalPet({ pet, setPet, camposInvalidos, onClose, onSave }) {
               <Field
                 label="Raça (opcional)"
                 value={pet.raca}
-                onChange={(v) => atualizar("raca", v)}
+                onChange={(valor) => atualizar("raca", valor)}
                 placeholder="Ex.: SRD, Poodle, Siamês"
               />
 
@@ -1580,8 +1586,7 @@ function ModalPet({ pet, setPet, camposInvalidos, onClose, onSave }) {
 
                 <select
                   value={pet.porte}
-                  onChange={(e) => atualizar("porte", e.target.value)}
-                  autoComplete="off"
+                  onChange={(event) => atualizar("porte", event.target.value)}
                 >
                   <option value="">Selecione</option>
 
@@ -1596,30 +1601,32 @@ function ModalPet({ pet, setPet, camposInvalidos, onClose, onSave }) {
               <Field
                 label="Cor (opcional)"
                 value={pet.cor}
-                onChange={(v) => atualizar("cor", v)}
+                onChange={(valor) => atualizar("cor", valor)}
                 placeholder="Ex.: Caramelo"
               />
             </div>
           </section>
 
           <section className="wm-t4-modal-section">
-            <h3>2. Observações</h3>
+            <h3>Observações</h3>
 
             <label className="wm-t4-field">
               <span>Observações (opcional)</span>
 
               <textarea
                 value={pet.observacoes || ""}
-                onChange={(e) => atualizar("observacoes", e.target.value)}
-                placeholder="Ex.: dócil, usa guia, tem restrição, informação relevante para administração."
+                onChange={(event) =>
+                  atualizar("observacoes", event.target.value)
+                }
+                placeholder="Ex.: dócil, usa guia, possui alguma necessidade de atenção."
               />
             </label>
 
             <div className="wm-t4-note inside-modal">
               <Info size={16} />
               <span>
-                Este cadastro é informativo. Regras específicas de convivência e circulação
-                serão tratadas pelo condomínio quando aplicável.
+                Este cadastro serve para identificação. As regras de convivência e
+                circulação continuam sendo definidas pelo condomínio.
               </span>
             </div>
           </section>
@@ -1640,11 +1647,21 @@ function ModalPet({ pet, setPet, camposInvalidos, onClose, onSave }) {
   );
 }
 
-function ModalConfirmacao({ titulo, texto, onClose, onConfirm }) {
+function ModalConfirmacao({
+  titulo,
+  texto,
+  onClose,
+  onConfirm,
+}) {
   return (
     <div className="wm-modal-overlay" role="dialog" aria-modal="true">
       <div className="wm-modal-card">
-        <button type="button" className="wm-modal-close" onClick={onClose}>
+        <button
+          type="button"
+          className="wm-modal-close"
+          onClick={onClose}
+          aria-label="Fechar"
+        >
           <X size={18} />
         </button>
 
@@ -1652,7 +1669,15 @@ function ModalConfirmacao({ titulo, texto, onClose, onConfirm }) {
         <p>{texto}</p>
 
         <div className="wm-modal-actions">
-          <button type="button" className="wm-modal-primary" onClick={onConfirm}>
+          <button type="button" className="wm-modal-secondary" onClick={onClose}>
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            className="wm-modal-primary"
+            onClick={onConfirm}
+          >
             Confirmar
           </button>
         </div>

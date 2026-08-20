@@ -10,12 +10,34 @@ const STATUS_AUDITORIA_VALIDOS = [
   "REAUDITORIA_PENDENTE",
 ];
 
+/*
+ * Dados mínimos necessários para montar a tabela.
+ *
+ * O cadastro completo não é carregado aqui.
+ */
+const CAMPOS_LISTA_AUDITORIA = [
+  "id",
+  "business_id",
+  "nome",
+  "torre",
+  "unidade",
+  "status_auditoria",
+  "status_cadastro",
+  "percentual_preenchimento",
+  "wizard_finalizado_em",
+  "atualizado_em",
+  "criado_em",
+].join(",");
+
 function normalizarStatus(valor = "") {
-  return String(valor || "").trim().toUpperCase();
+  return String(valor || "")
+    .trim()
+    .toUpperCase();
 }
 
 function somenteNumeros(valor = "") {
-  return String(valor || "").replace(/\D/g, "");
+  return String(valor || "")
+    .replace(/\D/g, "");
 }
 
 function gerarUuidCliente() {
@@ -23,14 +45,26 @@ function gerarUuidCliente() {
     return globalThis.crypto.randomUUID();
   }
 
-  const bytes = new Uint8Array(16);
-  globalThis.crypto.getRandomValues(bytes);
+  const bytes =
+    new Uint8Array(16);
 
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  globalThis.crypto
+    .getRandomValues(bytes);
+
+  bytes[6] =
+    (bytes[6] & 0x0f) |
+    0x40;
+
+  bytes[8] =
+    (bytes[8] & 0x3f) |
+    0x80;
 
   const hex = [...bytes]
-    .map((b) => b.toString(16).padStart(2, "0"))
+    .map((byte) =>
+      byte
+        .toString(16)
+        .padStart(2, "0")
+    )
     .join("");
 
   return [
@@ -43,7 +77,9 @@ function gerarUuidCliente() {
 }
 
 function obterContextoNavegador() {
-  if (typeof window === "undefined") {
+  if (
+    typeof window === "undefined"
+  ) {
     return {
       ip: null,
       user_agent: null,
@@ -52,25 +88,50 @@ function obterContextoNavegador() {
 
   return {
     ip: null,
-    user_agent: window.navigator?.userAgent || null,
+    user_agent:
+      window.navigator
+        ?.userAgent || null,
   };
 }
 
-export function formatarStatusAuditoria(status = "") {
-  return normalizarStatus(status).replaceAll("_", " ");
+export function formatarStatusAuditoria(
+  status = ""
+) {
+  const mapa = {
+    AGUARDANDO_AUDITORIA:
+      "Aguardando Auditoria",
+
+    AUDITORIA_INICIADA:
+      "Auditoria Iniciada",
+
+    REAUDITORIA_PENDENTE:
+      "Reauditoria Pendente",
+
+    CORRECAO_SOLICITADA:
+      "Correção Solicitada",
+
+    APROVADO:
+      "Aprovado",
+
+    REPROVADO:
+      "Reprovado",
+  };
+
+  const valor =
+    normalizarStatus(status);
+
+  return (
+    mapa[valor] ||
+    String(status || "")
+      .replaceAll("_", " ")
+  );
 }
 
-/**
- * Formata o CPF integralmente.
- *
- * Utilizado para o titular durante a auditoria administrativa,
- * pois o condomínio já possui o documento para conferência.
- *
- * Exemplo:
- * 85814776587 -> 858.147.765-87
- */
-export function formatarCpfCompleto(cpf = "") {
-  const numero = somenteNumeros(cpf);
+export function formatarCpfCompleto(
+  cpf = ""
+) {
+  const numero =
+    somenteNumeros(cpf);
 
   if (numero.length !== 11) {
     return "Não informado";
@@ -82,24 +143,71 @@ export function formatarCpfCompleto(cpf = "") {
   );
 }
 
-/**
- * Mantém o CPF dos dependentes parcialmente oculto.
- *
- * Exemplo:
- * 04085625608 -> 040.***.***-08
- */
-export function mascararCpf(cpf = "") {
-  const numero = somenteNumeros(cpf);
+export function mascararCpf(
+  cpf = ""
+) {
+  const numero =
+    somenteNumeros(cpf);
 
   if (numero.length !== 11) {
     return "Não informado";
   }
 
-  return `${numero.slice(0, 3)}.***.***-${numero.slice(-2)}`;
+  return `${numero.slice(
+    0,
+    3
+  )}.***.***-${numero.slice(-2)}`;
 }
 
-function normalizarDdi(ddi = "") {
+function normalizarDdi(
+  ddi = ""
+) {
   return somenteNumeros(ddi);
+}
+
+function primeiroValorPreenchido(
+  ...valores
+) {
+  return valores.find(
+    (item) =>
+      item !== null &&
+      item !== undefined &&
+      String(item).trim() !== ""
+  );
+}
+
+function objetoSeguro(valor) {
+  if (
+    valor &&
+    typeof valor === "object" &&
+    !Array.isArray(valor)
+  ) {
+    return valor;
+  }
+
+  return {};
+}
+
+function primeiroArrayValido(
+  ...valores
+) {
+  for (
+    const valor of valores
+  ) {
+    if (
+      Array.isArray(valor) &&
+      valor.length
+    ) {
+      return valor;
+    }
+  }
+
+  const vazio =
+    valores.find(
+      Array.isArray
+    );
+
+  return vazio || [];
 }
 
 function montarNumeroInternacional({
@@ -107,34 +215,51 @@ function montarNumeroInternacional({
   ddi,
   paisPadrao = "BR",
 } = {}) {
-  const telefoneOriginal = String(telefone || "").trim();
+  const original =
+    String(
+      telefone || ""
+    ).trim();
 
-  if (!telefoneOriginal) {
+  if (!original) {
     return "";
   }
 
-  if (telefoneOriginal.startsWith("+")) {
-    return `+${somenteNumeros(telefoneOriginal)}`;
+  if (
+    original.startsWith("+")
+  ) {
+    return `+${somenteNumeros(
+      original
+    )}`;
   }
 
-  let numero = somenteNumeros(telefoneOriginal);
+  let numero =
+    somenteNumeros(original);
 
   if (!numero) {
     return "";
   }
 
-  if (numero.startsWith("00")) {
-    numero = numero.slice(2);
+  if (
+    numero.startsWith("00")
+  ) {
+    numero =
+      numero.slice(2);
 
-    return numero ? `+${numero}` : "";
+    return numero
+      ? `+${numero}`
+      : "";
   }
 
-  const ddiNormalizado = normalizarDdi(ddi);
+  const ddiNormalizado =
+    normalizarDdi(ddi);
 
   if (
     ddiNormalizado &&
-    numero.startsWith(ddiNormalizado) &&
-    numero.length > ddiNormalizado.length + 7
+    numero.startsWith(
+      ddiNormalizado
+    ) &&
+    numero.length >
+      ddiNormalizado.length + 7
   ) {
     return `+${numero}`;
   }
@@ -152,269 +277,156 @@ function montarNumeroInternacional({
     numero.startsWith("0") &&
     numero.length >= 11
   ) {
-    numero = numero.replace(/^0+/, "");
+    numero =
+      numero.replace(
+        /^0+/,
+        ""
+      );
   }
 
   if (ddiNormalizado) {
     return `+${ddiNormalizado}${numero}`;
   }
 
-  if (paisPadrao === "BR") {
+  if (
+    paisPadrao === "BR"
+  ) {
     return `+55${numero}`;
   }
 
   return `+${numero}`;
 }
 
-function formatarTelefoneBrasil(numeroNacional = "") {
-  const numero = somenteNumeros(numeroNacional);
-
-  if (numero.length !== 10 && numero.length !== 11) {
-    return "";
-  }
-
-  const ddd = numero.slice(0, 2);
-  const telefone = numero.slice(2);
-
-  if (telefone.length === 9) {
-    return `+55 (${ddd}) ${telefone.slice(0, 5)}-${telefone.slice(5)}`;
-  }
-
-  return `+55 (${ddd}) ${telefone.slice(0, 4)}-${telefone.slice(4)}`;
-}
-
-/**
- * Formata telefones utilizando DDI e o padrão do país.
- */
 export function formatarTelefoneInternacional({
   telefone,
   ddi,
   paisPadrao = "BR",
 } = {}) {
-  const numeroInternacional = montarNumeroInternacional({
-    telefone,
-    ddi,
-    paisPadrao,
-  });
+  const numero =
+    montarNumeroInternacional({
+      telefone,
+      ddi,
+      paisPadrao,
+    });
 
-  if (!numeroInternacional) {
+  if (!numero) {
     return "Não informado";
   }
 
   try {
-    const telefoneInterpretado =
-      parsePhoneNumberFromString(numeroInternacional);
-
-    if (!telefoneInterpretado) {
-      return numeroInternacional;
-    }
-
-    if (
-      telefoneInterpretado.countryCallingCode === "55"
-    ) {
-      const telefoneBrasil = formatarTelefoneBrasil(
-        telefoneInterpretado.nationalNumber
+    const interpretado =
+      parsePhoneNumberFromString(
+        numero
       );
 
-      if (telefoneBrasil) {
-        return telefoneBrasil;
-      }
+    if (!interpretado) {
+      return numero;
     }
 
-    return telefoneInterpretado.formatInternational();
+    return interpretado
+      .formatInternational();
   } catch {
-    return numeroInternacional;
+    return numero;
   }
 }
 
-function converterDataNascimento(dataNascimento) {
-  if (!dataNascimento) {
+function converterDataNascimento(
+  valor
+) {
+  if (!valor) {
     return null;
   }
 
-  if (dataNascimento instanceof Date) {
-    return Number.isNaN(dataNascimento.getTime())
-      ? null
-      : dataNascimento;
-  }
+  const texto =
+    String(valor).trim();
 
-  const valor = String(dataNascimento).trim();
-
-  const formatoBrasileiro = valor.match(
-    /^(\d{2})\/(\d{2})\/(\d{4})$/
-  );
-
-  if (formatoBrasileiro) {
-    const [, dia, mes, ano] = formatoBrasileiro;
-
-    const data = new Date(
-      Number(ano),
-      Number(mes) - 1,
-      Number(dia)
+  const brasileiro =
+    texto.match(
+      /^(\d{2})\/(\d{2})\/(\d{4})$/
     );
 
-    if (
-      data.getFullYear() === Number(ano) &&
-      data.getMonth() === Number(mes) - 1 &&
-      data.getDate() === Number(dia)
-    ) {
-      return data;
-    }
+  if (brasileiro) {
+    const [
+      ,
+      dia,
+      mes,
+      ano,
+    ] = brasileiro;
 
-    return null;
+    const data =
+      new Date(
+        Number(ano),
+        Number(mes) - 1,
+        Number(dia)
+      );
+
+    return Number.isNaN(
+      data.getTime()
+    )
+      ? null
+      : data;
   }
 
-  const data = new Date(valor);
+  const data =
+    new Date(texto);
 
-  return Number.isNaN(data.getTime()) ? null : data;
+  return Number.isNaN(
+    data.getTime()
+  )
+    ? null
+    : data;
 }
 
-export function calcularIdade(dataNascimento) {
-  const nascimento = converterDataNascimento(dataNascimento);
+export function calcularIdade(
+  dataNascimento
+) {
+  const nascimento =
+    converterDataNascimento(
+      dataNascimento
+    );
 
   if (!nascimento) {
     return null;
   }
 
-  const hoje = new Date();
+  const hoje =
+    new Date();
 
   let idade =
-    hoje.getFullYear() - nascimento.getFullYear();
+    hoje.getFullYear() -
+    nascimento.getFullYear();
 
   const diferencaMes =
-    hoje.getMonth() - nascimento.getMonth();
+    hoje.getMonth() -
+    nascimento.getMonth();
 
   if (
     diferencaMes < 0 ||
     (
       diferencaMes === 0 &&
-      hoje.getDate() < nascimento.getDate()
+      hoje.getDate() <
+        nascimento.getDate()
     )
   ) {
     idade -= 1;
   }
 
-  return idade >= 0 ? idade : null;
+  return idade >= 0
+    ? idade
+    : null;
 }
 
-function valorOuNaoInformado(valor) {
-  if (
-    valor === null ||
-    valor === undefined ||
-    String(valor).trim() === ""
-  ) {
-    return "Não informado";
-  }
+function normalizarDependente(
+  dependente = {}
+) {
+  const ddi =
+    primeiroValorPreenchido(
+      dependente.ddi,
+      dependente.codigo_pais,
+      dependente.country_calling_code
+    );
 
-  return valor;
-}
-
-function montarResumoAuditoria(registro = {}) {
-  const dependentes = Array.isArray(registro.dependentes)
-    ? registro.dependentes
-    : [];
-
-  const funcionarios = Array.isArray(
-    registro.funcionarios_lar
-  )
-    ? registro.funcionarios_lar
-    : [];
-
-  const pets = Array.isArray(registro.pets)
-    ? registro.pets
-    : [];
-
-  const veiculos = Array.isArray(registro.veiculos)
-    ? registro.veiculos
-    : [];
-
-  const garagem = Array.isArray(registro.garagem)
-    ? registro.garagem
-    : [];
-
-  const conflitosGaragem = garagem.filter(
-    (item) => item?.conflito === true
-  );
-
-  return {
-    dependentes: dependentes.length,
-    funcionarios: funcionarios.length,
-    pets: pets.length,
-    veiculos: veiculos.length,
-    garagem: garagem.length,
-    conflitosGaragem: conflitosGaragem.length,
-    possuiConflitoGaragem:
-      conflitosGaragem.length > 0,
-  };
-}
-
-function ordenarDependentesPorIdade(dependentes = []) {
-  return [...dependentes].sort((a, b) => {
-    const idadeA =
-      a.idade ??
-      calcularIdade(
-        a.data_nascimento_iso ||
-          a.data_nascimento
-      ) ??
-      -1;
-
-    const idadeB =
-      b.idade ??
-      calcularIdade(
-        b.data_nascimento_iso ||
-          b.data_nascimento
-      ) ??
-      -1;
-
-    return idadeB - idadeA;
-  });
-}
-
-function objetoSeguro(valor) {
-  return (
-    valor &&
-    typeof valor === "object" &&
-    !Array.isArray(valor)
-  )
-    ? valor
-    : {};
-}
-
-function primeiroArrayValido(...valores) {
-  for (const valorAtual of valores) {
-    if (
-      Array.isArray(valorAtual) &&
-      valorAtual.length > 0
-    ) {
-      return valorAtual;
-    }
-  }
-
-  const arrayVazio = valores.find(
-    (valorAtual) => Array.isArray(valorAtual)
-  );
-
-  return arrayVazio || [];
-}
-
-function primeiroValorPreenchido(...valores) {
-  return valores.find(
-    (valorAtual) =>
-      valorAtual !== null &&
-      valorAtual !== undefined &&
-      String(valorAtual).trim() !== ""
-  );
-}
-
-function normalizarDependente(dependente = {}) {
-  const ddi = primeiroValorPreenchido(
-    dependente.ddi,
-    dependente.codigo_pais,
-    dependente.country_calling_code,
-    dependente.countryCallingCode
-  );
-
-  const telefoneOriginal =
+  const telefone =
     primeiroValorPreenchido(
       dependente.whatsapp_e164,
       dependente.whatsapp,
@@ -422,17 +434,17 @@ function normalizarDependente(dependente = {}) {
       dependente.celular
     );
 
-  const whatsappFormatado =
-    formatarTelefoneInternacional({
-      telefone: telefoneOriginal,
-      ddi,
-      paisPadrao: "BR",
-    });
-
-  const cpfDependente =
+  const cpf =
     primeiroValorPreenchido(
       dependente.cpf_formatado,
       dependente.cpf
+    );
+
+  const idade =
+    dependente.idade ??
+    calcularIdade(
+      dependente.data_nascimento_iso ||
+      dependente.data_nascimento
     );
 
   return {
@@ -447,83 +459,58 @@ function normalizarDependente(dependente = {}) {
     parentesco:
       dependente.parentesco ||
       dependente.tipo_vinculo ||
-      dependente.tipoVinculo ||
       dependente.vinculo ||
-      dependente.relacao ||
       "",
 
-    cpf_mascarado: mascararCpf(cpfDependente),
+    cpf_mascarado:
+      mascararCpf(cpf),
 
-    telefone: whatsappFormatado,
-    whatsapp: whatsappFormatado,
-    whatsapp_formatado: whatsappFormatado,
+    telefone:
+      formatarTelefoneInternacional({
+        telefone,
+        ddi,
+      }),
 
-    ddi:
-      ddi
-        ? `+${normalizarDdi(ddi)}`
-        : "",
+    idade,
 
-    login_proprio: Boolean(
-      dependente.login_proprio ??
-        dependente.acesso_proprio_futuro ??
-        dependente.acessoProprio ??
+    login_proprio:
+      Boolean(
+        dependente.login_proprio ??
         dependente.acesso_proprio ??
-        dependente.possuiAcesso ??
         dependente.possui_acesso
-    ),
+      ),
 
-    permite_retirada: Boolean(
-      dependente.permite_retirada ??
-        dependente.retira_portaria ??
-        dependente.autorizadoRetirada ??
+    permite_retirada:
+      Boolean(
+        dependente.permite_retirada ??
         dependente.autorizado_retirada ??
-        dependente.podeRetirarEncomendas ??
         dependente.pode_retirar_encomendas
-    ),
+      ),
 
-    recebe_encomendas: Boolean(
-      dependente.recebe_encomendas ??
-        dependente.recebeEncomendas ??
-        dependente.podeReceberEncomendas ??
-        dependente.pode_receber_encomendas
-    ),
-
-    autorizacao_menor_16: Boolean(
-      dependente.autorizacao_menor_16 ??
+    autorizacao_menor_16:
+      Boolean(
+        dependente.autorizacao_menor_16 ??
         dependente.menor_16_ciencia
-    ),
-
-    idade:
-      dependente.idade ??
-      calcularIdade(
-        dependente.data_nascimento_iso ||
-          dependente.data_nascimento
       ),
   };
 }
 
-function normalizarFuncionario(funcionario = {}) {
-  const ddi = primeiroValorPreenchido(
-    funcionario.ddi,
-    funcionario.codigo_pais,
-    funcionario.country_calling_code,
-    funcionario.countryCallingCode
-  );
+function normalizarFuncionario(
+  funcionario = {}
+) {
+  const ddi =
+    primeiroValorPreenchido(
+      funcionario.ddi,
+      funcionario.codigo_pais
+    );
 
-  const telefoneOriginal =
+  const telefone =
     primeiroValorPreenchido(
       funcionario.whatsapp_e164,
       funcionario.whatsapp,
       funcionario.telefone,
       funcionario.celular
     );
-
-  const whatsappFormatado =
-    formatarTelefoneInternacional({
-      telefone: telefoneOriginal,
-      ddi,
-      paisPadrao: "BR",
-    });
 
   return {
     ...funcionario,
@@ -534,20 +521,20 @@ function normalizarFuncionario(funcionario = {}) {
       funcionario.nome_completo ||
       "",
 
-    telefone: whatsappFormatado,
-    whatsapp: whatsappFormatado,
-    whatsapp_formatado: whatsappFormatado,
-
-    ddi:
-      ddi
-        ? `+${normalizarDdi(ddi)}`
-        : "",
+    telefone:
+      formatarTelefoneInternacional({
+        telefone,
+        ddi,
+      }),
   };
 }
 
-function normalizarPet(pet = {}) {
+function normalizarPet(
+  pet = {}
+) {
   return {
     ...pet,
+
     tipo:
       pet.tipo ||
       pet.especie ||
@@ -555,9 +542,12 @@ function normalizarPet(pet = {}) {
   };
 }
 
-function normalizarVeiculo(veiculo = {}) {
+function normalizarVeiculo(
+  veiculo = {}
+) {
   return {
     ...veiculo,
+
     tipo:
       veiculo.tipo ||
       veiculo.categoria ||
@@ -565,38 +555,9 @@ function normalizarVeiculo(veiculo = {}) {
   };
 }
 
-function formatarSituacaoVaga(situacao = "") {
-  const mapa = {
-    propria: "Própria",
-    vaga_propria: "Própria",
-    propria_uso: "Própria em uso",
-    alugada: "Alugada",
-    alugada_terceiro: "Alugada de terceiro",
-    propria_alugada_terceiro:
-      "Própria alugada a terceiro",
-    cedida: "Cedida",
-    emprestada: "Emprestada",
-  };
-
-  return (
-    mapa[String(situacao || "").toLowerCase()] ||
-    String(situacao || "")
-      .replaceAll("_", " ")
-      .replace(
-        /\b\w/g,
-        (letra) => letra.toUpperCase()
-      ) ||
-    "Não informado"
-  );
-}
-
-function normalizarVaga(vaga = {}) {
-  const situacaoOriginal =
-    vaga.situacao ||
-    vaga.vinculo ||
-    vaga.tipo_vaga ||
-    "";
-
+function normalizarVaga(
+  vaga = {}
+) {
   return {
     ...vaga,
 
@@ -611,288 +572,321 @@ function normalizarVaga(vaga = {}) {
       vaga.local ||
       "Não informado",
 
-    vinculo: formatarSituacaoVaga(
-      situacaoOriginal
-    ),
-
-    situacao_original: situacaoOriginal,
+    vinculo:
+      vaga.vinculo ||
+      vaga.situacao ||
+      "Não informado",
 
     unidade_vinculada:
       vaga.unidade_vinculada ||
       vaga.unidade_origem ||
       "",
 
-    conflito: vaga.conflito === true,
+    conflito:
+      vaga.conflito === true,
   };
 }
 
-function normalizarRegistroAuditoria(item = {}) {
-  const raw = item.raw || item;
+function montarResumoDetalhe({
+  dependentes,
+  funcionarios,
+  pets,
+  veiculos,
+  garagem,
+}) {
+  const conflitos =
+    garagem.filter(
+      (item) =>
+        item?.conflito === true
+    );
 
-  const dadosComplementares = objetoSeguro(
-    raw.dados_complementares
-  );
+  return {
+    dependentes:
+      dependentes.length,
 
-  const wizardFinal = objetoSeguro(
-    dadosComplementares.wizard_final
-  );
+    funcionarios:
+      funcionarios.length,
 
-  const tela1 = objetoSeguro(
-    wizardFinal.tela1 ||
+    pets:
+      pets.length,
+
+    veiculos:
+      veiculos.length,
+
+    garagem:
+      garagem.length,
+
+    conflitosGaragem:
+      conflitos.length,
+
+    possuiConflitoGaragem:
+      conflitos.length > 0,
+  };
+}
+
+/*
+ * Monta o cadastro completo de UM morador.
+ *
+ * Esta função só é usada depois que o usuário
+ * escolhe Visualizar Resumo ou Auditar.
+ */
+function normalizarDetalheAuditoria(
+  item = {}
+) {
+  const dadosComplementares =
+    objetoSeguro(
+      item.dados_complementares
+    );
+
+  const wizardFinal =
+    objetoSeguro(
+      dadosComplementares
+        .wizard_final
+    );
+
+  const tela1 =
+    objetoSeguro(
+      wizardFinal.tela1 ||
       dadosComplementares.tela1
-  );
+    );
 
-  const tela2 = objetoSeguro(
-    wizardFinal.tela2 ||
+  const tela2 =
+    objetoSeguro(
+      wizardFinal.tela2 ||
       dadosComplementares.tela2
-  );
+    );
 
-  const tela3 = objetoSeguro(
-    wizardFinal.tela3
-  );
+  const tela3 =
+    objetoSeguro(
+      wizardFinal.tela3
+    );
 
-  const tela4 = objetoSeguro(
-    wizardFinal.tela4
-  );
+  const tela4 =
+    objetoSeguro(
+      wizardFinal.tela4
+    );
 
-  const tela5 = objetoSeguro(
-    wizardFinal.tela5 ||
+  const tela5 =
+    objetoSeguro(
+      wizardFinal.tela5 ||
       dadosComplementares.tela5
-  );
-
-  const dependentesBrutos =
-    primeiroArrayValido(
-      raw.dependentes,
-      dadosComplementares.pessoas_vinculadas,
-      tela3.dependentes
     );
-
-  const funcionariosBrutos =
-    primeiroArrayValido(
-      raw.funcionarios_lar,
-      dadosComplementares.funcionarios_lar,
-      tela4.funcionariosLar,
-      tela4.funcionarios_lar
-    );
-
-  const petsBrutos = primeiroArrayValido(
-    raw.pets,
-    dadosComplementares.pets,
-    tela4.pets
-  );
-
-  const veiculosBrutos =
-    primeiroArrayValido(
-      raw.veiculos,
-      dadosComplementares.veiculos,
-      tela5.veiculos
-    );
-
-  const vagasBrutas = primeiroArrayValido(
-    raw.garagem,
-    dadosComplementares.vagas,
-    tela5.vagas
-  );
 
   const dependentes =
-    ordenarDependentesPorIdade(
-      dependentesBrutos.map(
+    primeiroArrayValido(
+      item.dependentes,
+      dadosComplementares
+        .pessoas_vinculadas,
+      tela3.dependentes
+    )
+      .map(
         normalizarDependente
       )
-    );
+      .sort(
+        (a, b) =>
+          Number(
+            b.idade ?? -1
+          ) -
+          Number(
+            a.idade ?? -1
+          )
+      );
 
-  const funcionariosLar =
-    funcionariosBrutos.map(
+  const funcionarios =
+    primeiroArrayValido(
+      item.funcionarios_lar,
+      dadosComplementares
+        .funcionarios_lar,
+      tela4.funcionariosLar,
+      tela4.funcionarios_lar
+    ).map(
       normalizarFuncionario
     );
 
-  const pets = petsBrutos.map(
-    normalizarPet
-  );
+  const pets =
+    primeiroArrayValido(
+      item.pets,
+      dadosComplementares.pets,
+      tela4.pets
+    ).map(
+      normalizarPet
+    );
 
-  const veiculos = veiculosBrutos.map(
-    normalizarVeiculo
-  );
+  const veiculos =
+    primeiroArrayValido(
+      item.veiculos,
+      dadosComplementares
+        .veiculos,
+      tela5.veiculos
+    ).map(
+      normalizarVeiculo
+    );
 
-  const garagem = vagasBrutas.map(
-    normalizarVaga
-  );
+  const garagem =
+    primeiroArrayValido(
+      item.garagem,
+      dadosComplementares.vagas,
+      tela5.vagas
+    ).map(
+      normalizarVaga
+    );
 
-  const cpfResponsavel =
+  const cpf =
     primeiroValorPreenchido(
-      raw.cpf,
-      raw.documento_cpf_cnpj,
-      dadosComplementares.cpf_formatado,
+      item.cpf,
+      item.documento_cpf_cnpj,
       dadosComplementares.cpf,
+      dadosComplementares
+        .cpf_formatado,
       tela2.cpf
     );
 
-  const ddiResponsavel =
+  const ddi =
     primeiroValorPreenchido(
       tela2.ddi,
       dadosComplementares.ddi,
-      dadosComplementares.codigo_pais,
       "55"
     );
 
-  const telefoneResponsavel =
+  const telefone =
     primeiroValorPreenchido(
-      dadosComplementares.whatsapp_e164,
-      raw.telefone,
+      dadosComplementares
+        .whatsapp_e164,
+      item.telefone,
       tela2.whatsapp,
-      dadosComplementares.whatsapp
+      dadosComplementares
+        .whatsapp
     );
 
-  const telefoneResponsavelFormatado =
-    formatarTelefoneInternacional({
-      telefone: telefoneResponsavel,
-      ddi: ddiResponsavel,
-      paisPadrao: "BR",
+  const resumo =
+    montarResumoDetalhe({
+      dependentes,
+      funcionarios,
+      pets,
+      veiculos,
+      garagem,
     });
 
-  const resumo = montarResumoAuditoria({
-    dependentes,
-    funcionarios_lar: funcionariosLar,
-    pets,
-    veiculos,
-    garagem,
-  });
-
   return {
-    id: raw.id,
+    id:
+      item.id,
 
     pre_cadastro_id:
-      raw.pre_cadastro_id ||
-      raw.id,
+      item.id,
 
-    business_id: raw.business_id,
+    business_id:
+      item.business_id,
 
-    nome: valorOuNaoInformado(
+    nome:
       primeiroValorPreenchido(
-        raw.nome,
+        item.nome,
         tela2.nomeCompleto,
         dadosComplementares.nome
-      )
-    ),
+      ) ||
+      "Não informado",
 
-    email: valorOuNaoInformado(
+    email:
       primeiroValorPreenchido(
-        raw.email,
+        item.email,
         tela2.emailPrincipal,
         dadosComplementares.email
-      )
-    ),
+      ) ||
+      "Não informado",
 
-    telefone: telefoneResponsavelFormatado,
-    whatsapp: telefoneResponsavelFormatado,
-    whatsapp_formatado:
-      telefoneResponsavelFormatado,
+    telefone:
+      formatarTelefoneInternacional({
+        telefone,
+        ddi,
+      }),
 
-    ddi:
-      ddiResponsavel
-        ? `+${normalizarDdi(ddiResponsavel)}`
-        : "Não informado",
+    cpf:
+      formatarCpfCompleto(cpf),
 
-    cpf: formatarCpfCompleto(
-      cpfResponsavel
-    ),
-
-    perfil_morador: valorOuNaoInformado(
+    perfil_morador:
       primeiroValorPreenchido(
-        raw.perfil_morador,
-        raw.tipo_morador,
-        raw.perfil_unidade,
-        dadosComplementares.perfil_unidade,
+        item.perfil_morador,
+        item.tipo_morador,
+        item.perfil_unidade,
+        dadosComplementares
+          .perfil_unidade,
         tela1.perfilUnidade
-      )
-    ),
+      ) ||
+      "Não informado",
 
-    torre: valorOuNaoInformado(
-      raw.torre ||
-      raw.bloco
-    ),
+    torre:
+      item.torre ||
+      "Não informado",
 
-    unidade: valorOuNaoInformado(
-      raw.unidade
-    ),
+    unidade:
+      item.unidade ||
+      "Não informado",
 
     status_auditoria:
       normalizarStatus(
-        raw.status_auditoria
-      ) ||
-      "AGUARDANDO_AUDITORIA",
+        item.status_auditoria
+      ),
 
     status_preenchimento:
       normalizarStatus(
-        raw.status_preenchimento ||
-          raw.status_cadastro
-      ) ||
-      "WIZARD FINALIZADO",
+        item.status_preenchimento ||
+        item.status_cadastro
+      ),
 
     percentual_preenchimento:
       Number(
-        raw.percentual_preenchimento ||
-          100
+        item.percentual_preenchimento ||
+        100
       ),
 
     wizard_finalizado_em:
-      raw.wizard_finalizado_em ||
-      raw.finalizado_em ||
-      dadosComplementares
-        .finalizacao?.finalizado_em ||
-      raw.atualizado_em ||
-      raw.criado_em,
+      item.wizard_finalizado_em ||
+      item.atualizado_em ||
+      item.criado_em,
 
-    atualizado_em: raw.atualizado_em,
-    criado_em: raw.criado_em,
+    atualizado_em:
+      item.atualizado_em,
+
+    criado_em:
+      item.criado_em,
 
     identificacao_unidade:
-      raw.identificacao_unidade ||
+      item.identificacao_unidade ||
       tela1 ||
       {},
 
     dados_responsavel: {
-      ...dadosComplementares,
       ...tela2,
-      ...raw,
 
-      cpf: formatarCpfCompleto(
-        cpfResponsavel
-      ),
+      nome:
+        item.nome,
 
-      cpf_formatado:
-        formatarCpfCompleto(
-          cpfResponsavel
-        ),
+      email:
+        item.email,
 
-      ddi:
-        ddiResponsavel
-          ? `+${normalizarDdi(
-              ddiResponsavel
-            )}`
-          : "",
+      cpf:
+        formatarCpfCompleto(cpf),
 
       telefone:
-        telefoneResponsavelFormatado,
-
-      whatsapp:
-        telefoneResponsavelFormatado,
-
-      whatsapp_formatado:
-        telefoneResponsavelFormatado,
+        formatarTelefoneInternacional({
+          telefone,
+          ddi,
+        }),
     },
 
     dependentes,
-    funcionarios_lar: funcionariosLar,
+
+    funcionarios_lar:
+      funcionarios,
+
     pets,
+
     veiculos,
+
     garagem,
 
     preferencias: {
-      ...(raw.preferencias || {}),
-
       canal_preferencial:
-        raw.preferencias
+        item.preferencias
           ?.canal_preferencial ||
         (
           dadosComplementares
@@ -907,67 +901,113 @@ function normalizarRegistroAuditoria(item = {}) {
                 : "Não informado"
         ),
 
-      notificacoes: Boolean(
-        dadosComplementares
-          .notificacao_push ||
-        dadosComplementares
-          .notificacao_whatsapp ||
-        dadosComplementares
-          .notificacao_email
-      ),
+      notificacoes:
+        Boolean(
+          dadosComplementares
+            .notificacao_push ||
+          dadosComplementares
+            .notificacao_whatsapp ||
+          dadosComplementares
+            .notificacao_email
+        ),
 
-      push: Boolean(
-        dadosComplementares
-          .notificacao_push
-      ),
+      privacidade:
+        item.preferencias
+          ?.privacidade,
 
-      whatsapp: Boolean(
-        dadosComplementares
-          .notificacao_whatsapp
-      ),
-
-      email: Boolean(
-        dadosComplementares
-          .notificacao_email
-      ),
+      observacoes:
+        item.preferencias
+          ?.observacoes,
     },
 
-    divergencias: Array.isArray(
-      raw.divergencias
-    )
-      ? raw.divergencias
-      : [],
+    divergencias:
+      Array.isArray(
+        item.divergencias
+      )
+        ? item.divergencias
+        : [],
 
     resumo,
 
-    estrutura_garagem: {
-      possui_vaga: Boolean(
-        dadosComplementares
-          .possui_vaga ??
-        tela5.possuiVaga ??
-        garagem.length
-      ),
+    observacoes:
+      item.observacoes,
 
-      garagem_situacao:
-        dadosComplementares
-          .garagem_situacao ||
-        tela5.garagemSituacao ||
-        null,
-
-      vagas: garagem,
-    },
-
-    raw,
+    raw:
+      item,
   };
 }
 
+function montarRegistroLista(
+  item = {}
+) {
+  return {
+    id:
+      item.id,
+
+    pre_cadastro_id:
+      item.id,
+
+    business_id:
+      item.business_id,
+
+    nome:
+      item.nome ||
+      "Não informado",
+
+    torre:
+      item.torre ||
+      "Não informado",
+
+    unidade:
+      item.unidade ||
+      "Não informado",
+
+    status_auditoria:
+      normalizarStatus(
+        item.status_auditoria
+      ),
+
+    status_preenchimento:
+      normalizarStatus(
+        item.status_cadastro
+      ),
+
+    percentual_preenchimento:
+      Number(
+        item.percentual_preenchimento ||
+        100
+      ),
+
+    wizard_finalizado_em:
+      item.wizard_finalizado_em ||
+      item.atualizado_em ||
+      item.criado_em,
+
+    atualizado_em:
+      item.atualizado_em,
+
+    criado_em:
+      item.criado_em,
+  };
+}
+
+/*
+ * ============================================================
+ * LISTA
+ * ============================================================
+ *
+ * A tabela recebe somente a página necessária.
+ */
 export async function listarMoradoresParaAuditoria({
   condominioId,
   busca = "",
   status = "TODOS",
   torre = "TODAS",
   unidade = "TODAS",
-  limite = 500,
+  dataInicio = "",
+  dataFim = "",
+  pagina = 1,
+  limite = 10,
 } = {}) {
   if (!condominioId) {
     throw new Error(
@@ -975,17 +1015,124 @@ export async function listarMoradoresParaAuditoria({
     );
   }
 
-  const { data, error } = await supabase
-    .from("pre_cadastro_moradores")
-    .select("*")
-    .eq(
-      "condominio_id",
-      condominioId
-    )
-    .in(
-      "status_auditoria",
-      STATUS_AUDITORIA_VALIDOS
-    )
+  const pageSize =
+    Math.max(
+      1,
+      Math.min(
+        Number(limite) || 10,
+        50
+      )
+    );
+
+  const paginaAtual =
+    Math.max(
+      1,
+      Number(pagina) || 1
+    );
+
+  const inicio =
+    (paginaAtual - 1) *
+    pageSize;
+
+  const fim =
+    inicio +
+    pageSize -
+    1;
+
+  let query =
+    supabase
+      .from(
+        "pre_cadastro_moradores"
+      )
+      .select(
+        CAMPOS_LISTA_AUDITORIA,
+        {
+          count: "exact",
+        }
+      )
+      .eq(
+        "condominio_id",
+        condominioId
+      )
+      .in(
+        "status_auditoria",
+        STATUS_AUDITORIA_VALIDOS
+      );
+
+  if (
+    status !== "TODOS"
+  ) {
+    query =
+      query.eq(
+        "status_auditoria",
+        status
+      );
+  }
+
+  if (
+    torre !== "TODAS"
+  ) {
+    query =
+      query.eq(
+        "torre",
+        torre
+      );
+  }
+
+  if (
+    unidade !== "TODAS"
+  ) {
+    query =
+      query.eq(
+        "unidade",
+        unidade
+      );
+  }
+
+  if (
+    busca.trim()
+  ) {
+    const termo =
+      busca
+        .trim()
+        .replaceAll(",", " ");
+
+    query =
+      query.or(
+        [
+          `nome.ilike.%${termo}%`,
+          `unidade.ilike.%${termo}%`,
+          `torre.ilike.%${termo}%`,
+          `business_id.ilike.%${termo}%`,
+        ].join(",")
+      );
+  }
+
+  if (dataInicio) {
+    query =
+      query.gte(
+        "wizard_finalizado_em",
+        new Date(
+          `${dataInicio}T00:00:00`
+        ).toISOString()
+      );
+  }
+
+  if (dataFim) {
+    query =
+      query.lte(
+        "wizard_finalizado_em",
+        new Date(
+          `${dataFim}T23:59:59.999`
+        ).toISOString()
+      );
+  }
+
+  const {
+    data,
+    error,
+    count,
+  } = await query
     .order(
       "wizard_finalizado_em",
       {
@@ -1000,166 +1147,224 @@ export async function listarMoradoresParaAuditoria({
         nullsFirst: false,
       }
     )
-    .limit(limite);
+    .range(
+      inicio,
+      fim
+    );
 
   if (error) {
     throw error;
   }
 
-  const termo = String(
-    busca || ""
-  )
-    .trim()
-    .toLowerCase();
-
-  const termoNumerico =
-    somenteNumeros(busca);
-
-  return (data || [])
-    .map(normalizarRegistroAuditoria)
-    .filter((item) => {
-      if (
-        status !== "TODOS" &&
-        normalizarStatus(
-          item.status_auditoria
-        ) !== normalizarStatus(status)
-      ) {
-        return false;
-      }
-
-      if (
-        torre !== "TODAS" &&
-        String(item.torre).trim() !==
-          String(torre).trim()
-      ) {
-        return false;
-      }
-
-      if (
-        unidade !== "TODAS" &&
-        String(item.unidade).trim() !==
-          String(unidade).trim()
-      ) {
-        return false;
-      }
-
-      if (!termo) {
-        return true;
-      }
-
-      const textoPesquisa = [
-        item.nome,
-        item.email,
-        item.telefone,
-        item.whatsapp,
-        item.cpf,
-        item.torre,
-        item.unidade,
-        item.business_id,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      if (
-        textoPesquisa.includes(termo)
-      ) {
-        return true;
-      }
-
-      if (termoNumerico) {
-        const textoNumerico =
-          somenteNumeros(
-            textoPesquisa
-          );
-
-        return textoNumerico.includes(
-          termoNumerico
-        );
-      }
-
-      return false;
-    });
-}
-
-export async function obterResumoAuditoriaMoradores({
-  condominioId,
-} = {}) {
-  const registros =
-    await listarMoradoresParaAuditoria({
-      condominioId,
-      limite: 1000,
-    });
-
-  const hoje = new Date()
-    .toISOString()
-    .slice(0, 10);
-
   return {
-    aguardando: registros.filter(
-      (item) =>
-        item.status_auditoria ===
-        "AGUARDANDO_AUDITORIA"
-    ).length,
+    registros:
+      (data || [])
+        .map(
+          montarRegistroLista
+        ),
 
-    iniciada: registros.filter(
-      (item) =>
-        item.status_auditoria ===
-        "AUDITORIA_INICIADA"
-    ).length,
+    total:
+      Number(
+        count || 0
+      ),
 
-    reauditoraPendente:
-      registros.filter(
-        (item) =>
-          item.status_auditoria ===
-          "REAUDITORIA_PENDENTE"
-      ).length,
+    pagina:
+      paginaAtual,
 
-    conflitosGaragem:
-      registros.filter(
-        (item) =>
-          item.resumo
-            ?.possuiConflitoGaragem
-      ).length,
+    limite:
+      pageSize,
 
-    aprovadosHoje:
-      registros.filter(
-        (item) =>
-          item.status_auditoria ===
-            "APROVADO" &&
-          String(
-            item.atualizado_em || ""
-          ).slice(0, 10) === hoje
-      ).length,
-
-    total: registros.length,
+    possuiProxima:
+      fim + 1 <
+      Number(count || 0),
   };
 }
 
+/*
+ * ============================================================
+ * RESUMO
+ * ============================================================
+ *
+ * Faz apenas contagens.
+ * Não carrega cadastro completo.
+ */
+export async function obterResumoAuditoriaMoradores({
+  condominioId,
+} = {}) {
+  if (!condominioId) {
+    return {
+      aguardando: 0,
+      iniciada: 0,
+      reauditoraPendente: 0,
+      aprovadosHoje: 0,
+      total: 0,
+    };
+  }
+
+  const contarStatus =
+    async (status) => {
+      const {
+        count,
+        error,
+      } = await supabase
+        .from(
+          "pre_cadastro_moradores"
+        )
+        .select(
+          "id",
+          {
+            count: "exact",
+            head: true,
+          }
+        )
+        .eq(
+          "condominio_id",
+          condominioId
+        )
+        .eq(
+          "status_auditoria",
+          status
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      return Number(
+        count || 0
+      );
+    };
+
+  const [
+    aguardando,
+    iniciada,
+    reauditoraPendente,
+  ] = await Promise.all([
+    contarStatus(
+      "AGUARDANDO_AUDITORIA"
+    ),
+
+    contarStatus(
+      "AUDITORIA_INICIADA"
+    ),
+
+    contarStatus(
+      "REAUDITORIA_PENDENTE"
+    ),
+  ]);
+
+  return {
+    aguardando,
+    iniciada,
+    reauditoraPendente,
+
+    aprovadosHoje: 0,
+
+    total:
+      aguardando +
+      iniciada +
+      reauditoraPendente,
+  };
+}
+
+/*
+ * ============================================================
+ * DETALHE
+ * ============================================================
+ *
+ * Somente UM cadastro completo por vez.
+ */
+export async function obterDetalheAuditoriaMorador({
+  condominioId,
+  preCadastroId,
+} = {}) {
+  if (
+    !condominioId ||
+    !preCadastroId
+  ) {
+    throw new Error(
+      "Cadastro não identificado."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase
+    .from(
+      "pre_cadastro_moradores"
+    )
+    .select("*")
+    .eq(
+      "condominio_id",
+      condominioId
+    )
+    .eq(
+      "id",
+      preCadastroId
+    )
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.id) {
+    throw new Error(
+      "Cadastro não encontrado."
+    );
+  }
+
+  return normalizarDetalheAuditoria(
+    data
+  );
+}
+
+/*
+ * ============================================================
+ * INICIAR AUDITORIA
+ * ============================================================
+ */
 export async function marcarAuditoriaIniciada({
   perfil,
   preCadastroId,
 } = {}) {
   if (!preCadastroId) {
     throw new Error(
-      "Pré-cadastro não identificado."
+      "Cadastro não identificado."
     );
   }
 
-  if (!perfil?.condominio_id) {
+  const condominioId =
+    perfil?.condominio_id ||
+    perfil?.condominio_atual_id ||
+    perfil?.usuario_condominio
+      ?.condominio_id ||
+    null;
+
+  if (!condominioId) {
     throw new Error(
-      "Condomínio não identificado no perfil."
+      "Condomínio não identificado."
     );
   }
 
-  const contexto = obterContextoNavegador();
+  const contexto =
+    obterContextoNavegador();
 
-  const { data, error } = await supabase.rpc(
+  const {
+    data,
+    error,
+  } = await supabase.rpc(
     "rpc_admin_morador_auditoria_iniciar_v1",
     {
-      p_pre_cadastro_id: preCadastroId,
-      p_ip: contexto.ip,
-      p_user_agent: contexto.user_agent,
+      p_pre_cadastro_id:
+        preCadastroId,
+
+      p_ip:
+        contexto.ip,
+
+      p_user_agent:
+        contexto.user_agent,
     }
   );
 
@@ -1167,39 +1372,99 @@ export async function marcarAuditoriaIniciada({
     throw error;
   }
 
-  if (data?.success === false) {
+  if (
+    data?.success === false
+  ) {
     throw new Error(
       data?.error ||
       "Não foi possível iniciar a auditoria."
     );
   }
 
-  /*
-   * O backend é a autoridade da transição.
-   * Recarregamos o pré-cadastro para que a UI receba
-   * o estado efetivamente persistido e não um estado presumido.
-   */
-  const { data: atualizado, error: erroAtualizacao } =
-    await supabase
-      .from("pre_cadastro_moradores")
-      .select("*")
-      .eq("id", preCadastroId)
-      .eq("condominio_id", perfil.condominio_id)
-      .maybeSingle();
+  return {
+    success: true,
+    status_auditoria:
+      "AUDITORIA_INICIADA",
+  };
+}
 
-  if (erroAtualizacao) {
-    throw erroAtualizacao;
-  }
-
-  if (!atualizado?.id) {
+/*
+ * ============================================================
+ * APROVAR
+ * ============================================================
+ */
+export async function aprovarMoradorAuditoria({
+  perfil,
+  preCadastroId,
+} = {}) {
+  if (!preCadastroId) {
     throw new Error(
-      "Auditoria iniciada, mas o cadastro atualizado não foi encontrado."
+      "Cadastro não identificado."
     );
   }
 
-  return atualizado;
+  const condominioId =
+    perfil?.condominio_id ||
+    perfil?.condominio_atual_id ||
+    perfil?.usuario_condominio
+      ?.condominio_id ||
+    null;
+
+  if (!condominioId) {
+    throw new Error(
+      "Condomínio não identificado."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } =
+    await supabase.functions
+      .invoke(
+        "aprovar-morador",
+        {
+          body: {
+            pre_cadastro_id:
+              preCadastroId,
+
+            condominio_id:
+              condominioId,
+
+            aprovado_por:
+              perfil?.id ||
+              null,
+
+            aprovado_por_nome:
+              perfil?.nome ||
+              null,
+
+            aprovado_por_email:
+              perfil?.email ||
+              null,
+          },
+        }
+      );
+
+  if (
+    error ||
+    data?.error
+  ) {
+    throw new Error(
+      data?.error ||
+      error?.message ||
+      "Não foi possível aprovar o cadastro."
+    );
+  }
+
+  return data;
 }
 
+/*
+ * ============================================================
+ * CORREÇÃO / REPROVAÇÃO
+ * ============================================================
+ */
 export async function registrarDecisaoAuditoriaMorador({
   perfil,
   preCadastroId,
@@ -1208,23 +1473,38 @@ export async function registrarDecisaoAuditoriaMorador({
 } = {}) {
   if (!preCadastroId) {
     throw new Error(
-      "Pré-cadastro não identificado."
+      "Cadastro não identificado."
     );
   }
 
-  if (!perfil?.condominio_id) {
+  const condominioId =
+    perfil?.condominio_id ||
+    perfil?.condominio_atual_id ||
+    perfil?.usuario_condominio
+      ?.condominio_id ||
+    null;
+
+  if (!condominioId) {
     throw new Error(
-      "Condomínio não identificado no perfil."
+      "Condomínio não identificado."
     );
   }
 
-  const statusDecisao =
-    normalizarStatus(decisao);
+  const status =
+    normalizarStatus(
+      decisao
+    );
 
-  const contexto = obterContextoNavegador();
+  const contexto =
+    obterContextoNavegador();
 
-  if (statusDecisao === "REPROVADO") {
-    const motivo = String(observacao || "").trim();
+  if (
+    status === "REPROVADO"
+  ) {
+    const motivo =
+      String(
+        observacao || ""
+      ).trim();
 
     if (!motivo) {
       throw new Error(
@@ -1232,17 +1512,35 @@ export async function registrarDecisaoAuditoriaMorador({
       );
     }
 
-    const { data, error } = await supabase.rpc(
+    const {
+      data,
+      error,
+    } = await supabase.rpc(
       "rpc_admin_morador_auditoria_decidir_v1",
       {
-        p_pre_cadastro_id: preCadastroId,
-        p_acao: "REPROVAR",
-        p_correlation_id: gerarUuidCliente(),
-        p_idempotency_key: gerarUuidCliente(),
-        p_observacoes: null,
-        p_motivo: motivo,
-        p_ip: contexto.ip,
-        p_user_agent: contexto.user_agent,
+        p_pre_cadastro_id:
+          preCadastroId,
+
+        p_acao:
+          "REPROVAR",
+
+        p_correlation_id:
+          gerarUuidCliente(),
+
+        p_idempotency_key:
+          gerarUuidCliente(),
+
+        p_observacoes:
+          null,
+
+        p_motivo:
+          motivo,
+
+        p_ip:
+          contexto.ip,
+
+        p_user_agent:
+          contexto.user_agent,
       }
     );
 
@@ -1250,7 +1548,9 @@ export async function registrarDecisaoAuditoriaMorador({
       throw error;
     }
 
-    if (data?.success === false) {
+    if (
+      data?.success === false
+    ) {
       throw new Error(
         data?.error ||
         "Não foi possível reprovar o cadastro."
@@ -1260,24 +1560,45 @@ export async function registrarDecisaoAuditoriaMorador({
     return data;
   }
 
-  if (statusDecisao === "CORRECAO_SOLICITADA") {
-    const observacoes = String(observacao || "").trim();
+  if (
+    status ===
+    "CORRECAO_SOLICITADA"
+  ) {
+    const observacoes =
+      String(
+        observacao || ""
+      ).trim();
 
     if (!observacoes) {
       throw new Error(
-        "Informe a orientação para correção."
+        "Informe o que precisa ser corrigido."
       );
     }
 
-    const { data, error } = await supabase.rpc(
+    const {
+      data,
+      error,
+    } = await supabase.rpc(
       "solicitar_correcao_morador",
       {
-        p_pre_cadastro_id: preCadastroId,
-        p_admin_id: perfil?.id || null,
-        p_campos: [],
-        p_observacoes: observacoes,
-        p_ip: contexto.ip,
-        p_user_agent: contexto.user_agent,
+        p_pre_cadastro_id:
+          preCadastroId,
+
+        p_admin_id:
+          perfil?.id ||
+          null,
+
+        p_campos:
+          [],
+
+        p_observacoes:
+          observacoes,
+
+        p_ip:
+          contexto.ip,
+
+        p_user_agent:
+          contexto.user_agent,
       }
     );
 
@@ -1285,34 +1606,39 @@ export async function registrarDecisaoAuditoriaMorador({
       throw error;
     }
 
-    const retorno = Array.isArray(data)
-      ? data[0]
-      : data;
+    const retorno =
+      Array.isArray(data)
+        ? data[0]
+        : data;
 
-    if (retorno?.success === false) {
+    if (
+      retorno?.success === false
+    ) {
       throw new Error(
         retorno?.error ||
         "Não foi possível solicitar a correção."
       );
     }
 
-    return retorno || {
-      success: true,
-      status: "CORRECAO_SOLICITADA",
-    };
-  }
-
-  if (statusDecisao === "APROVADO") {
-    throw new Error(
-      "A aprovação deve utilizar o contrato autoritativo de aprovação já conectado à tela."
+    return (
+      retorno || {
+        success: true,
+        status:
+          "CORRECAO_SOLICITADA",
+      }
     );
   }
 
   throw new Error(
-    "Decisão de auditoria inválida."
+    "Escolha uma decisão válida."
   );
 }
 
+/*
+ * ============================================================
+ * TORRES
+ * ============================================================
+ */
 export async function buscarTorresAuditoriaMoradores({
   condominioId,
 } = {}) {
@@ -1320,22 +1646,24 @@ export async function buscarTorresAuditoriaMoradores({
     return [];
   }
 
-  const { data, error } =
-    await supabase
-      .from("torres")
-      .select(
-        "id, nome, identificador"
-      )
-      .eq(
-        "condominio_id",
-        condominioId
-      )
-      .order(
-        "nome",
-        {
-          ascending: true,
-        }
-      );
+  const {
+    data,
+    error,
+  } = await supabase
+    .from("torres")
+    .select(
+      "id, nome"
+    )
+    .eq(
+      "condominio_id",
+      condominioId
+    )
+    .order(
+      "nome",
+      {
+        ascending: true,
+      }
+    );
 
   if (error) {
     throw error;
