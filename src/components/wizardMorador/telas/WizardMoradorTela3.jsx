@@ -364,16 +364,6 @@ export default function WizardMoradorTela3({
   const [camposInvalidos, setCamposInvalidos] = useState({});
   const [modalExcluir, setModalExcluir] = useState(null);
 
-  const [
-    processando,
-    setProcessando,
-  ] = useState(false);
-
-  const [
-    salvandoRascunho,
-    setSalvandoRascunho,
-  ] = useState(false);
-
   const resumo = useMemo(
     () => obterResumo(dadosWizard, formTela1 || formData, formMorador),
     [dadosWizard, formTela1, formData, formMorador]
@@ -559,80 +549,30 @@ export default function WizardMoradorTela3({
   }
 
   async function salvarRascunho() {
-    if (
-      salvandoRascunho ||
-      processando
-    ) {
-      return;
-    }
+    const salvou = await onSaveDraft(
+      montarPayloadTela3({
+        dependentes,
+        possuiPessoas,
+      })
+    );
 
-    try {
-      setSalvandoRascunho(true);
-
-      const salvou =
-        await onSaveDraft(
-          montarPayloadTela3({
-            dependentes,
-            possuiPessoas,
-          })
-        );
-
-      if (salvou !== false) {
-        toast.success(
-          "Suas informações foram salvas."
-        );
-      }
-    } catch (error) {
-      console.error(
-        "Erro ao salvar a Tela 3:",
-        error
-      );
-    } finally {
-      setSalvandoRascunho(false);
+    if (salvou !== false) {
+      toast.success("Suas informações foram salvas.");
     }
   }
 
   async function avancar() {
-    if (
-      processando ||
-      salvandoRascunho
-    ) {
+    if (possuiPessoas && dependentes.length === 0) {
+      toast.error("Adicione pelo menos um dependente ou escolha continuar sem cadastrar.");
       return;
     }
 
-    if (
-      possuiPessoas &&
-      dependentes.length === 0
-    ) {
-      toast.error(
-        "Adicione pelo menos um dependente ou escolha continuar sem cadastrar."
-      );
-
-      return;
-    }
-
-    try {
-      setProcessando(true);
-
-      const salvou =
-        await onNext(
-          montarPayloadTela3({
-            dependentes,
-            possuiPessoas,
-          })
-        );
-
-      if (salvou === false) {
-        setProcessando(false);
-      }
-    } catch (error) {
-      console.error(
-        "Erro ao continuar a Tela 3:",
-        error
-      );
-
-      setProcessando(false);
-    }
+    await onNext(
+      montarPayloadTela3({
+        dependentes,
+        possuiPessoas,
+      })
+    );
   }
 
   return (
@@ -886,49 +826,18 @@ export default function WizardMoradorTela3({
           </section>
 
           <footer className="wm-t3-actions">
-            <button
-              type="button"
-              className="secondary"
-              onClick={onBack}
-              disabled={
-                processando ||
-                salvandoRascunho
-              }
-            >
+            <button type="button" className="secondary" onClick={onBack}>
               <ArrowLeft size={16} />
               Voltar
             </button>
 
-            <button
-              type="button"
-              className="outline"
-              onClick={salvarRascunho}
-              disabled={
-                processando ||
-                salvandoRascunho
-              }
-            >
+            <button type="button" className="outline" onClick={salvarRascunho}>
               <Save size={16} />
-
-              {salvandoRascunho
-                ? "Salvando..."
-                : "Salvar e continuar depois"}
+              Salvar e continuar depois
             </button>
 
-            <button
-              type="button"
-              className="primary"
-              onClick={avancar}
-              disabled={
-                processando ||
-                salvandoRascunho
-              }
-              aria-busy={processando}
-            >
-              {processando
-                ? "Salvando informações..."
-                : "Continuar"}
-
+            <button type="button" className="primary" onClick={avancar}>
+              Continuar
               <ArrowRight size={18} />
             </button>
           </footer>
@@ -963,26 +872,6 @@ export default function WizardMoradorTela3({
           onClose={() => setModalExcluir(null)}
           onConfirm={() => excluirPessoa(modalExcluir.id)}
         />
-      ) : null}
-
-      {processando ? (
-        <div
-          className="wm-t3-processing"
-          role="status"
-          aria-live="polite"
-        >
-          <div className="wm-t3-processing-card">
-            <span className="wm-t3-processing-spinner" />
-
-            <strong>
-              Salvando suas informações
-            </strong>
-
-            <p>
-              Aguarde um instante. Estamos preparando a próxima etapa.
-            </p>
-          </div>
-        </div>
       ) : null}
     </>
   );
@@ -1596,7 +1485,5 @@ function ModalConfirmacao({ titulo, texto, onClose, onConfirm }) {
         </div>
       </div>
     </div>
-
-    
   );
 }

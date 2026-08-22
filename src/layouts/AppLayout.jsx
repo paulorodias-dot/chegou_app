@@ -1271,11 +1271,15 @@ export default function AppLayout({
 
           <button
             type="button"
-            className="mobile-nav-item"
-            onClick={() => navegar("portaria-inicio")}
+            className={
+              activePage === "entrada-encomenda"
+                ? "mobile-nav-item active"
+                : "mobile-nav-item"
+            }
+            onClick={() => navegar("entrada-encomenda")}
           >
-            <ShieldCheck size={20} />
-            <span>Entrega</span>
+            <Package size={20} />
+            <span>Entrada</span>
           </button>
 
           <button

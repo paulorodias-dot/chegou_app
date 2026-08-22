@@ -1,0 +1,255 @@
+.entrada-drawer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+}
+
+.entrada-drawer__backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: rgb(15 23 42 / 0.42);
+  border: 0;
+  cursor: default;
+  backdrop-filter: blur(2px);
+}
+
+.entrada-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(520px, 100%);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--entrada-surface);
+  border-left: 1px solid var(--entrada-border);
+  box-shadow: -20px 0 48px rgb(15 23 42 / 0.14);
+  animation: entrada-drawer-in 180ms ease-out;
+}
+
+.entrada-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding:
+    max(20px, env(safe-area-inset-top))
+    22px
+    18px;
+  border-bottom: 1px solid var(--entrada-border);
+}
+
+.entrada-drawer__identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.entrada-drawer__icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: var(--entrada-primary);
+  border-radius: 12px;
+}
+
+.entrada-drawer__identity span {
+  display: block;
+  color: var(--entrada-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.entrada-drawer__identity h2 {
+  margin: 2px 0 0;
+  font-size: 1.03rem;
+}
+
+.entrada-drawer__close {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  color: var(--entrada-text-secondary);
+  background: var(--entrada-surface-soft);
+  border: 1px solid var(--entrada-border);
+  border-radius: 11px;
+  cursor: pointer;
+}
+
+.entrada-drawer__close:hover {
+  color: var(--entrada-text);
+}
+
+.entrada-drawer__close:focus-visible {
+  outline: 3px solid
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 22%,
+      transparent
+    );
+  outline-offset: 2px;
+}
+
+.entrada-drawer__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px;
+}
+
+.entrada-drawer__context {
+  padding: 17px;
+  background: var(--entrada-surface-soft);
+  border: 1px solid var(--entrada-border);
+  border-radius: 14px;
+}
+
+.entrada-drawer__section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.entrada-drawer__section-title > svg {
+  color: var(--entrada-primary);
+}
+
+.entrada-drawer__section-title span {
+  display: block;
+  color: var(--entrada-text-secondary);
+  font-size: 0.68rem;
+}
+
+.entrada-drawer__section-title strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.82rem;
+}
+
+.entrada-drawer__context p {
+  margin: 12px 0 0;
+  color: var(--entrada-text-secondary);
+  font-size: 0.77rem;
+  line-height: 1.55;
+}
+
+.entrada-drawer__placeholder {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  padding: 30px 24px;
+  text-align: center;
+  border: 1px dashed var(--entrada-border);
+  border-radius: 14px;
+}
+
+.entrada-drawer__placeholder > div {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--entrada-primary);
+  background:
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 8%,
+      transparent
+    );
+  border-radius: 12px;
+}
+
+.entrada-drawer__placeholder h3 {
+  margin: 13px 0 0;
+  font-size: 0.9rem;
+}
+
+.entrada-drawer__placeholder p {
+  max-width: 360px;
+  margin: 7px 0 0;
+  color: var(--entrada-text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.entrada-drawer__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding:
+    16px
+    22px
+    max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--entrada-border);
+}
+
+.entrada-drawer__footer button {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 11px;
+  font: inherit;
+  font-size: 0.79rem;
+  font-weight: 700;
+}
+
+.entrada-drawer__secondary {
+  color: var(--entrada-text);
+  background: var(--entrada-surface);
+  border: 1px solid var(--entrada-border);
+  cursor: pointer;
+}
+
+.entrada-drawer__primary {
+  color: #ffffff;
+  background: var(--entrada-primary);
+  border: 1px solid var(--entrada-primary);
+}
+
+.entrada-drawer__primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@keyframes entrada-drawer-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 680px) {
+  .entrada-drawer {
+    width: 100%;
+    border-left: 0;
+  }
+
+  .entrada-drawer__body {
+    padding: 18px;
+  }
+
+  .entrada-drawer__footer {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .entrada-drawer__footer button {
+    flex: 1;
+    min-height: 46px;
+  }
+}

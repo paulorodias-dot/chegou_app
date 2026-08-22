@@ -54,6 +54,7 @@ import MoradorNotifications from "./pages/morador/notifications";
 
 import DashboardPortaria from "./pages/portaria/dashboard/DashboardPortaria";
 import RecebimentoEncomendas from "./pages/encomendas/recebimento";
+import EntradaEncomendas from "./pages/encomendas/entrada";
 
 import PaginaPreparando from "./pages/PaginaPreparando";
 import WizardCondominio from "./pages/wizardCondominio";
@@ -752,14 +753,6 @@ function App() {
 
   // ==========================================================
   // ENCOMENDAS — ENTRADA
-  //
-  // Tela ainda não construída.
-  //
-  // A rota lógica já nasce definitiva para permitir:
-  // - navegação pela Tela de Recebimento;
-  // - menu lateral;
-  // - atalhos futuros;
-  // - contexto de lote/volume posteriormente.
   // ==========================================================
 
   if (
@@ -767,8 +760,9 @@ function App() {
     "entrada-encomenda"
   ) {
     return (
-      <PaginaPreparando
-        titulo="Entrada de Encomendas"
+      <EntradaEncomendas
+        perfil={perfil}
+        onNavigate={navegarPara}
       />
     );
   }

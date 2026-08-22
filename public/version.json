@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.22.001",
-  "appVersion": "1.2.3",
+  "releaseId": "2026.08.22.002",
+  "appVersion": "1.2.4",
   "scope": "GLOBAL",
   "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-08-22T10:32:00-03:00",
-  "title": "Aprimoramentos na experiência do Morador",
-  "message": "Atualizamos o Sistema Chegou! com melhorias na tela inicial do Morador, tornando as informações da unidade e os principais acessos mais claros e organizados.",
+  "publishedAt": "2026-08-22T12:00:00-03:00",
+  "title": "Evolução do cadastro, rastreio e operação de encomendas",
+  "message": "Atualizamos o Sistema Chegou! com melhorias no cadastro do Morador, no acompanhamento de rastreios e na preparação dos novos fluxos operacionais da Central de Encomendas.",
   "highlights": [
-    "Melhoria no resumo do Morador com informações vinculadas à sua unidade.",
-    "Nome Social passa a ter prioridade de apresentação quando estiver cadastrado.",
-    "Aprimoramento da identificação de condomínio, torre, unidade e vínculo do Morador.",
-    "Melhorias na apresentação de garagem e Dependentes, exibindo detalhes somente quando houver informações aplicáveis.",
-    "Novo acesso de Rastreio entre os principais recursos da tela inicial.",
-    "Reorganização dos principais acessos para uma experiência mais compacta e responsiva no celular.",
-    "Aprimoramentos gerais de navegação e apresentação do Dashboard do Morador."
+    "Aprimoramentos no cadastro de Dependentes durante o Wizard do Morador.",
+    "Reforço das validações para Dependentes que poderão possuir acesso ao sistema.",
+    "Melhorias na navegação e organização das ações do Wizard do Morador.",
+    "Evolução da experiência de Rastreio de encomendas do Morador.",
+    "Preparação da nova estrutura operacional de Entrada de Encomendas.",
+    "Aprimoramentos de integração e navegação entre os recursos da Central de Encomendas.",
+    "Melhorias gerais de estabilidade e experiência de uso."
   ]
 }

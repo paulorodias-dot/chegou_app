@@ -1,0 +1,72 @@
+.entrada-error-state {
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.entrada-error-state__icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  color: var(--entrada-accent);
+  background:
+    color-mix(
+      in srgb,
+      var(--entrada-accent) 9%,
+      transparent
+    );
+  border-radius: 16px;
+}
+
+.entrada-error-state__content {
+  max-width: 480px;
+}
+
+.entrada-error-state__content h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.entrada-error-state__content p {
+  margin: 7px 0 0;
+  color: var(--entrada-text-secondary);
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+
+.entrada-error-state button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  color: var(--entrada-primary);
+  background: var(--entrada-surface);
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 28%,
+      var(--entrada-border)
+    );
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.entrada-error-state button:focus-visible {
+  outline: 3px solid
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 20%,
+      transparent
+    );
+  outline-offset: 2px;
+}

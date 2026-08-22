@@ -1,0 +1,113 @@
+.entrada-volumes-list {
+  padding: 14px 20px 18px 64px;
+  background:
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 2.2%,
+      var(--entrada-surface)
+    );
+  border-top: 1px solid var(--entrada-border);
+}
+
+.entrada-volumes-list__heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  color: var(--entrada-primary);
+  font-size: 0.75rem;
+}
+
+.entrada-volumes-list__items {
+  display: grid;
+  gap: 8px;
+}
+
+.entrada-volumes-list__item {
+  display: grid;
+  grid-template-columns:
+    minmax(120px, 1fr)
+    minmax(160px, 1.4fr)
+    minmax(120px, 1fr)
+    36px;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  background: var(--entrada-surface);
+  border: 1px solid var(--entrada-border);
+  border-radius: 11px;
+}
+
+.entrada-volumes-list__item > div {
+  min-width: 0;
+}
+
+.entrada-volumes-list__item span {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--entrada-text-secondary);
+  font-size: 0.66rem;
+}
+
+.entrada-volumes-list__item strong {
+  display: block;
+  overflow: hidden;
+  color: var(--entrada-text);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entrada-volumes-list__item button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: var(--entrada-text-secondary);
+  background: var(--entrada-surface-soft);
+  border: 1px solid var(--entrada-border);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.entrada-volumes-list__item button:hover {
+  color: var(--entrada-primary);
+}
+
+.entrada-volumes-list__item button:focus-visible {
+  outline: 3px solid
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 20%,
+      transparent
+    );
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .entrada-volumes-list {
+    padding: 12px 14px 16px;
+    background: transparent;
+    border-top: 0;
+  }
+
+  .entrada-volumes-list__item {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .entrada-volumes-list__item button {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 430px) {
+  .entrada-volumes-list__item {
+    grid-template-columns: 1fr;
+  }
+
+  .entrada-volumes-list__item button {
+    grid-column: auto;
+    justify-self: end;
+  }
+}
