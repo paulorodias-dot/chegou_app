@@ -12,10 +12,14 @@ export const DASHBOARD_MORADOR_PARTNER_PLACEMENT =
 export const DASHBOARD_MORADOR_EMPTY_VALUE = "—";
 
 export const DASHBOARD_MORADOR_ROUTES = {
-  dashboard: "morador-dashboard",
+  dashboard:
+    "morador-dashboard",
 
   encomendas:
     "morador-encomendas-recebidas",
+
+  rastreio:
+    "morador-encomendas-rastreio",
 
   emprestimoGaragem:
     "morador-garagem-emprestimo",

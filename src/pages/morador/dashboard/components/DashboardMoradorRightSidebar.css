@@ -8,7 +8,9 @@
   gap: 16px;
 }
 
-/* RESUMO DO MORADOR */
+/* =========================================================
+   RESUMO PREMIUM
+   ========================================================= */
 
 .dashboard-morador-summary-card {
   width: 100%;
@@ -16,12 +18,16 @@
 
   padding: 18px;
 
-  border: 1px solid var(--dm-border);
+  border: 1px solid
+    var(--dm-border);
+
   border-radius: 14px;
 
-  background: var(--dm-card);
+  background:
+    var(--dm-card);
 
-  box-shadow: var(--dm-shadow-card);
+  box-shadow:
+    var(--dm-shadow-card);
 }
 
 .dashboard-morador-summary-card__header {
@@ -77,6 +83,10 @@
   font-weight: 600;
 }
 
+/* =========================================================
+   MÉTRICAS
+   ========================================================= */
+
 .dashboard-morador-summary-card__metrics {
   display: flex;
   flex-direction: column;
@@ -84,9 +94,8 @@
   gap: 8px;
 }
 
-.dashboard-morador-summary-card__metrics
-  > div {
-  min-height: 42px;
+.dashboard-morador-summary-metric {
+  min-height: 52px;
 
   display: flex;
   align-items: center;
@@ -94,48 +103,50 @@
 
   gap: 12px;
 
-  padding: 9px 11px;
+  padding: 10px 14px;
 
   border: 1px solid
     var(--dm-border-soft);
 
-  border-radius: 11px;
+  border-radius: 12px;
 
-  background: var(--dm-soft-bg);
+  background:
+    var(--dm-soft-bg);
 }
 
-.dashboard-morador-summary-card__metrics
-  span {
+.dashboard-morador-summary-metric
+  > span {
+  min-width: 0;
+
   display: inline-flex;
   align-items: center;
 
-  gap: 7px;
-
-  min-width: 0;
+  gap: 8px;
 
   color: var(--dm-muted);
 
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 400;
 }
 
-.dashboard-morador-summary-card__metrics
-  span
+.dashboard-morador-summary-metric
+  > span
   svg {
   flex: 0 0 auto;
 }
 
-.dashboard-morador-summary-card__metrics
-  strong {
+.dashboard-morador-summary-metric
+  > strong {
   min-width: 0;
-  max-width: 54%;
+  max-width: 61%;
 
   overflow: hidden;
 
   color: var(--dm-text);
 
   font-size: 12px;
-  line-height: 1.3;
+  line-height: 1.35;
   font-weight: 600;
 
   text-align: right;
@@ -145,14 +156,292 @@
   white-space: nowrap;
 }
 
+/* =========================================================
+   SANFONA
+   ========================================================= */
+
+.dashboard-morador-summary-accordion {
+  width: 100%;
+
+  overflow: hidden;
+
+  border: 1px solid
+    var(--dm-border-soft);
+
+  border-radius: 12px;
+
+  background:
+    var(--dm-soft-bg);
+}
+
+.dashboard-morador-summary-accordion__trigger {
+  width: 100%;
+  min-height: 52px;
+
+  padding: 10px 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: var(--dm-text);
+
+  font-family: inherit;
+
+  cursor: pointer;
+}
+
+.dashboard-morador-summary-accordion__trigger
+  > span:first-child {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: var(--dm-muted);
+
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.dashboard-morador-summary-accordion__summary {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: var(--dm-text);
+}
+
+.dashboard-morador-summary-accordion__summary
+  strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dashboard-morador-summary-accordion__summary
+  svg {
+  transition:
+    transform 180ms ease;
+}
+
+.dashboard-morador-summary-accordion.is-open
+  .dashboard-morador-summary-accordion__summary
+  svg {
+  transform: rotate(180deg);
+}
+
+.dashboard-morador-summary-accordion__content {
+  padding:
+    0
+    8px
+    8px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+/* =========================================================
+   GARAGENS
+   ========================================================= */
+
+.dashboard-morador-garage-item {
+  padding: 11px;
+
+  border: 1px solid
+    var(--dm-border-soft);
+
+  border-radius: 10px;
+
+  background:
+    var(--dm-card);
+}
+
+.dashboard-morador-garage-item
+  header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.dashboard-morador-garage-item
+  header
+  > div {
+  min-width: 0;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.dashboard-morador-garage-item
+  header
+  svg {
+  flex: 0 0 auto;
+
+  color: var(--dm-orange);
+}
+
+.dashboard-morador-garage-item
+  header
+  strong {
+  color: var(--dm-text);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dashboard-morador-garage-item
+  header
+  > span {
+  flex: 0 0 auto;
+
+  padding: 4px 7px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(249, 115, 22, 0.09);
+
+  color: var(--dm-orange);
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.dashboard-morador-garage-item__detail {
+  margin-top: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.dashboard-morador-garage-item__detail
+  span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  color: var(--dm-muted);
+
+  font-size: 10px;
+}
+
+.dashboard-morador-garage-item__detail
+  strong {
+  min-width: 0;
+
+  color: var(--dm-text);
+
+  font-size: 11px;
+  font-weight: 500;
+
+  text-align: right;
+}
+
+/* =========================================================
+   DEPENDENTES
+   ========================================================= */
+
+.dashboard-morador-dependent-item {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px;
+
+  border: 1px solid
+    var(--dm-border-soft);
+
+  border-radius: 10px;
+
+  background:
+    var(--dm-card);
+}
+
+.dashboard-morador-dependent-item__avatar {
+  width: 30px;
+  height: 30px;
+
+  flex: 0 0 30px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 9px;
+
+  color: var(--dm-blue);
+
+  background: #eff6ff;
+}
+
+.dashboard-morador-dependent-item
+  > div {
+  min-width: 0;
+}
+
+.dashboard-morador-dependent-item
+  strong {
+  display: block;
+
+  overflow: hidden;
+
+  color: var(--dm-text);
+
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-morador-dependent-item
+  > div
+  > span {
+  display: block;
+
+  margin-top: 2px;
+
+  color: var(--dm-muted);
+
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+/* =========================================================
+   ERROS COMPLEMENTARES
+   ========================================================= */
+
 .dashboard-morador-summary-card__error,
 .dashboard-morador-calendar-error {
   padding: 14px;
 
-  border: 1px solid var(--dm-border);
+  border: 1px solid
+    var(--dm-border);
+
   border-radius: 12px;
 
-  background: var(--dm-soft-bg);
+  background:
+    var(--dm-soft-bg);
 }
 
 .dashboard-morador-summary-card__error {
@@ -184,6 +473,42 @@
   line-height: 1.45;
 }
 
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+
+.dark
+  .dashboard-morador-summary-card__icon,
+[data-theme="dark"]
+  .dashboard-morador-summary-card__icon {
+  background:
+    rgba(249, 115, 22, 0.13);
+}
+
+.dark
+  .dashboard-morador-dependent-item__avatar,
+[data-theme="dark"]
+  .dashboard-morador-dependent-item__avatar {
+  background:
+    rgba(59, 130, 246, 0.13);
+}
+
+.dark
+  .dashboard-morador-garage-item
+  header
+  > span,
+[data-theme="dark"]
+  .dashboard-morador-garage-item
+  header
+  > span {
+  background:
+    rgba(249, 115, 22, 0.13);
+}
+
+/* =========================================================
+   RESPONSIVO
+   ========================================================= */
+
 @media (max-width: 1120px) {
   .dashboard-morador-right-sidebar {
     display: grid;
@@ -193,13 +518,6 @@
 
     align-items: start;
   }
-
-  /*
-   * Como Partner e Calendar são componentes
-   * globais, não alteramos o CSS interno deles.
-   *
-   * O próprio componente mantém seu layout.
-   */
 }
 
 @media (max-width: 680px) {
@@ -212,5 +530,22 @@
 
   .dashboard-morador-summary-card {
     padding: 16px;
+  }
+}
+
+@media (max-width: 430px) {
+  .dashboard-morador-summary-metric {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .dashboard-morador-summary-metric
+    > strong {
+    max-width: 58%;
+  }
+
+  .dashboard-morador-summary-accordion__trigger {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }

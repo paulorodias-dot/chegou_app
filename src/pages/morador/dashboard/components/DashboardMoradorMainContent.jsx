@@ -3,6 +3,7 @@ import {
   CalendarDays,
   CarFront,
   Package,
+  Radar,
   UsersRound,
 } from "lucide-react";
 
@@ -38,7 +39,6 @@ function DashboardPrimaryCard({
       type="button"
       className={[
         "dashboard-morador-primary-card",
-
         `dashboard-morador-primary-card--${variant}`,
       ].join(" ")}
       onClick={onClick}
@@ -108,7 +108,7 @@ export default function DashboardMoradorMainContent({
           icon={Package}
           eyebrow="Encomendas"
           title="Minhas encomendas"
-          description="Acompanhe recebimentos e retiradas da sua unidade."
+          description="Recebimentos e retiradas."
           value={
             indicadores
               ?.encomendasAguardando
@@ -123,10 +123,28 @@ export default function DashboardMoradorMainContent({
         />
 
         <DashboardPrimaryCard
+          icon={Radar}
+          eyebrow="Rastreio"
+          title="Rastrear encomenda"
+          description="Acompanhe seus rastreios."
+          value={
+            indicadores
+              ?.rastreiosAtivos
+          }
+          variant="purple"
+          onClick={() =>
+            navegar(
+              DASHBOARD_MORADOR_ROUTES
+                .rastreio
+            )
+          }
+        />
+
+        <DashboardPrimaryCard
           icon={CarFront}
           eyebrow="Garagem"
           title="Empréstimo de garagem"
-          description="Consulte sua vaga, empréstimos e autorizações."
+          description="Vagas, usos e autorizações."
           value={
             indicadores
               ?.emprestimosGaragem
@@ -144,7 +162,7 @@ export default function DashboardMoradorMainContent({
           icon={CalendarDays}
           eyebrow="Serviços"
           title="Serviços"
-          description="Acompanhe serviços e agendamentos autorizados."
+          description="Agenda e solicitações."
           value={
             indicadores
               ?.servicosAgendados
@@ -258,6 +276,36 @@ export default function DashboardMoradorMainContent({
 
               <span>
                 Histórico e retiradas
+              </span>
+            </div>
+
+            <ArrowRight
+              size={15}
+              aria-hidden="true"
+            />
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              navegar(
+                DASHBOARD_MORADOR_ROUTES
+                  .rastreio
+              )
+            }
+          >
+            <Radar
+              size={19}
+              aria-hidden="true"
+            />
+
+            <div>
+              <strong>
+                Rastreio
+              </strong>
+
+              <span>
+                Acompanhar entregas
               </span>
             </div>
 

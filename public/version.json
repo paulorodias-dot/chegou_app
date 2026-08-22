@@ -1,17 +1,20 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.20.001",
-  "appVersion": "1.2.2",
+  "releaseId": "2026.08.22.001",
+  "appVersion": "1.2.3",
   "scope": "GLOBAL",
   "modules": [],
   "mandatory": false,
-  "publishedAt": "2026-08-20T18:45:00-03:00",
-  "title": "Melhorias no acesso às informações do Morador",
-  "message": "Atualizamos o Sistema Chegou! com melhorias na apresentação das informações da unidade e do perfil do Morador.",
+  "publishedAt": "2026-08-22T10:32:00-03:00",
+  "title": "Aprimoramentos na experiência do Morador",
+  "message": "Atualizamos o Sistema Chegou! com melhorias na tela inicial do Morador, tornando as informações da unidade e os principais acessos mais claros e organizados.",
   "highlights": [
-    "Melhoria na apresentação das informações do Morador na tela inicial.",
-    "Aprimoramento da identificação do condomínio, torre e unidade vinculados ao Morador.",
-    "Melhoria na apresentação do tipo de vínculo do Morador com a unidade.",
-    "Aprimoramentos internos de segurança e consistência no carregamento das informações do Morador."
+    "Melhoria no resumo do Morador com informações vinculadas à sua unidade.",
+    "Nome Social passa a ter prioridade de apresentação quando estiver cadastrado.",
+    "Aprimoramento da identificação de condomínio, torre, unidade e vínculo do Morador.",
+    "Melhorias na apresentação de garagem e Dependentes, exibindo detalhes somente quando houver informações aplicáveis.",
+    "Novo acesso de Rastreio entre os principais recursos da tela inicial.",
+    "Reorganização dos principais acessos para uma experiência mais compacta e responsiva no celular.",
+    "Aprimoramentos gerais de navegação e apresentação do Dashboard do Morador."
   ]
 }

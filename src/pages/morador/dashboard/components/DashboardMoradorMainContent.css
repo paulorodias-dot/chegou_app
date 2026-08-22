@@ -8,22 +8,28 @@
   gap: 20px;
 }
 
-/* CARDS PRINCIPAIS */
+/* =========================================================
+   CARDS PRINCIPAIS
+   DESKTOP: 4 CARDS / 1 LINHA / 4 COLUNAS
+   ========================================================= */
 
 .dashboard-morador-primary-grid {
+  width: 100%;
+  min-width: 0;
+
   display: grid;
 
   grid-template-columns:
-    repeat(3, minmax(0, 1fr));
+    repeat(4, minmax(0, 1fr));
 
-  gap: 16px;
+  gap: 14px;
 }
 
 .dashboard-morador-primary-card {
   min-width: 0;
-  min-height: 174px;
+  min-height: 158px;
 
-  padding: 16px;
+  padding: 14px;
 
   display: flex;
   flex-direction: column;
@@ -37,14 +43,18 @@
 
   color: var(--dm-text);
 
+  font-family: inherit;
   text-align: left;
 
   cursor: pointer;
 
+  overflow: hidden;
+
   transition:
     transform 160ms ease,
     border-color 160ms ease,
-    box-shadow 160ms ease;
+    box-shadow 160ms ease,
+    background-color 160ms ease;
 }
 
 .dashboard-morador-primary-card:hover {
@@ -57,6 +67,10 @@
     var(--dm-shadow-hover);
 }
 
+.dashboard-morador-primary-card:active {
+  transform: translateY(0);
+}
+
 .dashboard-morador-primary-card:focus-visible {
   outline: 3px solid
     rgba(15, 63, 143, 0.18);
@@ -64,19 +78,36 @@
   outline-offset: 2px;
 }
 
+/* =========================================================
+   TOPO DO CARD
+   ========================================================= */
+
 .dashboard-morador-primary-card__top {
+  min-width: 0;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  gap: 12px;
+  gap: 10px;
 
   color: var(--dm-muted);
 }
 
+.dashboard-morador-primary-card__top
+  > svg {
+  flex: 0 0 auto;
+}
+
+/* =========================================================
+   ÍCONES
+   ========================================================= */
+
 .dashboard-morador-primary-card__icon {
   width: 38px;
   height: 38px;
+
+  flex: 0 0 38px;
 
   display: grid;
   place-items: center;
@@ -89,6 +120,13 @@
   color: var(--dm-orange);
 
   background: #fff7ed;
+}
+
+.dashboard-morador-primary-card--purple
+  .dashboard-morador-primary-card__icon {
+  color: #7c3aed;
+
+  background: #f5f3ff;
 }
 
 .dashboard-morador-primary-card--blue
@@ -105,72 +143,122 @@
   background: #ecfdf5;
 }
 
+/* =========================================================
+   CONTEÚDO DOS CARDS
+   ========================================================= */
+
 .dashboard-morador-primary-card__body {
-  margin-top: 16px;
+  min-width: 0;
+
+  margin-top: 12px;
 }
 
-.dashboard-morador-primary-card__body > span {
+.dashboard-morador-primary-card__body
+  > span {
   display: block;
 
   margin-bottom: 4px;
 
+  overflow: hidden;
+
   color: var(--dm-muted);
 
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.2;
   font-weight: 600;
 
   text-transform: uppercase;
 
   letter-spacing: 0.055em;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.dashboard-morador-primary-card__body > strong {
+.dashboard-morador-primary-card__body
+  > strong {
   display: block;
+
+  min-width: 0;
+
+  overflow: hidden;
 
   color: var(--dm-text);
 
-  font-size: 15px;
-  line-height: 1.35;
+  font-size: 14px;
+  line-height: 1.3;
   font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-morador-primary-card__body p {
-  margin: 6px 0 0;
+  min-height: 30px;
+
+  margin: 4px 0 0;
+
+  overflow: hidden;
 
   color: var(--dm-muted);
 
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 11px;
+  line-height: 1.35;
+
+  display: -webkit-box;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
+/* =========================================================
+   RODAPÉ DOS CARDS
+   ========================================================= */
+
 .dashboard-morador-primary-card__footer {
+  min-width: 0;
+
   margin-top: auto;
-  padding-top: 14px;
+
+  padding-top: 12px;
 
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
 
-  gap: 12px;
+  gap: 10px;
 }
 
-.dashboard-morador-primary-card__footer > strong {
+.dashboard-morador-primary-card__footer
+  > strong {
+  min-width: 0;
+
   color: var(--dm-text);
 
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
   font-weight: 700;
 }
 
-.dashboard-morador-primary-card__footer > span {
+.dashboard-morador-primary-card__footer
+  > span {
+  min-width: 0;
+
+  overflow: hidden;
+
   color: var(--dm-blue);
 
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.2;
   font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* SEÇÕES */
+/* =========================================================
+   SEÇÕES
+   ========================================================= */
 
 .dashboard-morador-section-card,
 .dashboard-morador-quick-access {
@@ -197,6 +285,11 @@
 }
 
 .dashboard-morador-section-card__header
+  > div {
+  min-width: 0;
+}
+
+.dashboard-morador-section-card__header
   > div
   > span,
 .dashboard-morador-quick-access
@@ -209,6 +302,7 @@
   color: var(--dm-orange);
 
   font-size: 11px;
+  line-height: 1.2;
   font-weight: 700;
 
   letter-spacing: 0.055em;
@@ -236,16 +330,17 @@
   line-height: 1.45;
 }
 
-.dashboard-morador-section-card__header button {
+.dashboard-morador-section-card__header
+  button {
   min-height: 40px;
+
+  flex: 0 0 auto;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   gap: 7px;
-
-  flex: 0 0 auto;
 
   padding: 0 14px;
 
@@ -256,13 +351,39 @@
 
   color: var(--dm-blue);
 
+  font-family: inherit;
+
   font-size: 12px;
+  line-height: 1;
   font-weight: 600;
 
   cursor: pointer;
+
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
 }
 
-/* EMPTY */
+.dashboard-morador-section-card__header
+  button:hover {
+  border-color:
+    var(--dm-border-hover);
+
+  background:
+    var(--dm-soft-bg);
+}
+
+.dashboard-morador-section-card__header
+  button:focus-visible {
+  outline: 3px solid
+    rgba(15, 63, 143, 0.18);
+
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
 
 .dashboard-morador-empty-state {
   min-height: 160px;
@@ -282,7 +403,8 @@
   text-align: center;
 }
 
-.dashboard-morador-empty-state > div {
+.dashboard-morador-empty-state
+  > div {
   width: 44px;
   height: 44px;
 
@@ -298,10 +420,12 @@
   background: #eff6ff;
 }
 
-.dashboard-morador-empty-state strong {
+.dashboard-morador-empty-state
+  strong {
   color: var(--dm-text);
 
   font-size: 13px;
+  line-height: 1.35;
   font-weight: 600;
 }
 
@@ -316,7 +440,9 @@
   line-height: 1.5;
 }
 
-/* SKELETON */
+/* =========================================================
+   SKELETON
+   ========================================================= */
 
 .dashboard-morador-skeleton {
   min-height: 160px;
@@ -353,15 +479,18 @@
     1.2s linear infinite;
 }
 
-.dashboard-morador-skeleton span:nth-child(1) {
+.dashboard-morador-skeleton
+  span:nth-child(1) {
   width: 62%;
 }
 
-.dashboard-morador-skeleton span:nth-child(2) {
+.dashboard-morador-skeleton
+  span:nth-child(2) {
   width: 86%;
 }
 
-.dashboard-morador-skeleton span:nth-child(3) {
+.dashboard-morador-skeleton
+  span:nth-child(3) {
   width: 42%;
 }
 
@@ -375,9 +504,12 @@
   }
 }
 
-/* ACESSO RÁPIDO */
+/* =========================================================
+   ACESSO RÁPIDO
+   ========================================================= */
 
-.dashboard-morador-quick-access > header {
+.dashboard-morador-quick-access
+  > header {
   margin-bottom: 14px;
 }
 
@@ -411,9 +543,34 @@
 
   background: var(--dm-card);
 
+  color: var(--dm-text);
+
+  font-family: inherit;
+
   text-align: left;
 
   cursor: pointer;
+
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.dashboard-morador-quick-access__grid
+  button:hover {
+  border-color:
+    var(--dm-border-hover);
+
+  background:
+    var(--dm-soft-bg);
+}
+
+.dashboard-morador-quick-access__grid
+  button:focus-visible {
+  outline: 3px solid
+    rgba(15, 63, 143, 0.18);
+
+  outline-offset: 2px;
 }
 
 .dashboard-morador-quick-access__grid
@@ -432,13 +589,25 @@
 }
 
 .dashboard-morador-quick-access__grid
+  button
+  > div {
+  min-width: 0;
+}
+
+.dashboard-morador-quick-access__grid
   strong {
   display: block;
+
+  overflow: hidden;
 
   color: var(--dm-text);
 
   font-size: 13px;
+  line-height: 1.3;
   font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-morador-quick-access__grid
@@ -447,49 +616,253 @@
 
   margin-top: 2px;
 
+  overflow: hidden;
+
   color: var(--dm-muted);
 
   font-size: 11px;
+  line-height: 1.3;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-morador-quick-access__grid
   button
   > svg:last-child {
+  flex: 0 0 auto;
+
   color: var(--dm-muted);
 }
 
-/* 1360 */
+/* =========================================================
+   DARK MODE — CORES COMPLEMENTARES DOS ÍCONES
+   ========================================================= */
+
+.dark
+  .dashboard-morador-primary-card--orange
+  .dashboard-morador-primary-card__icon,
+[data-theme="dark"]
+  .dashboard-morador-primary-card--orange
+  .dashboard-morador-primary-card__icon {
+  background:
+    rgba(249, 115, 22, 0.13);
+}
+
+.dark
+  .dashboard-morador-primary-card--purple
+  .dashboard-morador-primary-card__icon,
+[data-theme="dark"]
+  .dashboard-morador-primary-card--purple
+  .dashboard-morador-primary-card__icon {
+  background:
+    rgba(124, 58, 237, 0.14);
+}
+
+.dark
+  .dashboard-morador-primary-card--blue
+  .dashboard-morador-primary-card__icon,
+[data-theme="dark"]
+  .dashboard-morador-primary-card--blue
+  .dashboard-morador-primary-card__icon {
+  background:
+    rgba(59, 130, 246, 0.13);
+}
+
+.dark
+  .dashboard-morador-primary-card--green
+  .dashboard-morador-primary-card__icon,
+[data-theme="dark"]
+  .dashboard-morador-primary-card--green
+  .dashboard-morador-primary-card__icon {
+  background:
+    rgba(34, 197, 94, 0.13);
+}
+
+.dark
+  .dashboard-morador-empty-state
+  > div,
+[data-theme="dark"]
+  .dashboard-morador-empty-state
+  > div {
+  background:
+    rgba(59, 130, 246, 0.13);
+}
+
+.dark
+  .dashboard-morador-quick-access__grid
+  button
+  > svg:first-child,
+[data-theme="dark"]
+  .dashboard-morador-quick-access__grid
+  button
+  > svg:first-child {
+  background:
+    rgba(249, 115, 22, 0.13);
+}
+
+/* =========================================================
+   1360px
+   DESKTOP AINDA = 4 COLUNAS
+   ========================================================= */
 
 @media (max-width: 1360px) {
   .dashboard-morador-primary-grid {
-    gap: 14px;
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+
+    gap: 12px;
+  }
+
+  .dashboard-morador-primary-card {
+    min-height: 154px;
+
+    padding: 13px;
+  }
+
+  .dashboard-morador-primary-card__body
+    > strong {
+    font-size: 13px;
+  }
+
+  .dashboard-morador-primary-card__body p {
+    font-size: 10.5px;
+  }
+
+  .dashboard-morador-primary-card__footer
+    > strong {
+    font-size: 21px;
   }
 }
 
-/* 900 */
+/* =========================================================
+   1120px
+   A SIDEBAR GLOBAL DESCE,
+   MAS OS 4 CARDS CONTINUAM EM 1 LINHA.
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .dashboard-morador-primary-grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+
+    gap: 12px;
+  }
+}
+
+/* =========================================================
+   900px
+   TABLET / MOBILE:
+   2 COLUNAS x 2 LINHAS
+   ========================================================= */
 
 @media (max-width: 900px) {
   .dashboard-morador-primary-grid {
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
+
+    gap: 12px;
   }
 
-  .dashboard-morador-primary-grid
-    > :first-child {
-    grid-column: 1 / -1;
+  .dashboard-morador-primary-card {
+    min-height: 150px;
+
+    padding: 13px;
+  }
+
+  .dashboard-morador-primary-card__body
+    > strong {
+    font-size: 13px;
+  }
+
+  .dashboard-morador-primary-card__body p {
+    font-size: 10.5px;
   }
 }
 
-/* 680 */
+/* =========================================================
+   680px
+   MOBILE:
+   MANTÉM 2 x 2
+   ========================================================= */
 
 @media (max-width: 680px) {
-  .dashboard-morador-primary-grid {
-    grid-template-columns: 1fr;
+  .dashboard-morador-main-content {
+    gap: 16px;
   }
 
-  .dashboard-morador-primary-grid
-    > :first-child {
-    grid-column: auto;
+  .dashboard-morador-primary-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+  }
+
+  .dashboard-morador-primary-card {
+    min-height: 142px;
+
+    padding: 12px;
+  }
+
+  .dashboard-morador-primary-card__icon {
+    width: 34px;
+    height: 34px;
+
+    flex-basis: 34px;
+
+    border-radius: 10px;
+  }
+
+  .dashboard-morador-primary-card__icon
+    svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .dashboard-morador-primary-card__top
+    > svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .dashboard-morador-primary-card__body {
+    margin-top: 9px;
+  }
+
+  .dashboard-morador-primary-card__body
+    > span {
+    margin-bottom: 3px;
+
+    font-size: 9px;
+  }
+
+  .dashboard-morador-primary-card__body
+    > strong {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .dashboard-morador-primary-card__body p {
+    min-height: 26px;
+
+    margin-top: 3px;
+
+    font-size: 10px;
+    line-height: 1.3;
+  }
+
+  .dashboard-morador-primary-card__footer {
+    padding-top: 9px;
+  }
+
+  .dashboard-morador-primary-card__footer
+    > strong {
+    font-size: 19px;
+  }
+
+  .dashboard-morador-primary-card__footer
+    > span {
+    font-size: 10px;
   }
 
   .dashboard-morador-section-card,
@@ -499,6 +872,8 @@
 
   .dashboard-morador-section-card__header {
     flex-direction: column;
+
+    gap: 14px;
   }
 
   .dashboard-morador-section-card__header
@@ -508,5 +883,115 @@
 
   .dashboard-morador-quick-access__grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   430px
+   MOBILE ESTREITO:
+   CONTINUA 2 x 2
+   ========================================================= */
+
+@media (max-width: 430px) {
+  .dashboard-morador-primary-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 8px;
+  }
+
+  .dashboard-morador-primary-card {
+    min-height: 134px;
+
+    padding: 10px;
+  }
+
+  .dashboard-morador-primary-card__icon {
+    width: 32px;
+    height: 32px;
+
+    flex-basis: 32px;
+  }
+
+  .dashboard-morador-primary-card__icon
+    svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .dashboard-morador-primary-card__body {
+    margin-top: 8px;
+  }
+
+  .dashboard-morador-primary-card__body
+    > span {
+    font-size: 8.5px;
+  }
+
+  .dashboard-morador-primary-card__body
+    > strong {
+    font-size: 11.5px;
+    line-height: 1.25;
+
+    white-space: normal;
+
+    display: -webkit-box;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .dashboard-morador-primary-card__body p {
+    min-height: 25px;
+
+    font-size: 9.5px;
+    line-height: 1.3;
+
+    -webkit-line-clamp: 2;
+  }
+
+  .dashboard-morador-primary-card__footer {
+    padding-top: 8px;
+  }
+
+  .dashboard-morador-primary-card__footer
+    > strong {
+    font-size: 18px;
+  }
+
+  /*
+   * O card inteiro já é clicável.
+   * Retiramos "Ver detalhes" em telas muito
+   * estreitas para preservar espaço.
+   */
+  .dashboard-morador-primary-card__footer
+    > span {
+    display: none;
+  }
+
+  .dashboard-morador-section-card,
+  .dashboard-morador-quick-access {
+    padding: 14px;
+  }
+
+  .dashboard-morador-quick-access__grid
+    button {
+    min-height: 64px;
+
+    grid-template-columns:
+      36px minmax(0, 1fr) auto;
+
+    gap: 10px;
+
+    padding: 10px;
+  }
+
+  .dashboard-morador-quick-access__grid
+    button
+    > svg:first-child {
+    width: 36px;
+    height: 36px;
+
+    padding: 8px;
   }
 }

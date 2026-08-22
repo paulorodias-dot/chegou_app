@@ -12,55 +12,186 @@ function normalizarValor(valor) {
   return valor;
 }
 
+function normalizarArray(valor) {
+  return Array.isArray(valor)
+    ? valor
+    : [];
+}
+
+function montarTorreExibicao({
+  nome,
+  identificador,
+}) {
+  const nomeNormalizado =
+    normalizarValor(nome);
+
+  const identificadorNormalizado =
+    normalizarValor(identificador);
+
+  if (
+    identificadorNormalizado &&
+    nomeNormalizado
+  ) {
+    return `${identificadorNormalizado} · ${nomeNormalizado}`;
+  }
+
+  return (
+    nomeNormalizado ||
+    identificadorNormalizado ||
+    null
+  );
+}
+
 function criarResumoVazio() {
   return {
     pessoaId: null,
+
+    nomeCivil: null,
+    nomeSocial: null,
     nomeMorador: null,
 
     usuarioId: null,
+
     nivelId: null,
+
     tipoUsuario: null,
 
     condominioId: null,
+
     condominioNome: null,
 
     moradorVinculoId: null,
+
     tipoMorador: null,
+
     vinculoPrincipal: null,
+
     vinculoAtivo: null,
 
     unidadeOperacionalId: null,
+
     unidadeOficialId: null,
+
     unidade: null,
 
     torreId: null,
-    torre: null,
+
+    torreNome: null,
+
     torreIdentificador: null,
 
-    garagem: null,
-    localGaragem: null,
+    torreExibicao: null,
 
-    dependentes: null,
+    dependentes: [],
+
+    dependentesTotal: 0,
+
+    garagens: [],
+
+    garagensTotal: 0,
   };
 }
 
-/**
- * CONTEXTO OFICIAL DO MORADOR
- *
- * Fonte:
- *
- * auth.uid()
- * ↓
- * rpc_morador_dashboard_contexto_v1()
- * ↓
- * usuários / pessoa / condomínio /
- * vínculo residencial / unidade / torre
- *
- * O frontend NÃO determina a identidade
- * nem a unidade autorizada.
- */
+function mapearDependente(item) {
+  return {
+    id:
+      item?.id || null,
+
+    pessoaId:
+      item?.pessoa_id || null,
+
+    nome:
+      normalizarValor(
+        item?.nome
+      ),
+
+    tipoVinculo:
+      normalizarValor(
+        item?.tipo_vinculo
+      ),
+
+    status:
+      normalizarValor(
+        item?.status
+      ),
+
+    possuiLogin:
+      item?.possui_login === true,
+
+    menorIdade:
+      item?.menor_idade === true,
+  };
+}
+
+function mapearGaragem(item) {
+  return {
+    id:
+      item?.id || null,
+
+    numero:
+      normalizarValor(
+        item?.identificacao_vaga
+      ) ||
+      normalizarValor(
+        item?.numero_vaga
+      ),
+
+    local:
+      normalizarValor(
+        item?.localizacao_vaga
+      ) ||
+      normalizarValor(
+        item?.localizacao
+      ),
+
+    tipo:
+      normalizarValor(
+        item?.tipo_vaga
+      ),
+
+    tipoFisico:
+      normalizarValor(
+        item?.tipo_fisico_vaga
+      ),
+
+    modoUso:
+      normalizarValor(
+        item?.modo_uso_vaga
+      ) ||
+      normalizarValor(
+        item?.tipo_uso
+      ) ||
+      normalizarValor(
+        item?.usuario_vaga
+      ),
+
+    pertenceUnidade:
+      item?.vaga_pertence_unidade ===
+        true,
+
+    autorizacaoStatus:
+      normalizarValor(
+        item?.autorizacao_status
+      ),
+
+    statusVaga:
+      normalizarValor(
+        item?.status_vaga
+      ),
+
+    status:
+      normalizarValor(
+        item?.status
+      ),
+
+    emUso:
+      item?.em_uso === true,
+  };
+}
+
 export async function carregarResumoOperacionalMorador() {
-  const resumoVazio = criarResumoVazio();
+  const resumoVazio =
+    criarResumoVazio();
 
   const {
     data,
@@ -85,28 +216,63 @@ export async function carregarResumoOperacionalMorador() {
 
   if (!contexto) {
     console.warn(
-      "[Dashboard Morador] A RPC não retornou contexto para o usuário autenticado."
+      "[Dashboard Morador] Nenhum contexto autorizado foi retornado."
     );
 
     return resumoVazio;
   }
 
-  /*
-   * IMPORTANTE:
-   *
-   * A RPC retorna snake_case.
-   * Aqui transformamos para o contrato
-   * utilizado pelos componentes React.
-   */
+  const dependentes =
+    normalizarArray(
+      contexto.dependentes
+    ).map(mapearDependente);
+
+  const garagens =
+    normalizarArray(
+      contexto.garagens
+    ).map(mapearGaragem);
+
+  const torreNome =
+    normalizarValor(
+      contexto.torre
+    );
+
+  const torreIdentificador =
+    normalizarValor(
+      contexto.torre_identificador
+    );
+
+  const nomeCivil =
+    normalizarValor(
+      contexto.nome_civil
+    );
+
+  const nomeSocial =
+    normalizarValor(
+      contexto.nome_social
+    );
 
   return {
     pessoaId:
       contexto.pessoa_id || null,
 
+    nomeCivil,
+
+    nomeSocial,
+
+    /*
+     * Autoridade de apresentação:
+     *
+     * Nome Social
+     * ↓
+     * Nome Civil
+     */
     nomeMorador:
       normalizarValor(
-        contexto.nome_completo
-      ),
+        contexto.nome_exibicao
+      ) ||
+      nomeSocial ||
+      nomeCivil,
 
     usuarioId:
       contexto.usuario_id || null,
@@ -120,7 +286,8 @@ export async function carregarResumoOperacionalMorador() {
       ),
 
     condominioId:
-      contexto.condominio_id || null,
+      contexto.condominio_id ||
+      null,
 
     condominioNome:
       normalizarValor(
@@ -128,7 +295,8 @@ export async function carregarResumoOperacionalMorador() {
       ),
 
     moradorVinculoId:
-      contexto.morador_unidade_vinculo_id ||
+      contexto
+        .morador_unidade_vinculo_id ||
       null,
 
     tipoMorador:
@@ -139,10 +307,8 @@ export async function carregarResumoOperacionalMorador() {
     vinculoPrincipal:
       contexto.principal === true,
 
-    /*
-     * A RPC já retorna somente vínculo ativo.
-     */
-    vinculoAtivo: true,
+    vinculoAtivo:
+      true,
 
     unidadeOperacionalId:
       contexto.unidade_operacional_id ||
@@ -160,59 +326,44 @@ export async function carregarResumoOperacionalMorador() {
     torreId:
       contexto.torre_id || null,
 
-    torre:
-      normalizarValor(
-        contexto.torre
+    torreNome,
+
+    torreIdentificador,
+
+    torreExibicao:
+      montarTorreExibicao({
+        nome: torreNome,
+        identificador:
+          torreIdentificador,
+      }),
+
+    dependentes,
+
+    dependentesTotal:
+      Number(
+        contexto.dependentes_total ??
+          dependentes.length
       ),
 
-    torreIdentificador:
-      normalizarValor(
-        contexto.torre_identificador
+    garagens,
+
+    garagensTotal:
+      Number(
+        contexto.garagens_total ??
+          garagens.length
       ),
-
-    /*
-     * Garagem será ligada ao domínio oficial
-     * de vagas separadamente.
-     *
-     * Não inventamos dado.
-     */
-    garagem: null,
-
-    localGaragem: null,
-
-    dependentes:
-      contexto.dependentes_total ===
-        null ||
-      contexto.dependentes_total ===
-        undefined
-        ? null
-        : Number(
-            contexto.dependentes_total
-          ),
   };
 }
 
-/**
- * INDICADORES
- *
- * Ainda sem contratos reais homologados.
- */
 export async function carregarIndicadoresDashboardMorador() {
   return {
     encomendasAguardando: null,
-
+    rastreiosAtivos: null,
     emprestimosGaragem: null,
-
     servicosAgendados: null,
   };
 }
 
-/**
- * AGENDA
- *
- * Será alimentada futuramente pelo domínio
- * Serviços/Agenda.
- */
 export async function carregarAgendaDashboardMorador() {
   return [];
 }

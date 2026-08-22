@@ -14,6 +14,7 @@ import {
 
 const INDICADORES_INICIAIS = {
   encomendasAguardando: null,
+  rastreiosAtivos: null,
   emprestimosGaragem: null,
   servicosAgendados: null,
 };
@@ -31,11 +32,14 @@ function resolverPerfilMorador({
   nivelId,
   tipoMorador,
 }) {
-  if (Number(nivelId) === 7) {
+  const nivel =
+    Number(nivelId);
+
+  if (nivel === 7) {
     return "Morador Dependente";
   }
 
-  if (Number(nivelId) === 6) {
+  if (nivel === 6) {
     return "Morador Responsável";
   }
 
@@ -49,21 +53,28 @@ function resolverPerfilMorador({
 export default function useDashboardMorador({
   usuario,
 }) {
-  const montadoRef = useRef(true);
+  const montadoRef =
+    useRef(true);
 
   const [resumo, setResumo] =
     useState(null);
 
-  const [indicadores, setIndicadores] =
-    useState(
-      INDICADORES_INICIAIS
-    );
+  const [
+    indicadores,
+    setIndicadores,
+  ] = useState(
+    INDICADORES_INICIAIS
+  );
 
-  const [eventos, setEventos] =
-    useState([]);
+  const [
+    eventos,
+    setEventos,
+  ] = useState([]);
 
-  const [carregando, setCarregando] =
-    useState(true);
+  const [
+    carregando,
+    setCarregando,
+  ] = useState(true);
 
   const [
     recarregando,
@@ -88,34 +99,50 @@ export default function useDashboardMorador({
   const usuarioId =
     usuario?.id || null;
 
-  const condominioId =
-    usuario?.condominio_id || null;
-
   /*
-   * O nome vindo do objeto de sessão é somente
-   * fallback de apresentação inicial.
+   * ========================================================
+   * NOME PARA EXIBIÇÃO
+   * ========================================================
    *
-   * Assim que o resumo oficial chega,
-   * pessoas.nome_completo passa a prevalecer.
+   * Autoridade principal:
+   *
+   * RPC
+   * → pessoas.nome_social
+   * → pessoas.nome_completo
+   *
+   * O objeto "usuario" abaixo é somente fallback
+   * enquanto o resumo oficial ainda está carregando.
    */
 
   const nomeFallback =
-    usuario?.nome_social ||
     usuario?.nome ||
     usuario?.nome_completo ||
-    "";
+    "Morador";
 
-  const primeiroNome = useMemo(
+  const nomeExibicao = useMemo(
     () =>
-      resolverPrimeiroNome(
-        resumo?.nomeMorador ||
-          nomeFallback
-      ),
+      resumo?.nomeMorador ||
+      nomeFallback ||
+      "Morador",
     [
       resumo?.nomeMorador,
       nomeFallback,
     ]
   );
+
+  const primeiroNome = useMemo(
+    () =>
+      resolverPrimeiroNome(
+        nomeExibicao
+      ),
+    [nomeExibicao]
+  );
+
+  /*
+   * ========================================================
+   * PERFIL
+   * ========================================================
+   */
 
   const perfilDescricao = useMemo(
     () =>
@@ -134,35 +161,28 @@ export default function useDashboardMorador({
     ]
   );
 
-  const contexto = useMemo(
-    () => ({
-      /*
-       * usuarioId não é autoridade.
-       *
-       * É enviado apenas para conferência.
-       * O service começa em auth.uid().
-       */
-      usuarioId,
-
-      /*
-       * Mesmo princípio:
-       * condominioId é contexto solicitado.
-       * O service exige vínculo ativo.
-       */
-      condominioId,
-    }),
-    [
-      usuarioId,
-      condominioId,
-    ]
-  );
+  /*
+   * ========================================================
+   * CARREGAMENTO
+   * ========================================================
+   */
 
   const carregar = useCallback(
     async ({
       modoRecarga = false,
     } = {}) => {
+      /*
+       * O App ainda precisa fornecer
+       * o usuário funcional carregado.
+       *
+       * A identidade usada pela RPC,
+       * entretanto, é auth.uid().
+       */
+
       if (!usuarioId) {
-        if (montadoRef.current) {
+        if (
+          montadoRef.current
+        ) {
           setResumo(null);
 
           setIndicadores(
@@ -172,10 +192,13 @@ export default function useDashboardMorador({
           setEventos([]);
 
           setErroResumo(null);
+
           setErroIndicadores(null);
+
           setErroAgenda(null);
 
           setCarregando(false);
+
           setRecarregando(false);
         }
 
@@ -188,22 +211,25 @@ export default function useDashboardMorador({
         setCarregando(true);
       }
 
+      /*
+       * Cada domínio é carregado isoladamente.
+       *
+       * Uma eventual falha em Agenda,
+       * por exemplo, não derruba o Resumo.
+       */
+
       const resultados =
         await Promise.allSettled([
-          carregarResumoOperacionalMorador(
-            contexto
-          ),
+          carregarResumoOperacionalMorador(),
 
-          carregarIndicadoresDashboardMorador(
-            contexto
-          ),
+          carregarIndicadoresDashboardMorador(),
 
-          carregarAgendaDashboardMorador(
-            contexto
-          ),
+          carregarAgendaDashboardMorador(),
         ]);
 
-      if (!montadoRef.current) {
+      if (
+        !montadoRef.current
+      ) {
         return;
       }
 
@@ -214,7 +240,9 @@ export default function useDashboardMorador({
       ] = resultados;
 
       /*
-       * RESUMO
+       * ====================================================
+       * RESUMO DO MORADOR
+       * ====================================================
        */
 
       if (
@@ -241,7 +269,9 @@ export default function useDashboardMorador({
       }
 
       /*
+       * ====================================================
        * INDICADORES
+       * ====================================================
        */
 
       if (
@@ -272,7 +302,9 @@ export default function useDashboardMorador({
       }
 
       /*
+       * ====================================================
        * AGENDA
+       * ====================================================
        */
 
       if (
@@ -302,34 +334,55 @@ export default function useDashboardMorador({
       }
 
       setCarregando(false);
+
       setRecarregando(false);
     },
-    [
-      contexto,
-      usuarioId,
-    ]
+    [usuarioId]
   );
 
-  const recarregar = useCallback(
-    () =>
-      carregar({
-        modoRecarga: true,
-      }),
-    [carregar]
-  );
+  /*
+   * ========================================================
+   * RECARGA MANUAL
+   * ========================================================
+   */
+
+  const recarregar =
+    useCallback(
+      () =>
+        carregar({
+          modoRecarga: true,
+        }),
+      [carregar]
+    );
+
+  /*
+   * ========================================================
+   * PRIMEIRA CARGA
+   * ========================================================
+   */
 
   useEffect(() => {
-    montadoRef.current = true;
+    montadoRef.current =
+      true;
 
     carregar();
 
     return () => {
-      montadoRef.current = false;
+      montadoRef.current =
+        false;
     };
   }, [carregar]);
 
+  /*
+   * ========================================================
+   * CONTRATO PÚBLICO DO HOOK
+   * ========================================================
+   */
+
   return {
     primeiroNome,
+
+    nomeExibicao,
 
     perfilDescricao,
 
@@ -349,11 +402,12 @@ export default function useDashboardMorador({
 
     erroAgenda,
 
-    temErroParcial: Boolean(
-      erroResumo ||
+    temErroParcial:
+      Boolean(
+        erroResumo ||
         erroIndicadores ||
         erroAgenda
-    ),
+      ),
 
     recarregar,
   };
