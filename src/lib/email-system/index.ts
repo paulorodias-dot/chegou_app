@@ -28,5 +28,6 @@ export * from "./components/email-welcome-card";
 export * from "./templates/convite-morador";
 export * from "./templates/reenvio-convite-morador";
 export * from "./templates/recuperacao-senha";
+export * from "./templates/morador-aprovado";
 
 export * from "./previews/structural-preview";

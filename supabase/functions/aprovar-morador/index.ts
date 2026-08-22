@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { renderMoradorAprovadoEmail } from "../_shared/email-system/templates/morador-aprovado.ts";
 
 /**
  * Sistema Chegou!
@@ -633,110 +634,27 @@ async function registrarLog({
   }
 }
 
-function montarHtmlBoasVindas({
-  nome,
-  nomeCondominio,
-  empresaEndereco,
-  loginUrl,
-  authReutilizado,
-}: {
-  nome: string;
-  nomeCondominio: string;
-  empresaEndereco: string;
-  loginUrl: string;
-  authReutilizado: boolean;
-}) {
-  const textoAcesso =
-    authReutilizado
-      ? `
-        Sua identidade de acesso ao Sistema Chegou! já existia.
-        O novo perfil de Morador foi vinculado à sua conta.
-        Utilize suas credenciais de acesso já existentes.
-      `
-      : `
-        Seu acesso já está liberado.
-        Utilize o e-mail cadastrado e a senha definida no Wizard.
-      `;
+function primeiroTextoDisponivel(...valores: unknown[]) {
+  for (const valor of valores) {
+    const normalizado = texto(valor);
 
-  return `
-<div style="background:#f4f7fb;padding:20px;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
-  <div style="max-width:540px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;box-shadow:0 12px 30px rgba(15,23,42,0.08)">
+    if (normalizado) {
+      return normalizado;
+    }
+  }
 
-    <div style="background:#174ea6;padding:22px;text-align:center">
-      <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800">
-        Chegou<span style="color:#ff7900">!</span>
-      </h1>
-
-      <p style="margin:6px 0 0;color:#eaf2ff;font-size:13px">
-        Gestão Inteligente de Encomendas
-      </p>
-    </div>
-
-    <div style="padding:24px;color:#0f172a;font-size:15px;line-height:1.55">
-
-      <p style="margin:0 0 14px">
-        Olá <strong>${nome}</strong>,
-      </p>
-
-      <p style="margin:0 0 14px">
-        Seu cadastro no condomínio
-        <strong>${nomeCondominio}</strong>
-        foi aprovado com sucesso.
-      </p>
-
-      <p style="margin:0 0 16px">
-        Seu perfil de Morador está disponível no Sistema Chegou<span style="color:#ff7900">!</span>.
-      </p>
-
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin:18px 0;color:#334155">
-        <p style="margin:0;font-size:13px">
-          ${textoAcesso}
-        </p>
-      </div>
-
-      <div style="text-align:center;margin:24px 0 18px">
-        <a
-          href="${loginUrl}"
-          style="display:inline-block;background:#ff7900;color:#ffffff;text-decoration:none;padding:14px 24px;border-radius:10px;font-weight:700;font-size:15px"
-        >
-          Acessar o Sistema Chegou!
-        </a>
-      </div>
-
-      <p style="font-size:12px;color:#64748b;margin:0 0 18px">
-        Caso o botão não funcione, copie e cole este endereço no navegador:<br>
-        <span style="color:#174ea6;word-break:break-all">${loginUrl}</span>
-      </p>
-
-      <p style="margin:20px 0 0">
-        <strong>Equipe Chegou<span style="color:#ff7900">!</span></strong>
-      </p>
-    </div>
-
-    <div style="background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#64748b;border-top:1px solid #e5e7eb">
-      <p style="margin:0">
-        Este é um e-mail automático.
-      </p>
-
-      <p style="margin:6px 0">
-        ${empresaEndereco}
-      </p>
-
-      <p style="margin:6px 0">
-        © 2026 Chegou<span style="color:#ff7900">!</span>
-      </p>
-    </div>
-
-  </div>
-</div>
-`;
+  return "";
 }
 
-async function enviarEmailAprovacao({
+async function enfileirarEmailAprovacao({
   supabaseAdmin,
+  businessId,
   nome,
   email,
+  telefone,
   nomeCondominio,
+  condominioHelpEmail,
+  condominioHelpWhatsapp,
   condominioId,
   preCadastroId,
   auditoriaId,
@@ -744,13 +662,17 @@ async function enviarEmailAprovacao({
   correlationId,
   loginUrl,
   authReutilizado,
+  actorUsuarioId,
   contextoRequisicao,
 }: {
-  supabaseAdmin:
-    SupabaseClientLike;
+  supabaseAdmin: SupabaseClientLike;
+  businessId: string | null;
   nome: string;
   email: string;
+  telefone?: string | null;
   nomeCondominio: string;
+  condominioHelpEmail?: string | null;
+  condominioHelpWhatsapp?: string | null;
   condominioId: string;
   preCadastroId: string;
   auditoriaId: string;
@@ -758,223 +680,348 @@ async function enviarEmailAprovacao({
   correlationId: string;
   loginUrl: string;
   authReutilizado: boolean;
-  contextoRequisicao:
-    JsonObject;
+  actorUsuarioId: string;
+  contextoRequisicao: JsonObject;
 }) {
-  const brevoApiKey =
-    Deno.env.get(
-      "BREVO_API_KEY"
+  const appBaseUrl =
+    Deno.env.get("CHEGOU_APP_URL") ||
+    "https://sistemachegou.com.br";
+
+  const filaEmailId =
+    await uuidDeterministico(
+      `CHEGOU:EMAIL:APROVACAO_MORADOR:${preCadastroId}:${auditoriaId}`
     );
 
-  const remetenteEmail =
-    Deno.env.get(
-      "BREVO_SENDER_EMAIL"
-    ) ||
-    "noreply@sistemachegou.com.br";
+  const {
+    data: filaExistente,
+    error: filaExistenteError,
+  } = await supabaseAdmin
+    .from("fila_emails")
+    .select(
+      `
+      id,
+      status_envio,
+      processado,
+      enviado_em,
+      brevo_message_id,
+      mensagem_erro
+      `
+    )
+    .eq("id", filaEmailId)
+    .maybeSingle();
 
-  const remetenteNome =
-    Deno.env.get(
-      "BREVO_SENDER_NAME"
-    ) ||
-    "Sistema Chegou!";
+  if (filaExistenteError) {
+    console.error(
+      "[aprovar-morador] erro ao consultar fila idempotente de aprovação:",
+      filaExistenteError
+    );
+  }
 
-  const empresaEndereco =
-    Deno.env.get(
-      "EMPRESA_ENDERECO"
-    ) ||
-    "[Endereço físico da empresa — definir no módulo institucional]";
-
-  if (!brevoApiKey) {
+  if (filaExistente?.id) {
     return {
       status:
-        "nao_enviado",
+        filaExistente.status_envio === "enviado"
+          ? "ja_enviado"
+          : "ja_enfileirado",
+      filaEmailId: filaExistente.id,
       messageId:
+        filaExistente.brevo_message_id ||
         null,
       error:
-        "BREVO_API_KEY não configurada.",
+        filaExistente.mensagem_erro ||
+        null,
     };
   }
 
-  try {
-    const htmlContent =
-      montarHtmlBoasVindas({
-        nome,
+  const renderedEmail =
+    renderMoradorAprovadoEmail({
+      templateId:
+        "morador_aprovado_premium_v1",
+      theme: "light",
+      language: "pt-BR",
+      currentYear:
+        new Date().getFullYear(),
+
+      sender: {
+        name: "Sistema Chegou!",
+        origin: "condominio",
+        condominiumName:
+          nomeCondominio,
+      },
+
+      assets: {
+        baseUrl:
+          appBaseUrl.replace(/\/$/, ""),
+      },
+
+      recipientName: nome,
+      recipientEmail: email,
+      recipientPhone:
+        texto(telefone) ||
+        undefined,
+
+      condominiumName:
         nomeCondominio,
-        empresaEndereco,
-        loginUrl,
-        authReutilizado,
-      });
 
-    const response =
-      await fetch(
-        "https://api.brevo.com/v3/smtp/email",
-        {
-          method: "POST",
+      condominiumHelpEmail:
+        texto(condominioHelpEmail) ||
+        undefined,
 
-          headers: {
-            "api-key":
-              brevoApiKey,
-            "Content-Type":
-              "application/json",
-            Accept:
-              "application/json",
-          },
+      condominiumHelpWhatsapp:
+        texto(condominioHelpWhatsapp) ||
+        undefined,
 
-          body:
-            JSON.stringify({
-              sender: {
-                name:
-                  remetenteNome,
-                email:
-                  remetenteEmail,
-              },
+      loginUrl,
 
-              to: [
-                {
-                  email,
-                  name:
-                    nome,
-                },
-              ],
+      accessMode:
+        authReutilizado
+          ? "existing"
+          : "new",
 
-              subject:
-                "Cadastro aprovado no Chegou!",
+      systemInstagramUrl:
+        "https://instagram.com/sistemachegou",
 
-              htmlContent,
-            }),
-        }
-      );
+      systemWhatsappUrl:
+        "https://wa.me/5511922106522",
 
-    const result =
-      await response
-        .json()
-        .catch(
-          () => ({})
-        );
+      systemWhatsappLabel:
+        "+55 (11) 92210-6522",
 
-    if (!response.ok) {
-      const mensagem =
-        result?.message ||
-        result?.error ||
-        "Erro ao enviar e-mail pelo Brevo.";
+      systemSiteUrl:
+        "https://sistemachegou.com.br",
+    });
 
-      await registrarLog({
-        supabaseAdmin,
+  const payload = {
+    evento:
+      "MORADOR_APROVADO",
+    correlation_id:
+      correlationId,
+    pre_cadastro_id:
+      preCadastroId,
+    auditoria_id:
+      auditoriaId,
+    usuario_id:
+      usuarioId,
+    auth_reutilizado:
+      authReutilizado,
+    template_id:
+      renderedEmail.templateId,
+    tema:
+      "light",
+    subject:
+      renderedEmail.subject,
+    preheader:
+      renderedEmail.preheader,
+    html_content:
+      renderedEmail.html,
+    text_content:
+      renderedEmail.text,
 
-        acao:
-          "EMAIL_APROVACAO_MORADOR_ERRO",
+    comunicacao: {
+      email: {
+        habilitado: true,
+        template_id:
+          renderedEmail.templateId,
+      },
 
+      whatsapp: {
+        habilitado: false,
+        provider:
+          "META_WHATSAPP_CLOUD_API",
+        template_key:
+          "morador_aprovado_v1",
+      },
+    },
+  };
+
+  const agora =
+    new Date().toISOString();
+
+  const {
+    data: filaCriada,
+    error: filaError,
+  } = await supabaseAdmin
+    .from("fila_emails")
+    .insert({
+      id: filaEmailId,
+      business_id:
+        businessId || null,
+      condominio_id:
         condominioId,
+      usuario_id:
         usuarioId,
+      pre_cadastro_id:
+        preCadastroId,
+      auditoria_id:
+        auditoriaId,
+      convite_id: null,
+      tipo_email:
+        "aprovacao_morador",
+      categoria_email:
+        "cadastro",
+      origem_email:
+        "condominio",
+      email_destino:
         email,
+      nome_destino:
+        nome,
+      assunto:
+        renderedEmail.subject,
+      template_email:
+        renderedEmail.templateId,
+      payload,
+      prioridade: 0,
+      peso_envio: 0,
+      status_envio:
+        "aguardando_envio",
+      limite_diario_grupo:
+        "cadastros",
+      quantidade_tentativas: 0,
+      max_tentativas: 3,
+      proxima_tentativa_em:
+        agora,
+      envio_lote: false,
+      lote_id: null,
+      pausado: false,
+      cancelado: false,
+      processado: false,
+      criado_por:
+        actorUsuarioId,
+    })
+    .select(
+      "id, status_envio"
+    )
+    .single();
 
-        origem:
-          "brevo",
+  if (filaError || !filaCriada?.id) {
+    // Corrida idempotente: outra execução pode ter criado o mesmo UUID
+    // determinístico entre a leitura acima e este INSERT.
+    if (filaError?.code === "23505") {
+      const {
+        data: filaConcorrente,
+      } = await supabaseAdmin
+        .from("fila_emails")
+        .select(
+          "id, status_envio, brevo_message_id, mensagem_erro"
+        )
+        .eq("id", filaEmailId)
+        .maybeSingle();
 
-        detalhes: {
-          tipo_email:
-            "aprovacao_morador",
-
-          erro:
-            mensagem,
-
-          pre_cadastro_id:
-            preCadastroId,
-
-          auditoria_id:
-            auditoriaId,
-
-          correlation_id:
-            correlationId,
-
-          auth_reutilizado:
-            authReutilizado,
-
-          ...contextoRequisicao,
-        },
-      });
-
-      return {
-        status:
-          "erro",
-        messageId:
-          null,
-        error:
-          mensagem,
-      };
+      if (filaConcorrente?.id) {
+        return {
+          status:
+            filaConcorrente.status_envio ===
+            "enviado"
+              ? "ja_enviado"
+              : "ja_enfileirado",
+          filaEmailId:
+            filaConcorrente.id,
+          messageId:
+            filaConcorrente.brevo_message_id ||
+            null,
+          error:
+            filaConcorrente.mensagem_erro ||
+            null,
+        };
+      }
     }
 
-    const messageId =
-      result?.messageId ||
-      null;
+    const mensagem =
+      filaError?.message ||
+      "Não foi possível adicionar o e-mail de aprovação à fila.";
 
     await registrarLog({
       supabaseAdmin,
-
       acao:
-        "EMAIL_APROVACAO_MORADOR_ENVIADO",
-
+        "EMAIL_APROVACAO_MORADOR_ERRO_FILA",
       condominioId,
       usuarioId,
       email,
-
       origem:
-        "brevo",
-
+        "aprovar-morador",
       detalhes: {
+        fila_email_id:
+          filaEmailId,
         tipo_email:
           "aprovacao_morador",
-
-        brevo_message_id:
-          messageId,
-
-        remetente_email:
-          remetenteEmail,
-
-        remetente_nome:
-          remetenteNome,
-
-        login_url:
-          loginUrl,
-
+        template_email:
+          renderedEmail.templateId,
         pre_cadastro_id:
           preCadastroId,
-
         auditoria_id:
           auditoriaId,
-
         correlation_id:
           correlationId,
-
         auth_reutilizado:
           authReutilizado,
-
+        erro:
+          mensagem,
         ...contextoRequisicao,
       },
     });
 
     return {
       status:
-        "enviado",
-      messageId,
-      error:
+        "erro_fila",
+      filaEmailId:
         null,
-    };
-  } catch (error) {
-    const mensagem =
-      error instanceof Error
-        ? error.message
-        : "Erro inesperado no envio.";
-
-    return {
-      status:
-        "erro",
       messageId:
         null,
       error:
         mensagem,
     };
   }
+
+  await registrarLog({
+    supabaseAdmin,
+    acao:
+      "EMAIL_APROVACAO_MORADOR_ENFILEIRADO",
+    condominioId,
+    usuarioId,
+    email,
+    origem:
+      "aprovar-morador",
+    detalhes: {
+      fila_email_id:
+        filaCriada.id,
+      tipo_email:
+        "aprovacao_morador",
+      categoria_email:
+        "cadastro",
+      origem_email:
+        "condominio",
+      template_email:
+        renderedEmail.templateId,
+      prioridade: 0,
+      peso_envio: 0,
+      limite_diario_grupo:
+        "cadastros",
+      pre_cadastro_id:
+        preCadastroId,
+      auditoria_id:
+        auditoriaId,
+      correlation_id:
+        correlationId,
+      auth_reutilizado:
+        authReutilizado,
+      whatsapp_preparado:
+        true,
+      whatsapp_habilitado:
+        false,
+      ...contextoRequisicao,
+    },
+  });
+
+  return {
+    status:
+      "enfileirado",
+    filaEmailId:
+      filaCriada.id,
+    messageId:
+      null,
+    error:
+      null,
+  };
 }
 
 serve(async (req) => {
@@ -3133,6 +3180,8 @@ serve(async (req) => {
     const {
       data:
         condominio,
+      error:
+        condominioError,
     } =
       await supabaseAdmin
         .from(
@@ -3140,9 +3189,12 @@ serve(async (req) => {
         )
         .select(
           `
+          id,
           nome_fantasia,
-          razao_social
-        `
+          razao_social,
+          email_condominio,
+          telefone_condominio
+          `
         )
         .eq(
           "id",
@@ -3150,15 +3202,70 @@ serve(async (req) => {
         )
         .maybeSingle();
 
+    if (condominioError) {
+      console.error(
+        "[aprovar-morador] dados do condomínio para comunicação:",
+        condominioError
+      );
+    }
+
     const nomeCondominio =
-      condominio
-        ?.nome_fantasia ||
-      condominio
-        ?.razao_social ||
+      primeiroTextoDisponivel(
+        condominio?.nome_fantasia,
+        condominio?.razao_social
+      ) ||
       "Condomínio";
 
+    const condominioHelpEmail =
+      primeiroTextoDisponivel(
+        condominio?.email_condominio
+      ) ||
+      null;
+
+    const condominioHelpWhatsapp =
+      primeiroTextoDisponivel(
+        condominio?.telefone_condominio
+      ) ||
+      null;
+
+    const {
+      data:
+        usuarioComunicacao,
+      error:
+        usuarioComunicacaoError,
+    } =
+      await supabaseAdmin
+        .from(
+          "usuarios"
+        )
+        .select(
+          "id, telefone"
+        )
+        .eq(
+          "id",
+          usuarioId
+        )
+        .maybeSingle();
+
+    if (usuarioComunicacaoError) {
+      console.error(
+        "[aprovar-morador] dados canônicos do morador para comunicação:",
+        usuarioComunicacaoError
+      );
+    }
+
+    const telefoneCanonico =
+      primeiroTextoDisponivel(
+        usuarioComunicacao?.telefone
+      ) ||
+      null;
+
     /*
-     * 7. E-MAIL COM DEDUPLICAÇÃO
+     * 7. COMUNICAÇÃO DE APROVAÇÃO
+     *
+     * O domínio de aprovação apenas publica/enfileira a comunicação.
+     * O transporte pelo Brevo pertence ao processar-fila-emails.
+     * WhatsApp fica preparado no contrato, porém desativado.
      */
 
     const appUrl =
@@ -3173,90 +3280,45 @@ serve(async (req) => {
         ""
       )}/login`;
 
-    const {
-      data:
-        emailJaEnviadoLog,
-      error:
-        emailJaEnviadoError,
-    } =
-      await supabaseAdmin
-        .from(
-          "logs_sistema"
-        )
-        .select("id")
-        .eq(
-          "acao",
-          "EMAIL_APROVACAO_MORADOR_ENVIADO"
-        )
-        .eq(
-          "condominio_id",
-          condominioId
-        )
-        .eq(
-          "email",
-          emailCanonico
-        )
-        .contains(
-          "detalhes",
-          {
-            pre_cadastro_id:
-              preCadastroId,
-
-            correlation_id:
-              correlationId,
-          }
-        )
-        .limit(1)
-        .maybeSingle();
-
-    if (
-      emailJaEnviadoError
-    ) {
-      console.error(
-        "[aprovar-morador] falha ao verificar idempotência do e-mail:",
-        emailJaEnviadoError
-      );
-    }
-
     const emailResultado =
-      emailJaEnviadoLog?.id
-        ? {
-            status:
-              "ja_enviado",
+      await enfileirarEmailAprovacao({
+        supabaseAdmin,
 
-            messageId:
-              null,
+        businessId,
 
-            error:
-              null,
-          }
-        : await enviarEmailAprovacao({
-            supabaseAdmin,
+        nome:
+          nomeCanonico,
 
-            nome:
-              nomeCanonico,
+        email:
+          emailCanonico,
 
-            email:
-              emailCanonico,
+        telefone:
+          telefoneCanonico,
 
-            nomeCondominio,
+        nomeCondominio,
 
-            condominioId,
+        condominioHelpEmail,
 
-            preCadastroId,
+        condominioHelpWhatsapp,
 
-            auditoriaId,
+        condominioId,
 
-            usuarioId,
+        preCadastroId,
 
-            correlationId,
+        auditoriaId,
 
-            loginUrl,
+        usuarioId,
 
-            authReutilizado,
+        correlationId,
 
-            contextoRequisicao,
-          });
+        loginUrl,
+
+        authReutilizado,
+
+        actorUsuarioId,
+
+        contextoRequisicao,
+      });
 
     await registrarLog({
       supabaseAdmin,
@@ -3325,6 +3387,9 @@ serve(async (req) => {
 
         email_status:
           emailResultado.status,
+
+        fila_email_id:
+          emailResultado.filaEmailId,
 
         brevo_message_id:
           emailResultado.messageId,
@@ -3406,6 +3471,9 @@ serve(async (req) => {
 
       email_status:
         emailResultado.status,
+
+      fila_email_id:
+        emailResultado.filaEmailId,
 
       brevo_message_id:
         emailResultado.messageId,

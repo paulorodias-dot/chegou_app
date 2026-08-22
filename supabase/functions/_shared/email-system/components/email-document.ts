@@ -324,6 +324,42 @@ export function renderEmailDocument({
         max-width: 125px !important;
         margin: 0 auto !important;
       }
+
+      .approval-card-icon-column {
+        display: none !important;
+        width: 0 !important;
+        max-width: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        font-size: 0 !important;
+        line-height: 0 !important;
+      }
+
+      .approval-card-icon-column + td {
+        display: none !important;
+        width: 0 !important;
+        max-width: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        font-size: 0 !important;
+        line-height: 0 !important;
+      }
+
+      .approval-card-content-column {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 20px 18px !important;
+        box-sizing: border-box !important;
+      }
+
+      .approval-card-content-column table {
+        width: 100% !important;
+      }
+
+      .approval-card-content-column td {
+        box-sizing: border-box !important;
+      }
     }
 
     @media screen and (max-width: 420px) {
