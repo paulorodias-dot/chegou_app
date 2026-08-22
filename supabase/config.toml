@@ -625,3 +625,13 @@ entrypoint = "./functions/notificar-senha-alterada/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/notificar-senha-alterada/*.html" ]
+
+[functions.login-morador]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/login-morador/index.ts"
+
+[functions.login-morador]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/login-morador/index.ts"

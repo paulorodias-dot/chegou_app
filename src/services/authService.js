@@ -40,9 +40,6 @@ function normalizarEmail(valor = "") {
 
 /**
  * Retorna true quando o usuário optou por permanecer conectado.
- *
- * Essa preferência é gravada pelo Login.jsx após autenticação
- * bem-sucedida.
  */
 export function deveManterConectado() {
   return localStorage.getItem("chegou_lembrar") === "true";
@@ -58,17 +55,7 @@ function atualizarUltimoUso() {
 
 
 /**
- * Verifica se a sessão deve ser considerada expirada
- * pela política LOCAL de inatividade do Sistema Chegou!.
- *
- * Regra:
- * - "Manter-me conectado" marcado:
- *   não aplica timeout local de 30 minutos.
- *
- * - "Manter-me conectado" desmarcado:
- *   aplica timeout local de 30 minutos.
- *
- * Esta função não substitui a validade da sessão do Supabase.
+ * Verifica expiração local por inatividade.
  */
 export function sessaoExpiradaPorInatividade() {
   if (deveManterConectado()) {
@@ -89,9 +76,6 @@ export function sessaoExpiradaPorInatividade() {
 
 /**
  * Registra atividade do usuário.
- *
- * Pode ser chamada pelo AppLayout ou camada global responsável
- * por mouse, teclado, toque etc.
  */
 export function registrarAtividadeUsuario() {
   atualizarUltimoUso();
@@ -100,6 +84,11 @@ export function registrarAtividadeUsuario() {
 
 /**
  * Executa autenticação direta pelo Supabase Auth.
+ *
+ * Usada pelos fluxos Funcionário e Equipe Chegou!.
+ *
+ * O Morador NÃO utiliza mais autenticação direta por
+ * e-mail técnico.
  */
 async function autenticarPorEmail(email, senha) {
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -118,7 +107,10 @@ async function autenticarPorEmail(email, senha) {
 
 
 /**
- * Busca o perfil oficial do usuário autenticado.
+ * Busca o perfil raiz oficial do usuário autenticado.
+ *
+ * Utilizada pelos contextos que ainda operam diretamente
+ * sobre o perfil funcional raiz.
  */
 export async function buscarPerfilUsuario(userId) {
   const { data: perfil, error } = await supabase
@@ -163,64 +155,174 @@ export async function buscarPerfilUsuario(userId) {
 
 
 /**
- * Valida se o perfil autenticado pode utilizar
- * a origem/aba de login selecionada.
+ * Validação dos fluxos FUNCIONÁRIO / EQUIPE.
+ *
+ * Morador não passa por esta função.
+ * O contexto Morador é autoritativamente resolvido pelo backend.
  */
 function validarAbaLogin(perfil, origemLogin) {
   const nivel = Number(perfil.nivel_id);
 
-  // MASTER pode acessar os contextos autorizados.
-  if (nivel === 1) {
+  if (origemLogin === "funcionario") {
+    if (![2, 3, 4, 5].includes(nivel)) {
+      throw new Error(
+        "Este usuário deve acessar pela aba Funcionário."
+      );
+    }
+
     return;
   }
 
-  if (
-    origemLogin === "morador" &&
-    ![6, 7].includes(nivel)
-  ) {
-    throw new Error(
-      "Este usuário não possui permissão para acessar pela aba Morador."
-    );
-  }
+  if (origemLogin === "equipe_chegou") {
+    if (nivel !== 1) {
+      throw new Error(
+        "Este acesso é exclusivo para equipe Chegou!."
+      );
+    }
 
-  if (
-    origemLogin === "funcionario" &&
-    ![2, 3, 4, 5].includes(nivel)
-  ) {
-    throw new Error(
-      "Este usuário deve acessar pela aba Funcionário."
-    );
-  }
-
-  if (
-    origemLogin === "equipe_chegou" &&
-    nivel !== 1
-  ) {
-    throw new Error(
-      "Este acesso é exclusivo para equipe Chegou!."
-    );
+    return;
   }
 }
 
 
 /**
- * Login de Morador / Dependente.
+ * Login canônico de Morador / Dependente.
+ *
+ * Entrada permitida:
+ * - CPF
+ * - e-mail cadastrado no papel Morador
+ *
+ * Username não participa deste fluxo.
+ *
+ * A Edge Function:
+ * 1. resolve a identidade/Auth canônico;
+ * 2. valida a senha no Supabase Auth;
+ * 3. resolve o contexto residencial;
+ * 4. devolve perfil contextual Nível 6/7.
  */
-export async function loginComEmailSenha(email, senha) {
-  const auth = await autenticarPorEmail(email, senha);
+export async function loginComEmailSenha(
+  identificador,
+  senha
+) {
+  const loginTratado =
+    String(identificador || "").trim();
 
-  const perfil = await buscarPerfilUsuario(
-    auth.user.id
+  if (!loginTratado || !senha) {
+    throw new Error(
+      "Informe seu CPF/e-mail e senha."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase.functions.invoke(
+    "login-morador",
+    {
+      body: {
+        identificador: loginTratado,
+        senha,
+      },
+    }
   );
 
-  validarAbaLogin(perfil, "morador");
+  if (error) {
+    throw new Error(
+      "CPF/e-mail ou senha inválidos."
+    );
+  }
+
+  if (
+    !data?.success ||
+    !data?.session?.access_token ||
+    !data?.session?.refresh_token ||
+    !data?.perfil
+  ) {
+    throw new Error(
+      data?.error ||
+        "CPF/e-mail ou senha inválidos."
+    );
+  }
+
+  /**
+   * Instala no client global do sistema
+   * a sessão Auth canônica criada pela Edge.
+   */
+  const {
+    data: sessionData,
+    error: sessionError,
+  } = await supabase.auth.setSession({
+    access_token:
+      data.session.access_token,
+
+    refresh_token:
+      data.session.refresh_token,
+  });
+
+  if (
+    sessionError ||
+    !sessionData?.session?.user?.id
+  ) {
+    limparSessaoLocal();
+
+    throw new Error(
+      "Não foi possível iniciar sua sessão."
+    );
+  }
+
+  /**
+   * Defesa contra resolução cruzada.
+   */
+  if (
+    sessionData.session.user.id !==
+    data.perfil.id
+  ) {
+    await supabase.auth.signOut();
+
+    limparSessaoLocal();
+
+    throw new Error(
+      "Não foi possível validar sua identidade."
+    );
+  }
+
+  /**
+   * Defesa adicional sobre o contrato contextual.
+   */
+  if (
+    data.perfil.origem_login !== "morador" ||
+    !["MORADOR", "DEPENDENTE"].includes(
+      String(data.perfil.papel || "").toUpperCase()
+    ) ||
+    ![6, 7].includes(
+      Number(data.perfil.nivel_id)
+    )
+  ) {
+    await supabase.auth.signOut();
+
+    limparSessaoLocal();
+
+    throw new Error(
+      "Contexto residencial inválido."
+    );
+  }
+
+  atualizarUltimoUso();
 
   return {
-    auth,
+    auth: sessionData.session,
 
     perfil: {
-      ...perfil,
+      ...data.perfil,
+
       origem_login: "morador",
+
+      /**
+       * Contexto residencial nunca herda
+       * globalidade de outro papel do mesmo Auth.
+       */
+      permissao_global: false,
+      permissao_global_contextual: false,
     },
   };
 }
@@ -287,20 +389,35 @@ export async function loginFuncionarioCondominio(
     );
   }
 
-  validarAbaLogin(perfil, "funcionario");
+  validarAbaLogin(
+    perfil,
+    "funcionario"
+  );
 
   return {
     auth,
 
     perfil: {
       ...perfil,
-      tipo_vinculo: vinculo.tipo_vinculo,
-      cargo: vinculo.cargo,
+
+      tipo_vinculo:
+        vinculo.tipo_vinculo,
+
+      cargo:
+        vinculo.cargo,
+
       username:
-        vinculo.username || perfil.username,
-      condominio_id: vinculo.condominio_id,
-      nome_condominio: vinculo.nome_condominio,
-      origem_login: "funcionario",
+        vinculo.username ||
+        perfil.username,
+
+      condominio_id:
+        vinculo.condominio_id,
+
+      nome_condominio:
+        vinculo.nome_condominio,
+
+      origem_login:
+        "funcionario",
     },
   };
 }
@@ -372,13 +489,25 @@ export async function loginEquipeChegou(
 
     perfil: {
       ...perfil,
-      tipo_vinculo: vinculo.tipo_vinculo,
-      cargo: vinculo.cargo,
+
+      tipo_vinculo:
+        vinculo.tipo_vinculo,
+
+      cargo:
+        vinculo.cargo,
+
       username:
-        vinculo.username || perfil.username,
-      condominio_id: null,
-      nome_condominio: null,
-      origem_login: "equipe_chegou",
+        vinculo.username ||
+        perfil.username,
+
+      condominio_id:
+        null,
+
+      nome_condominio:
+        null,
+
+      origem_login:
+        "equipe_chegou",
     },
   };
 }
@@ -387,10 +516,9 @@ export async function loginEquipeChegou(
 /**
  * Recupera uma sessão Supabase já existente.
  *
- * Antes de recuperar:
- * - aplica a regra de 30 minutos, caso o usuário NÃO tenha
- *   escolhido "Manter-me conectado";
- * - ignora o timeout local quando essa opção estiver ativa.
+ * ATENÇÃO:
+ * este método ainda será evoluído no GATE 46B.11DC
+ * para restaurar corretamente contextos multi-role.
  */
 export async function recuperarSessaoAtual() {
   if (sessaoExpiradaPorInatividade()) {
@@ -426,23 +554,24 @@ export async function recuperarSessaoAtual() {
 
 /**
  * Remove os dados locais relacionados à sessão.
- *
- * O "chegou_lembrar" também é removido porque a opção
- * "Manter-me conectado" pertence à sessão escolhida
- * naquele login.
  */
 export function limparSessaoLocal() {
-  localStorage.removeItem("chegou_perfil");
-  localStorage.removeItem("chegou_ultimo_uso");
-  localStorage.removeItem("chegou_lembrar");
+  localStorage.removeItem(
+    "chegou_perfil"
+  );
+
+  localStorage.removeItem(
+    "chegou_ultimo_uso"
+  );
+
+  localStorage.removeItem(
+    "chegou_lembrar"
+  );
 }
 
 
 /**
  * Logout oficial.
- *
- * Sempre encerra a sessão, independentemente da opção
- * "Manter-me conectado".
  */
 export async function logout() {
   limparSessaoLocal();
