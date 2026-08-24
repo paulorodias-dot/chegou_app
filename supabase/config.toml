@@ -630,8 +630,3 @@ entrypoint = "./functions/notificar-senha-alterada/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/login-morador/index.ts"
-
-[functions.login-morador]
-enabled = true
-verify_jwt = false
-entrypoint = "./functions/login-morador/index.ts"

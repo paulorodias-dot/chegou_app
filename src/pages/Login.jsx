@@ -16,6 +16,7 @@ import {
   loginComEmailSenha,
   loginFuncionarioCondominio,
   loginEquipeChegou,
+  salvarSessaoAutenticada,
 } from "../services/authService";
 
 import logo from "../assets/logo.png";
@@ -53,32 +54,6 @@ function normalizarUsername(valor = "") {
     .trim();
 }
 
-
-function salvarSessaoLocal(
-  perfil,
-  lembrar
-) {
-  localStorage.setItem(
-    "chegou_perfil",
-    JSON.stringify(perfil)
-  );
-
-  localStorage.setItem(
-    "chegou_ultimo_uso",
-    String(Date.now())
-  );
-
-  if (lembrar) {
-    localStorage.setItem(
-      "chegou_lembrar",
-      "true"
-    );
-  } else {
-    localStorage.removeItem(
-      "chegou_lembrar"
-    );
-  }
-}
 
 
 function Login({ onLogin }) {
@@ -330,7 +305,7 @@ function Login({ onLogin }) {
       );
 
 
-      salvarSessaoLocal(
+      salvarSessaoAutenticada(
         resultado.perfil,
         lembrarMe
       );

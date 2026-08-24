@@ -1,20 +1,24 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.22.003",
-  "appVersion": "1.2.5",
+  "releaseId": "2026.08.24.001",
+  "appVersion": "1.2.6",
   "scope": "GLOBAL",
-  "modules": [],
+  "modules": [
+    "Morador",
+    "Administrativo"
+  ],
   "mandatory": false,
-  "publishedAt": "2026-08-22T18:50:00-03:00",
-  "title": "Evolução do acesso e da experiência do Morador",
-  "message": "Atualizamos o Sistema Chegou! com melhorias na autenticação do Morador, no reconhecimento de diferentes perfis de acesso e na apresentação das informações residenciais.",
+  "publishedAt": "2026-08-24T15:15:00-03:00",
+  "title": "Evolução do acesso e da auditoria do Morador",
+  "message": "Atualizamos o Sistema Chegou! com melhorias no acesso do Morador e na conferência administrativa dos dados cadastrais, deixando as informações mais claras, consistentes e seguras.",
   "highlights": [
-    "Aprimoramento do acesso do Morador por e-mail ou CPF.",
-    "Evolução do reconhecimento de usuários que possuem mais de um perfil de acesso no Sistema Chegou!.",
-    "Preservação dos diferentes contextos de acesso de Morador e Funcionário.",
-    "Melhoria na apresentação do vínculo residencial no Resumo do Morador.",
-    "Aprimoramento da identificação de condomínio, torre e unidade do Morador.",
-    "Melhorias na apresentação de Dependentes e informações de garagem.",
-    "Reforços gerais de segurança, estabilidade e consistência na autenticação."
+    "Acesso do Morador por e-mail ou CPF.",
+    "Melhoria na preservação do último perfil utilizado ao retornar ao Sistema Chegou!.",
+    "Evolução da conferência administrativa dos dados do Morador.",
+    "Torre, unidade e informações de garagem agora podem ser conferidas e corrigidas durante a auditoria.",
+    "Melhor organização das informações apresentadas no resumo e na auditoria do cadastro.",
+    "Pontos de atenção passam a refletir as correções já realizadas durante a conferência.",
+    "Melhorias na apresentação de dependentes, preferências e informações residenciais.",
+    "Reforços de segurança, rastreabilidade e consistência no processo de aprovação cadastral."
   ]
 }

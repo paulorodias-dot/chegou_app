@@ -38,11 +38,364 @@ function normalizarEmail(valor = "") {
 }
 
 
+const CHAVE_PERFIL_LOCAL =
+  "chegou_perfil";
+
+const CHAVE_CONTEXTO_SESSAO =
+  "chegou_contexto_sessao";
+
+const CHAVE_ULTIMO_USO =
+  "chegou_ultimo_uso";
+
+const CHAVE_LEMBRAR =
+  "chegou_lembrar";
+
+
+function lerJsonLocal(chave) {
+  try {
+    const valor =
+      localStorage.getItem(chave);
+
+    return valor
+      ? JSON.parse(valor)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+
+function montarContextoSessao(perfil = {}) {
+  return {
+    version: 1,
+
+    origem_login:
+      String(
+        perfil?.origem_login || ""
+      ).trim() || null,
+
+    usuario_id:
+      perfil?.id || null,
+
+    condominio_id:
+      perfil?.condominio_id || null,
+
+    unidade_id:
+      perfil?.unidade_id || null,
+
+    pessoa_id:
+      perfil?.pessoa_id || null,
+
+    papel:
+      perfil?.papel || null,
+
+    nivel_contextual:
+      perfil?.nivel_contextual ??
+      perfil?.nivel_id ??
+      null,
+  };
+}
+
+
+/**
+ * Persiste apenas dados de apresentação/contexto da sessão.
+ *
+ * IMPORTANTE:
+ * - não grava senha;
+ * - não grava access_token;
+ * - não grava refresh_token;
+ * - o contexto salvo NÃO autoriza acesso;
+ * - a autorização é revalidada no backend ao restaurar.
+ */
+export function salvarSessaoAutenticada(
+  perfil,
+  lembrar = false
+) {
+  if (!perfil?.id) {
+    throw new Error(
+      "Perfil autenticado inválido."
+    );
+  }
+
+  localStorage.setItem(
+    CHAVE_PERFIL_LOCAL,
+    JSON.stringify(perfil)
+  );
+
+  localStorage.setItem(
+    CHAVE_CONTEXTO_SESSAO,
+    JSON.stringify(
+      montarContextoSessao(perfil)
+    )
+  );
+
+  localStorage.setItem(
+    CHAVE_ULTIMO_USO,
+    String(Date.now())
+  );
+
+  if (lembrar) {
+    localStorage.setItem(
+      CHAVE_LEMBRAR,
+      "true"
+    );
+  } else {
+    localStorage.removeItem(
+      CHAVE_LEMBRAR
+    );
+  }
+}
+
+
+function obterContextoSessaoLocal() {
+  return lerJsonLocal(
+    CHAVE_CONTEXTO_SESSAO
+  );
+}
+
+
+function selecionarContextoResidencial(
+  resposta,
+  contextoSalvo
+) {
+  const contextos =
+    Array.isArray(
+      resposta?.contextos
+    )
+      ? resposta.contextos
+      : [];
+
+  if (
+    resposta?.contexto &&
+    typeof resposta.contexto === "object"
+  ) {
+    return resposta.contexto;
+  }
+
+  if (!contextos.length) {
+    return null;
+  }
+
+  const condominioId =
+    contextoSalvo?.condominio_id ||
+    null;
+
+  const unidadeId =
+    contextoSalvo?.unidade_id ||
+    null;
+
+  if (condominioId && unidadeId) {
+    const exato =
+      contextos.find(
+        (item) =>
+          String(
+            item?.condominio_id || ""
+          ) ===
+            String(condominioId) &&
+          String(
+            item?.unidade_id || ""
+          ) ===
+            String(unidadeId)
+      );
+
+    if (exato) {
+      return exato;
+    }
+  }
+
+  if (condominioId) {
+    const mesmoCondominio =
+      contextos.filter(
+        (item) =>
+          String(
+            item?.condominio_id || ""
+          ) ===
+          String(condominioId)
+      );
+
+    if (
+      mesmoCondominio.length === 1
+    ) {
+      return mesmoCondominio[0];
+    }
+  }
+
+  if (contextos.length === 1) {
+    return contextos[0];
+  }
+
+  return null;
+}
+
+
+async function restaurarPerfilResidencial(
+  session,
+  contextoSalvo
+) {
+  const authUserId =
+    session?.user?.id;
+
+  if (!authUserId) {
+    return null;
+  }
+
+  /*
+   * O marcador local só informa qual contexto o usuário escolheu.
+   * O backend revalida se esse auth.uid() ainda possui contexto
+   * residencial ativo e autorizado.
+   */
+  const {
+    data: contextoData,
+    error: contextoError,
+  } = await supabase.rpc(
+    "fn_auth_morador_contexto_v1"
+  );
+
+  if (
+    contextoError ||
+    contextoData?.success !== true
+  ) {
+    return null;
+  }
+
+  const contexto =
+    selecionarContextoResidencial(
+      contextoData,
+      contextoSalvo
+    );
+
+  if (!contexto) {
+    return null;
+  }
+
+  if (
+    String(
+      contexto?.auth_user_id ||
+      contexto?.usuario_id ||
+      ""
+    ) !==
+      String(authUserId) &&
+    String(
+      contexto?.usuario_id || ""
+    ) !==
+      String(authUserId)
+  ) {
+    return null;
+  }
+
+  const nivelContextual =
+    Number(
+      contexto?.nivel_contextual
+    );
+
+  const papel =
+    String(
+      contexto?.papel || ""
+    ).toUpperCase();
+
+  if (
+    ![6, 7].includes(
+      nivelContextual
+    ) ||
+    ![
+      "MORADOR",
+      "DEPENDENTE",
+    ].includes(papel)
+  ) {
+    return null;
+  }
+
+  const perfilRaiz =
+    await buscarPerfilUsuario(
+      authUserId
+    );
+
+  return {
+    id:
+      perfilRaiz.id,
+
+    business_id:
+      perfilRaiz.business_id,
+
+    nome:
+      perfilRaiz.nome,
+
+    telefone:
+      perfilRaiz.telefone,
+
+    cpf:
+      perfilRaiz.cpf,
+
+    ativo:
+      perfilRaiz.ativo,
+
+    status_cadastro:
+      perfilRaiz.status_cadastro,
+
+    primeiro_acesso:
+      perfilRaiz.primeiro_acesso,
+
+    email:
+      contexto?.email_login ||
+      null,
+
+    username:
+      null,
+
+    nivel_id:
+      nivelContextual,
+
+    nivel_contextual:
+      nivelContextual,
+
+    papel,
+
+    tipo_vinculo:
+      "morador",
+
+    tipo_morador:
+      contexto?.tipo_morador ||
+      null,
+
+    origem_login:
+      "morador",
+
+    pessoa_id:
+      contexto?.pessoa_id,
+
+    condominio_id:
+      contexto?.condominio_id,
+
+    unidade_id:
+      contexto?.unidade_id,
+
+    usuario_condominio_vinculo_id:
+      contexto
+        ?.usuario_condominio_vinculo_id,
+
+    morador_unidade_vinculo_id:
+      contexto
+        ?.morador_unidade_vinculo_id,
+
+    principal:
+      Boolean(
+        contexto?.principal
+      ),
+
+    permissao_global:
+      false,
+
+    permissao_global_contextual:
+      false,
+  };
+}
+
+
 /**
  * Retorna true quando o usuário optou por permanecer conectado.
  */
 export function deveManterConectado() {
-  return localStorage.getItem("chegou_lembrar") === "true";
+  return localStorage.getItem(CHAVE_LEMBRAR) === "true";
 }
 
 
@@ -50,7 +403,7 @@ export function deveManterConectado() {
  * Atualiza o horário da última atividade conhecida do usuário.
  */
 function atualizarUltimoUso() {
-  localStorage.setItem("chegou_ultimo_uso", String(Date.now()));
+  localStorage.setItem(CHAVE_ULTIMO_USO, String(Date.now()));
 }
 
 
@@ -63,7 +416,7 @@ export function sessaoExpiradaPorInatividade() {
   }
 
   const ultimoUso = Number(
-    localStorage.getItem("chegou_ultimo_uso") || 0
+    localStorage.getItem(CHAVE_ULTIMO_USO) || 0
   );
 
   if (!ultimoUso) {
@@ -516,37 +869,117 @@ export async function loginEquipeChegou(
 /**
  * Recupera uma sessão Supabase já existente.
  *
- * ATENÇÃO:
- * este método ainda será evoluído no GATE 46B.11DC
- * para restaurar corretamente contextos multi-role.
+ * Regra multi-role:
+ * - a sessão Auth identifica QUEM está autenticado;
+ * - chegou_contexto_sessao registra QUAL contexto foi escolhido;
+ * - se o último contexto foi Morador/Dependente, o backend
+ *   revalida esse contexto antes de reconstruir o perfil;
+ * - nenhum papel é restaurado somente a partir do localStorage.
  */
 export async function recuperarSessaoAtual() {
-  if (sessaoExpiradaPorInatividade()) {
+  if (
+    sessaoExpiradaPorInatividade()
+  ) {
     await logout();
     return null;
   }
 
-  const { data, error } =
-    await supabase.auth.getSession();
+  const {
+    data,
+    error,
+  } = await supabase.auth
+    .getSession();
 
   if (error) {
     limparSessaoLocal();
     return null;
   }
 
-  if (!data?.session?.user?.id) {
+  const session =
+    data?.session;
+
+  const userId =
+    session?.user?.id;
+
+  if (!userId) {
     limparSessaoLocal();
     return null;
   }
 
-  const perfil = await buscarPerfilUsuario(
-    data.session.user.id
-  );
+  const contextoSalvo =
+    obterContextoSessaoLocal();
+
+  let perfil = null;
+
+  /*
+   * Último login escolhido explicitamente como Morador.
+   *
+   * Não reutilizamos chegou_perfil como autoridade.
+   * A função fn_auth_morador_contexto_v1() confirma novamente
+   * vínculo, condomínio, unidade e papel contextual.
+   */
+  if (
+    contextoSalvo?.origem_login ===
+      "morador" &&
+    (
+      !contextoSalvo?.usuario_id ||
+      String(
+        contextoSalvo.usuario_id
+      ) === String(userId)
+    )
+  ) {
+    perfil =
+      await restaurarPerfilResidencial(
+        session,
+        contextoSalvo
+      );
+
+    /*
+     * Se o contexto residencial salvo não puder mais ser
+     * confirmado, não fazemos fallback silencioso para um
+     * perfil global/administrativo. Isso impediria justamente
+     * a troca involuntária de papel que esta correção resolve.
+     */
+    if (!perfil) {
+      limparSessaoLocal();
+
+      await supabase.auth
+        .signOut();
+
+      return null;
+    }
+  } else {
+    /*
+     * Fluxos já existentes de Equipe/Funcionário/Admin.
+     * Mantemos a restauração raiz atual para não alterar
+     * contratos fora do escopo deste GATE.
+     */
+    perfil =
+      await buscarPerfilUsuario(
+        userId
+      );
+  }
 
   atualizarUltimoUso();
 
+  /*
+   * Atualiza apenas a cópia de apresentação e o marcador
+   * do contexto depois que a autorização foi reconstruída.
+   */
+  localStorage.setItem(
+    CHAVE_PERFIL_LOCAL,
+    JSON.stringify(perfil)
+  );
+
+  localStorage.setItem(
+    CHAVE_CONTEXTO_SESSAO,
+    JSON.stringify(
+      montarContextoSessao(perfil)
+    )
+  );
+
   return {
-    auth: data.session,
+    auth: session,
     perfil,
   };
 }
@@ -557,15 +990,19 @@ export async function recuperarSessaoAtual() {
  */
 export function limparSessaoLocal() {
   localStorage.removeItem(
-    "chegou_perfil"
+    CHAVE_PERFIL_LOCAL
   );
 
   localStorage.removeItem(
-    "chegou_ultimo_uso"
+    CHAVE_CONTEXTO_SESSAO
   );
 
   localStorage.removeItem(
-    "chegou_lembrar"
+    CHAVE_ULTIMO_USO
+  );
+
+  localStorage.removeItem(
+    CHAVE_LEMBRAR
   );
 }
 

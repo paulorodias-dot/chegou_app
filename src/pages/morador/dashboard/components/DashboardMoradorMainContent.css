@@ -995,3 +995,87 @@
     padding: 8px;
   }
 }
+
+/* =========================================================
+   RASTREIO — RESUMO ENTERPRISE
+   ========================================================= */
+
+.dashboard-morador-tracking-summary {
+  margin-top: 10px;
+
+  padding-top: 9px;
+
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 5px 8px;
+
+  border-top:
+    1px solid var(--dm-border-soft);
+}
+
+.dashboard-morador-tracking-summary
+  > span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 4px;
+
+  min-width: 0;
+
+  padding: 4px 7px;
+
+  border-radius: 999px;
+
+  background: #f5f3ff;
+
+  color: #6d28d9;
+
+  font-size: 9px;
+  line-height: 1.2;
+  font-weight: 500;
+
+  white-space: nowrap;
+}
+
+.dashboard-morador-tracking-summary
+  > span
+  > strong {
+  color: #5b21b6;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+/* DARK */
+
+.dark
+  .dashboard-morador-tracking-summary
+  > span,
+[data-theme="dark"]
+  .dashboard-morador-tracking-summary
+  > span {
+  background:
+    rgba(124, 58, 237, 0.14);
+
+  color: #c4b5fd;
+}
+
+.dark
+  .dashboard-morador-tracking-summary
+  > span
+  > strong,
+[data-theme="dark"]
+  .dashboard-morador-tracking-summary
+  > span
+  > strong {
+  color: #ddd6fe;
+}
+
+/* MOBILE */
+
+@media (max-width: 680px) {
+  .dashboard-morador-tracking-summary {
+    display: none;
+  }
+}

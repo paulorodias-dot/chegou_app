@@ -33,6 +33,7 @@ function DashboardPrimaryCard({
   value,
   variant,
   onClick,
+  details = null,
 }) {
   return (
     <button
@@ -80,6 +81,8 @@ function DashboardPrimaryCard({
           Ver detalhes
         </span>
       </footer>
+
+      {details}
     </button>
   );
 }
@@ -125,11 +128,10 @@ export default function DashboardMoradorMainContent({
         <DashboardPrimaryCard
           icon={Radar}
           eyebrow="Rastreio"
-          title="Rastrear encomenda"
-          description="Acompanhe seus rastreios."
+          title="Rastreios em acompanhamento"
+          description="Acompanhe suas entregas antes da entrada na Portaria."
           value={
-            indicadores
-              ?.rastreiosAtivos
+            indicadores?.rastreiosAtivos
           }
           variant="purple"
           onClick={() =>
@@ -137,6 +139,65 @@ export default function DashboardMoradorMainContent({
               DASHBOARD_MORADOR_ROUTES
                 .rastreio
             )
+          }
+          details={
+            indicadores?.rastreioResumo ? (
+              <div className="dashboard-morador-tracking-summary">
+                {indicadores
+                  .rastreioResumo
+                  .aguardandoRecebimento > 0 && (
+                  <span>
+                    <strong>
+                      {
+                        indicadores
+                          .rastreioResumo
+                          .aguardandoRecebimento
+                      }
+                    </strong>
+
+                    aguardando recebimento
+                  </span>
+                )}
+
+                {indicadores
+                  .rastreioResumo
+                  .localizadoPortaria > 0 && (
+                  <span>
+                    <strong>
+                      {
+                        indicadores
+                          .rastreioResumo
+                          .localizadoPortaria
+                      }
+                    </strong>
+
+                    localizado
+                    {indicadores
+                      .rastreioResumo
+                      .localizadoPortaria === 1
+                      ? ""
+                      : "s"}{" "}
+                    na Portaria
+                  </span>
+                )}
+
+                {indicadores
+                  .rastreioResumo
+                  .aguardandoEntrada > 0 && (
+                  <span>
+                    <strong>
+                      {
+                        indicadores
+                          .rastreioResumo
+                          .aguardandoEntrada
+                      }
+                    </strong>
+
+                    aguardando entrada
+                  </span>
+                )}
+              </div>
+            ) : null
           }
         />
 

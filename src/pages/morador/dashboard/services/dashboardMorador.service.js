@@ -18,6 +18,15 @@ function normalizarArray(valor) {
     : [];
 }
 
+function numeroSeguro(valor) {
+  const numero =
+    Number(valor);
+
+  return Number.isFinite(numero)
+    ? numero
+    : 0;
+}
+
 function montarTorreExibicao({
   nome,
   identificador,
@@ -189,6 +198,32 @@ function mapearGaragem(item) {
   };
 }
 
+function criarIndicadoresVazios() {
+  return {
+    encomendasAguardando: null,
+
+    rastreiosAtivos: null,
+
+    rastreioResumo: {
+      total: 0,
+
+      aguardandoRecebimento: 0,
+
+      localizadoPortaria: 0,
+
+      aguardandoEntrada: 0,
+    },
+
+    emprestimosGaragem: null,
+
+    servicosAgendados: null,
+  };
+}
+
+/* =========================================================
+   RESUMO OPERACIONAL DO MORADOR
+   ========================================================= */
+
 export async function carregarResumoOperacionalMorador() {
   const resumoVazio =
     criarResumoVazio();
@@ -260,13 +295,6 @@ export async function carregarResumoOperacionalMorador() {
 
     nomeSocial,
 
-    /*
-     * Autoridade de apresentação:
-     *
-     * Nome Social
-     * ↓
-     * Nome Civil
-     */
     nomeMorador:
       normalizarValor(
         contexto.nome_exibicao
@@ -355,14 +383,106 @@ export async function carregarResumoOperacionalMorador() {
   };
 }
 
-export async function carregarIndicadoresDashboardMorador() {
+/* =========================================================
+   INDICADORES DO DASHBOARD
+   ========================================================= */
+
+export async function carregarIndicadoresDashboardMorador({
+  condominioId,
+} = {}) {
+  const indicadores =
+    criarIndicadoresVazios();
+
+  if (!condominioId) {
+    return indicadores;
+  }
+
+  /*
+   * KPI OFICIAL DE RASTREIO
+   *
+   * O Dashboard NÃO consulta tabela.
+   * Toda classificação operacional pertence
+   * ao domínio de Rastreio no backend.
+   */
+
+  const {
+    data,
+    error,
+  } = await supabase.rpc(
+    "rpc_morador_rastreios_resumo_v1",
+    {
+      p_condominio_id:
+        condominioId,
+    }
+  );
+
+  if (error) {
+    console.error(
+      "[Dashboard Morador] Erro ao carregar resumo de rastreios:",
+      error
+    );
+
+    throw error;
+  }
+
+  const resposta =
+    data && typeof data === "object"
+      ? data
+      : {};
+
+  const porStatus =
+    resposta?.por_status &&
+    typeof resposta.por_status ===
+      "object"
+      ? resposta.por_status
+      : {};
+
+  const total =
+    numeroSeguro(
+      resposta
+        ?.total_em_acompanhamento
+    );
+
   return {
-    encomendasAguardando: null,
-    rastreiosAtivos: null,
-    emprestimosGaragem: null,
-    servicosAgendados: null,
+    ...indicadores,
+
+    /*
+     * Valor principal do card.
+     */
+    rastreiosAtivos:
+      total,
+
+    /*
+     * Contrato detalhado preparado
+     * para apresentação Enterprise.
+     */
+    rastreioResumo: {
+      total,
+
+      aguardandoRecebimento:
+        numeroSeguro(
+          porStatus
+            ?.aguardando_recebimento
+        ),
+
+      localizadoPortaria:
+        numeroSeguro(
+          porStatus
+            ?.encontrado_no_lote
+        ),
+
+      aguardandoEntrada:
+        numeroSeguro(
+          porStatus
+            ?.aguardando_entrada
+        ),
+    },
   };
 }
+
+/* =========================================================
+   AGENDA
+   ========================================================= */
 
 export async function carregarAgendaDashboardMorador() {
   return [];

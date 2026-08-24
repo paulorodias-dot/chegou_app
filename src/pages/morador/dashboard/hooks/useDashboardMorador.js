@@ -14,8 +14,18 @@ import {
 
 const INDICADORES_INICIAIS = {
   encomendasAguardando: null,
+
   rastreiosAtivos: null,
+
+  rastreioResumo: {
+    total: 0,
+    aguardandoRecebimento: 0,
+    localizadoPortaria: 0,
+    aguardandoEntrada: 0,
+  },
+
   emprestimosGaragem: null,
+
   servicosAgendados: null,
 };
 
@@ -100,19 +110,13 @@ export default function useDashboardMorador({
     usuario?.id || null;
 
   /*
-   * ========================================================
-   * NOME PARA EXIBIÇÃO
-   * ========================================================
+   * Condomínio ativo da sessão/contexto.
    *
-   * Autoridade principal:
-   *
-   * RPC
-   * → pessoas.nome_social
-   * → pessoas.nome_completo
-   *
-   * O objeto "usuario" abaixo é somente fallback
-   * enquanto o resumo oficial ainda está carregando.
+   * O backend continua validando se
+   * auth.uid() possui vínculo ativo.
    */
+  const condominioId =
+    usuario?.condominio_id || null;
 
   const nomeFallback =
     usuario?.nome ||
@@ -138,12 +142,6 @@ export default function useDashboardMorador({
     [nomeExibicao]
   );
 
-  /*
-   * ========================================================
-   * PERFIL
-   * ========================================================
-   */
-
   const perfilDescricao = useMemo(
     () =>
       resolverPerfilMorador({
@@ -161,24 +159,10 @@ export default function useDashboardMorador({
     ]
   );
 
-  /*
-   * ========================================================
-   * CARREGAMENTO
-   * ========================================================
-   */
-
   const carregar = useCallback(
     async ({
       modoRecarga = false,
     } = {}) => {
-      /*
-       * O App ainda precisa fornecer
-       * o usuário funcional carregado.
-       *
-       * A identidade usada pela RPC,
-       * entretanto, é auth.uid().
-       */
-
       if (!usuarioId) {
         if (
           montadoRef.current
@@ -211,18 +195,13 @@ export default function useDashboardMorador({
         setCarregando(true);
       }
 
-      /*
-       * Cada domínio é carregado isoladamente.
-       *
-       * Uma eventual falha em Agenda,
-       * por exemplo, não derruba o Resumo.
-       */
-
       const resultados =
         await Promise.allSettled([
           carregarResumoOperacionalMorador(),
 
-          carregarIndicadoresDashboardMorador(),
+          carregarIndicadoresDashboardMorador({
+            condominioId,
+          }),
 
           carregarAgendaDashboardMorador(),
         ]);
@@ -239,11 +218,7 @@ export default function useDashboardMorador({
         resultadoAgenda,
       ] = resultados;
 
-      /*
-       * ====================================================
-       * RESUMO DO MORADOR
-       * ====================================================
-       */
+      /* RESUMO */
 
       if (
         resultadoResumo.status ===
@@ -268,11 +243,7 @@ export default function useDashboardMorador({
         );
       }
 
-      /*
-       * ====================================================
-       * INDICADORES
-       * ====================================================
-       */
+      /* INDICADORES */
 
       if (
         resultadoIndicadores.status ===
@@ -301,11 +272,7 @@ export default function useDashboardMorador({
         );
       }
 
-      /*
-       * ====================================================
-       * AGENDA
-       * ====================================================
-       */
+      /* AGENDA */
 
       if (
         resultadoAgenda.status ===
@@ -337,14 +304,11 @@ export default function useDashboardMorador({
 
       setRecarregando(false);
     },
-    [usuarioId]
+    [
+      usuarioId,
+      condominioId,
+    ]
   );
-
-  /*
-   * ========================================================
-   * RECARGA MANUAL
-   * ========================================================
-   */
 
   const recarregar =
     useCallback(
@@ -354,12 +318,6 @@ export default function useDashboardMorador({
         }),
       [carregar]
     );
-
-  /*
-   * ========================================================
-   * PRIMEIRA CARGA
-   * ========================================================
-   */
 
   useEffect(() => {
     montadoRef.current =
@@ -372,12 +330,6 @@ export default function useDashboardMorador({
         false;
     };
   }, [carregar]);
-
-  /*
-   * ========================================================
-   * CONTRATO PÚBLICO DO HOOK
-   * ========================================================
-   */
 
   return {
     primeiroNome,

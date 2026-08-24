@@ -3121,3 +3121,1440 @@
     min-height: 54px;
   }
 }
+
+/* ============================================================================
+   AUDITORIA GLOBAL — RESIDÊNCIA / GARAGEM / PREFERÊNCIAS
+   GATE 46B — Drawer único com permissões por modo
+   ============================================================================ */
+
+.ama-garage-audit {
+  margin-top: 14px;
+}
+
+.ama-garage-read-list,
+.ama-garage-editor-list {
+  margin-top: 14px;
+}
+
+.ama-garage-editor-card {
+  border: 1px solid var(--ama-border, #e2e8f0);
+  border-radius: 14px;
+  background: var(--ama-surface, #ffffff);
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.ama-garage-editor-list {
+  display: grid;
+  gap: 12px;
+}
+
+.ama-garage-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ama-garage-editor-head strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ama-text, #0f172a);
+}
+
+.ama-link-danger {
+  border: 0;
+  background: transparent;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.ama-link-danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ama-garage-add {
+  min-height: 40px;
+  border: 1px dashed var(--ama-border-strong, #cbd5e1);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ama-primary, #0f3f8f);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 9px 14px;
+}
+
+.ama-garage-add:hover:not(:disabled) {
+  background: rgba(15, 63, 143, 0.06);
+}
+
+.ama-garage-add:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ama-preferences-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ama-preference-card {
+  border: 1px solid var(--ama-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--ama-surface, #ffffff);
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.ama-preference-card.wide {
+  grid-column: 1 / -1;
+}
+
+.ama-preference-card span {
+  color: var(--ama-muted, #64748b);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ama-preference-card strong {
+  color: var(--ama-text, #0f172a);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+@media (max-width: 680px) {
+  .ama-preferences-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ama-preference-card.wide {
+    grid-column: auto;
+  }
+
+  .ama-garage-editor-card {
+    padding: 14px;
+  }
+}
+
+[data-theme="dark"] .ama-garage-editor-card,
+[data-theme="dark"] .ama-preference-card,
+.dark .ama-garage-editor-card,
+.dark .ama-preference-card {
+  background: var(--ama-surface, #111827);
+  border-color: var(--ama-border, #334155);
+}
+
+
+/* ============================================================================
+   GATE 46B — Refinamento visual Garagem + contador de Pontos de Atenção
+   ============================================================================ */
+
+.ama-garage-editor-list {
+  gap: 16px;
+}
+
+.ama-garage-editor-card {
+  overflow: hidden;
+  border: 1px solid #dbe5f1;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  padding: 0;
+  gap: 0;
+}
+
+.ama-garage-editor-head {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.ama-garage-editor-head strong {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ama-garage-editor-card > .ama-residence-form-grid,
+.ama-garage-editor-card > .ama-residence-field {
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
+.ama-garage-editor-card > .ama-residence-form-grid {
+  margin-top: 14px;
+}
+
+.ama-garage-editor-card > .ama-residence-field {
+  margin-top: 14px;
+}
+
+.ama-garage-editor-card > .ama-residence-field:last-child {
+  margin-bottom: 14px;
+}
+
+.ama-garage-add {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px dashed #9fb4d0;
+  border-radius: 10px;
+  background: #f8fbff;
+  color: #0f3f8f;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 10px 14px;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.ama-garage-add-icon {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 22px;
+  border-radius: 999px;
+  background: rgba(15, 63, 143, 0.1);
+  color: #0f3f8f;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.ama-garage-add:hover:not(:disabled) {
+  border-color: #0f3f8f;
+  background: #eef5ff;
+}
+
+.ama-garage-add:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.ama-garage-add:focus-visible {
+  outline: 3px solid rgba(15, 63, 143, 0.18);
+  outline-offset: 2px;
+}
+
+[data-theme="dark"] .ama-garage-editor-card,
+.dark .ama-garage-editor-card {
+  border-color: #334155;
+  background: #0f172a;
+}
+
+[data-theme="dark"] .ama-garage-editor-head,
+.dark .ama-garage-editor-head {
+  border-bottom-color: #334155;
+  background: #111c2f;
+}
+
+[data-theme="dark"] .ama-garage-editor-head strong,
+.dark .ama-garage-editor-head strong {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .ama-garage-add,
+.dark .ama-garage-add {
+  border-color: #496789;
+  background: #111c2f;
+  color: #bfdbfe;
+}
+
+[data-theme="dark"] .ama-garage-add-icon,
+.dark .ama-garage-add-icon {
+  background: rgba(96, 165, 250, 0.14);
+  color: #bfdbfe;
+}
+
+@media (max-width: 680px) {
+  .ama-garage-editor-head {
+    padding: 10px 12px;
+  }
+
+  .ama-garage-editor-card > .ama-residence-form-grid,
+  .ama-garage-editor-card > .ama-residence-field {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+}
+
+/* ============================================================================
+   GATE 46B — V5
+   Restauração visual dos painéis editáveis de Residência e Garagem
+   ============================================================================ */
+
+.ama-residence-audit {
+  display: grid;
+  gap: 14px;
+}
+
+.ama-residence-panel {
+  min-width: 0;
+  border: 1px solid #dbe5f1;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.ama-residence-original {
+  background: #fbfdff;
+}
+
+.ama-residence-reviewed {
+  border-color: #bfd3ef;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.ama-residence-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.ama-residence-panel-head > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.ama-residence-eyebrow {
+  display: block;
+  color: #52657d;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ama-residence-panel-head strong {
+  color: #0f172a;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.ama-residence-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ama-residence-badge.neutral {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.ama-residence-badge.pending {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.ama-residence-badge.saved {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.ama-residence-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ama-residence-field {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.ama-residence-field > span {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.ama-residence-field em {
+  color: #64748b;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.ama-residence-field input,
+.ama-residence-field select,
+.ama-residence-field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.ama-residence-field input,
+.ama-residence-field select {
+  min-height: 44px;
+  padding: 10px 12px;
+}
+
+.ama-residence-field textarea {
+  min-height: 92px;
+  padding: 11px 12px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.ama-residence-field input:focus,
+.ama-residence-field select:focus,
+.ama-residence-field textarea:focus {
+  border-color: #0f3f8f;
+  box-shadow: 0 0 0 3px rgba(15, 63, 143, 0.12);
+}
+
+.ama-residence-field input:disabled,
+.ama-residence-field select:disabled,
+.ama-residence-field textarea:disabled {
+  cursor: not-allowed;
+  background: #f8fafc;
+  color: #64748b;
+  opacity: 0.85;
+}
+
+.ama-residence-observation {
+  margin-top: 14px;
+}
+
+.ama-residence-selection-summary,
+.ama-residence-feedback {
+  margin-top: 14px;
+  border: 1px solid #dbe5f1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 4px;
+  background: #ffffff;
+}
+
+.ama-residence-selection-summary strong,
+.ama-residence-feedback strong {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ama-residence-selection-summary span,
+.ama-residence-feedback span {
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ama-residence-feedback.info {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.ama-residence-feedback.success {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.ama-residence-feedback.danger {
+  border-color: #fecaca;
+  background: #fff1f2;
+}
+
+.ama-residence-loading {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.ama-residence-actions {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.ama-residence-actions > span {
+  max-width: 520px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ama-residence-actions .ama-btn {
+  flex: 0 0 auto;
+}
+
+/* Garagem: subcards e campos herdam integralmente o contrato visual acima. */
+.ama-garage-audit .ama-residence-reviewed > .ama-residence-field:first-of-type {
+  margin-bottom: 14px;
+}
+
+.ama-garage-editor-card .ama-residence-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ama-garage-editor-card .ama-residence-field textarea {
+  min-height: 82px;
+}
+
+@media (max-width: 680px) {
+  .ama-residence-panel {
+    padding: 14px;
+  }
+
+  .ama-residence-panel-head {
+    align-items: flex-start;
+  }
+
+  .ama-residence-form-grid,
+  .ama-garage-editor-card .ama-residence-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ama-residence-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ama-residence-actions .ama-btn {
+    width: 100%;
+  }
+}
+
+[data-theme="dark"] .ama-residence-panel,
+.dark .ama-residence-panel {
+  border-color: #334155;
+  background: #0f172a;
+}
+
+[data-theme="dark"] .ama-residence-reviewed,
+.dark .ama-residence-reviewed {
+  background: linear-gradient(180deg, #111c2f 0%, #0f172a 100%);
+}
+
+[data-theme="dark"] .ama-residence-panel-head strong,
+[data-theme="dark"] .ama-residence-field,
+[data-theme="dark"] .ama-residence-field > span,
+.dark .ama-residence-panel-head strong,
+.dark .ama-residence-field,
+.dark .ama-residence-field > span {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .ama-residence-field input,
+[data-theme="dark"] .ama-residence-field select,
+[data-theme="dark"] .ama-residence-field textarea,
+.dark .ama-residence-field input,
+.dark .ama-residence-field select,
+.dark .ama-residence-field textarea {
+  border-color: #475569;
+  background: #111827;
+  color: #f8fafc;
+}
+
+
+/* ==========================================================================
+   SISTEMA CHEGOU! — DRAWER AUDITORIA PREMIUM V6
+   --------------------------------------------------------------------------
+   Escopo exclusivamente visual.
+   NÃO altera:
+   - RPCs
+   - regras de auditoria
+   - persistência
+   - aprovação
+   - dados/conteúdo
+   ========================================================================== */
+
+.ama-page {
+  --ama-royal: #0f3f8f;
+  --ama-royal-dark: #0b2f6b;
+  --ama-royal-soft: #eef4ff;
+  --ama-premium-surface: #ffffff;
+  --ama-premium-surface-soft: #f8fafc;
+  --ama-premium-border: #e2e8f0;
+  --ama-premium-border-strong: #d7e0eb;
+  --ama-premium-shadow: 0 18px 55px rgba(15, 23, 42, 0.12);
+}
+
+/* Overlay mais elegante e com foco real no workspace. */
+.ama-drawer-backdrop {
+  background: rgba(2, 6, 23, 0.56);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Container mestre do Drawer. */
+.ama-audit-drawer {
+  width: min(780px, calc(100vw - 20px));
+  border-left: 1px solid rgba(148, 163, 184, 0.34);
+  background: #f4f7fb;
+  box-shadow:
+    -34px 0 90px rgba(2, 6, 23, 0.24),
+    -1px 0 0 rgba(255, 255, 255, 0.55);
+}
+
+/* Topbar Royal — padrão Premium oficial. */
+.ama-audit-head {
+  position: relative;
+  z-index: 4;
+  padding: 18px 20px 17px;
+  border-bottom: 0;
+  background:
+    radial-gradient(
+      circle at 88% -30%,
+      rgba(255, 255, 255, 0.18),
+      transparent 38%
+    ),
+    linear-gradient(
+      135deg,
+      var(--ama-royal) 0%,
+      var(--ama-royal-dark) 100%
+    );
+  box-shadow: 0 8px 24px rgba(15, 63, 143, 0.18);
+}
+
+.ama-audit-head span {
+  margin-bottom: 5px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.075em;
+}
+
+.ama-audit-head h2 {
+  color: #fff;
+  font-size: 20px;
+  letter-spacing: -0.025em;
+}
+
+.ama-audit-head p {
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 11px;
+  font-weight: 550;
+}
+
+.ama-audit-head button {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.ama-audit-head button:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* Perfil vira card-resumo limpo abaixo da topbar. */
+.ama-audit-profile {
+  margin: 14px 16px 0;
+  padding: 14px;
+  border: 1px solid var(--ama-premium-border);
+  border-radius: 16px;
+  background: var(--ama-premium-surface);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
+  grid-template-columns: 48px minmax(0, 1fr) 148px;
+}
+
+.ama-profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      145deg,
+      var(--ama-royal),
+      #245bac 64%,
+      var(--ama-orange)
+    );
+  box-shadow: 0 8px 18px rgba(15, 63, 143, 0.18);
+  font-size: 13px;
+}
+
+.ama-profile-title h3 {
+  font-size: 14px;
+  letter-spacing: -0.015em;
+}
+
+.ama-profile-title span {
+  min-height: 20px;
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  color: var(--ama-royal);
+  font-size: 9.5px;
+}
+
+.ama-profile-main > p {
+  margin: 4px 0 9px;
+  font-size: 10.5px;
+}
+
+.ama-profile-grid {
+  gap: 7px;
+}
+
+.ama-profile-summary {
+  border-color: #e2e8f0;
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      180deg,
+      #fbfdff,
+      #f8fafc
+    );
+  padding: 10px 11px;
+}
+
+.ama-profile-summary span {
+  color: #64748b;
+  font-size: 9px;
+}
+
+.ama-profile-summary strong {
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+/* Corpo com respiro e scrollbar discreta. */
+.ama-accordion-list {
+  padding: 14px 16px 18px;
+  gap: 10px;
+  background: transparent;
+}
+
+.ama-accordion-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ama-accordion-list::-webkit-scrollbar-thumb {
+  border: 2px solid #f4f7fb;
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+/* Seções como cards Premium reais. */
+.ama-accordion-item {
+  overflow: hidden;
+  border: 1px solid var(--ama-premium-border);
+  border-radius: 15px;
+  background: var(--ama-premium-surface);
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.038);
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+
+.ama-accordion-item:hover {
+  border-color: #d7dee9;
+}
+
+.ama-accordion-item.open {
+  border-color: rgba(15, 63, 143, 0.25);
+  box-shadow: 0 11px 30px rgba(15, 23, 42, 0.065);
+}
+
+.ama-accordion-head {
+  min-height: 62px;
+  padding: 11px 14px;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #fbfcfe
+    );
+}
+
+.ama-accordion-head:hover {
+  background: #f8fbff;
+}
+
+.ama-accordion-item.open .ama-accordion-head {
+  border-bottom: 1px solid #e8edf4;
+  background:
+    linear-gradient(
+      180deg,
+      #f7faff,
+      #ffffff
+    );
+}
+
+.ama-accordion-title {
+  gap: 11px;
+}
+
+.ama-accordion-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid #dce8fa;
+  border-radius: 10px;
+  background: var(--ama-royal-soft);
+  color: var(--ama-royal);
+}
+
+.ama-accordion-title strong {
+  color: #0f172a;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.ama-accordion-title span {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 550;
+}
+
+.ama-accordion-status {
+  gap: 8px;
+}
+
+.ama-accordion-status > span {
+  min-height: 24px;
+  padding: 5px 9px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.ama-accordion-item.open .ama-accordion-status > span {
+  border-color: #dbeafe;
+  background: #eff6ff;
+  color: var(--ama-royal);
+}
+
+.ama-accordion-status svg {
+  color: #94a3b8;
+}
+
+.ama-accordion-item.open .ama-accordion-status svg {
+  color: var(--ama-royal);
+}
+
+.ama-accordion-body {
+  padding: 14px;
+  background: #fff;
+}
+
+/* Campos de leitura: menos "caixinhas pesadas", mais ficha executiva. */
+.ama-fields-grid {
+  gap: 9px;
+}
+
+.ama-read-field {
+  min-height: 62px;
+  padding: 10px 11px;
+  border: 1px solid #e7ebf1;
+  border-radius: 11px;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #fbfcfe
+    );
+}
+
+.ama-read-field span {
+  margin-bottom: 6px;
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.ama-read-field strong {
+  color: #172033;
+  font-size: 11.5px;
+  line-height: 1.35;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* Cards de dependentes / registros internos. */
+.ama-dependent-card,
+.ama-simple-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.032);
+}
+
+.ama-dependent-head {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+/* ========================================================================
+   RESIDÊNCIA — diferencia claramente declaração x conferência.
+   ======================================================================== */
+
+.ama-residence-audit,
+.ama-garage-audit {
+  gap: 11px;
+}
+
+.ama-residence-panel {
+  border: 1px solid #e1e7ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.ama-residence-original {
+  border-color: #e2e8f0;
+  background:
+    linear-gradient(
+      180deg,
+      #fbfcfe,
+      #f8fafc
+    );
+}
+
+.ama-residence-reviewed {
+  border-color: rgba(15, 63, 143, 0.22);
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #f8fbff
+    );
+  box-shadow: inset 3px 0 0 var(--ama-royal);
+}
+
+.ama-residence-panel-head {
+  padding: 12px 13px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.ama-residence-eyebrow {
+  color: #7c899b;
+  font-size: 8.8px;
+  font-weight: 800;
+  letter-spacing: 0.085em;
+}
+
+.ama-residence-panel-head strong {
+  color: #172033;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ama-residence-badge {
+  min-height: 23px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 8.8px;
+  font-weight: 800;
+}
+
+.ama-residence-badge.neutral {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.ama-residence-badge.pending {
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.ama-residence-badge.saved {
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.ama-residence-form-grid {
+  gap: 10px;
+}
+
+.ama-residence-field {
+  gap: 6px;
+  color: #334155;
+}
+
+.ama-residence-field > span {
+  color: #475569;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.ama-residence-field input,
+.ama-residence-field select,
+.ama-residence-field textarea {
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  color: #172033;
+  box-shadow:
+    inset 0 1px 1px rgba(15, 23, 42, 0.025),
+    0 1px 0 rgba(255, 255, 255, 0.8);
+  font-size: 11.5px;
+  font-weight: 600;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.ama-residence-field input:hover,
+.ama-residence-field select:hover,
+.ama-residence-field textarea:hover {
+  border-color: #c4d0df;
+}
+
+.ama-residence-field input:focus,
+.ama-residence-field select:focus,
+.ama-residence-field textarea:focus {
+  border-color: rgba(15, 63, 143, 0.62);
+  box-shadow: 0 0 0 3px rgba(15, 63, 143, 0.09);
+}
+
+.ama-residence-selection-summary,
+.ama-residence-feedback {
+  border-radius: 11px;
+}
+
+.ama-residence-selection-summary {
+  border: 1px solid #dbeafe;
+  background: #f4f8ff;
+}
+
+.ama-residence-feedback.info {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.ama-residence-feedback.success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.ama-residence-feedback.danger {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.ama-residence-actions {
+  margin-top: 2px;
+  padding-top: 11px;
+  border-top: 1px solid #edf1f5;
+}
+
+.ama-residence-actions .ama-btn {
+  min-width: 160px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+/* ========================================================================
+   GARAGEM — subcards com hierarquia clara.
+   ======================================================================== */
+
+.ama-garage-editor-list {
+  gap: 11px;
+}
+
+.ama-garage-editor-card {
+  overflow: hidden;
+  border: 1px solid #dfe6ef;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.035);
+}
+
+.ama-garage-editor-head {
+  min-height: 44px;
+  padding: 9px 11px 9px 13px;
+  border-bottom: 1px solid #e9eef4;
+  background:
+    linear-gradient(
+      180deg,
+      #fbfdff,
+      #f7faff
+    );
+}
+
+.ama-garage-editor-head strong {
+  color: var(--ama-royal);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ama-garage-editor-card > .ama-residence-form-grid,
+.ama-garage-editor-card > .ama-residence-field {
+  padding-left: 13px;
+  padding-right: 13px;
+}
+
+.ama-garage-editor-card > .ama-residence-form-grid {
+  padding-top: 13px;
+}
+
+.ama-garage-editor-card > .ama-residence-field:last-child {
+  padding-bottom: 13px;
+}
+
+.ama-garage-add {
+  min-height: 40px;
+  border: 1px dashed rgba(15, 63, 143, 0.35);
+  border-radius: 11px;
+  background: #f7faff;
+  color: var(--ama-royal);
+  font-size: 10.5px;
+  font-weight: 750;
+}
+
+.ama-garage-add-icon {
+  border: 1px solid #dbeafe;
+  background: #fff;
+  color: var(--ama-royal);
+}
+
+.ama-garage-add:hover:not(:disabled) {
+  border-color: rgba(15, 63, 143, 0.62);
+  background: #eef4ff;
+}
+
+/* Pontos de atenção como alertas discretos, sem ruído visual. */
+.ama-attention-card,
+.ama-conflict-alert {
+  border-radius: 12px;
+}
+
+.ama-conflict-alert {
+  border-color: #fed7aa;
+  background: #fffaf5;
+}
+
+/* Aviso institucional acima do footer. */
+.ama-audit-warning {
+  margin: 0 16px 12px;
+  padding: 10px 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  background: #f5f9ff;
+  color: #334155;
+}
+
+.ama-audit-warning svg {
+  color: var(--ama-royal);
+}
+
+.ama-audit-warning strong {
+  color: #1e293b;
+  font-size: 10.5px;
+}
+
+.ama-audit-warning span {
+  color: #64748b;
+  font-size: 9.8px;
+}
+
+/* Footer sticky com ações organizadas e menos competição visual. */
+.ama-audit-footer {
+  position: relative;
+  z-index: 4;
+  padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid #dde5ee;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 -10px 28px rgba(15, 23, 42, 0.055);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ama-footer-action {
+  min-height: 48px;
+  border-radius: 11px;
+  box-shadow: none;
+}
+
+.ama-footer-action span strong {
+  font-size: 10.5px;
+}
+
+.ama-footer-action span small {
+  font-size: 8.8px;
+}
+
+.ama-footer-action.approve {
+  border-color: #b7e4c7;
+  background: #f2fbf5;
+}
+
+.ama-footer-action.approve:hover:not(:disabled) {
+  border-color: #86d3a0;
+  background: #eaf8ef;
+}
+
+.ama-footer-action.correction {
+  border-color: #fed7aa;
+  background: #fffaf5;
+}
+
+.ama-footer-action.correction:hover:not(:disabled) {
+  background: #fff4e8;
+}
+
+.ama-footer-action.reject {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.ama-footer-action.reject:hover:not(:disabled) {
+  background: #fff0f0;
+}
+
+.ama-footer-action.neutral {
+  border-color: #dbe2ea;
+  background: #fff;
+}
+
+/* Dark mode: preservar hierarquia sem "cinza chapado". */
+[data-theme="dark"] .ama-audit-drawer,
+.dark .ama-audit-drawer {
+  background: #0b1220;
+}
+
+[data-theme="dark"] .ama-audit-profile,
+[data-theme="dark"] .ama-accordion-item,
+[data-theme="dark"] .ama-accordion-body,
+[data-theme="dark"] .ama-read-field,
+[data-theme="dark"] .ama-dependent-card,
+[data-theme="dark"] .ama-simple-card,
+[data-theme="dark"] .ama-residence-panel,
+[data-theme="dark"] .ama-garage-editor-card,
+.dark .ama-audit-profile,
+.dark .ama-accordion-item,
+.dark .ama-accordion-body,
+.dark .ama-read-field,
+.dark .ama-dependent-card,
+.dark .ama-simple-card,
+.dark .ama-residence-panel,
+.dark .ama-garage-editor-card {
+  border-color: rgba(148, 163, 184, 0.2);
+  background: #111827;
+}
+
+[data-theme="dark"] .ama-accordion-head,
+[data-theme="dark"] .ama-garage-editor-head,
+.dark .ama-accordion-head,
+.dark .ama-garage-editor-head {
+  border-color: rgba(148, 163, 184, 0.16);
+  background: #111827;
+}
+
+[data-theme="dark"] .ama-accordion-item.open .ama-accordion-head,
+.dark .ama-accordion-item.open .ama-accordion-head {
+  background: #121c2d;
+}
+
+[data-theme="dark"] .ama-residence-reviewed,
+.dark .ama-residence-reviewed {
+  background: #101b2d;
+  box-shadow: inset 3px 0 0 #60a5fa;
+}
+
+[data-theme="dark"] .ama-profile-summary,
+.dark .ama-profile-summary {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: #0f172a;
+}
+
+[data-theme="dark"] .ama-read-field span,
+[data-theme="dark"] .ama-accordion-title span,
+[data-theme="dark"] .ama-profile-main > p,
+.dark .ama-read-field span,
+.dark .ama-accordion-title span,
+.dark .ama-profile-main > p {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .ama-read-field strong,
+[data-theme="dark"] .ama-accordion-title strong,
+[data-theme="dark"] .ama-profile-title h3,
+[data-theme="dark"] .ama-profile-summary strong,
+.dark .ama-read-field strong,
+.dark .ama-accordion-title strong,
+.dark .ama-profile-title h3,
+.dark .ama-profile-summary strong {
+  color: #e5edf8;
+}
+
+[data-theme="dark"] .ama-audit-warning,
+.dark .ama-audit-warning {
+  border-color: rgba(96, 165, 250, 0.24);
+  background: rgba(30, 64, 175, 0.12);
+}
+
+[data-theme="dark"] .ama-audit-footer,
+.dark .ama-audit-footer {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.96);
+}
+
+/* Mobile — mantém aspecto de app e safe areas. */
+@media (max-width: 680px) {
+  .ama-audit-drawer {
+    width: 100vw;
+    max-width: 100vw;
+    border-left: 0;
+  }
+
+  .ama-audit-head {
+    padding:
+      max(15px, env(safe-area-inset-top))
+      15px
+      14px;
+  }
+
+  .ama-audit-profile {
+    margin: 10px 10px 0;
+    padding: 12px;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px;
+    border-radius: 14px;
+  }
+
+  .ama-profile-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+  }
+
+  .ama-profile-summary {
+    grid-column: 1 / -1;
+  }
+
+  .ama-accordion-list {
+    padding: 10px 10px 14px;
+  }
+
+  .ama-accordion-head {
+    min-height: 58px;
+    padding: 10px 11px;
+  }
+
+  .ama-accordion-icon {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .ama-accordion-body {
+    padding: 11px;
+  }
+
+  .ama-audit-warning {
+    margin: 0 10px 10px;
+  }
+
+  .ama-audit-footer {
+    padding:
+      10px
+      10px
+      max(10px, env(safe-area-inset-bottom));
+  }
+
+  .ama-footer-action {
+    min-height: 46px;
+  }
+
+  /* Evita zoom automático do iPhone. */
+  .ama-residence-field input,
+  .ama-residence-field select,
+  .ama-residence-field textarea {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 430px) {
+  .ama-audit-head h2 {
+    font-size: 18px;
+  }
+
+  .ama-profile-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .ama-accordion-title strong {
+    font-size: 11.5px;
+  }
+
+  .ama-accordion-status > span {
+    max-width: 118px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

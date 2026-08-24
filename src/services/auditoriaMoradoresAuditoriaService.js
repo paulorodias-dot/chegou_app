@@ -35,6 +35,53 @@ function normalizarStatus(valor = "") {
     .toUpperCase();
 }
 
+
+export function formatarPerfilMorador(valorPerfil = "") {
+  const chave = String(valorPerfil || "").trim().toUpperCase();
+  const mapa = {
+    PROPRIETARIO_RESIDENTE: "Proprietário residente",
+    PROPRIETARIO_NAO_RESIDENTE: "Proprietário não residente",
+    PROPRIETARIO: "Proprietário",
+    INQUILINO: "Inquilino",
+    LOCATARIO: "Inquilino",
+    RESIDENTE: "Morador residente",
+    MORADOR: "Morador",
+    COMODATARIO: "Comodatário",
+    USUFRUTUARIO: "Usufrutuário",
+    DEPENDENTE: "Dependente",
+  };
+
+  if (mapa[chave]) return mapa[chave];
+
+  const texto = String(valorPerfil || "").trim();
+  if (!texto) return "Não informado";
+
+  return texto
+    .replaceAll("_", " ")
+    .toLocaleLowerCase("pt-BR")
+    .replace(/(^|\s)\S/g, (letra) => letra.toLocaleUpperCase("pt-BR"));
+}
+
+function rotuloModoUsoGaragem(valorModo = "") {
+  const chave = String(valorModo || "").trim().toUpperCase();
+  const mapa = {
+    PROPRIA: "Uso próprio",
+    USO_PROPRIO: "Uso próprio",
+    PROPRIA_ALUGADA_TERCEIRO: "Alugada para outra unidade",
+    ALUGADA_PARA_TERCEIRO: "Alugada para outra unidade",
+    PROPRIA_EMPRESTADA_TERCEIRO: "Emprestada para outra unidade",
+    EMPRESTADA_PARA_TERCEIRO: "Emprestada para outra unidade",
+    ALUGADA: "Alugada de outra unidade",
+    ALUGADA_PARA_MIM: "Alugada de outra unidade",
+    EMPRESTADA: "Emprestada de outra unidade",
+    EMPRESTADA_PARA_MIM: "Emprestada de outra unidade",
+    SEM_USO: "Sem uso no momento",
+    PROPRIA_SEM_USO: "Sem uso no momento",
+  };
+
+  return mapa[chave] || "Não informado";
+}
+
 function somenteNumeros(valor = "") {
   return String(valor || "")
     .replace(/\D/g, "");
@@ -558,10 +605,38 @@ function normalizarVeiculo(
 function normalizarVaga(
   vaga = {}
 ) {
+  const modoUso =
+    vaga.modo_uso_vaga ||
+    vaga.modo_uso ||
+    vaga.vinculo ||
+    vaga.situacao ||
+    "";
+
+  const modoLegivel =
+    rotuloModoUsoGaragem(modoUso);
+
+  const pertence =
+    typeof vaga.vaga_pertence_unidade === "boolean"
+      ? vaga.vaga_pertence_unidade
+      : ![
+          "ALUGADA_PARA_MIM",
+          "EMPRESTADA_PARA_MIM",
+          "ALUGADA",
+          "EMPRESTADA",
+        ].includes(String(modoUso).trim().toUpperCase());
+
   return {
     ...vaga,
 
     numero_vaga:
+      vaga.numero_vaga ||
+      vaga.identificacao_vaga ||
+      vaga.identificacao ||
+      vaga.numero ||
+      "",
+
+    identificacao_vaga:
+      vaga.identificacao_vaga ||
       vaga.numero_vaga ||
       vaga.identificacao ||
       vaga.numero ||
@@ -569,21 +644,28 @@ function normalizarVaga(
 
     tipo_vaga:
       vaga.tipo_vaga ||
+      vaga.tipo_fisico_vaga ||
       vaga.local ||
       "Não informado",
 
+    modo_uso_vaga: modoUso,
+    modo_uso_legivel: modoLegivel,
+    vaga_pertence_unidade: pertence,
+
     vinculo:
-      vaga.vinculo ||
-      vaga.situacao ||
-      "Não informado",
+      pertence
+        ? "A vaga pertence a esta unidade"
+        : "A vaga pertence a outra unidade",
 
     unidade_vinculada:
+      vaga.outra_parte_unidade ||
       vaga.unidade_vinculada ||
       vaga.unidade_origem ||
       "",
 
     conflito:
-      vaga.conflito === true,
+      vaga.conflito === true ||
+      String(vaga.status_conflito || "").toUpperCase() === "INCOMPATIVEL",
   };
 }
 
@@ -813,6 +895,17 @@ function normalizarDetalheAuditoria(
       ) ||
       "Não informado",
 
+    perfil_morador_label:
+      formatarPerfilMorador(
+        primeiroValorPreenchido(
+          item.perfil_morador,
+          item.tipo_morador,
+          item.perfil_unidade,
+          dadosComplementares.perfil_unidade,
+          tela1.perfilUnidade
+        )
+      ),
+
     torre:
       item.torre ||
       "Não informado",
@@ -885,39 +978,60 @@ function normalizarDetalheAuditoria(
     garagem,
 
     preferencias: {
+      ...(item.preferencias || {}),
+
       canal_preferencial:
         item.preferencias
           ?.canal_preferencial ||
         (
-          dadosComplementares
-            .notificacao_whatsapp
+          dadosComplementares.notificacao_whatsapp
             ? "WhatsApp"
-            : dadosComplementares
-                .notificacao_push
-              ? "Push"
-              : dadosComplementares
-                  .notificacao_email
+            : dadosComplementares.notificacao_push
+              ? "Notificações no aplicativo"
+              : dadosComplementares.notificacao_email
                 ? "E-mail"
                 : "Não informado"
         ),
 
       notificacoes:
         Boolean(
-          dadosComplementares
-            .notificacao_push ||
-          dadosComplementares
-            .notificacao_whatsapp ||
-          dadosComplementares
-            .notificacao_email
+          dadosComplementares.notificacao_push ||
+          dadosComplementares.notificacao_whatsapp ||
+          dadosComplementares.notificacao_email
+        ),
+
+      push:
+        Boolean(
+          item.preferencias?.push ??
+          item.preferencias?.notificacao_push ??
+          dadosComplementares.notificacao_push
+        ),
+
+      whatsapp:
+        Boolean(
+          item.preferencias?.whatsapp ??
+          item.preferencias?.notificacao_whatsapp ??
+          dadosComplementares.notificacao_whatsapp
+        ),
+
+      email:
+        Boolean(
+          item.preferencias?.email ??
+          item.preferencias?.notificacao_email ??
+          dadosComplementares.notificacao_email
         ),
 
       privacidade:
-        item.preferencias
-          ?.privacidade,
+        item.preferencias?.privacidade ??
+        dadosComplementares.privacidade ??
+        null,
 
       observacoes:
-        item.preferencias
-          ?.observacoes,
+        primeiroValorPreenchido(
+          item.preferencias?.observacoes,
+          dadosComplementares.preferencias_observacoes,
+          dadosComplementares.observacoes_preferencias
+        ) || null,
     },
 
     divergencias:
@@ -930,7 +1044,16 @@ function normalizarDetalheAuditoria(
     resumo,
 
     observacoes:
-      item.observacoes,
+      primeiroValorPreenchido(
+        item.observacoes,
+        dadosComplementares.observacoes,
+        dadosComplementares.observacao,
+        wizardFinal.observacoes,
+        wizardFinal.observacao,
+        tela2.observacoes,
+        tela2.observacao
+      ) ||
+      "Sem observações",
 
     raw:
       item,
@@ -1390,6 +1513,189 @@ export async function marcarAuditoriaIniciada({
 
 /*
  * ============================================================
+ * CONTEXTO AUTORITATIVO DA AUDITORIA
+ * ============================================================
+ *
+ * Recarrega o estado persistido da Auditoria atual.
+ * É a fonte para restaurar conferências salvas após fechar/reabrir
+ * o Drawer. Não depende de estado local do React.
+ */
+export async function obterContextoAuditoriaMorador({
+  preCadastroId,
+} = {}) {
+  if (!preCadastroId) {
+    throw new Error(
+      "Pré-cadastro não identificado."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase.rpc(
+    "rpc_admin_morador_auditoria_contexto_v1",
+    {
+      p_pre_cadastro_id:
+        preCadastroId,
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (
+    data?.success === false
+  ) {
+    throw new Error(
+      data?.error ||
+      "Não foi possível carregar o contexto da Auditoria."
+    );
+  }
+
+  return data || {};
+}
+
+/*
+ * ============================================================
+ * SALVAR CONFERÊNCIA RESIDENCIAL
+ * ============================================================
+ *
+ * Salvar NÃO aprova o Morador.
+ * Salvar NÃO altera o Snapshot R1.
+ * Salvar NÃO substitui a declaração original do Pré-Cadastro.
+ *
+ * O backend persiste o estado corrente da conferência em
+ * auditorias_morador.dados_depois e registra a trilha append-only
+ * em auditorias_morador_ajustes.
+ */
+export async function salvarConferenciaResidenciaMorador({
+  preCadastroId,
+  torreId,
+  unidade,
+  observacao = null,
+} = {}) {
+  if (!preCadastroId) {
+    throw new Error(
+      "Pré-cadastro não identificado."
+    );
+  }
+
+  if (!torreId) {
+    throw new Error(
+      "Selecione a Torre/Bloco conferida."
+    );
+  }
+
+  const unidadeNormalizada =
+    String(
+      unidade || ""
+    ).trim();
+
+  if (!unidadeNormalizada) {
+    throw new Error(
+      "Informe a Unidade conferida."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase.rpc(
+    "rpc_admin_morador_auditoria_residencia_salvar_v1",
+    {
+      p_pre_cadastro_id:
+        preCadastroId,
+
+      p_torre_id:
+        torreId,
+
+      p_unidade:
+        unidadeNormalizada,
+
+      p_observacao_auditor:
+        String(
+          observacao || ""
+        ).trim() ||
+        null,
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (
+    data?.success === false
+  ) {
+    throw new Error(
+      data?.error ||
+      "Não foi possível salvar a conferência residencial."
+    );
+  }
+
+  return (
+    data || {
+      success: true,
+    }
+  );
+}
+
+
+/*
+ * ============================================================
+ * SALVAR CONFERÊNCIA DA GARAGEM
+ * ============================================================
+ *
+ * Salvar NÃO aprova o Morador.
+ * Salvar NÃO altera o Snapshot R1.
+ * Salvar NÃO substitui a declaração original do Pré-Cadastro.
+ */
+export async function salvarConferenciaGaragemMorador({
+  preCadastroId,
+  possuiVaga,
+  vagas = [],
+  observacao = null,
+} = {}) {
+  if (!preCadastroId) {
+    throw new Error("Pré-cadastro não identificado.");
+  }
+
+  if (typeof possuiVaga !== "boolean") {
+    throw new Error("Informe se a unidade possui vaga de garagem.");
+  }
+
+  if (possuiVaga && (!Array.isArray(vagas) || !vagas.length)) {
+    throw new Error("Adicione pelo menos uma vaga para concluir a conferência.");
+  }
+
+  const { data, error } = await supabase.rpc(
+    "rpc_admin_morador_auditoria_garagem_salvar_v1",
+    {
+      p_pre_cadastro_id: preCadastroId,
+      p_possui_vaga: possuiVaga,
+      p_vagas: possuiVaga ? vagas : [],
+      p_observacao_auditor:
+        String(observacao || "").trim() || null,
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (data?.success === false) {
+    throw new Error(
+      data?.error ||
+      "Não foi possível salvar a conferência da garagem."
+    );
+  }
+
+  return data || { success: true };
+}
+
+/*
+ * ============================================================
  * APROVAR
  * ============================================================
  */
@@ -1652,11 +1958,18 @@ export async function buscarTorresAuditoriaMoradores({
   } = await supabase
     .from("torres")
     .select(
-      "id, nome"
+      "id, nome, identificador"
     )
     .eq(
       "condominio_id",
       condominioId
+    )
+    .order(
+      "identificador",
+      {
+        ascending: true,
+        nullsFirst: false,
+      }
     )
     .order(
       "nome",

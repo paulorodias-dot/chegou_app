@@ -1652,20 +1652,212 @@ serve(async (req) => {
       );
 
     /*
-     * 1. LOCALIZAR O SNAPSHOT CANÔNICO SUBMETIDO PELO WIZARD
+     * 1. PREPARAR A REVISÃO ADMINISTRATIVA QUANDO HOUVER CORREÇÃO
      *
-     * REGRA R4F02:
-     * - a aprovação administrativa NÃO gera nova revisão documental;
-     * - a revisão congelada pelo Wizard é o documento que a Auditoria decide;
-     * - R2/R3/... somente surgem após nova submissão real do Morador,
-     *   normalmente decorrente de correção solicitada;
-     * - snapshots RASCUNHO residuais/incompletos nunca são escolhidos para
-     *   aprovação;
-     * - a correlation_id utilizada pela Saga de decisão/promoção deve ser
-     *   a correlation_id do próprio Snapshot canônico selecionado.
+     * REGRA PÓS-GATE 46B.11FV:
+     * - a declaração original do Morador permanece imutável na R1;
+     * - quando a Auditoria realmente corrigiu Residência e/ou Garagem,
+     *   a verdade administrativa deve ser consolidada em nova revisão;
+     * - a preparação da R2 usa a sessão autenticada do operador
+     *   (supabaseUsuario), preservando auth.uid() e isolamento multi-tenant;
+     * - retries reutilizam a mesma correlation_id determinística;
+     * - se a Saga R4 já começou em APROVADO / EM_PROMOCAO / PROMOVIDO,
+     *   não se cria nova revisão: apenas retomamos a Saga existente;
+     * - sem correção administrativa efetiva, a R1 congelada continua sendo
+     *   o documento canônico decidido pela Auditoria.
+     */
+
+    const camposEditados =
+      (
+        auditoria
+          ?.campos_editados_administrativo ||
+        {}
+      ) as JsonObject;
+
+    const residenciaEditada =
+      (
+        camposEditados
+          ?.residencia ||
+        {}
+      ) as JsonObject;
+
+    const garagemEditada =
+      (
+        camposEditados
+          ?.garagem ||
+        {}
+      ) as JsonObject;
+
+    const auditoriaTemCorrecaoAdministrativa =
+      residenciaEditada
+        ?.estrutura_alterada ===
+        true ||
+      residenciaEditada
+        ?.unidade_alterada ===
+        true ||
+      garagemEditada
+        ?.alterada ===
+        true;
+
+    const preparacaoR2CorrelationId =
+      await uuidDeterministico(
+        `${baseSaga}:SNAPSHOT_R2_ADMINISTRATIVO`
+      );
+
+    /*
+     * Antes de preparar qualquer nova revisão, verificamos se a Saga
+     * já avançou em uma revisão existente. Isto protege deploy/retry
+     * no meio de APROVADO / EM_PROMOCAO / PROMOVIDO.
+     */
+    const {
+      data:
+        snapshotAntesPreparacao,
+      error:
+        snapshotAntesPreparacaoError,
+    } =
+      await supabaseAdmin
+        .from(
+          "wizard_morador_snapshots"
+        )
+        .select(
+          `
+          id,
+          pre_cadastro_id,
+          auditoria_id,
+          revisao,
+          snapshot_anterior_id,
+          origem,
+          status,
+          valido,
+          correlation_id,
+          payload_hash,
+          contrato_nome,
+          contrato_versao,
+          schema_versao,
+          criado_em,
+          aprovado_em,
+          promocao_iniciada_em,
+          promovido_em
+        `
+        )
+        .eq(
+          "pre_cadastro_id",
+          preCadastroId
+        )
+        .eq(
+          "valido",
+          true
+        )
+        .in(
+          "status",
+          [
+            "CONGELADO",
+            "APROVADO",
+            "EM_PROMOCAO",
+            "PROMOVIDO",
+          ]
+        )
+        .order(
+          "revisao",
+          {
+            ascending:
+              false,
+          }
+        )
+        .limit(1)
+        .maybeSingle();
+
+    if (
+      snapshotAntesPreparacaoError
+    ) {
+      throw snapshotAntesPreparacaoError;
+    }
+
+    const statusAntesPreparacao =
+      texto(
+        snapshotAntesPreparacao
+          ?.status
+      ).toUpperCase();
+
+    const sagaJaIniciadaAntesDaPreparacao =
+      [
+        "APROVADO",
+        "EM_PROMOCAO",
+        "PROMOVIDO",
+      ].includes(
+        statusAntesPreparacao
+      );
+
+    let preparacaoR2:
+      JsonObject | null =
+      null;
+
+    if (
+      auditoriaTemCorrecaoAdministrativa &&
+      !sagaJaIniciadaAntesDaPreparacao
+    ) {
+      const {
+        data:
+          preparacaoData,
+        error:
+          preparacaoError,
+      } =
+        await supabaseUsuario.rpc(
+          "fn_admin_morador_auditoria_preparar_snapshot_r2_v1",
+          {
+            p_pre_cadastro_id:
+              preCadastroId,
+
+            p_correlation_id:
+              preparacaoR2CorrelationId,
+          }
+        );
+
+      if (
+        preparacaoError
+      ) {
+        console.error(
+          "[aprovar-morador] preparação Snapshot R2 administrativa:",
+          preparacaoError
+        );
+
+        throw new Error(
+          preparacaoError.message ||
+          "Não foi possível preparar a revisão administrativa auditada."
+        );
+      }
+
+      preparacaoR2 =
+        extrairPrimeiro(
+          preparacaoData
+        ) as JsonObject | null;
+
+      if (
+        !preparacaoR2
+          ?.success ||
+        !texto(
+          preparacaoR2
+            ?.snapshot_id
+        )
+      ) {
+        throw new Error(
+          "A preparação da revisão administrativa não retornou um Snapshot válido."
+        );
+      }
+    }
+
+    /*
+     * 2. LOCALIZAR O SNAPSHOT CANÔNICO QUE A SAGA DEVE PROCESSAR
      *
-     * Isso preserva o grafo oficial:
-     * CONGELADO -> APROVADO -> EM_PROMOCAO -> PROMOVIDO.
+     * Após eventual preparação administrativa:
+     * - R1 permanece canônica quando não houve correção;
+     * - R2 CORRECAO_ADMINISTRATIVA torna-se a revisão canônica quando houve
+     *   correção e foi validada/congelada;
+     * - retries em APROVADO / EM_PROMOCAO / PROMOVIDO retomam exatamente
+     *   a revisão que já avançou na Saga.
+     *
+     * A correlation_id usada por decisão/promoção continua sendo a do
+     * próprio Snapshot selecionado.
      */
 
     const {
@@ -1685,6 +1877,7 @@ serve(async (req) => {
           auditoria_id,
           revisao,
           snapshot_anterior_id,
+          origem,
           status,
           valido,
           correlation_id,
@@ -1736,7 +1929,21 @@ serve(async (req) => {
         ?.id
     ) {
       throw new Error(
-        "Nenhum Snapshot canônico válido e submetido foi localizado para aprovação. A aprovação não pode gerar uma nova revisão automaticamente."
+        "Nenhum Snapshot canônico válido foi localizado para aprovação."
+      );
+    }
+
+    if (
+      auditoriaTemCorrecaoAdministrativa &&
+      !sagaJaIniciadaAntesDaPreparacao &&
+      texto(
+        snapshotSagaExistente
+          ?.origem
+      ) !==
+        "CORRECAO_ADMINISTRATIVA"
+    ) {
+      throw new Error(
+        "A Auditoria possui correção administrativa, porém a revisão canônica auditada não foi localizada após a preparação."
       );
     }
 
@@ -1768,10 +1975,25 @@ serve(async (req) => {
           snapshotSagaExistente.id,
 
         acao:
-          "REUTILIZAR_SNAPSHOT_CANONICO_SUBMETIDO",
+          preparacaoR2
+            ? texto(
+                preparacaoR2
+                  ?.acao
+              ) ||
+              "REUTILIZAR_SNAPSHOT_CANONICO_AUDITADO"
+            : "REUTILIZAR_SNAPSHOT_CANONICO_SUBMETIDO",
 
         idempotente:
-          true,
+          preparacaoR2
+            ?.idempotente ===
+            true ||
+          !preparacaoR2,
+
+        preparacao_r2:
+          preparacaoR2,
+
+        auditoria_tem_correcao_administrativa:
+          auditoriaTemCorrecaoAdministrativa,
       };
 
     const snapshotId =

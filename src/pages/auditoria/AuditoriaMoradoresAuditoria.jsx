@@ -33,9 +33,12 @@ import {
   formatarStatusAuditoria,
   listarMoradoresParaAuditoria,
   marcarAuditoriaIniciada,
+  obterContextoAuditoriaMorador,
   obterDetalheAuditoriaMorador,
   obterResumoAuditoriaMoradores,
   registrarDecisaoAuditoriaMorador,
+  salvarConferenciaGaragemMorador,
+  salvarConferenciaResidenciaMorador,
 } from "../../services/auditoriaMoradoresAuditoriaService";
 
 const STATUS_FILTROS = [
@@ -733,8 +736,181 @@ function ListaFuncionariosPets({
   );
 }
 
+
+function rotuloPerfilMorador(valorPerfil = "") {
+  const chave = String(valorPerfil || "").trim().toUpperCase();
+
+  const mapa = {
+    PROPRIETARIO_RESIDENTE: "Proprietário residente",
+    PROPRIETARIO_NAO_RESIDENTE: "Proprietário não residente",
+    PROPRIETARIO: "Proprietário",
+    INQUILINO: "Inquilino",
+    LOCATARIO: "Inquilino",
+    RESIDENTE: "Morador residente",
+    MORADOR: "Morador",
+    COMODATARIO: "Comodatário",
+    USUFRUTUARIO: "Usufrutuário",
+    DEPENDENTE: "Dependente",
+  };
+
+  if (mapa[chave]) return mapa[chave];
+
+  const texto = String(valorPerfil || "").trim();
+  if (!texto) return "Não informado";
+
+  return texto
+    .replaceAll("_", " ")
+    .toLocaleLowerCase("pt-BR")
+    .replace(/(^|\s)\S/g, (letra) => letra.toLocaleUpperCase("pt-BR"));
+}
+
+function rotuloTipoFisicoVaga(valorTipo = "") {
+  const mapa = {
+    PADRAO: "Padrão",
+    MOTO: "Moto",
+    GRANDE_VAN: "Grande / Van",
+    ACESSIBILIDADE: "Acessibilidade",
+    ELETRICA: "Elétrica",
+    OUTROS: "Outro tipo",
+  };
+
+  const chave = String(valorTipo || "").trim().toUpperCase();
+  return mapa[chave] || (valorTipo ? String(valorTipo).replaceAll("_", " ") : "Não informado");
+}
+
+function normalizarModoUsoGaragem(valorModo = "") {
+  const chave = String(valorModo || "").trim().toUpperCase();
+
+  const mapa = {
+    PROPRIA: "USO_PROPRIO",
+    USO_PROPRIO: "USO_PROPRIO",
+    PROPRIA_ALUGADA_TERCEIRO: "ALUGADA_PARA_TERCEIRO",
+    ALUGADA_PARA_TERCEIRO: "ALUGADA_PARA_TERCEIRO",
+    PROPRIA_EMPRESTADA_TERCEIRO: "EMPRESTADA_PARA_TERCEIRO",
+    EMPRESTADA_PARA_TERCEIRO: "EMPRESTADA_PARA_TERCEIRO",
+    ALUGADA: "ALUGADA_PARA_MIM",
+    ALUGADA_PARA_MIM: "ALUGADA_PARA_MIM",
+    EMPRESTADA: "EMPRESTADA_PARA_MIM",
+    EMPRESTADA_PARA_MIM: "EMPRESTADA_PARA_MIM",
+    SEM_USO: "SEM_USO",
+    PROPRIA_SEM_USO: "SEM_USO",
+  };
+
+  return mapa[chave] || chave;
+}
+
+function rotuloModoUsoGaragem(valorModo = "") {
+  const modo = normalizarModoUsoGaragem(valorModo);
+
+  const mapa = {
+    USO_PROPRIO: "Uso próprio",
+    ALUGADA_PARA_TERCEIRO: "Alugada para outra unidade",
+    EMPRESTADA_PARA_TERCEIRO: "Emprestada para outra unidade",
+    ALUGADA_PARA_MIM: "Alugada de outra unidade",
+    EMPRESTADA_PARA_MIM: "Emprestada de outra unidade",
+    SEM_USO: "Sem uso no momento",
+  };
+
+  return mapa[modo] || (valorModo ? String(valorModo).replaceAll("_", " ") : "Não informado");
+}
+
+function rotuloVinculoGaragem(vaga = {}) {
+  if (typeof vaga.vaga_pertence_unidade === "boolean") {
+    return vaga.vaga_pertence_unidade
+      ? "A vaga pertence a esta unidade"
+      : "A vaga pertence a outra unidade";
+  }
+
+  const modo = normalizarModoUsoGaragem(vaga.modo_uso_vaga || vaga.vinculo || vaga.situacao);
+
+  if (["ALUGADA_PARA_MIM", "EMPRESTADA_PARA_MIM"].includes(modo)) {
+    return "A vaga pertence a outra unidade";
+  }
+
+  if (modo) {
+    return "A vaga pertence a esta unidade";
+  }
+
+  return "Não informado";
+}
+
+function obterTorreExibicao(torres = [], torreDeclarada = "") {
+  const procurado = String(torreDeclarada || "").trim().toLocaleLowerCase("pt-BR");
+
+  const localizada = torres.find((torreItem) =>
+    [torreItem?.nome, torreItem?.identificador]
+      .filter(Boolean)
+      .some((valorTorre) => String(valorTorre).trim().toLocaleLowerCase("pt-BR") === procurado)
+  );
+
+  if (!localizada) return valor(torreDeclarada);
+
+  return [localizada.identificador, localizada.nome]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function extrairPontosAtencao(contexto = {}, divergencias = []) {
+  const raiz = objeto(contexto);
+  const estadoConferencia = objeto(raiz.estado_conferencia);
+  const auditoriaIniciada = estadoConferencia.auditoria_iniciada === true;
+
+  /*
+   * Antes da Auditoria:
+   *   exibe os pontos informativos/originais do cadastro.
+   *
+   * Depois que a Auditoria foi iniciada:
+   *   a autoridade passa a ser estado_conferencia.pendencias,
+   *   que representa somente o que ainda precisa ser resolvido.
+   *   Assim, uma pendência corrigida não continua aparecendo como erro histórico.
+   */
+  const pontos = objeto(raiz.pontos_atencao);
+  const itensContexto = Array.isArray(pontos.itens) ? pontos.itens : [];
+  const itensLegados = Array.isArray(divergencias) ? divergencias : [];
+  const pendenciasCorrentes = Array.isArray(estadoConferencia.pendencias)
+    ? estadoConferencia.pendencias
+    : [];
+
+  const todos = auditoriaIniciada
+    ? pendenciasCorrentes
+    : [...itensContexto, ...itensLegados];
+
+  const chaves = new Set();
+
+  return todos.filter((itemAtual, index) => {
+    const itemSeguro = objeto(itemAtual);
+    const chave = [
+      itemSeguro.codigo,
+      itemSeguro.origem,
+      itemSeguro.tipo,
+      itemSeguro.campo,
+      itemSeguro.titulo,
+      itemSeguro.descricao,
+      itemSeguro.mensagem,
+      index,
+    ].filter(Boolean).join("|");
+
+    if (chaves.has(chave)) return false;
+    chaves.add(chave);
+    return true;
+  });
+}
+
+function textoPontoAtencao(itemAtual = {}) {
+  const itemSeguro = objeto(itemAtual);
+
+  return (
+    itemSeguro.mensagem ||
+    itemSeguro.descricao ||
+    itemSeguro.detalhes?.mensagem ||
+    itemSeguro.detalhes?.descricao ||
+    "Existe uma informação que precisa ser conferida."
+  );
+}
+
 function ListaVeiculosGaragem({
   item,
+  mostrarGaragem = true,
 }) {
   const veiculos =
     item.veiculos || [];
@@ -806,6 +982,7 @@ function ListaVeiculosGaragem({
         )}
       </div>
 
+      {mostrarGaragem ? (
       <div className="ama-subsection">
         <h4>
           Garagem
@@ -862,13 +1039,23 @@ function ListaVeiculosGaragem({
                       label:
                         "Vínculo",
                       value:
-                        vaga.vinculo,
+                        rotuloVinculoGaragem(vaga),
                     },
                     {
                       label:
                         "Unidade vinculada",
                       value:
                         vaga.unidade_vinculada,
+                    },
+                    {
+                      label:
+                        "Como está sendo usada",
+                      value:
+                        rotuloModoUsoGaragem(
+                          vaga.modo_uso_vaga ||
+                          vaga.vinculo ||
+                          vaga.situacao
+                        ),
                     },
                     {
                       label:
@@ -889,6 +1076,962 @@ function ListaVeiculosGaragem({
           </div>
         )}
       </div>
+      ) : null}
+    </div>
+  );
+}
+
+function objeto(valorAtual) {
+  return valorAtual && typeof valorAtual === "object" && !Array.isArray(valorAtual)
+    ? valorAtual
+    : {};
+}
+
+function localizarResidenciaConferida(contexto = {}) {
+  const raiz = objeto(contexto);
+  const auditoria = objeto(raiz.auditoria || raiz.auditoria_atual);
+  const conferido = objeto(raiz.conferido_na_auditoria);
+  const dadosDepois = objeto(
+    auditoria.dados_depois ||
+      raiz.dados_depois ||
+      raiz.estado_auditado ||
+      raiz.estado_atual
+  );
+
+  return objeto(
+    conferido.residencia ||
+      dadosDepois.residencia ||
+      raiz.residencia_auditada ||
+      raiz.residencia_conferida ||
+      raiz.residencia
+  );
+}
+
+function localizarAtencaoResidencial(contexto = {}) {
+  const raiz = objeto(contexto);
+  const residencia = localizarResidenciaConferida(raiz);
+  const contextoResidencia = objeto(residencia.contexto);
+
+  const resolucao = objeto(
+    raiz.resolucao_residencia ||
+      raiz.resolucao_backend ||
+      residencia.resolucao ||
+      residencia.resolucao_backend
+  );
+
+  return objeto(
+    contextoResidencia.atencao ||
+      resolucao.atencao ||
+      residencia.atencao ||
+      raiz.atencao_residencial
+  );
+}
+
+function obterTorreIdResidencia(residencia = {}) {
+  const torre = objeto(residencia.torre);
+  const contextoResidencia = objeto(residencia.contexto);
+  const torreContexto = objeto(contextoResidencia.torre);
+
+  return (
+    residencia.estrutura_id ||
+    residencia.torre_id ||
+    residencia.torre_oficial_id ||
+    torre.id ||
+    torre.torre_id ||
+    torreContexto.id ||
+    torreContexto.torre_id ||
+    ""
+  );
+}
+
+function obterUnidadeResidencia(residencia = {}) {
+  const unidade = residencia.unidade;
+
+  if (unidade && typeof unidade === "object" && !Array.isArray(unidade)) {
+    return (
+      unidade.declarada ||
+      unidade.numero ||
+      unidade.identificacao ||
+      unidade.unidade ||
+      ""
+    );
+  }
+
+  return (
+    residencia.unidade_declarada ||
+    residencia.numero_unidade ||
+    residencia.identificacao_unidade ||
+    unidade ||
+    ""
+  );
+}
+
+function encontrarTorreDeclarada(torres = [], valorDeclarado = "") {
+  const procurado = String(valorDeclarado || "").trim().toLocaleLowerCase("pt-BR");
+
+  if (!procurado) return null;
+
+  return (
+    torres.find((torreItem) =>
+      [torreItem?.nome, torreItem?.identificador]
+        .filter(Boolean)
+        .some(
+          (valorTorre) =>
+            String(valorTorre).trim().toLocaleLowerCase("pt-BR") === procurado
+        )
+    ) || null
+  );
+}
+
+function ConferenciaResidencia({
+  item,
+  contexto,
+  torres = [],
+  somenteLeitura,
+  carregando,
+  salvando,
+  onSalvar,
+}) {
+  const residenciaSalva = useMemo(
+    () => localizarResidenciaConferida(contexto),
+    [contexto]
+  );
+
+  const atencao = useMemo(
+    () => localizarAtencaoResidencial(contexto),
+    [contexto]
+  );
+
+  const torreDeclarada = useMemo(
+    () => encontrarTorreDeclarada(torres, item?.torre),
+    [torres, item?.torre]
+  );
+
+  const [torreId, setTorreId] = useState("");
+  const [unidade, setUnidade] = useState("");
+  const [observacao, setObservacao] = useState("");
+
+  useEffect(() => {
+    const torreSalvaId = obterTorreIdResidencia(residenciaSalva);
+    const unidadeSalva = obterUnidadeResidencia(residenciaSalva);
+
+    setTorreId(torreSalvaId || torreDeclarada?.id || "");
+    setUnidade(String(unidadeSalva || item?.unidade || ""));
+    setObservacao(
+      String(
+        residenciaSalva.observacao_auditor ||
+          residenciaSalva.observacao ||
+          ""
+      )
+    );
+  }, [residenciaSalva, torreDeclarada?.id, item?.unidade]);
+
+  if (somenteLeitura) {
+    const possuiConferenciaSalva = Boolean(
+      residenciaSalva && Object.keys(residenciaSalva).length
+    );
+
+    const torreSalvaId = obterTorreIdResidencia(residenciaSalva);
+    const torreSalva = torres.find((torreItem) => torreItem.id === torreSalvaId);
+
+    return (
+      <div className="ama-residence-audit">
+        <section className="ama-residence-panel ama-residence-original">
+          <div className="ama-residence-panel-head">
+            <div>
+              <span className="ama-residence-eyebrow">Informado pelo Morador</span>
+              <strong>Declaração original</strong>
+            </div>
+            <span className="ama-residence-badge neutral">Somente leitura</span>
+          </div>
+
+          <ListaCampos
+            campos={[
+              { label: "Torre/Bloco", value: obterTorreExibicao(torres, item.torre) },
+              { label: "Unidade", value: item.unidade },
+              { label: "Perfil do cadastro", value: item.perfil_morador_label || rotuloPerfilMorador(item.perfil_morador) },
+              { label: "ID do cadastro", value: item.business_id },
+            ]}
+          />
+        </section>
+
+        {possuiConferenciaSalva ? (
+          <section className="ama-residence-panel ama-residence-reviewed">
+            <div className="ama-residence-panel-head">
+              <div>
+                <span className="ama-residence-eyebrow">Conferido na Auditoria</span>
+                <strong>Estado salvo pelo Administrativo</strong>
+              </div>
+              <span className="ama-residence-badge saved">Salvo</span>
+            </div>
+
+            <ListaCampos
+              campos={[
+                {
+                  label: "Torre/Bloco",
+                  value: torreSalva
+                    ? [torreSalva.identificador, torreSalva.nome].filter(Boolean).join(" · ")
+                    : residenciaSalva.estrutura_exibicao ||
+                      residenciaSalva.estrutura_nome ||
+                      residenciaSalva.contexto?.torre?.exibicao ||
+                      residenciaSalva.contexto?.torre?.nome ||
+                      residenciaSalva.torre?.exibicao ||
+                      residenciaSalva.torre?.nome ||
+                      "Não informado",
+                },
+                { label: "Unidade", value: obterUnidadeResidencia(residenciaSalva) },
+              ]}
+            />
+          </section>
+        ) : null}
+      </div>
+    );
+  }
+
+  const possuiConferenciaSalva = Boolean(
+    residenciaSalva && Object.keys(residenciaSalva).length
+  );
+
+  const torreSelecionada = torres.find((torreItem) => torreItem.id === torreId);
+  const bloqueado = Boolean(atencao?.bloqueante);
+
+  async function salvar(event) {
+    event.preventDefault();
+
+    if (!torreId) {
+      toast.error("Selecione a Torre/Bloco conferida.");
+      return;
+    }
+
+    if (!String(unidade || "").trim()) {
+      toast.error("Informe a Unidade conferida.");
+      return;
+    }
+
+    await onSalvar({
+      torreId,
+      unidade: String(unidade).trim(),
+      observacao: String(observacao || "").trim() || null,
+    });
+  }
+
+  return (
+    <div className="ama-residence-audit">
+      <section className="ama-residence-panel ama-residence-original">
+        <div className="ama-residence-panel-head">
+          <div>
+            <span className="ama-residence-eyebrow">Informado pelo Morador</span>
+            <strong>Declaração original preservada</strong>
+          </div>
+
+          <span className="ama-residence-badge neutral">Somente leitura</span>
+        </div>
+
+        <div className="ama-fields-grid">
+          <CampoLeitura label="Torre/Bloco" value={obterTorreExibicao(torres, item.torre)} />
+          <CampoLeitura label="Unidade" value={item.unidade} />
+        </div>
+      </section>
+
+      <form className="ama-residence-panel ama-residence-reviewed" onSubmit={salvar}>
+        <div className="ama-residence-panel-head">
+          <div>
+            <span className="ama-residence-eyebrow">Conferido na Auditoria</span>
+            <strong>Residência validada pelo Administrativo</strong>
+          </div>
+
+          <span
+            className={
+              possuiConferenciaSalva
+                ? "ama-residence-badge saved"
+                : "ama-residence-badge pending"
+            }
+          >
+            {possuiConferenciaSalva ? "Salvo" : "Pendente"}
+          </span>
+        </div>
+
+        {carregando ? (
+          <div className="ama-residence-loading">
+            <RefreshCw size={16} className="ama-spin" />
+            Carregando estado salvo da Auditoria...
+          </div>
+        ) : (
+          <>
+            <div className="ama-residence-form-grid">
+              <label className="ama-residence-field">
+                <span>Torre/Bloco</span>
+                <select
+                  value={torreId}
+                  onChange={(event) => setTorreId(event.target.value)}
+                  disabled={salvando}
+                >
+                  <option value="">Selecione a Torre/Bloco</option>
+
+                  {torres.map((torreItem) => (
+                    <option key={torreItem.id} value={torreItem.id}>
+                      {[torreItem.identificador, torreItem.nome]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="ama-residence-field">
+                <span>Unidade</span>
+                <input
+                  type="text"
+                  value={unidade}
+                  onChange={(event) => setUnidade(event.target.value)}
+                  placeholder="Ex.: 32, 12A, 101-B"
+                  autoComplete="off"
+                  disabled={salvando}
+                />
+              </label>
+            </div>
+
+            <label className="ama-residence-field ama-residence-observation">
+              <span>Observação do Auditor <em>opcional</em></span>
+              <textarea
+                value={observacao}
+                onChange={(event) => setObservacao(event.target.value)}
+                placeholder="Registre somente quando houver informação útil para a conferência."
+                rows={3}
+                disabled={salvando}
+              />
+            </label>
+
+            {torreSelecionada ? (
+              <div className="ama-residence-selection-summary">
+                <span>Conferência preparada</span>
+                <strong>
+                  {[torreSelecionada.identificador, torreSelecionada.nome]
+                    .filter(Boolean)
+                    .join(" · ")} · Unidade {valor(unidade)}
+                </strong>
+              </div>
+            ) : null}
+
+            {atencao?.mensagem ? (
+              <div
+                className={
+                  bloqueado
+                    ? "ama-residence-feedback danger"
+                    : "ama-residence-feedback info"
+                }
+              >
+                <strong>{bloqueado ? "Atenção" : "Informação da conferência"}</strong>
+                <span>{atencao.mensagem}</span>
+              </div>
+            ) : possuiConferenciaSalva ? (
+              <div className="ama-residence-feedback success">
+                <strong>Conferência residencial salva</strong>
+                <span>
+                  Você pode fechar o Drawer e continuar a Auditoria depois. A aprovação
+                  do cadastro é uma etapa separada.
+                </span>
+              </div>
+            ) : null}
+
+            <div className="ama-residence-actions">
+              <span>
+                Salvar esta conferência não aprova o cadastro e não altera a declaração
+                original do Morador.
+              </span>
+
+              <button
+                type="submit"
+                className="ama-btn ama-btn-primary"
+                disabled={salvando || bloqueado}
+              >
+                {salvando ? (
+                  <>
+                    <RefreshCw size={15} className="ama-spin" />
+                    Salvando...
+                  </>
+                ) : possuiConferenciaSalva ? (
+                  "Salvar nova conferência"
+                ) : (
+                  "Salvar conferência"
+                )}
+              </button>
+            </div>
+          </>
+        )}
+      </form>
+    </div>
+  );
+}
+
+
+function localizarGaragemConferida(contexto = {}) {
+  const raiz = objeto(contexto);
+  const auditoria = objeto(raiz.auditoria || raiz.auditoria_atual);
+  const conferido = objeto(raiz.conferido_na_auditoria);
+  const dadosDepois = objeto(
+    auditoria.dados_depois ||
+      raiz.dados_depois ||
+      raiz.estado_auditado ||
+      raiz.estado_atual
+  );
+
+  return objeto(
+    conferido.garagem ||
+      dadosDepois.garagem ||
+      raiz.garagem_auditada ||
+      raiz.garagem_conferida
+  );
+}
+
+function localizarGaragemDeclarada(contexto = {}, item = {}) {
+  const raiz = objeto(contexto);
+  const informado = objeto(raiz.informado_pelo_morador);
+
+  return objeto(
+    informado.garagem ||
+      item.estrutura_garagem ||
+      {
+        possui_vaga: Array.isArray(item.garagem) && item.garagem.length > 0,
+        vagas: item.garagem || [],
+      }
+  );
+}
+
+function normalizarVagaFormulario(vaga = {}) {
+  const modo = normalizarModoUsoGaragem(
+    vaga.modo_uso_vaga || vaga.modo_uso || vaga.vinculo || vaga.situacao
+  );
+
+  const pertence =
+    typeof vaga.vaga_pertence_unidade === "boolean"
+      ? vaga.vaga_pertence_unidade
+      : !["ALUGADA_PARA_MIM", "EMPRESTADA_PARA_MIM"].includes(modo);
+
+  return {
+    identificacao_vaga: String(
+      vaga.identificacao_vaga || vaga.numero_vaga || vaga.identificacao || vaga.numero || ""
+    ),
+    tipo_fisico_vaga: String(vaga.tipo_fisico_vaga || ""),
+    vaga_pertence_unidade: pertence,
+    modo_uso_vaga: modo || (pertence ? "USO_PROPRIO" : "ALUGADA_PARA_MIM"),
+    outra_parte_unidade: String(
+      vaga.outra_parte_unidade || vaga.unidade_vinculada || vaga.unidade_origem || ""
+    ),
+    observacoes: String(vaga.observacoes || vaga.observacao || ""),
+  };
+}
+
+function novaVagaFormulario() {
+  return {
+    identificacao_vaga: "",
+    tipo_fisico_vaga: "",
+    vaga_pertence_unidade: true,
+    modo_uso_vaga: "USO_PROPRIO",
+    outra_parte_unidade: "",
+    observacoes: "",
+  };
+}
+
+function GaragemSomenteLeitura({ titulo, garagem = {}, fallback = [] }) {
+  const vagas = Array.isArray(garagem.vagas)
+    ? garagem.vagas
+    : Array.isArray(fallback)
+      ? fallback
+      : [];
+
+  const possuiVaga =
+    typeof garagem.possui_vaga === "boolean"
+      ? garagem.possui_vaga
+      : vagas.length > 0;
+
+  return (
+    <section className="ama-residence-panel ama-residence-original">
+      <div className="ama-residence-panel-head">
+        <div>
+          <span className="ama-residence-eyebrow">{titulo}</span>
+          <strong>{possuiVaga ? "Garagem informada" : "Sem vaga informada"}</strong>
+        </div>
+        <span className="ama-residence-badge neutral">Somente leitura</span>
+      </div>
+
+      <ListaCampos
+        campos={[
+          {
+            label: "Possui vaga",
+            value: possuiVaga ? "Sim" : "Não",
+          },
+          ...(garagem.garagem_situacao || garagem.situacao
+            ? [{
+                label: "Situação informada",
+                value: String(garagem.garagem_situacao || garagem.situacao)
+                  .replaceAll("_", " "),
+              }]
+            : []),
+        ]}
+      />
+
+      {vagas.length ? (
+        <div className="ama-list-stack ama-garage-read-list">
+          {vagas.map((vaga, index) => (
+            <div className="ama-simple-card" key={vaga.id || `${vaga.identificacao_vaga || vaga.numero_vaga}-${index}`}>
+              <ListaCampos
+                campos={[
+                  {
+                    label: "Número / identificação",
+                    value: vaga.identificacao_vaga || vaga.numero_vaga || vaga.identificacao || vaga.numero,
+                  },
+                  {
+                    label: "Tipo de vaga",
+                    value: rotuloTipoFisicoVaga(vaga.tipo_fisico_vaga || vaga.tipo_vaga),
+                  },
+                  {
+                    label: "Vínculo",
+                    value: rotuloVinculoGaragem(vaga),
+                  },
+                  {
+                    label: "Como está sendo usada",
+                    value: rotuloModoUsoGaragem(vaga.modo_uso_vaga || vaga.vinculo || vaga.situacao),
+                  },
+                  {
+                    label: "Outra unidade envolvida",
+                    value: vaga.outra_parte_unidade || vaga.unidade_vinculada || "Não se aplica",
+                  },
+                  {
+                    label: "Observações",
+                    value: vaga.observacoes || vaga.observacao || "Sem observações",
+                  },
+                ]}
+              />
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function ConferenciaGaragem({
+  item,
+  contexto,
+  somenteLeitura,
+  carregando,
+  salvando,
+  onSalvar,
+}) {
+  const garagemDeclarada = useMemo(
+    () => localizarGaragemDeclarada(contexto, item),
+    [contexto, item]
+  );
+
+  const garagemSalva = useMemo(
+    () => localizarGaragemConferida(contexto),
+    [contexto]
+  );
+
+  const [situacao, setSituacao] = useState("");
+  const [vagas, setVagas] = useState([]);
+  const [observacao, setObservacao] = useState("");
+
+  useEffect(() => {
+    const fonte = Object.keys(garagemSalva).length ? garagemSalva : garagemDeclarada;
+    const vagasFonte = Array.isArray(fonte.vagas)
+      ? fonte.vagas
+      : Array.isArray(item?.garagem)
+        ? item.garagem
+        : [];
+
+    const naoSabe = Boolean(
+      fonte.nao_sabe_garagem ||
+      fonte.garagem_situacao === "nao_sei" ||
+      fonte.garagem_modalidade === "nao_sei"
+    );
+
+    const possui = typeof fonte.possui_vaga === "boolean" ? fonte.possui_vaga : null;
+
+    setSituacao(
+      naoSabe && !Object.keys(garagemSalva).length
+        ? ""
+        : possui === true
+          ? "SIM"
+          : possui === false
+            ? "NAO"
+            : vagasFonte.length
+              ? "SIM"
+              : ""
+    );
+
+    setVagas(
+      vagasFonte.length
+        ? vagasFonte.map(normalizarVagaFormulario)
+        : []
+    );
+
+    setObservacao(
+      String(
+        garagemSalva.observacao_auditor ||
+        garagemSalva.observacao ||
+        ""
+      )
+    );
+  }, [garagemSalva, garagemDeclarada, item?.garagem]);
+
+  if (somenteLeitura) {
+    return (
+      <div className="ama-residence-audit ama-garage-audit">
+        <GaragemSomenteLeitura
+          titulo="Informado pelo Morador"
+          garagem={garagemDeclarada}
+          fallback={item?.garagem}
+        />
+
+        {Object.keys(garagemSalva).length ? (
+          <GaragemSomenteLeitura
+            titulo="Conferido na Auditoria"
+            garagem={garagemSalva}
+          />
+        ) : null}
+      </div>
+    );
+  }
+
+  const possuiConferenciaSalva = Object.keys(garagemSalva).length > 0;
+  const possuiVaga = situacao === "SIM";
+
+  function atualizarVaga(index, campo, valorCampo) {
+    setVagas((atuais) =>
+      atuais.map((vagaAtual, indiceAtual) => {
+        if (indiceAtual !== index) return vagaAtual;
+
+        const proxima = {
+          ...vagaAtual,
+          [campo]: valorCampo,
+        };
+
+        if (campo === "vaga_pertence_unidade") {
+          const pertence = valorCampo === true;
+          proxima.modo_uso_vaga = pertence ? "USO_PROPRIO" : "ALUGADA_PARA_MIM";
+          if (pertence && proxima.modo_uso_vaga === "USO_PROPRIO") {
+            proxima.outra_parte_unidade = "";
+          }
+        }
+
+        return proxima;
+      })
+    );
+  }
+
+  function adicionarVaga() {
+    setVagas((atuais) => [...atuais, novaVagaFormulario()]);
+  }
+
+  function removerVaga(index) {
+    setVagas((atuais) => atuais.filter((_, indiceAtual) => indiceAtual !== index));
+  }
+
+  async function salvar(event) {
+    event.preventDefault();
+
+    if (!situacao) {
+      toast.error("Informe se a unidade possui vaga de garagem.");
+      return;
+    }
+
+    if (possuiVaga && !vagas.length) {
+      toast.error("Adicione pelo menos uma vaga para concluir a conferência da garagem.");
+      return;
+    }
+
+    const vagasPreparadas = possuiVaga
+      ? vagas.map((vagaAtual) => ({
+          identificacao_vaga: String(vagaAtual.identificacao_vaga || "").trim(),
+          tipo_fisico_vaga: vagaAtual.tipo_fisico_vaga || null,
+          vaga_pertence_unidade: Boolean(vagaAtual.vaga_pertence_unidade),
+          modo_uso_vaga: normalizarModoUsoGaragem(vagaAtual.modo_uso_vaga),
+          outra_parte_unidade: String(vagaAtual.outra_parte_unidade || "").trim() || null,
+          observacoes: String(vagaAtual.observacoes || "").trim() || null,
+        }))
+      : [];
+
+    if (possuiVaga && vagasPreparadas.some((vagaAtual) => !vagaAtual.identificacao_vaga)) {
+      toast.error("Informe o número ou identificação de todas as vagas.");
+      return;
+    }
+
+    await onSalvar({
+      possuiVaga,
+      vagas: vagasPreparadas,
+      observacao: String(observacao || "").trim() || null,
+    });
+  }
+
+  return (
+    <div className="ama-residence-audit ama-garage-audit">
+      <GaragemSomenteLeitura
+        titulo="Informado pelo Morador"
+        garagem={garagemDeclarada}
+        fallback={item?.garagem}
+      />
+
+      <form className="ama-residence-panel ama-residence-reviewed" onSubmit={salvar}>
+        <div className="ama-residence-panel-head">
+          <div>
+            <span className="ama-residence-eyebrow">Conferido na Auditoria</span>
+            <strong>Garagem validada pelo Administrativo</strong>
+          </div>
+
+          <span className={possuiConferenciaSalva ? "ama-residence-badge saved" : "ama-residence-badge pending"}>
+            {possuiConferenciaSalva ? "Salvo" : "Pendente"}
+          </span>
+        </div>
+
+        {carregando ? (
+          <div className="ama-residence-loading">
+            <RefreshCw size={16} className="ama-spin" />
+            Carregando estado salvo da Auditoria...
+          </div>
+        ) : (
+          <>
+            <label className="ama-residence-field">
+              <span>A unidade possui vaga de garagem?</span>
+              <select value={situacao} onChange={(event) => {
+                const valorAtual = event.target.value;
+                setSituacao(valorAtual);
+                if (valorAtual === "NAO") setVagas([]);
+                if (valorAtual === "SIM" && !vagas.length) setVagas([novaVagaFormulario()]);
+              }} disabled={salvando}>
+                <option value="">Selecione</option>
+                <option value="SIM">Sim</option>
+                <option value="NAO">Não</option>
+              </select>
+            </label>
+
+            {possuiVaga ? (
+              <div className="ama-garage-editor-list">
+                {vagas.map((vagaAtual, index) => {
+                  const pertence = Boolean(vagaAtual.vaga_pertence_unidade);
+                  const opcoesUso = pertence
+                    ? [
+                        ["USO_PROPRIO", "Uso próprio"],
+                        ["ALUGADA_PARA_TERCEIRO", "Alugada para outra unidade"],
+                        ["EMPRESTADA_PARA_TERCEIRO", "Emprestada para outra unidade"],
+                        ["SEM_USO", "Sem uso no momento"],
+                      ]
+                    : [
+                        ["ALUGADA_PARA_MIM", "Alugada de outra unidade"],
+                        ["EMPRESTADA_PARA_MIM", "Emprestada de outra unidade"],
+                      ];
+
+                  const precisaOutraUnidade = !pertence || [
+                    "ALUGADA_PARA_TERCEIRO",
+                    "EMPRESTADA_PARA_TERCEIRO",
+                  ].includes(normalizarModoUsoGaragem(vagaAtual.modo_uso_vaga));
+
+                  return (
+                    <section className="ama-garage-editor-card" key={`vaga-auditoria-${index}`}>
+                      <div className="ama-garage-editor-head">
+                        <strong>Vaga {index + 1}</strong>
+                        {vagas.length > 1 ? (
+                          <button type="button" className="ama-link-danger" onClick={() => removerVaga(index)} disabled={salvando}>
+                            Remover
+                          </button>
+                        ) : null}
+                      </div>
+
+                      <div className="ama-residence-form-grid">
+                        <label className="ama-residence-field">
+                          <span>Número / identificação</span>
+                          <input
+                            type="text"
+                            value={vagaAtual.identificacao_vaga}
+                            onChange={(event) => atualizarVaga(index, "identificacao_vaga", event.target.value)}
+                            placeholder="Ex.: 32, G-15, M08"
+                            disabled={salvando}
+                          />
+                        </label>
+
+                        <label className="ama-residence-field">
+                          <span>Tipo da vaga <em>opcional</em></span>
+                          <select
+                            value={vagaAtual.tipo_fisico_vaga}
+                            onChange={(event) => atualizarVaga(index, "tipo_fisico_vaga", event.target.value)}
+                            disabled={salvando}
+                          >
+                            <option value="">Não informado</option>
+                            <option value="PADRAO">Padrão</option>
+                            <option value="MOTO">Moto</option>
+                            <option value="GRANDE_VAN">Grande / Van</option>
+                            <option value="ACESSIBILIDADE">Acessibilidade</option>
+                            <option value="ELETRICA">Elétrica</option>
+                            <option value="OUTROS">Outro tipo</option>
+                          </select>
+                        </label>
+
+                        <label className="ama-residence-field">
+                          <span>A vaga pertence a esta unidade?</span>
+                          <select
+                            value={pertence ? "SIM" : "NAO"}
+                            onChange={(event) => atualizarVaga(index, "vaga_pertence_unidade", event.target.value === "SIM")}
+                            disabled={salvando}
+                          >
+                            <option value="SIM">Sim</option>
+                            <option value="NAO">Não</option>
+                          </select>
+                        </label>
+
+                        <label className="ama-residence-field">
+                          <span>Como a vaga está sendo usada?</span>
+                          <select
+                            value={normalizarModoUsoGaragem(vagaAtual.modo_uso_vaga)}
+                            onChange={(event) => atualizarVaga(index, "modo_uso_vaga", event.target.value)}
+                            disabled={salvando}
+                          >
+                            {opcoesUso.map(([valorOpcao, labelOpcao]) => (
+                              <option key={valorOpcao} value={valorOpcao}>{labelOpcao}</option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+
+                      {precisaOutraUnidade ? (
+                        <label className="ama-residence-field">
+                          <span>Outra unidade envolvida <em>opcional se ainda não localizada</em></span>
+                          <input
+                            type="text"
+                            value={vagaAtual.outra_parte_unidade}
+                            onChange={(event) => atualizarVaga(index, "outra_parte_unidade", event.target.value)}
+                            placeholder="Ex.: 41, Torre 2 · Unidade 15"
+                            disabled={salvando}
+                          />
+                        </label>
+                      ) : null}
+
+                      <label className="ama-residence-field ama-residence-observation">
+                        <span>Observações da vaga <em>opcional</em></span>
+                        <textarea
+                          value={vagaAtual.observacoes}
+                          onChange={(event) => atualizarVaga(index, "observacoes", event.target.value)}
+                          rows={2}
+                          placeholder="Registre apenas informações úteis para a conferência."
+                          disabled={salvando}
+                        />
+                      </label>
+                    </section>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  className="ama-garage-add"
+                  onClick={adicionarVaga}
+                  disabled={salvando}
+                >
+                  <span className="ama-garage-add-icon" aria-hidden="true">+</span>
+                  <span>Adicionar outra vaga</span>
+                </button>
+              </div>
+            ) : null}
+
+            <label className="ama-residence-field ama-residence-observation">
+              <span>Observação do Auditor <em>opcional</em></span>
+              <textarea
+                value={observacao}
+                onChange={(event) => setObservacao(event.target.value)}
+                rows={3}
+                placeholder="Registre somente quando houver informação útil para a conferência."
+                disabled={salvando}
+              />
+            </label>
+
+            {possuiConferenciaSalva ? (
+              <div className="ama-residence-feedback success">
+                <strong>Conferência da garagem salva</strong>
+                <span>Você pode fechar o Drawer e continuar depois. A aprovação é uma etapa separada.</span>
+              </div>
+            ) : null}
+
+            <div className="ama-residence-actions">
+              <span>Salvar a conferência da garagem não aprova o cadastro e não altera a declaração original do Morador.</span>
+              <button type="submit" className="ama-btn ama-btn-primary" disabled={salvando}>
+                {salvando ? (
+                  <><RefreshCw size={15} className="ama-spin" /> Salvando...</>
+                ) : possuiConferenciaSalva ? "Salvar nova conferência" : "Salvar conferência"}
+              </button>
+            </div>
+          </>
+        )}
+      </form>
+    </div>
+  );
+}
+
+function PreferenciasMorador({ preferencias = {} }) {
+  const canais = [
+    ["Notificações no aplicativo", preferencias.push],
+    ["WhatsApp", preferencias.whatsapp],
+    ["E-mail", preferencias.email],
+  ];
+
+  return (
+    <div className="ama-fields-grid">
+      {canais.map(([nomeCanal, autorizado]) => (
+        <div className="ama-read-field" key={nomeCanal}>
+          <span>{nomeCanal}</span>
+          <strong>{autorizado ? "Autorizado" : "Não autorizado"}</strong>
+        </div>
+      ))}
+
+      {preferencias.canal_preferencial &&
+      preferencias.canal_preferencial !== "Não informado" ? (
+        <div className="ama-read-field">
+          <span>Canal preferencial informado</span>
+          <strong>{preferencias.canal_preferencial}</strong>
+        </div>
+      ) : null}
+
+      {preferencias.observacoes ? (
+        <div className="ama-read-field">
+          <span>Informações adicionais</span>
+          <strong>{preferencias.observacoes}</strong>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function PontosAtencao({ contexto, divergencias = [] }) {
+  const pontos = useMemo(
+    () => extrairPontosAtencao(contexto, divergencias),
+    [contexto, divergencias]
+  );
+
+  if (!pontos.length) {
+    return <div className="ama-empty-inline">Nenhum ponto de atenção registrado.</div>;
+  }
+
+  return (
+    <div className="ama-list-stack">
+      {pontos.map((ponto, index) => {
+        const itemSeguro = objeto(ponto);
+        const bloqueante = Boolean(itemSeguro.bloqueante);
+
+        return (
+          <div className={bloqueante ? "ama-simple-card danger" : "ama-simple-card"} key={itemSeguro.id || itemSeguro.codigo || index}>
+            <ListaCampos
+              campos={[
+                {
+                  label: "Situação",
+                  value: bloqueante ? "Precisa ser resolvida antes da aprovação" : "Requer conferência",
+                },
+                {
+                  label: "Informação",
+                  value: textoPontoAtencao(itemSeguro),
+                },
+              ]}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -900,6 +2043,13 @@ function DrawerAuditoria({
   setAbertoSecao,
   onClose,
   onDecisao,
+  torres = [],
+  contextoAuditoria,
+  carregandoContextoAuditoria,
+  salvandoResidencia,
+  onSalvarResidencia,
+  salvandoGaragem,
+  onSalvarGaragem,
 }) {
   if (!item) {
     return null;
@@ -907,6 +2057,21 @@ function DrawerAuditoria({
 
   const somenteLeitura =
     modo === "resumo";
+
+  const podeAprovar =
+    somenteLeitura ||
+    contextoAuditoria?.pode_aprovar === true;
+
+  const pontosAtencaoDrawer = extrairPontosAtencao(
+    contextoAuditoria,
+    item.divergencias || []
+  );
+
+  const statusPontosAtencao = pontosAtencaoDrawer.length
+    ? `${pontosAtencaoDrawer.length} ${
+        pontosAtencaoDrawer.length === 1 ? "registro" : "registros"
+      }`
+    : "Sem necessidade de ajustes";
 
   return (
     <>
@@ -963,7 +2128,7 @@ function DrawerAuditoria({
               </h3>
 
               <span>
-                {item.perfil_morador}
+                {item.perfil_morador_label || rotuloPerfilMorador(item.perfil_morador)}
               </span>
             </div>
 
@@ -1050,32 +2215,14 @@ function DrawerAuditoria({
               setAbertoSecao
             }
           >
-            <ListaCampos
-              campos={[
-                {
-                  label: "Torre",
-                  value:
-                    item.torre,
-                },
-                {
-                  label:
-                    "Unidade",
-                  value:
-                    item.unidade,
-                },
-                {
-                  label:
-                    "Perfil",
-                  value:
-                    item.perfil_morador,
-                },
-                {
-                  label:
-                    "ID",
-                  value:
-                    item.business_id,
-                },
-              ]}
+            <ConferenciaResidencia
+              item={item}
+              contexto={contextoAuditoria}
+              torres={torres}
+              somenteLeitura={somenteLeitura}
+              carregando={carregandoContextoAuditoria}
+              salvando={salvandoResidencia}
+              onSalvar={onSalvarResidencia}
             />
           </AccordionItem>
 
@@ -1123,13 +2270,15 @@ function DrawerAuditoria({
                   label:
                     "Perfil",
                   value:
-                    item.perfil_morador,
+                    item.perfil_morador_label ||
+                    rotuloPerfilMorador(item.perfil_morador),
                 },
                 {
                   label:
                     "Observações",
                   value:
-                    item.observacoes,
+                    item.observacoes ||
+                    "Sem observações",
                 },
               ]}
             />
@@ -1209,6 +2358,16 @@ function DrawerAuditoria({
           >
             <ListaVeiculosGaragem
               item={item}
+              mostrarGaragem={false}
+            />
+
+            <ConferenciaGaragem
+              item={item}
+              contexto={contextoAuditoria}
+              somenteLeitura={somenteLeitura}
+              carregando={carregandoContextoAuditoria}
+              salvando={salvandoGaragem}
+              onSalvar={onSalvarGaragem}
             />
           </AccordionItem>
 
@@ -1226,32 +2385,8 @@ function DrawerAuditoria({
               setAbertoSecao
             }
           >
-            <ListaCampos
-              campos={[
-                {
-                  label:
-                    "Canal preferencial",
-                  value:
-                    item.preferencias
-                      ?.canal_preferencial,
-                },
-                {
-                  label:
-                    "Receber avisos",
-                  value:
-                    item.preferencias
-                      ?.notificacoes
-                      ? "Sim"
-                      : "Não informado",
-                },
-                {
-                  label:
-                    "Observações",
-                  value:
-                    item.preferencias
-                      ?.observacoes,
-                },
-              ]}
+            <PreferenciasMorador
+              preferencias={item.preferencias || {}}
             />
           </AccordionItem>
 
@@ -1260,10 +2395,7 @@ function DrawerAuditoria({
             titulo="7. Pontos de Atenção"
             subtitulo="Informações que precisam ser conferidas"
             icon={AlertTriangle}
-            status={`${
-              item.divergencias
-                ?.length || 0
-            } registros`}
+            status={statusPontosAtencao}
             aberto={
               abertoSecao ===
               "divergencias"
@@ -1272,52 +2404,10 @@ function DrawerAuditoria({
               setAbertoSecao
             }
           >
-            {item.divergencias
-              ?.length ? (
-              <div className="ama-list-stack">
-                {item.divergencias.map(
-                  (
-                    divergencia,
-                    index
-                  ) => (
-                    <div
-                      className="ama-simple-card danger"
-                      key={
-                        divergencia.id ||
-                        index
-                      }
-                    >
-                      <ListaCampos
-                        campos={[
-                          {
-                            label:
-                              "Tipo",
-                            value:
-                              divergencia.tipo,
-                          },
-                          {
-                            label:
-                              "Campo",
-                            value:
-                              divergencia.campo,
-                          },
-                          {
-                            label:
-                              "Descrição",
-                            value:
-                              divergencia.descricao,
-                          },
-                        ]}
-                      />
-                    </div>
-                  )
-                )}
-              </div>
-            ) : (
-              <div className="ama-empty-inline">
-                Nenhum ponto de atenção registrado.
-              </div>
-            )}
+            <PontosAtencao
+              contexto={contextoAuditoria}
+              divergencias={item.divergencias || []}
+            />
           </AccordionItem>
         </main>
 
@@ -1330,13 +2420,13 @@ function DrawerAuditoria({
             <strong>
               {somenteLeitura
                 ? "Este resumo é somente para consulta."
-                : "Os dados do morador não podem ser alterados nesta tela."}
+                : "As conferências podem ser salvas sem concluir a aprovação."}
             </strong>
 
             <span>
               {somenteLeitura
                 ? "Para analisar e tomar uma decisão, utilize a opção Auditar."
-                : "Se algum dado estiver incorreto, solicite a correção ao morador."}
+                : "Residência e Garagem podem ser conferidas ou corrigidas pelo Administrativo. A declaração original permanece preservada."}
             </span>
           </div>
         </div>
@@ -1347,6 +2437,8 @@ function DrawerAuditoria({
               <button
                 type="button"
                 className="ama-footer-action approve"
+                disabled={!podeAprovar}
+                title={!podeAprovar ? "Conclua as conferências obrigatórias antes de aprovar." : undefined}
                 onClick={() =>
                   onDecisao(
                     "APROVADO",
@@ -1364,7 +2456,9 @@ function DrawerAuditoria({
                   </strong>
 
                   <small>
-                    Confirmar cadastro
+                    {podeAprovar
+                      ? "Confirmar cadastro"
+                      : "Conclua as conferências"}
                   </small>
                 </span>
               </button>
@@ -1590,6 +2684,26 @@ export default function AuditoriaMoradoresAuditoria({
   ] = useState(false);
 
   const [
+    contextoAuditoria,
+    setContextoAuditoria,
+  ] = useState(null);
+
+  const [
+    carregandoContextoAuditoria,
+    setCarregandoContextoAuditoria,
+  ] = useState(false);
+
+  const [
+    salvandoResidencia,
+    setSalvandoResidencia,
+  ] = useState(false);
+
+  const [
+    salvandoGaragem,
+    setSalvandoGaragem,
+  ] = useState(false);
+
+  const [
     refreshToken,
     setRefreshToken,
   ] = useState(0);
@@ -1784,6 +2898,9 @@ export default function AuditoriaMoradoresAuditoria({
       setAuditoriaSelecionada(
         null
       );
+      setContextoAuditoria(
+        null
+      );
       setModoDrawer(null);
       setDecisaoPendente(
         null
@@ -1885,6 +3002,20 @@ export default function AuditoriaMoradoresAuditoria({
         "resumo"
       );
 
+      setCarregandoContextoAuditoria(true);
+
+      try {
+        const contexto = await obterContextoAuditoriaMorador({
+          preCadastroId: item.pre_cadastro_id,
+        });
+        setContextoAuditoria(contexto);
+      } catch (errorContexto) {
+        console.error("Não foi possível carregar o contexto do resumo:", errorContexto);
+        setContextoAuditoria(null);
+      } finally {
+        setCarregandoContextoAuditoria(false);
+      }
+
       setAuditoriaSelecionada(
         detalhe
       );
@@ -1962,6 +3093,20 @@ export default function AuditoriaMoradoresAuditoria({
             item.pre_cadastro_id,
         });
 
+      setCarregandoContextoAuditoria(
+        true
+      );
+
+      const contexto =
+        await obterContextoAuditoriaMorador({
+          preCadastroId:
+            item.pre_cadastro_id,
+        });
+
+      setContextoAuditoria(
+        contexto
+      );
+
       setSecaoAberta(
         "identificacao"
       );
@@ -1995,6 +3140,109 @@ export default function AuditoriaMoradoresAuditoria({
       setCarregandoDetalhe(
         false
       );
+
+      setCarregandoContextoAuditoria(
+        false
+      );
+    }
+  }
+
+  async function handleSalvarResidencia({
+    torreId,
+    unidade: unidadeConferida,
+    observacao,
+  }) {
+    if (
+      !auditoriaSelecionada
+        ?.pre_cadastro_id
+    ) {
+      toast.error(
+        "Cadastro não identificado."
+      );
+      return;
+    }
+
+    try {
+      setSalvandoResidencia(
+        true
+      );
+
+      await salvarConferenciaResidenciaMorador({
+        preCadastroId:
+          auditoriaSelecionada
+            .pre_cadastro_id,
+        torreId,
+        unidade:
+          unidadeConferida,
+        observacao,
+      });
+
+      const contextoAtualizado =
+        await obterContextoAuditoriaMorador({
+          preCadastroId:
+            auditoriaSelecionada
+              .pre_cadastro_id,
+        });
+
+      setContextoAuditoria(
+        contextoAtualizado
+      );
+
+      toast.success(
+        "Conferência residencial salva. Você pode continuar a Auditoria depois."
+      );
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        error?.message ||
+        "Não foi possível salvar a conferência residencial."
+      );
+    } finally {
+      setSalvandoResidencia(
+        false
+      );
+    }
+  }
+
+
+  async function handleSalvarGaragem({
+    possuiVaga,
+    vagas,
+    observacao,
+  }) {
+    if (!auditoriaSelecionada?.pre_cadastro_id) {
+      toast.error("Cadastro não identificado.");
+      return;
+    }
+
+    try {
+      setSalvandoGaragem(true);
+
+      await salvarConferenciaGaragemMorador({
+        preCadastroId: auditoriaSelecionada.pre_cadastro_id,
+        possuiVaga,
+        vagas,
+        observacao,
+      });
+
+      const contextoAtualizado = await obterContextoAuditoriaMorador({
+        preCadastroId: auditoriaSelecionada.pre_cadastro_id,
+      });
+
+      setContextoAuditoria(contextoAtualizado);
+
+      toast.success(
+        "Conferência da garagem salva. Você pode continuar a Auditoria depois."
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error?.message ||
+        "Não foi possível salvar a conferência da garagem."
+      );
+    } finally {
+      setSalvandoGaragem(false);
     }
   }
 
@@ -2218,6 +3466,10 @@ export default function AuditoriaMoradoresAuditoria({
 
   function fecharAuditoria() {
     setAuditoriaSelecionada(
+      null
+    );
+
+    setContextoAuditoria(
       null
     );
 
@@ -2934,6 +4186,27 @@ export default function AuditoriaMoradoresAuditoria({
         }
         onDecisao={
           handleDecisao
+        }
+        torres={
+          torres
+        }
+        contextoAuditoria={
+          contextoAuditoria
+        }
+        carregandoContextoAuditoria={
+          carregandoContextoAuditoria
+        }
+        salvandoResidencia={
+          salvandoResidencia
+        }
+        onSalvarResidencia={
+          handleSalvarResidencia
+        }
+        salvandoGaragem={
+          salvandoGaragem
+        }
+        onSalvarGaragem={
+          handleSalvarGaragem
         }
       />
 
