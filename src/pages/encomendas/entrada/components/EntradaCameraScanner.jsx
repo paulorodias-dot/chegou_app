@@ -1,14 +1,18 @@
 import {
   AlertCircle,
   Camera,
+  CheckCircle2,
+  Focus,
   LoaderCircle,
   ScanBarcode,
+  SwitchCamera,
   X,
 } from "lucide-react";
 
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -23,22 +27,197 @@ import "./EntradaCameraScanner.css";
 // SISTEMA CHEGOU!
 // CENTRAL DE ENCOMENDAS — ENTRADA
 //
-// E3.2-D.4
+// GATE E3.2-D.4.2
 //
-// Scanner leve da Entrada.
+// CAPTURA APRIMORADA
+//
+// - escolha automática da melhor câmera;
+// - seleção manual da câmera;
+// - preferência por câmera traseira;
+// - tentativa de foco contínuo;
+// - tentativa de exposição contínua;
+// - Vertical / Horizontal;
+// - recorte da região de interesse;
+// - fallback de imagem completa;
+// - tentativa com contraste reforçado;
+// - BarcodeDetector + ZXing através da camada compartilhada.
 //
 // IMPORTANTE:
-// - não cria Volume;
-// - não altera código do Volume;
-// - não confirma Entrada;
-// - não chama Supabase;
-// - BarcodeDetector é apenas primeira estratégia;
-// - ZXing atua como fallback;
-// - câmera existe somente enquanto este modal estiver aberto.
+// esta camada NÃO:
+// - altera Volume;
+// - cria Volume;
+// - identifica pessoa;
+// - confirma Entrada;
+// - grava no backend.
 // ============================================================
 
 const INTERVALO_LEITURA_MS =
-  850;
+  700;
+
+const LIMITE_FRAME =
+  1600;
+
+const ENQUADRAMENTO = Object.freeze({
+  HORIZONTAL:
+    "HORIZONTAL",
+
+  VERTICAL:
+    "VERTICAL",
+});
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function textoNormalizado(
+  value
+) {
+  return String(
+    value || ""
+  )
+    .trim()
+    .toLocaleLowerCase(
+      "pt-BR"
+    );
+}
+
+function pontuarCamera(
+  device
+) {
+  const label =
+    textoNormalizado(
+      device?.label
+    );
+
+  let score = 0;
+
+  /*
+   * Preferências comuns em Android/iOS.
+   */
+  if (
+    label.includes(
+      "back"
+    ) ||
+    label.includes(
+      "rear"
+    ) ||
+    label.includes(
+      "traseira"
+    ) ||
+    label.includes(
+      "environment"
+    )
+  ) {
+    score += 100;
+  }
+
+  /*
+   * Em vários Androids a principal aparece
+   * como "camera 0".
+   */
+  if (
+    label.includes(
+      "camera 0"
+    ) ||
+    label.includes(
+      "câmera 0"
+    )
+  ) {
+    score += 25;
+  }
+
+  /*
+   * Evitar ultrawide como escolha automática:
+   * costuma prejudicar código de barras próximo.
+   */
+  if (
+    label.includes(
+      "ultra"
+    ) ||
+    label.includes(
+      "wide angle"
+    ) ||
+    label.includes(
+      "0.5"
+    )
+  ) {
+    score -= 30;
+  }
+
+  /*
+   * Telefoto também não costuma ser a melhor
+   * escolha para etiqueta próxima.
+   */
+  if (
+    label.includes(
+      "tele"
+    ) ||
+    label.includes(
+      "telephoto"
+    )
+  ) {
+    score -= 20;
+  }
+
+  /*
+   * Câmera frontal é último recurso.
+   */
+  if (
+    label.includes(
+      "front"
+    ) ||
+    label.includes(
+      "frontal"
+    ) ||
+    label.includes(
+      "user"
+    )
+  ) {
+    score -= 100;
+  }
+
+  return score;
+}
+
+function escolherMelhorCamera(
+  devices
+) {
+  if (
+    !Array.isArray(devices) ||
+    devices.length === 0
+  ) {
+    return null;
+  }
+
+  return [...devices]
+    .sort(
+      (a, b) =>
+        pontuarCamera(b) -
+        pontuarCamera(a)
+    )[0];
+}
+
+function nomeCamera(
+  device,
+  index
+) {
+  const label =
+    String(
+      device?.label || ""
+    ).trim();
+
+  if (label) {
+    return label;
+  }
+
+  return `Câmera ${
+    index + 1
+  }`;
+}
+
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export default function EntradaCameraScanner({
   open,
@@ -52,6 +231,9 @@ export default function EntradaCameraScanner({
   const canvasRef =
     useRef(null);
 
+  const canvasProcessadoRef =
+    useRef(null);
+
   const streamRef =
     useRef(null);
 
@@ -63,6 +245,9 @@ export default function EntradaCameraScanner({
 
   const ativoRef =
     useRef(false);
+
+  const dispositivoAtualRef =
+    useRef(null);
 
   const [
     iniciando,
@@ -82,8 +267,58 @@ export default function EntradaCameraScanner({
   ] =
     useState(null);
 
+  const [
+    cameras,
+    setCameras,
+  ] =
+    useState([]);
+
+  const [
+    cameraSelecionadaId,
+    setCameraSelecionadaId,
+  ] =
+    useState(null);
+
+  const [
+    enquadramento,
+    setEnquadramento,
+  ] =
+    useState(
+      ENQUADRAMENTO.HORIZONTAL
+    );
+
+  const [
+    focoStatus,
+    setFocoStatus,
+  ] =
+    useState("AUTOMATICO");
+
+  const [
+    resolucaoAtiva,
+    setResolucaoAtiva,
+  ] =
+    useState(null);
+
   // ==========================================================
-  // PARAR
+  // LABEL DA CÂMERA
+  // ==========================================================
+
+  const cameraSelecionada =
+    useMemo(
+      () =>
+        cameras.find(
+          (item) =>
+            item.deviceId ===
+            cameraSelecionadaId
+        ) || null,
+      [
+        cameras,
+        cameraSelecionadaId,
+      ]
+    );
+
+  // ==========================================================
+  // PARAR CÂMERA
   // ==========================================================
 
   const pararCamera =
@@ -117,11 +352,14 @@ export default function EntradaCameraScanner({
       streamRef.current =
         null;
 
+      dispositivoAtualRef.current =
+        null;
+
       if (
         videoRef.current
       ) {
-        videoRef.current.srcObject =
-          null;
+        videoRef.current
+          .srcObject = null;
       }
 
       processandoRef.current =
@@ -131,7 +369,455 @@ export default function EntradaCameraScanner({
     }, []);
 
   // ==========================================================
-  // FRAME → DECODER
+  // ENUMERAR CÂMERAS
+  // ==========================================================
+
+  const listarCameras =
+    useCallback(
+      async () => {
+        if (
+          !navigator
+            ?.mediaDevices
+            ?.enumerateDevices
+        ) {
+          return [];
+        }
+
+        try {
+          const devices =
+            await navigator
+              .mediaDevices
+              .enumerateDevices();
+
+          const videoInputs =
+            devices.filter(
+              (device) =>
+                device.kind ===
+                "videoinput"
+            );
+
+          setCameras(
+            videoInputs
+          );
+
+          return videoInputs;
+        } catch (
+          error
+        ) {
+          console.warn(
+            "[EntradaCameraScanner] Não foi possível enumerar câmeras:",
+            error
+          );
+
+          return [];
+        }
+      },
+      []
+    );
+
+  // ==========================================================
+  // AJUSTES ÓPTICOS
+  // ==========================================================
+
+  const aplicarAjustesOpticos =
+    useCallback(
+      async (
+        track
+      ) => {
+        if (!track) {
+          return;
+        }
+
+        let capabilities =
+          {};
+
+        try {
+          capabilities =
+            track
+              .getCapabilities?.() ||
+            {};
+        } catch {
+          capabilities =
+            {};
+        }
+
+        const advanced =
+          {};
+
+        // ------------------------------------------------------
+        // FOCO
+        // ------------------------------------------------------
+
+        const focusModes =
+          Array.isArray(
+            capabilities
+              ?.focusMode
+          )
+            ? capabilities
+                .focusMode
+            : [];
+
+        if (
+          focusModes.includes(
+            "continuous"
+          )
+        ) {
+          advanced.focusMode =
+            "continuous";
+
+          setFocoStatus(
+            "CONTINUO"
+          );
+        } else if (
+          focusModes.includes(
+            "single-shot"
+          )
+        ) {
+          advanced.focusMode =
+            "single-shot";
+
+          setFocoStatus(
+            "UNICO"
+          );
+        } else {
+          setFocoStatus(
+            "AUTOMATICO"
+          );
+        }
+
+        // ------------------------------------------------------
+        // EXPOSIÇÃO
+        // ------------------------------------------------------
+
+        const exposureModes =
+          Array.isArray(
+            capabilities
+              ?.exposureMode
+          )
+            ? capabilities
+                .exposureMode
+            : [];
+
+        if (
+          exposureModes.includes(
+            "continuous"
+          )
+        ) {
+          advanced.exposureMode =
+            "continuous";
+        }
+
+        // ------------------------------------------------------
+        // WHITE BALANCE
+        // ------------------------------------------------------
+
+        const wbModes =
+          Array.isArray(
+            capabilities
+              ?.whiteBalanceMode
+          )
+            ? capabilities
+                .whiteBalanceMode
+            : [];
+
+        if (
+          wbModes.includes(
+            "continuous"
+          )
+        ) {
+          advanced.whiteBalanceMode =
+            "continuous";
+        }
+
+        // ------------------------------------------------------
+        // APLICAR
+        // ------------------------------------------------------
+
+        if (
+          Object.keys(
+            advanced
+          ).length === 0
+        ) {
+          return;
+        }
+
+        try {
+          await track.applyConstraints({
+            advanced: [
+              advanced,
+            ],
+          });
+        } catch (
+          error
+        ) {
+          console.warn(
+            "[EntradaCameraScanner] Ajustes ópticos não suportados:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+  // ==========================================================
+  // ÁREA DE CAPTURA
+  // ==========================================================
+
+  function obterRegiaoCaptura({
+    width,
+    height,
+  }) {
+    /*
+     * Horizontal:
+     * mais larga e baixa.
+     * Ideal para Code128, etiquetas de transporte etc.
+     */
+    if (
+      enquadramento ===
+      ENQUADRAMENTO.HORIZONTAL
+    ) {
+      const w =
+        width * 0.92;
+
+      const h =
+        height * 0.42;
+
+      return {
+        sx:
+          (width - w) /
+          2,
+
+        sy:
+          (height - h) /
+          2,
+
+        sw:
+          w,
+
+        sh:
+          h,
+      };
+    }
+
+    /*
+     * Vertical:
+     * permite etiqueta mais alta.
+     * Será reaproveitado no OCR.
+     */
+    const w =
+      width * 0.68;
+
+    const h =
+      height * 0.82;
+
+    return {
+      sx:
+        (width - w) /
+        2,
+
+      sy:
+        (height - h) /
+        2,
+
+      sw:
+        w,
+
+      sh:
+        h,
+    };
+  }
+
+  // ==========================================================
+  // DESENHAR RECORTE
+  // ==========================================================
+
+  function desenharRecorte({
+    source,
+    target,
+    regiao,
+    contraste = false,
+  }) {
+    const limite =
+      LIMITE_FRAME;
+
+    const escala =
+      Math.min(
+        1,
+        limite /
+          Math.max(
+            regiao.sw,
+            regiao.sh
+          )
+      );
+
+    const width =
+      Math.max(
+        1,
+        Math.round(
+          regiao.sw *
+            escala
+        )
+      );
+
+    const height =
+      Math.max(
+        1,
+        Math.round(
+          regiao.sh *
+            escala
+        )
+      );
+
+    target.width =
+      width;
+
+    target.height =
+      height;
+
+    const ctx =
+      target.getContext(
+        "2d",
+        {
+          alpha: false,
+          willReadFrequently:
+            true,
+        }
+      );
+
+    if (!ctx) {
+      return false;
+    }
+
+    ctx.save();
+
+    /*
+     * Contraste moderado para etiquetas
+     * com impressão cinza / papel térmico.
+     */
+    ctx.filter =
+      contraste
+        ? "grayscale(1) contrast(1.65) brightness(1.05)"
+        : "none";
+
+    ctx.drawImage(
+      source,
+
+      regiao.sx,
+      regiao.sy,
+      regiao.sw,
+      regiao.sh,
+
+      0,
+      0,
+      width,
+      height
+    );
+
+    ctx.restore();
+
+    return true;
+  }
+
+  // ==========================================================
+  // DESENHAR FRAME COMPLETO
+  // ==========================================================
+
+  function desenharFrameCompleto({
+    source,
+    target,
+  }) {
+    const larguraFonte =
+      source.videoWidth;
+
+    const alturaFonte =
+      source.videoHeight;
+
+    const escala =
+      Math.min(
+        1,
+        LIMITE_FRAME /
+          Math.max(
+            larguraFonte,
+            alturaFonte
+          )
+      );
+
+    const largura =
+      Math.max(
+        1,
+        Math.round(
+          larguraFonte *
+            escala
+        )
+      );
+
+    const altura =
+      Math.max(
+        1,
+        Math.round(
+          alturaFonte *
+            escala
+        )
+      );
+
+    target.width =
+      largura;
+
+    target.height =
+      altura;
+
+    const ctx =
+      target.getContext(
+        "2d",
+        {
+          alpha: false,
+          willReadFrequently:
+            true,
+        }
+      );
+
+    if (!ctx) {
+      return false;
+    }
+
+    ctx.filter =
+      "none";
+
+    ctx.drawImage(
+      source,
+      0,
+      0,
+      largura,
+      altura
+    );
+
+    return true;
+  }
+
+  // ==========================================================
+  // TENTAR UM CANVAS
+  // ==========================================================
+
+  async function decodificarCanvas(
+    canvas
+  ) {
+    const resposta =
+      await decodificarCodigoImagem(
+        canvas
+      );
+
+    if (
+      resposta?.encontrado &&
+      resposta?.resultado
+    ) {
+      return resposta.resultado;
+    }
+
+    return null;
+  }
+
+  // ==========================================================
+  // LEITURA MULTICAMADA
   // ==========================================================
 
   const tentarLeitura =
@@ -152,9 +838,13 @@ export default function EntradaCameraScanner({
         const canvas =
           canvasRef.current;
 
+        const processado =
+          canvasProcessadoRef.current;
+
         if (
           !video ||
           !canvas ||
+          !processado ||
           video.readyState < 2 ||
           !video.videoWidth ||
           !video.videoHeight
@@ -166,98 +856,112 @@ export default function EntradaCameraScanner({
           true;
 
         if (manual) {
-          setProcurando(true);
+          setProcurando(
+            true
+          );
         }
 
         try {
-          /*
-           * Mantemos uma resolução operacional
-           * suficientemente boa sem construir
-           * canvas gigantes em cada tentativa.
-           */
-          const larguraFonte =
-            video.videoWidth;
+          const regiao =
+            obterRegiaoCaptura({
+              width:
+                video.videoWidth,
 
-          const alturaFonte =
-            video.videoHeight;
+              height:
+                video.videoHeight,
+            });
 
-          const limite =
-            1280;
+          // ====================================================
+          // 1. REGIÃO CENTRAL
+          // ====================================================
 
-          const escala =
-            Math.min(
-              1,
-              limite /
-                Math.max(
-                  larguraFonte,
-                  alturaFonte
-                )
-            );
+          desenharRecorte({
+            source:
+              video,
 
-          const largura =
-            Math.max(
-              1,
-              Math.round(
-                larguraFonte *
-                  escala
-              )
-            );
+            target:
+              canvas,
 
-          const altura =
-            Math.max(
-              1,
-              Math.round(
-                alturaFonte *
-                  escala
-              )
-            );
+            regiao,
 
-          canvas.width =
-            largura;
+            contraste:
+              false,
+          });
 
-          canvas.height =
-            altura;
-
-          const ctx =
-            canvas.getContext(
-              "2d",
-              {
-                alpha: false,
-                willReadFrequently:
-                  true,
-              }
-            );
-
-          if (!ctx) {
-            return false;
-          }
-
-          ctx.drawImage(
-            video,
-            0,
-            0,
-            largura,
-            altura
-          );
-
-          const resposta =
-            await decodificarCodigoImagem(
+          let resultado =
+            await decodificarCanvas(
               canvas
             );
 
           if (
-            !ativoRef.current
+            resultado &&
+            ativoRef.current
           ) {
-            return false;
+            pararCamera();
+
+            onDetected?.(
+              resultado
+            );
+
+            return true;
           }
 
-          if (
-            resposta?.encontrado &&
-            resposta?.resultado
-          ) {
-            const resultado =
-              resposta.resultado;
+          // ====================================================
+          // 2. FRAME COMPLETO
+          // ====================================================
 
+          desenharFrameCompleto({
+            source:
+              video,
+
+            target:
+              canvas,
+          });
+
+          resultado =
+            await decodificarCanvas(
+              canvas
+            );
+
+          if (
+            resultado &&
+            ativoRef.current
+          ) {
+            pararCamera();
+
+            onDetected?.(
+              resultado
+            );
+
+            return true;
+          }
+
+          // ====================================================
+          // 3. RECORTE COM CONTRASTE
+          // ====================================================
+
+          desenharRecorte({
+            source:
+              video,
+
+            target:
+              processado,
+
+            regiao,
+
+            contraste:
+              true,
+          });
+
+          resultado =
+            await decodificarCanvas(
+              processado
+            );
+
+          if (
+            resultado &&
+            ativoRef.current
+          ) {
             pararCamera();
 
             onDetected?.(
@@ -268,10 +972,12 @@ export default function EntradaCameraScanner({
           }
 
           return false;
-        } catch (err) {
+        } catch (
+          error
+        ) {
           console.warn(
             "[EntradaCameraScanner] Falha de leitura:",
-            err
+            error
           );
 
           return false;
@@ -280,18 +986,21 @@ export default function EntradaCameraScanner({
             false;
 
           if (manual) {
-            setProcurando(false);
+            setProcurando(
+              false
+            );
           }
         }
       },
       [
+        enquadramento,
         onDetected,
         pararCamera,
       ]
     );
 
   // ==========================================================
-  // LOOP CONTROLADO
+  // LOOP DE LEITURA
   // ==========================================================
 
   const agendarLeitura =
@@ -334,7 +1043,228 @@ export default function EntradaCameraScanner({
     ]);
 
   // ==========================================================
-  // INICIAR CÂMERA
+  // ABRIR STREAM
+  // ==========================================================
+
+  const iniciarCamera =
+    useCallback(
+      async (
+        deviceId = null
+      ) => {
+        pararCamera();
+
+        setIniciando(
+          true
+        );
+
+        setErro(null);
+
+        try {
+          if (
+            !navigator
+              ?.mediaDevices
+              ?.getUserMedia
+          ) {
+            throw new Error(
+              "A câmera não está disponível neste dispositivo."
+            );
+          }
+
+          const constraints =
+            deviceId
+              ? {
+                  audio:
+                    false,
+
+                  video: {
+                    deviceId: {
+                      exact:
+                        deviceId,
+                    },
+
+                    width: {
+                      ideal:
+                        2560,
+                    },
+
+                    height: {
+                      ideal:
+                        1440,
+                    },
+                  },
+                }
+              : {
+                  audio:
+                    false,
+
+                  video: {
+                    facingMode: {
+                      ideal:
+                        "environment",
+                    },
+
+                    width: {
+                      ideal:
+                        2560,
+                    },
+
+                    height: {
+                      ideal:
+                        1440,
+                    },
+                  },
+                };
+
+          const stream =
+            await navigator
+              .mediaDevices
+              .getUserMedia(
+                constraints
+              );
+
+          streamRef.current =
+            stream;
+
+          const video =
+            videoRef.current;
+
+          if (!video) {
+            throw new Error(
+              "Não foi possível preparar a câmera."
+            );
+          }
+
+          video.srcObject =
+            stream;
+
+          await video.play();
+
+          const track =
+            stream
+              .getVideoTracks?.()[0];
+
+          dispositivoAtualRef.current =
+            track || null;
+
+          if (track) {
+            await aplicarAjustesOpticos(
+              track
+            );
+
+            try {
+              const settings =
+                track
+                  .getSettings?.() ||
+                {};
+
+              setResolucaoAtiva({
+                width:
+                  settings.width ||
+                  null,
+
+                height:
+                  settings.height ||
+                  null,
+              });
+            } catch {
+              setResolucaoAtiva(
+                null
+              );
+            }
+          }
+
+          /*
+           * Depois da permissão, labels das
+           * câmeras ficam disponíveis.
+           */
+          const lista =
+            await listarCameras();
+
+          if (
+            !deviceId &&
+            lista.length > 0
+          ) {
+            const melhor =
+              escolherMelhorCamera(
+                lista
+              );
+
+            if (
+              melhor?.deviceId
+            ) {
+              setCameraSelecionadaId(
+                melhor.deviceId
+              );
+
+              /*
+               * Se o navegador já escolheu a melhor
+               * não reabrimos a stream sem necessidade.
+               */
+              const settings =
+                track?.getSettings?.() ||
+                {};
+
+              if (
+                settings.deviceId &&
+                settings.deviceId !==
+                  melhor.deviceId
+              ) {
+                /*
+                 * Reabrir somente se houver uma
+                 * escolha claramente diferente.
+                 */
+                window.setTimeout(
+                  () => {
+                    if (
+                      ativoRef.current
+                    ) {
+                      iniciarCamera(
+                        melhor.deviceId
+                      );
+                    }
+                  },
+                  120
+                );
+
+                return;
+              }
+            }
+          }
+
+          ativoRef.current =
+            true;
+
+          agendarLeitura();
+        } catch (
+          error
+        ) {
+          console.error(
+            "[EntradaCameraScanner] Falha ao iniciar câmera:",
+            error
+          );
+
+          setErro(
+            error?.message ||
+              "Não foi possível iniciar a câmera."
+          );
+
+          pararCamera();
+        } finally {
+          setIniciando(
+            false
+          );
+        }
+      },
+      [
+        agendarLeitura,
+        aplicarAjustesOpticos,
+        listarCameras,
+        pararCamera,
+      ]
+    );
+
+  // ==========================================================
+  // ABRIR MODAL
   // ==========================================================
 
   useEffect(() => {
@@ -348,109 +1278,15 @@ export default function EntradaCameraScanner({
       return undefined;
     }
 
-    let cancelado =
-      false;
+    onOpenChange?.(
+      true
+    );
 
-    async function iniciar() {
-      setIniciando(true);
-      setErro(null);
-
-      onOpenChange?.(
-        true
-      );
-
-      try {
-        if (
-          !navigator
-            ?.mediaDevices
-            ?.getUserMedia
-        ) {
-          throw new Error(
-            "A câmera não está disponível neste dispositivo."
-          );
-        }
-
-        const stream =
-          await navigator
-            .mediaDevices
-            .getUserMedia({
-              audio: false,
-
-              video: {
-                facingMode: {
-                  ideal:
-                    "environment",
-                },
-
-                width: {
-                  ideal:
-                    1920,
-                },
-
-                height: {
-                  ideal:
-                    1080,
-                },
-              },
-            });
-
-        if (cancelado) {
-          stream
-            .getTracks()
-            .forEach(
-              (track) =>
-                track.stop()
-            );
-
-          return;
-        }
-
-        streamRef.current =
-          stream;
-
-        const video =
-          videoRef.current;
-
-        if (!video) {
-          throw new Error(
-            "Não foi possível preparar a câmera."
-          );
-        }
-
-        video.srcObject =
-          stream;
-
-        await video.play();
-
-        ativoRef.current =
-          true;
-
-        agendarLeitura();
-      } catch (err) {
-        console.error(
-          "[EntradaCameraScanner] Falha ao iniciar câmera:",
-          err
-        );
-
-        setErro(
-          err?.message ||
-            "Não foi possível iniciar a câmera."
-        );
-
-        pararCamera();
-      } finally {
-        if (!cancelado) {
-          setIniciando(false);
-        }
-      }
-    }
-
-    iniciar();
+    iniciarCamera(
+      cameraSelecionadaId
+    );
 
     return () => {
-      cancelado =
-        true;
-
       pararCamera();
 
       onOpenChange?.(
@@ -459,10 +1295,59 @@ export default function EntradaCameraScanner({
     };
   }, [
     open,
-    agendarLeitura,
-    pararCamera,
-    onOpenChange,
   ]);
+
+  // ==========================================================
+  // TROCAR CÂMERA
+  // ==========================================================
+
+  async function handleTrocarCamera(
+    event
+  ) {
+    const id =
+      event.target.value ||
+      null;
+
+    setCameraSelecionadaId(
+      id
+    );
+
+    if (id) {
+      await iniciarCamera(
+        id
+      );
+    }
+  }
+
+  // ==========================================================
+  // REAPLICAR FOCO
+  // ==========================================================
+
+  async function tentarReaplicarFoco() {
+    const track =
+      dispositivoAtualRef.current;
+
+    if (!track) {
+      return;
+    }
+
+    await aplicarAjustesOpticos(
+      track
+    );
+
+    /*
+     * Também permite alguns frames para
+     * estabilização antes da tentativa manual.
+     */
+    window.setTimeout(
+      () => {
+        tentarLeitura({
+          manual: true,
+        });
+      },
+      280
+    );
+  }
 
   // ==========================================================
   // ESC
@@ -488,11 +1373,6 @@ export default function EntradaCameraScanner({
         }
       };
 
-    /*
-     * Capture=true:
-     * este modal recebe o ESC
-     * antes do Drawer principal.
-     */
     document.addEventListener(
       "keydown",
       handleKeyDown,
@@ -532,6 +1412,10 @@ export default function EntradaCameraScanner({
       />
 
       <section className="entrada-camera__panel">
+        {/* ===================================================
+            HEADER
+            =================================================== */}
+
         <header className="entrada-camera__header">
           <div>
             <span>
@@ -551,12 +1435,117 @@ export default function EntradaCameraScanner({
             }}
             aria-label="Fechar câmera"
           >
-            <X size={19} />
+            <X
+              size={19}
+            />
           </button>
         </header>
 
+        {/* ===================================================
+            TOOLBAR
+            =================================================== */}
+
+        <div className="entrada-camera__toolbar">
+          <div className="entrada-camera__orientation">
+            <span>
+              Enquadramento
+            </span>
+
+            <div>
+              <button
+                type="button"
+                className={
+                  enquadramento ===
+                  ENQUADRAMENTO.HORIZONTAL
+                    ? "is-active"
+                    : ""
+                }
+                onClick={() =>
+                  setEnquadramento(
+                    ENQUADRAMENTO.HORIZONTAL
+                  )
+                }
+              >
+                Horizontal
+              </button>
+
+              <button
+                type="button"
+                className={
+                  enquadramento ===
+                  ENQUADRAMENTO.VERTICAL
+                    ? "is-active"
+                    : ""
+                }
+                onClick={() =>
+                  setEnquadramento(
+                    ENQUADRAMENTO.VERTICAL
+                  )
+                }
+              >
+                Vertical
+              </button>
+            </div>
+          </div>
+
+          {cameras.length >
+          1 ? (
+            <label className="entrada-camera__camera-select">
+              <span>
+                Câmera
+              </span>
+
+              <div>
+                <SwitchCamera
+                  size={16}
+                />
+
+                <select
+                  value={
+                    cameraSelecionadaId ||
+                    ""
+                  }
+                  onChange={
+                    handleTrocarCamera
+                  }
+                  disabled={
+                    iniciando
+                  }
+                >
+                  {cameras.map(
+                    (
+                      camera,
+                      index
+                    ) => (
+                      <option
+                        key={
+                          camera.deviceId
+                        }
+                        value={
+                          camera.deviceId
+                        }
+                      >
+                        {nomeCamera(
+                          camera,
+                          index
+                        )}
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+            </label>
+          ) : null}
+        </div>
+
+        {/* ===================================================
+            BODY
+            =================================================== */}
+
         <div className="entrada-camera__body">
-          <div className="entrada-camera__preview">
+          <div
+            className={`entrada-camera__preview entrada-camera__preview--${enquadramento.toLowerCase()}`}
+          >
             <video
               ref={videoRef}
               autoPlay
@@ -582,7 +1571,7 @@ export default function EntradaCameraScanner({
                 />
 
                 <strong>
-                  Iniciando câmera
+                  Preparando câmera
                 </strong>
               </div>
             ) : null}
@@ -593,6 +1582,76 @@ export default function EntradaCameraScanner({
             className="entrada-camera__canvas"
             aria-hidden="true"
           />
+
+          <canvas
+            ref={
+              canvasProcessadoRef
+            }
+            className="entrada-camera__canvas"
+            aria-hidden="true"
+          />
+
+          {/* =================================================
+              STATUS DA CÂMERA
+              ================================================= */}
+
+          {!erro ? (
+            <div className="entrada-camera__camera-status">
+              <div>
+                <CheckCircle2
+                  size={16}
+                />
+
+                <span>
+                  {cameraSelecionada
+                    ? nomeCamera(
+                        cameraSelecionada,
+                        cameras.indexOf(
+                          cameraSelecionada
+                        )
+                      )
+                    : "Câmera traseira automática"}
+                </span>
+              </div>
+
+              <div>
+                <Focus
+                  size={16}
+                />
+
+                <span>
+                  {focoStatus ===
+                  "CONTINUO"
+                    ? "Foco contínuo"
+                    : focoStatus ===
+                        "UNICO"
+                      ? "Foco automático"
+                      : "Foco controlado pela câmera"}
+                </span>
+              </div>
+
+              {resolucaoAtiva
+                ?.width &&
+              resolucaoAtiva
+                ?.height ? (
+                <div>
+                  <Camera
+                    size={16}
+                  />
+
+                  <span>
+                    {
+                      resolucaoAtiva.width
+                    }
+                    ×
+                    {
+                      resolucaoAtiva.height
+                    }
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           {erro ? (
             <div
@@ -621,19 +1680,24 @@ export default function EntradaCameraScanner({
 
               <div>
                 <strong>
-                  Posicione o código
+                  Posicione somente o código
+                  dentro da área
                 </strong>
 
                 <p>
-                  Mantenha a etiqueta
-                  dentro da área indicada.
-                  A leitura ocorre
-                  automaticamente.
+                  Evite inclinação e reflexo.
+                  Para códigos longos, prefira
+                  Horizontal. Para etiquetas
+                  altas, experimente Vertical.
                 </p>
               </div>
             </div>
           )}
         </div>
+
+        {/* ===================================================
+            FOOTER
+            =================================================== */}
 
         <footer className="entrada-camera__footer">
           <button
@@ -645,6 +1709,25 @@ export default function EntradaCameraScanner({
             }}
           >
             Cancelar
+          </button>
+
+          <button
+            type="button"
+            className="entrada-camera__focus"
+            onClick={
+              tentarReaplicarFoco
+            }
+            disabled={
+              iniciando ||
+              Boolean(erro) ||
+              procurando
+            }
+          >
+            <Focus
+              size={17}
+            />
+
+            Ajustar foco
           </button>
 
           <button
