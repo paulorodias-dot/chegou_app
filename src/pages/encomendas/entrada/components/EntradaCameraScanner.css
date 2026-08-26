@@ -1,0 +1,457 @@
+.entrada-camera {
+  position: fixed;
+  inset: 0;
+  z-index: 1350;
+
+  display: grid;
+  place-items: center;
+
+  padding: 18px;
+}
+
+.entrada-camera__backdrop {
+  position: absolute;
+  inset: 0;
+
+  background:
+    rgb(2 6 23 / 0.76);
+
+  backdrop-filter:
+    blur(5px);
+}
+
+.entrada-camera__panel {
+  position: relative;
+
+  width:
+    min(540px, 100%);
+
+  max-height:
+    calc(
+      100dvh - 36px
+    );
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  color:
+    var(--entrada-text);
+
+  background:
+    var(--entrada-surface);
+
+  border:
+    1px solid
+    var(--entrada-border);
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 28px 80px
+    rgb(0 0 0 / 0.32);
+}
+
+.entrada-camera__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding:
+    max(
+      18px,
+      env(safe-area-inset-top)
+    )
+    18px
+    16px;
+
+  color: #ffffff;
+
+  background:
+    var(--entrada-primary);
+}
+
+.entrada-camera__header span {
+  display: block;
+
+  color:
+    rgb(255 255 255 / 0.74);
+
+  font-size: 0.65rem;
+  font-weight: 700;
+
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.entrada-camera__header h3 {
+  margin: 2px 0 0;
+
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.entrada-camera__header button {
+  width: 39px;
+  height: 39px;
+
+  display: grid;
+  place-items: center;
+
+  color: #ffffff;
+
+  background:
+    rgb(255 255 255 / 0.1);
+
+  border:
+    1px solid
+    rgb(255 255 255 / 0.16);
+
+  border-radius: 10px;
+
+  cursor: pointer;
+}
+
+.entrada-camera__body {
+  min-height: 0;
+  overflow-y: auto;
+
+  padding: 16px;
+
+  background:
+    var(--entrada-bg);
+}
+
+.entrada-camera__preview {
+  position: relative;
+
+  overflow: hidden;
+
+  min-height: 280px;
+
+  background: #020617;
+
+  border-radius: 14px;
+}
+
+.entrada-camera__preview video {
+  width: 100%;
+  height: 100%;
+
+  min-height: 280px;
+  max-height: 58vh;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+.entrada-camera__target {
+  position: absolute;
+
+  left: 10%;
+  right: 10%;
+  top: 31%;
+
+  height: 38%;
+
+  pointer-events: none;
+}
+
+.entrada-camera__target span {
+  position: absolute;
+
+  width: 32px;
+  height: 32px;
+
+  border-color:
+    #ffffff;
+
+  border-style: solid;
+}
+
+.entrada-camera__target
+  span:nth-child(1) {
+  top: 0;
+  left: 0;
+
+  border-width:
+    3px 0 0 3px;
+
+  border-radius:
+    8px 0 0 0;
+}
+
+.entrada-camera__target
+  span:nth-child(2) {
+  top: 0;
+  right: 0;
+
+  border-width:
+    3px 3px 0 0;
+
+  border-radius:
+    0 8px 0 0;
+}
+
+.entrada-camera__target
+  span:nth-child(3) {
+  bottom: 0;
+  left: 0;
+
+  border-width:
+    0 0 3px 3px;
+
+  border-radius:
+    0 0 0 8px;
+}
+
+.entrada-camera__target
+  span:nth-child(4) {
+  right: 0;
+  bottom: 0;
+
+  border-width:
+    0 3px 3px 0;
+
+  border-radius:
+    0 0 8px 0;
+}
+
+.entrada-camera__overlay-state {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  color: #ffffff;
+
+  background:
+    rgb(2 6 23 / 0.62);
+}
+
+.entrada-camera__overlay-state strong {
+  font-size: 0.78rem;
+}
+
+.entrada-camera__canvas {
+  position: fixed;
+
+  width: 1px;
+  height: 1px;
+
+  opacity: 0;
+  pointer-events: none;
+}
+
+.entrada-camera__instructions,
+.entrada-camera__error {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  margin-top: 12px;
+  padding: 13px;
+
+  border-radius: 12px;
+}
+
+.entrada-camera__instructions {
+  color:
+    var(--entrada-text);
+
+  background:
+    var(--entrada-surface);
+
+  border:
+    1px solid
+    var(--entrada-border);
+}
+
+.entrada-camera__instructions > svg {
+  flex: 0 0 auto;
+
+  color:
+    var(--entrada-primary);
+}
+
+.entrada-camera__instructions strong,
+.entrada-camera__error strong {
+  display: block;
+
+  font-size: 0.76rem;
+}
+
+.entrada-camera__instructions p,
+.entrada-camera__error p {
+  margin: 3px 0 0;
+
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.entrada-camera__instructions p {
+  color:
+    var(--entrada-text-secondary);
+}
+
+.entrada-camera__error {
+  color: #991b1b;
+
+  background:
+    color-mix(
+      in srgb,
+      #ef4444 8%,
+      var(--entrada-surface)
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      #ef4444 20%,
+      var(--entrada-border)
+    );
+}
+
+.entrada-camera__footer {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  padding:
+    15px
+    18px
+    max(
+      15px,
+      env(safe-area-inset-bottom)
+    );
+
+  background:
+    var(--entrada-surface);
+
+  border-top:
+    1px solid
+    var(--entrada-border);
+}
+
+.entrada-camera__footer button {
+  min-height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding:
+    0 15px;
+
+  border-radius: 11px;
+
+  font: inherit;
+  font-size: 0.77rem;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.entrada-camera__secondary {
+  color:
+    var(--entrada-text);
+
+  background:
+    var(--entrada-surface);
+
+  border:
+    1px solid
+    var(--entrada-border);
+}
+
+.entrada-camera__primary {
+  color: #ffffff;
+
+  background:
+    var(--entrada-primary);
+
+  border:
+    1px solid
+    var(--entrada-primary);
+}
+
+.entrada-camera__footer
+  button:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+}
+
+.entrada-camera__spinner {
+  animation:
+    entrada-camera-spin
+    0.8s linear infinite;
+}
+
+@keyframes entrada-camera-spin {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+@media (max-width: 680px) {
+  .entrada-camera {
+    padding: 0;
+  }
+
+  .entrada-camera__panel {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+
+    border: 0;
+    border-radius: 0;
+  }
+
+  .entrada-camera__body {
+    flex: 1;
+  }
+
+  .entrada-camera__preview,
+  .entrada-camera__preview video {
+    min-height: 350px;
+  }
+
+  .entrada-camera__footer
+    button {
+    flex: 1;
+
+    min-height: 46px;
+  }
+}
+
+[data-theme="dark"]
+  .entrada-camera__error,
+.dark
+  .entrada-camera__error {
+  color: #fca5a5;
+}
+
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
+  .entrada-camera__spinner {
+    animation-duration:
+      1.6s;
+  }
+}

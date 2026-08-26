@@ -1,24 +1,24 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.24.001",
-  "appVersion": "1.2.6",
+  "releaseId": "2026.08.26.001",
+  "appVersion": "1.2.7",
   "scope": "GLOBAL",
   "modules": [
-    "Morador",
-    "Administrativo"
+    "Portaria",
+    "Central de Encomendas"
   ],
   "mandatory": false,
-  "publishedAt": "2026-08-24T15:15:00-03:00",
-  "title": "Evolução do acesso e da auditoria do Morador",
-  "message": "Atualizamos o Sistema Chegou! com melhorias no acesso do Morador e na conferência administrativa dos dados cadastrais, deixando as informações mais claras, consistentes e seguras.",
+  "publishedAt": "2026-08-26T14:02:00-03:00",
+  "title": "Nova etapa de Entrada de Encomendas",
+  "message": "A Central de Encomendas ganhou uma nova etapa de Entrada, com mais organização, conferência e segurança para o trabalho da Portaria.",
   "highlights": [
-    "Acesso do Morador por e-mail ou CPF.",
-    "Melhoria na preservação do último perfil utilizado ao retornar ao Sistema Chegou!.",
-    "Evolução da conferência administrativa dos dados do Morador.",
-    "Torre, unidade e informações de garagem agora podem ser conferidas e corrigidas durante a auditoria.",
-    "Melhor organização das informações apresentadas no resumo e na auditoria do cadastro.",
-    "Pontos de atenção passam a refletir as correções já realizadas durante a conferência.",
-    "Melhorias na apresentação de dependentes, preferências e informações residenciais.",
-    "Reforços de segurança, rastreabilidade e consistência no processo de aprovação cadastral."
+    "Nova fila para acompanhar os volumes que aguardam Entrada.",
+    "Organização dos lotes do mais antigo para o mais recente.",
+    "Filtros e indicadores para facilitar o acompanhamento da operação.",
+    "Identificação do destinatário por rastreio já aguardado ou pesquisa autorizada.",
+    "Visualização dos volumes de cada lote e acompanhamento do progresso da Entrada.",
+    "Conferência do código do volume antes da confirmação.",
+    "Confirmação da Entrada com proteção contra registros duplicados.",
+    "Melhorias de segurança, rastreabilidade e isolamento das informações de cada condomínio."
   ]
 }

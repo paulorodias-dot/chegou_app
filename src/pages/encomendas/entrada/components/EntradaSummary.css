@@ -9,13 +9,14 @@
 
 .entrada-summary__heading {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 15px;
 }
 
 .entrada-summary__heading > svg {
+  flex: 0 0 auto;
   color: var(--entrada-primary);
 }
 
@@ -35,14 +36,23 @@
   font-weight: 700;
 }
 
+.entrada-summary__heading p {
+  margin: 5px 0 0;
+  color: var(--entrada-text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
 .entrada-summary__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
 .entrada-summary__card {
-  min-height: 122px;
+  min-width: 0;
+  min-height: 128px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -50,6 +60,25 @@
   background: var(--entrada-surface-soft);
   border: 1px solid var(--entrada-border);
   border-radius: 14px;
+}
+
+.entrada-summary__card--accent {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--entrada-primary) 7%,
+        var(--entrada-surface)
+      ),
+      var(--entrada-surface)
+    );
+  border-color:
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 18%,
+      var(--entrada-border)
+    );
 }
 
 .entrada-summary__card-icon {
@@ -62,10 +91,34 @@
   background:
     color-mix(
       in srgb,
-      var(--entrada-primary) 8%,
+      var(--entrada-primary) 9%,
       transparent
     );
   border-radius: 10px;
+}
+
+.entrada-summary__card-icon--success {
+  color: #15803d;
+  background:
+    color-mix(
+      in srgb,
+      #22c55e 10%,
+      transparent
+    );
+}
+
+.entrada-summary__card-icon--warning {
+  color: #c2410c;
+  background:
+    color-mix(
+      in srgb,
+      #f97316 10%,
+      transparent
+    );
+}
+
+.entrada-summary__card > div:last-child {
+  min-width: 0;
 }
 
 .entrada-summary__label {
@@ -81,14 +134,7 @@
   color: var(--entrada-text);
   font-size: 1.45rem;
   line-height: 1.2;
-}
-
-.entrada-summary__status {
-  display: block;
-  margin-top: 5px;
-  color: var(--entrada-text);
-  font-size: 0.93rem;
-  line-height: 1.25;
+  font-weight: 750;
 }
 
 .entrada-summary__card p {
@@ -98,47 +144,99 @@
   line-height: 1.45;
 }
 
-.entrada-summary__card--accent {
-  position: relative;
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(
-        in srgb,
-        var(--entrada-primary) 6%,
-        var(--entrada-surface)
-      ),
-      var(--entrada-surface)
-    );
+.entrada-summary__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 13px;
+  padding-top: 13px;
+  color: var(--entrada-text-secondary);
+  border-top: 1px solid var(--entrada-border);
+  font-size: 0.72rem;
 }
 
-.entrada-summary__status-dot {
-  width: 9px;
-  height: 9px;
-  flex: 0 0 9px;
-  margin-top: 5px;
-  background: var(--entrada-accent);
-  border-radius: 50%;
-  box-shadow: 0 0 0 5px
-    color-mix(
-      in srgb,
-      var(--entrada-accent) 12%,
-      transparent
-    );
-}
-
-@media (max-width: 900px) {
+@media (max-width: 1120px) {
   .entrada-summary__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .entrada-summary__card {
-    min-height: auto;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 680px) {
   .entrada-summary {
     padding: 17px;
+    border-radius: 16px;
   }
+
+  .entrada-summary__grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap: 10px;
+  }
+
+  .entrada-summary__card {
+    min-height: 118px;
+    padding: 13px;
+
+    gap: 9px;
+  }
+
+  .entrada-summary__card-icon {
+    width: 34px;
+    height: 34px;
+
+    flex-basis: 34px;
+  }
+
+  .entrada-summary__value {
+    font-size: 1.25rem;
+  }
+
+  .entrada-summary__card p {
+    display: none;
+  }
+
+  .entrada-summary__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 430px) {
+  .entrada-summary {
+    padding: 14px;
+  }
+
+  .entrada-summary__grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .entrada-summary__card {
+    min-height: 105px;
+
+    flex-direction: column;
+  }
+}
+
+[data-theme="dark"]
+  .entrada-summary__card-icon--success,
+.dark
+  .entrada-summary__card-icon--success {
+  color: #86efac;
+}
+
+[data-theme="dark"]
+  .entrada-summary__card-icon--warning,
+.dark
+  .entrada-summary__card-icon--warning {
+  color: #fdba74;
 }

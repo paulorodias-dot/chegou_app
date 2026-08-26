@@ -1,0 +1,423 @@
+.entrada-sidebar {
+  width: 360px;
+  min-width: 360px;
+  height: 100%;
+  min-height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+
+  padding: 0;
+}
+
+.entrada-sidebar__card {
+  padding: 18px;
+
+  color:
+    var(--entrada-text);
+
+  background:
+    var(--entrada-surface);
+
+  border:
+    1px solid
+    var(--entrada-border);
+
+  border-radius: 18px;
+
+  box-shadow:
+    0 8px 28px
+    rgb(15 23 42 / 0.045);
+}
+
+.entrada-sidebar__card-heading {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  margin-bottom: 15px;
+}
+
+.entrada-sidebar__icon {
+  width: 40px;
+  height: 40px;
+
+  flex: 0 0 40px;
+
+  display: grid;
+  place-items: center;
+
+  color:
+    var(--entrada-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 9%,
+      transparent
+    );
+
+  border-radius: 12px;
+}
+
+.entrada-sidebar__icon--weather {
+  color: #0369a1;
+
+  background:
+    color-mix(
+      in srgb,
+      #38bdf8 14%,
+      transparent
+    );
+}
+
+.entrada-sidebar__icon--attention {
+  color: #c2410c;
+
+  background:
+    color-mix(
+      in srgb,
+      #f97316 11%,
+      transparent
+    );
+}
+
+.entrada-sidebar__icon--performance {
+  color: #15803d;
+
+  background:
+    color-mix(
+      in srgb,
+      #22c55e 11%,
+      transparent
+    );
+}
+
+.entrada-sidebar__icon--practice {
+  color: #a16207;
+
+  background:
+    color-mix(
+      in srgb,
+      #eab308 11%,
+      transparent
+    );
+}
+
+.entrada-sidebar__card-heading span {
+  display: block;
+
+  margin-bottom: 2px;
+
+  color:
+    var(--entrada-primary);
+
+  font-size: 0.68rem;
+  font-weight: 700;
+
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.entrada-sidebar__card-heading h2 {
+  margin: 0;
+
+  color:
+    var(--entrada-text);
+
+  font-size: 0.94rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.entrada-sidebar__metrics {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 9px;
+}
+
+.entrada-sidebar__metrics > div {
+  padding: 13px;
+
+  background:
+    var(--entrada-surface-soft);
+
+  border:
+    1px solid
+    var(--entrada-border);
+
+  border-radius: 12px;
+}
+
+.entrada-sidebar__metrics strong {
+  display: block;
+
+  color:
+    var(--entrada-text);
+
+  font-size: 1.25rem;
+  font-weight: 750;
+}
+
+.entrada-sidebar__metrics span {
+  display: block;
+
+  margin-top: 2px;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.69rem;
+  line-height: 1.35;
+}
+
+.entrada-sidebar__priority {
+  margin-top: 11px;
+
+  padding: 14px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 5%,
+      var(--entrada-surface)
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 15%,
+      var(--entrada-border)
+    );
+
+  border-radius: 13px;
+}
+
+.entrada-sidebar__priority > div {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color:
+    var(--entrada-primary);
+
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.entrada-sidebar__priority strong {
+  display: block;
+
+  margin-top: 7px;
+
+  font-size: 0.98rem;
+  font-weight: 750;
+}
+
+.entrada-sidebar__priority p,
+.entrada-sidebar__card > p,
+.entrada-sidebar__performance p {
+  margin: 5px 0 0;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.entrada-sidebar__success {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-top: 12px;
+  padding: 12px;
+
+  color: #15803d;
+
+  background:
+    color-mix(
+      in srgb,
+      #22c55e 8%,
+      transparent
+    );
+
+  border-radius: 12px;
+}
+
+.entrada-sidebar__success p {
+  margin: 0;
+
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.entrada-sidebar__attention-list {
+  display: grid;
+  gap: 8px;
+}
+
+.entrada-sidebar__attention-list p {
+  margin: 0;
+
+  padding: 10px 12px;
+
+  color:
+    var(--entrada-text-secondary);
+
+  background:
+    var(--entrada-surface-soft);
+
+  border-radius: 10px;
+
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.entrada-sidebar__attention-list strong {
+  color:
+    var(--entrada-text);
+}
+
+.entrada-sidebar__weather-value {
+  margin-top: -2px;
+
+  color:
+    var(--entrada-text);
+
+  font-size: 2rem;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.entrada-sidebar__performance strong {
+  display: block;
+
+  font-size: 1.45rem;
+  font-weight: 760;
+}
+
+.entrada-sidebar__comparison {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 10px;
+  padding: 10px;
+
+  color: #15803d;
+
+  background:
+    color-mix(
+      in srgb,
+      #22c55e 8%,
+      transparent
+    );
+
+  border-radius: 10px;
+
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.entrada-sidebar__practice-note {
+  margin-top: 12px;
+  padding-top: 11px;
+
+  color:
+    var(--entrada-text-secondary);
+
+  border-top:
+    1px solid
+    var(--entrada-border);
+
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+@media (max-width: 1360px) {
+  .entrada-sidebar {
+    width: 330px;
+    min-width: 330px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .entrada-sidebar {
+    width: 100%;
+    min-width: 0;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+@media (max-width: 680px) {
+  .entrada-sidebar {
+    display: block;
+  }
+
+  .entrada-sidebar__card {
+    margin-top: 14px;
+  }
+
+  /*
+   * Mobile:
+   * somente informação essencial.
+   */
+  .entrada-sidebar__card--secondary {
+    display: none;
+  }
+
+  .entrada-sidebar__card--weather {
+    display: block;
+  }
+}
+
+[data-theme="dark"]
+  .entrada-sidebar__icon--performance,
+.dark
+  .entrada-sidebar__icon--performance,
+[data-theme="dark"]
+  .entrada-sidebar__comparison,
+.dark
+  .entrada-sidebar__comparison,
+[data-theme="dark"]
+  .entrada-sidebar__success,
+.dark
+  .entrada-sidebar__success {
+  color: #86efac;
+}
+
+[data-theme="dark"]
+  .entrada-sidebar__icon--attention,
+.dark
+  .entrada-sidebar__icon--attention {
+  color: #fdba74;
+}
+
+[data-theme="dark"]
+  .entrada-sidebar__icon--practice,
+.dark
+  .entrada-sidebar__icon--practice {
+  color: #fde047;
+}

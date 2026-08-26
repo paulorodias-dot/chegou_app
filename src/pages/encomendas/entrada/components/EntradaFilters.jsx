@@ -8,8 +8,55 @@ import {
 
 import "./EntradaFilters.css";
 
+const SITUACOES = [
+  {
+    value: "TODOS",
+    label: "Todos",
+  },
+  {
+    value: "AGUARDANDO_ENTRADA",
+    label: "Aguardando entrada",
+  },
+  {
+    value: "COM_DIVERGENCIA",
+    label: "Com divergência",
+  },
+  {
+    value: "COM_AVARIA",
+    label: "Com avaria",
+  },
+  {
+    value: "ENTRADA_PARCIAL",
+    label: "Entrada parcial",
+  },
+];
+
+const PERIODOS = [
+  {
+    value: "TODOS",
+    label: "Todos",
+  },
+  {
+    value: "HOJE",
+    label: "Hoje",
+  },
+  {
+    value: "ONTEM",
+    label: "Ontem",
+  },
+  {
+    value: "3_DIAS",
+    label: "Últimos 3 dias",
+  },
+  {
+    value: "7_DIAS",
+    label: "Últimos 7 dias",
+  },
+];
+
 export default function EntradaFilters({
   filters,
+  transportadoras = [],
   onChange,
   onReset,
   disabled = false,
@@ -28,7 +75,10 @@ export default function EntradaFilters({
           </h2>
         </div>
 
-        <SlidersHorizontal size={18} aria-hidden="true" />
+        <SlidersHorizontal
+          size={18}
+          aria-hidden="true"
+        />
       </div>
 
       <div className="entrada-filters__grid">
@@ -36,13 +86,19 @@ export default function EntradaFilters({
           <span>Buscar</span>
 
           <div className="entrada-filters__control">
-            <Search size={17} aria-hidden="true" />
+            <Search
+              size={17}
+              aria-hidden="true"
+            />
 
             <input
               type="search"
               value={filters.search}
               onChange={(event) =>
-                onChange("search", event.target.value)
+                onChange(
+                  "search",
+                  event.target.value
+                )
               }
               placeholder="Lote, volume ou código"
               disabled={disabled}
@@ -55,18 +111,31 @@ export default function EntradaFilters({
           <span>Situação</span>
 
           <div className="entrada-filters__control">
-            <SlidersHorizontal size={16} aria-hidden="true" />
+            <SlidersHorizontal
+              size={16}
+              aria-hidden="true"
+            />
 
             <select
               value={filters.situation}
               onChange={(event) =>
-                onChange("situation", event.target.value)
+                onChange(
+                  "situation",
+                  event.target.value
+                )
               }
               disabled={disabled}
             >
-              <option value="TODOS">
-                Todos
-              </option>
+              {SITUACOES.map(
+                (situacao) => (
+                  <option
+                    key={situacao.value}
+                    value={situacao.value}
+                  >
+                    {situacao.label}
+                  </option>
+                )
+              )}
             </select>
           </div>
         </label>
@@ -75,18 +144,41 @@ export default function EntradaFilters({
           <span>Transportadora</span>
 
           <div className="entrada-filters__control">
-            <Truck size={16} aria-hidden="true" />
+            <Truck
+              size={16}
+              aria-hidden="true"
+            />
 
             <select
               value={filters.carrier}
               onChange={(event) =>
-                onChange("carrier", event.target.value)
+                onChange(
+                  "carrier",
+                  event.target.value
+                )
               }
               disabled={disabled}
             >
               <option value="TODAS">
                 Todas
               </option>
+
+              {transportadoras.map(
+                (transportadora) => (
+                  <option
+                    key={
+                      transportadora.key
+                    }
+                    value={
+                      transportadora.key
+                    }
+                  >
+                    {
+                      transportadora.nome
+                    }
+                  </option>
+                )
+              )}
             </select>
           </div>
         </label>
@@ -95,18 +187,31 @@ export default function EntradaFilters({
           <span>Período</span>
 
           <div className="entrada-filters__control">
-            <CalendarDays size={16} aria-hidden="true" />
+            <CalendarDays
+              size={16}
+              aria-hidden="true"
+            />
 
             <select
               value={filters.period}
               onChange={(event) =>
-                onChange("period", event.target.value)
+                onChange(
+                  "period",
+                  event.target.value
+                )
               }
               disabled={disabled}
             >
-              <option value="TODOS">
-                Todos
-              </option>
+              {PERIODOS.map(
+                (periodo) => (
+                  <option
+                    key={periodo.value}
+                    value={periodo.value}
+                  >
+                    {periodo.label}
+                  </option>
+                )
+              )}
             </select>
           </div>
         </label>
@@ -118,16 +223,10 @@ export default function EntradaFilters({
           disabled={disabled}
         >
           <RotateCcw size={16} />
+
           <span>Limpar</span>
         </button>
       </div>
-
-      {!disabled ? null : (
-        <p className="entrada-filters__helper">
-          Os filtros serão habilitados quando a fila operacional estiver
-          conectada ao contrato oficial da Entrada.
-        </p>
-      )}
     </section>
   );
 }

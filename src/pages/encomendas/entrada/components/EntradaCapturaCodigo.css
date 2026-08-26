@@ -1,0 +1,434 @@
+.entrada-captura {
+  margin-top: 14px;
+  padding: 16px;
+
+  background:
+    var(--entrada-surface);
+
+  border:
+    1px solid
+    var(--entrada-border);
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 5px 18px
+    rgb(15 23 42 / 0.035);
+}
+
+.entrada-captura__heading {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-bottom: 13px;
+}
+
+.entrada-captura__heading > svg {
+  flex: 0 0 auto;
+
+  color:
+    var(--entrada-primary);
+}
+
+.entrada-captura__heading span {
+  display: block;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.entrada-captura__heading h3 {
+  margin: 1px 0 0;
+
+  color:
+    var(--entrada-text);
+
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.entrada-captura__expected {
+  padding: 12px;
+
+  background:
+    var(--entrada-surface-soft);
+
+  border:
+    1px solid
+    var(--entrada-border);
+
+  border-radius: 11px;
+}
+
+.entrada-captura__expected span {
+  display: block;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.66rem;
+}
+
+.entrada-captura__expected strong {
+  display: block;
+
+  margin-top: 3px;
+
+  color:
+    var(--entrada-text);
+
+  font-size: 0.79rem;
+  font-weight: 700;
+
+  overflow-wrap: anywhere;
+}
+
+.entrada-captura__field {
+  display: block;
+
+  margin-top: 12px;
+}
+
+.entrada-captura__field > span {
+  display: block;
+
+  margin:
+    0 0 6px 2px;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.entrada-captura__input {
+  min-height: 44px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding:
+    0 12px;
+
+  background:
+    var(--entrada-surface-soft);
+
+  border:
+    1px solid
+    var(--entrada-border);
+
+  border-radius: 11px;
+}
+
+.entrada-captura__input:focus-within {
+  border-color:
+    var(--entrada-primary);
+
+  box-shadow:
+    0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 12%,
+      transparent
+    );
+}
+
+.entrada-captura__input > svg {
+  flex: 0 0 auto;
+
+  color:
+    var(--entrada-text-secondary);
+}
+
+.entrada-captura__input input {
+  width: 100%;
+  min-width: 0;
+
+  height: 42px;
+
+  color:
+    var(--entrada-text);
+
+  background:
+    transparent;
+
+  border: 0;
+  outline: 0;
+
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.entrada-captura__input
+  input::placeholder {
+  color:
+    var(--entrada-text-secondary);
+}
+
+.entrada-captura__actions {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  margin-top: 10px;
+}
+
+.entrada-captura__actions
+  button {
+  min-height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  padding:
+    0 12px;
+
+  border-radius: 10px;
+
+  font: inherit;
+  font-size: 0.71rem;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.entrada-captura__secondary {
+  color:
+    var(--entrada-text);
+
+  background:
+    var(--entrada-surface);
+
+  border:
+    1px solid
+    var(--entrada-border);
+}
+
+.entrada-captura__camera {
+  color:
+    var(--entrada-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 6%,
+      var(--entrada-surface)
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 18%,
+      var(--entrada-border)
+    );
+}
+
+.entrada-captura__actions
+  button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.entrada-captura__result {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  margin-top: 12px;
+  padding: 12px;
+
+  border-radius: 11px;
+}
+
+.entrada-captura__result > svg {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+}
+
+.entrada-captura__result strong {
+  display: block;
+
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.entrada-captura__result p {
+  margin:
+    3px 0 0;
+
+  font-size: 0.69rem;
+  line-height: 1.42;
+
+  overflow-wrap: anywhere;
+}
+
+.entrada-captura__result--success {
+  color: #166534;
+
+  background:
+    color-mix(
+      in srgb,
+      #22c55e 8%,
+      var(--entrada-surface)
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      #22c55e 19%,
+      var(--entrada-border)
+    );
+}
+
+.entrada-captura__result--warning {
+  color: #9a3412;
+
+  background:
+    color-mix(
+      in srgb,
+      #f97316 8%,
+      var(--entrada-surface)
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      #f97316 20%,
+      var(--entrada-border)
+    );
+}
+
+.entrada-captura__divergence {
+  width: 100%;
+}
+
+.entrada-captura__divergence dl {
+  display: grid;
+
+  gap: 6px;
+
+  margin:
+    9px 0 0;
+}
+
+.entrada-captura__divergence
+  dl > div {
+  display: grid;
+
+  grid-template-columns:
+    68px
+    minmax(0, 1fr);
+
+  gap: 8px;
+
+  padding:
+    7px 9px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--entrada-surface) 72%,
+      transparent
+    );
+
+  border-radius: 8px;
+}
+
+.entrada-captura__divergence dt {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.entrada-captura__divergence dd {
+  margin: 0;
+
+  color:
+    var(--entrada-text);
+
+  font-size: 0.68rem;
+  font-weight: 650;
+
+  overflow-wrap: anywhere;
+}
+
+.entrada-captura__divergence
+  button {
+  min-height: 34px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 9px;
+  padding:
+    0 10px;
+
+  color: #9a3412;
+
+  background:
+    transparent;
+
+  border:
+    1px solid
+    currentColor;
+
+  border-radius: 9px;
+
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+@media (max-width: 680px) {
+  /*
+   * Evita zoom automático no iPhone.
+   */
+  .entrada-captura__input input {
+    font-size: 16px;
+  }
+
+  .entrada-captura__actions
+    button {
+    min-height: 42px;
+  }
+}
+
+[data-theme="dark"]
+  .entrada-captura__result--success,
+.dark
+  .entrada-captura__result--success {
+  color: #86efac;
+}
+
+[data-theme="dark"]
+  .entrada-captura__result--warning,
+.dark
+  .entrada-captura__result--warning,
+[data-theme="dark"]
+  .entrada-captura__divergence
+  button,
+.dark
+  .entrada-captura__divergence
+  button {
+  color: #fdba74;
+}
