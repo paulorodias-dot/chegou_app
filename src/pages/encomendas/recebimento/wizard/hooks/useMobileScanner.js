@@ -1,1341 +1,793 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 
+import {
+  decodificarCodigoImagem,
+  possuiSuporteCameraBrowser,
+} from "../../../shared/captura";
+
+
 // ============================================================
-// SISTEMA CHEGOU! — MOBILE SCANNER
-// Release funcional: 2026.08.12.002
+// SISTEMA CHEGOU!
+// CENTRAL DE ENCOMENDAS — RECEBIMENTO
+//
+// MOBILE SCANNER
+//
+// Padrão compartilhado com Entrada:
+//
+// - melhor câmera traseira;
+// - troca manual de câmera;
+// - Horizontal / Vertical;
+// - foco contínuo quando suportado;
+// - exposição / white balance quando suportados;
+// - ROI;
+// - frame completo;
+// - ROI tratado;
+// - BarcodeDetector + ZXing via shared/captura;
+// - leitura automática;
+// - captura manual;
+// - cooldown operacional da câmera.
+//
+// IMPORTANTE:
+//
+// ESTA CAMADA NÃO:
+// - cria Volume;
+// - altera Volume;
+// - conclui Recebimento;
+// - decide destinatário;
+// - grava no backend.
+//
+// Ela somente entrega uma CAPTURA CANDIDATA
+// ao fluxo já existente do Wizard.
 // ============================================================
 
-const INTERVALO_DETECCAO_MS = 70;
-const DETECCOES_CONSECUTIVAS_NECESSARIAS = 2;
-const TEMPO_ESTABILIZACAO_CAMERA_MS = 700;
 
-const COOLDOWN_CAPTURA_CAMERA_MS = 4000;
-const INTERVALO_ATUALIZACAO_COOLDOWN_MS = 200;
-const INTERVALO_AVISO_DUPLICADO_MS = 1800;
+// ============================================================
+// CONFIGURAÇÃO
+// ============================================================
 
-const TEMPO_SINGLE_SHOT_MS = 380;
-const TEMPO_SEM_LEITURA_PARA_REFOCO_MS = 1300;
-const INTERVALO_MINIMO_REFOCO_MS = 1500;
+const INTERVALO_LEITURA_MS =
+  700;
 
-const TEMPO_SEM_LEITURA_PARA_SNAPSHOT_MS = 120;
-const INTERVALO_MINIMO_SNAPSHOT_MS = 160;
-const TEMPO_SEM_LEITURA_PARA_FOTO_MS = 700;
-const INTERVALO_MINIMO_FOTO_MS = 1200;
+const TEMPO_ESTABILIZACAO_CAMERA_MS =
+  500;
 
-const CONTRASTE_REFORCADO = 1.55;
-const MAX_LARGURA_PROCESSAMENTO = 1800;
+const TEMPO_REAPLICAR_FOCO_MS =
+  280;
 
-const RESOLUCAO_PREFERENCIAL = Object.freeze({
-  widthIdeal: 2560,
-  heightIdeal: 1440,
-  widthMin: 1280,
-  heightMin: 720,
-  frameRateIdeal: 30,
-  frameRateMax: 60,
-});
+const COOLDOWN_CAPTURA_CAMERA_MS =
+  4000;
 
-const AREA_LEITURA = Object.freeze({
-  xMin: 0.06,
-  xMax: 0.94,
-  yMin: 0.2,
-  yMax: 0.8,
-});
+const INTERVALO_ATUALIZACAO_COOLDOWN_MS =
+  200;
 
-const PONTO_INTERESSE_CENTRAL = Object.freeze({
-  x: 0.5,
-  y: 0.5,
-});
+const LIMITE_FRAME =
+  1600;
 
-const FORMATOS_DESEJADOS = Object.freeze([
-  "code_128",
-  "code_39",
-  "code_93",
-  "codabar",
-  "ean_13",
-  "ean_8",
-  "itf",
-  "upc_a",
-  "upc_e",
-  "qr_code",
-  "data_matrix",
-  "pdf417",
-]);
 
-const CAMERA_LABEL_POSITIVOS = Object.freeze([
-  "back",
-  "rear",
-  "environment",
-  "main",
-  "principal",
-  "wide",
-  "1x",
-]);
+export const MOBILE_SCANNER_ENQUADRAMENTO =
+  Object.freeze({
+    HORIZONTAL:
+      "HORIZONTAL",
 
-const CAMERA_LABEL_NEGATIVOS = Object.freeze([
-  "front",
-  "user",
-  "selfie",
-  "ultra wide",
-  "ultrawide",
-  "ultra-wide",
-  "0.5x",
-  "0,5x",
-  "telephoto",
-  "tele",
-  "depth",
-  "tof",
-]);
+    VERTICAL:
+      "VERTICAL",
+  });
+
+
+// ============================================================
+// HELPERS
+// ============================================================
 
 function esperar(ms) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
-
-function normalizarTexto(valor) {
-  return String(valor || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-function possuiSuporteCamera() {
-  return Boolean(
-    typeof navigator !== "undefined" &&
-      navigator.mediaDevices &&
-      typeof navigator.mediaDevices.getUserMedia === "function"
-  );
-}
-
-function possuiEnumeracaoCamera() {
-  return Boolean(
-    typeof navigator !== "undefined" &&
-      navigator.mediaDevices &&
-      typeof navigator.mediaDevices.enumerateDevices === "function"
-  );
-}
-
-function possuiBarcodeDetector() {
-  return Boolean(
-    typeof window !== "undefined" &&
-      "BarcodeDetector" in window
-  );
-}
-
-function possuiImageCaptureApi() {
-  return Boolean(
-    typeof window !== "undefined" &&
-      "ImageCapture" in window
-  );
-}
-
-function obterConstraintsSuportados() {
-  try {
-    return (
-      navigator?.mediaDevices?.getSupportedConstraints?.() || {}
-    );
-  } catch {
-    return {};
-  }
-}
-
-function obterCapabilitiesTrack(track) {
-  try {
-    return track?.getCapabilities?.() || {};
-  } catch {
-    return {};
-  }
-}
-
-function obterSettingsTrack(track) {
-  try {
-    return track?.getSettings?.() || {};
-  } catch {
-    return {};
-  }
-}
-
-function obterConstraintsTrack(track) {
-  try {
-    return track?.getConstraints?.() || {};
-  } catch {
-    return {};
-  }
-}
-
-function encerrarStream(stream) {
-  stream?.getTracks?.().forEach((track) => track.stop());
-}
-
-async function obterFormatosSuportados() {
-  if (!possuiBarcodeDetector()) {
-    return [];
-  }
-
-  try {
-    if (
-      typeof window.BarcodeDetector.getSupportedFormats !==
-      "function"
-    ) {
-      return [...FORMATOS_DESEJADOS];
+  return new Promise(
+    (resolve) => {
+      window.setTimeout(
+        resolve,
+        ms
+      );
     }
-
-    const suportados =
-      await window.BarcodeDetector.getSupportedFormats();
-
-    return FORMATOS_DESEJADOS.filter((formato) =>
-      suportados.includes(formato)
-    );
-  } catch (error) {
-    console.warn(
-      "[MobileScanner] Falha ao consultar formatos:",
-      error
-    );
-
-    return [];
-  }
-}
-
-async function criarDetector() {
-  if (!possuiBarcodeDetector()) {
-    return {
-      detector: null,
-      formatos: [],
-    };
-  }
-
-  try {
-    const formatos = await obterFormatosSuportados();
-
-    const detector =
-      formatos.length > 0
-        ? new window.BarcodeDetector({
-            formats: formatos,
-          })
-        : new window.BarcodeDetector();
-
-    return {
-      detector,
-      formatos,
-    };
-  } catch (error) {
-    console.warn(
-      "[MobileScanner] BarcodeDetector indisponível:",
-      error
-    );
-
-    return {
-      detector: null,
-      formatos: [],
-    };
-  }
-}
-
-async function listarCamerasDisponiveis() {
-  if (!possuiEnumeracaoCamera()) {
-    return [];
-  }
-
-  try {
-    const dispositivos =
-      await navigator.mediaDevices.enumerateDevices();
-
-    return dispositivos
-      .filter(
-        (device) => device.kind === "videoinput"
-      )
-      .map((device, index) => ({
-        deviceId: device.deviceId,
-        groupId: device.groupId || null,
-        label:
-          device.label || `Câmera ${index + 1}`,
-        labelOriginal: device.label || "",
-        indice: index,
-      }));
-  } catch (error) {
-    console.warn(
-      "[MobileScanner] Falha ao enumerar câmeras:",
-      error
-    );
-
-    return [];
-  }
-}
-
-function calcularScoreCamera(
-  camera,
-  deviceIdCameraInicial
-) {
-  const label = normalizarTexto(
-    camera?.labelOriginal || camera?.label
   );
+}
+
+
+function textoNormalizado(
+  value
+) {
+  return String(
+    value || ""
+  )
+    .normalize("NFD")
+    .replace(
+      /[\u0300-\u036f]/g,
+      ""
+    )
+    .trim()
+    .toLowerCase();
+}
+
+
+// ============================================================
+// CÂMERAS
+// ============================================================
+
+function pontuarCamera(
+  device
+) {
+  const label =
+    textoNormalizado(
+      device?.label
+    );
+
 
   let score = 0;
 
-  CAMERA_LABEL_POSITIVOS.forEach((termo) => {
-    if (
-      label.includes(normalizarTexto(termo))
-    ) {
-      score += 20;
-    }
-  });
 
-  CAMERA_LABEL_NEGATIVOS.forEach((termo) => {
-    if (
-      label.includes(normalizarTexto(termo))
-    ) {
-      score -= 45;
-    }
-  });
+  /*
+   * Preferência forte por traseira.
+   */
+  if (
+    label.includes("back") ||
+    label.includes("rear") ||
+    label.includes("traseira") ||
+    label.includes("environment")
+  ) {
+    score += 100;
+  }
+
+
+  /*
+   * Muitos Androids identificam
+   * a principal como camera 0.
+   */
+  if (
+    label.includes("camera 0") ||
+    label.includes("camera0")
+  ) {
+    score += 30;
+  }
+
 
   if (
-    deviceIdCameraInicial &&
-    camera.deviceId === deviceIdCameraInicial
+    label.includes("main") ||
+    label.includes("principal") ||
+    label.includes("1x")
   ) {
-    score += 15;
+    score += 25;
   }
+
+
+  /*
+   * Evitar ultrawide.
+   */
+  if (
+    label.includes("ultra") ||
+    label.includes(
+      "wide angle"
+    ) ||
+    label.includes("0.5") ||
+    label.includes("0,5")
+  ) {
+    score -= 50;
+  }
+
+
+  /*
+   * Evitar telefoto.
+   */
+  if (
+    label.includes("tele") ||
+    label.includes(
+      "telephoto"
+    )
+  ) {
+    score -= 35;
+  }
+
+
+  /*
+   * Frontal é último recurso.
+   */
+  if (
+    label.includes("front") ||
+    label.includes("frontal") ||
+    label.includes("user") ||
+    label.includes("selfie")
+  ) {
+    score -= 120;
+  }
+
 
   return score;
 }
 
-function selecionarCameraPrincipal({
-  cameras,
-  deviceIdCameraInicial,
-} = {}) {
+
+function escolherMelhorCamera(
+  devices
+) {
   if (
-    !Array.isArray(cameras) ||
-    cameras.length === 0
+    !Array.isArray(devices) ||
+    devices.length === 0
   ) {
     return null;
   }
 
-  return (
-    cameras
-      .map((camera) => ({
-        ...camera,
-        score: calcularScoreCamera(
-          camera,
-          deviceIdCameraInicial
-        ),
-      }))
-      .sort((a, b) => b.score - a.score)[0] ||
-    null
-  );
+
+  return [...devices]
+    .sort(
+      (a, b) =>
+        pontuarCamera(b) -
+        pontuarCamera(a)
+    )[0] || null;
 }
 
-function obterConstraintsBootstrap() {
-  return {
-    audio: false,
-    video: {
-      facingMode: {
-        ideal: "environment",
-      },
-      width: {
-        ideal: 1920,
-      },
-      height: {
-        ideal: 1080,
-      },
-      frameRate: {
-        ideal: 30,
-      },
-    },
-  };
-}
 
-function obterConstraintsCameraPrincipal(
-  deviceId
+function nomeCameraInterno(
+  device,
+  index
 ) {
-  return {
-    audio: false,
+  const label =
+    String(
+      device?.label || ""
+    ).trim();
 
-    video: {
-      ...(deviceId
-        ? {
-            deviceId: {
-              exact: deviceId,
-            },
-          }
-        : {
-            facingMode: {
-              ideal: "environment",
-            },
-          }),
 
-      width: {
-        min:
-          RESOLUCAO_PREFERENCIAL.widthMin,
+  if (label) {
+    return label;
+  }
 
-        ideal:
-          RESOLUCAO_PREFERENCIAL.widthIdeal,
-      },
 
-      height: {
-        min:
-          RESOLUCAO_PREFERENCIAL.heightMin,
-
-        ideal:
-          RESOLUCAO_PREFERENCIAL.heightIdeal,
-      },
-
-      frameRate: {
-        ideal:
-          RESOLUCAO_PREFERENCIAL.frameRateIdeal,
-
-        max:
-          RESOLUCAO_PREFERENCIAL.frameRateMax,
-      },
-    },
-  };
+  return `Câmera ${
+    index + 1
+  }`;
 }
 
-function obterConstraintsFallback(deviceId) {
-  return {
-    audio: false,
 
-    video: {
-      ...(deviceId
-        ? {
-            deviceId: {
-              exact: deviceId,
-            },
-          }
-        : {
-            facingMode: {
-              ideal: "environment",
-            },
-          }),
+// ============================================================
+// TRACK
+// ============================================================
 
-      width: {
-        ideal: 1920,
-      },
-
-      height: {
-        ideal: 1080,
-      },
-
-      frameRate: {
-        ideal: 30,
-      },
-    },
-  };
-}
-
-async function abrirCameraSelecionada(
-  deviceId
-) {
-  try {
-    return await navigator.mediaDevices.getUserMedia(
-      obterConstraintsCameraPrincipal(
-        deviceId
-      )
-    );
-  } catch (error) {
-    console.warn(
-      "[MobileScanner] Resolução preferencial recusada; tentando fallback:",
-      error
-    );
-
-    return navigator.mediaDevices.getUserMedia(
-      obterConstraintsFallback(deviceId)
-    );
-  }
-}
-
-function criarConstraintsPreservacao(track) {
-  const settings =
-    obterSettingsTrack(track);
-
-  const constraints = {};
-
-  if (
-    Number.isFinite(settings?.width)
-  ) {
-    constraints.width =
-      settings.width;
-  }
-
-  if (
-    Number.isFinite(settings?.height)
-  ) {
-    constraints.height =
-      settings.height;
-  }
-
-  if (
-    Number.isFinite(settings?.frameRate)
-  ) {
-    constraints.frameRate =
-      settings.frameRate;
-  }
-
-  return constraints;
-}
-
-function suportaModoFoco(
-  capabilities,
-  modo
-) {
-  return Boolean(
-    Array.isArray(
-      capabilities?.focusMode
-    ) &&
-      capabilities.focusMode.includes(
-        modo
-      )
-  );
-}
-
-async function aplicarFoco({
-  track,
-  modo,
-  usarPontoInteresse = true,
-} = {}) {
-  if (!track) {
-    return {
-      aplicado: false,
-      confirmado: false,
-      settings: {},
-    };
-  }
-
-  const capabilities =
-    obterCapabilitiesTrack(track);
-
-  if (
-    !suportaModoFoco(
-      capabilities,
-      modo
-    )
-  ) {
-    return {
-      aplicado: false,
-      confirmado: false,
-      settings:
-        obterSettingsTrack(track),
-    };
-  }
-
-  const suportados =
-    obterConstraintsSuportados();
-
-  const advanced = {
-    focusMode: modo,
-  };
-
-  if (
-    usarPontoInteresse &&
-    suportados?.pointsOfInterest ===
-      true
-  ) {
-    advanced.pointsOfInterest = [
-      PONTO_INTERESSE_CENTRAL,
-    ];
-  }
-
-  try {
-    await track.applyConstraints({
-      ...criarConstraintsPreservacao(
-        track
-      ),
-
-      advanced: [advanced],
-    });
-  } catch (error) {
-    console.warn(
-      `[MobileScanner] Não foi possível aplicar foco ${modo}:`,
-      error
-    );
-
-    return {
-      aplicado: false,
-      confirmado: false,
-      settings:
-        obterSettingsTrack(track),
-    };
-  }
-
-  await esperar(80);
-
-  const settings =
-    obterSettingsTrack(track);
-
-  return {
-    aplicado: true,
-
-    confirmado:
-      settings?.focusMode === modo,
-
-    settings,
-  };
-}
-
-function limitarNaFaixa(
-  valor,
-  capacidade
-) {
-  if (
-    !capacidade ||
-    typeof capacidade.min !==
-      "number" ||
-    typeof capacidade.max !==
-      "number" ||
-    typeof valor !== "number"
-  ) {
-    return null;
-  }
-
-  return Math.max(
-    capacidade.min,
-    Math.min(
-      capacidade.max,
-      valor
-    )
-  );
-}
-
-function obterValorAtual(
-  settings,
-  propriedade,
-  capacidade
-) {
-  const atual =
-    settings?.[propriedade];
-
-  if (
-    typeof atual === "number"
-  ) {
-    return atual;
-  }
-
-  if (
-    typeof capacidade?.min ===
-      "number" &&
-    typeof capacidade?.max ===
-      "number"
-  ) {
-    return (
-      (capacidade.min +
-        capacidade.max) /
-      2
-    );
-  }
-
-  return null;
-}
-
-async function configurarMedicaoAutomatica(
+function obterCapabilitiesTrack(
   track
 ) {
-  if (!track) {
-    return;
-  }
-
-  const capabilities =
-    obterCapabilitiesTrack(track);
-
-  const settings =
-    obterSettingsTrack(track);
-
-  const advanced = {};
-
-  if (
-    Array.isArray(
-      capabilities?.exposureMode
-    ) &&
-    capabilities.exposureMode.includes(
-      "continuous"
-    )
-  ) {
-    advanced.exposureMode =
-      "continuous";
-  }
-
-  if (
-    Array.isArray(
-      capabilities?.whiteBalanceMode
-    ) &&
-    capabilities.whiteBalanceMode.includes(
-      "continuous"
-    )
-  ) {
-    advanced.whiteBalanceMode =
-      "continuous";
-  }
-
-  if (
-    capabilities?.exposureCompensation
-  ) {
-    const atual = obterValorAtual(
-      settings,
-      "exposureCompensation",
-      capabilities.exposureCompensation
-    );
-
-    const desejado =
-      limitarNaFaixa(
-        typeof atual === "number"
-          ? atual - 0.25
-          : 0,
-        capabilities.exposureCompensation
-      );
-
-    if (
-      typeof desejado === "number"
-    ) {
-      advanced.exposureCompensation =
-        desejado;
-    }
-  }
-
-  if (
-    capabilities?.contrast
-  ) {
-    const atual = obterValorAtual(
-      settings,
-      "contrast",
-      capabilities.contrast
-    );
-
-    const incremento =
-      typeof capabilities.contrast
-        ?.step === "number"
-        ? capabilities.contrast.step *
-          2
-        : 0.1;
-
-    const desejado =
-      limitarNaFaixa(
-        typeof atual === "number"
-          ? atual + incremento
-          : atual,
-        capabilities.contrast
-      );
-
-    if (
-      typeof desejado === "number"
-    ) {
-      advanced.contrast =
-        desejado;
-    }
-  }
-
-  if (
-    capabilities?.sharpness
-  ) {
-    const atual = obterValorAtual(
-      settings,
-      "sharpness",
-      capabilities.sharpness
-    );
-
-    const incremento =
-      typeof capabilities.sharpness
-        ?.step === "number"
-        ? capabilities.sharpness.step *
-          2
-        : 0.1;
-
-    const desejado =
-      limitarNaFaixa(
-        typeof atual === "number"
-          ? atual + incremento
-          : atual,
-        capabilities.sharpness
-      );
-
-    if (
-      typeof desejado === "number"
-    ) {
-      advanced.sharpness =
-        desejado;
-    }
-  }
-
-  if (
-    Object.keys(advanced).length ===
-    0
-  ) {
-    return;
-  }
-
   try {
-    await track.applyConstraints({
-      ...criarConstraintsPreservacao(
-        track
-      ),
-
-      advanced: [advanced],
-    });
-  } catch (error) {
-    console.warn(
-      "[MobileScanner] Ajustes ópticos adicionais não foram aplicados:",
-      error
+    return (
+      track
+        ?.getCapabilities?.() ||
+      {}
     );
+  } catch {
+    return {};
   }
 }
 
-async function prepararAutofocus(track) {
-  const capabilities =
-    obterCapabilitiesTrack(track);
 
-  if (
-    suportaModoFoco(
-      capabilities,
-      "continuous"
-    )
-  ) {
-    const resultado =
-      await aplicarFoco({
-        track,
-        modo: "continuous",
-      });
-
-    return Boolean(
-      resultado.aplicado
+function obterSettingsTrack(
+  track
+) {
+  try {
+    return (
+      track?.getSettings?.() ||
+      {}
     );
+  } catch {
+    return {};
+  }
+}
+
+
+function encerrarStream(
+  stream
+) {
+  stream
+    ?.getTracks?.()
+    .forEach(
+      (track) =>
+        track.stop()
+    );
+}
+
+
+// ============================================================
+// REGIÃO DE INTERESSE
+// ============================================================
+
+function obterRegiaoCaptura({
+  width,
+  height,
+  enquadramento,
+}) {
+  if (
+    enquadramento ===
+    MOBILE_SCANNER_ENQUADRAMENTO
+      .HORIZONTAL
+  ) {
+    const largura =
+      width * 0.92;
+
+    const altura =
+      height * 0.42;
+
+
+    return {
+      sx:
+        (width - largura) /
+        2,
+
+      sy:
+        (height - altura) /
+        2,
+
+      sw:
+        largura,
+
+      sh:
+        altura,
+    };
   }
 
-  if (
-    suportaModoFoco(
-      capabilities,
-      "single-shot"
-    )
-  ) {
-    await aplicarFoco({
-      track,
-      modo: "single-shot",
-    });
 
-    await esperar(
-      TEMPO_SINGLE_SHOT_MS
+  const largura =
+    width * 0.68;
+
+  const altura =
+    height * 0.82;
+
+
+  return {
+    sx:
+      (width - largura) /
+      2,
+
+    sy:
+      (height - altura) /
+      2,
+
+    sw:
+      largura,
+
+    sh:
+      altura,
+  };
+}
+
+
+// ============================================================
+// CANVAS
+// ============================================================
+
+function obterCanvasContext(
+  canvas
+) {
+  return canvas.getContext(
+    "2d",
+    {
+      alpha:
+        false,
+
+      willReadFrequently:
+        true,
+    }
+  );
+}
+
+
+function desenharRecorte({
+  source,
+  target,
+  regiao,
+  contraste = false,
+}) {
+  const escala =
+    Math.min(
+      1,
+
+      LIMITE_FRAME /
+        Math.max(
+          regiao.sw,
+          regiao.sh
+        )
     );
 
+
+  const width =
+    Math.max(
+      1,
+
+      Math.round(
+        regiao.sw *
+          escala
+      )
+    );
+
+
+  const height =
+    Math.max(
+      1,
+
+      Math.round(
+        regiao.sh *
+          escala
+      )
+    );
+
+
+  target.width =
+    width;
+
+  target.height =
+    height;
+
+
+  const ctx =
+    obterCanvasContext(
+      target
+    );
+
+
+  if (!ctx) {
     return false;
   }
 
-  return false;
-}
 
-function obterCentroBoundingBox(
-  resultado
-) {
-  const box =
-    resultado?.boundingBox;
+  ctx.save();
 
-  if (!box) {
-    return null;
-  }
 
-  return {
-    x:
-      Number(box.x || 0) +
-      Number(box.width || 0) / 2,
+  ctx.imageSmoothingEnabled =
+    false;
 
-    y:
-      Number(box.y || 0) +
-      Number(box.height || 0) / 2,
-  };
-}
 
-function resultadoEstaNaAreaCentral(
-  resultado,
-  video
-) {
-  const centro =
-    obterCentroBoundingBox(resultado);
+  ctx.filter =
+    contraste
+      ? "grayscale(1) contrast(1.65) brightness(1.05)"
+      : "none";
 
-  if (!centro) {
-    return true;
-  }
 
-  const largura =
-    Number(video?.videoWidth || 0);
+  ctx.drawImage(
+    source,
 
-  const altura =
-    Number(video?.videoHeight || 0);
+    regiao.sx,
+    regiao.sy,
+    regiao.sw,
+    regiao.sh,
 
-  if (
-    largura <= 0 ||
-    altura <= 0
-  ) {
-    return true;
-  }
-
-  const x =
-    centro.x / largura;
-
-  const y =
-    centro.y / altura;
-
-  return (
-    x >= AREA_LEITURA.xMin &&
-    x <= AREA_LEITURA.xMax &&
-    y >= AREA_LEITURA.yMin &&
-    y <= AREA_LEITURA.yMax
-  );
-}
-
-function escolherMelhorResultado(
-  resultados,
-  video
-) {
-  if (
-    !Array.isArray(resultados) ||
-    resultados.length === 0
-  ) {
-    return null;
-  }
-
-  const validos =
-    resultados.filter(
-      (resultado) =>
-        resultado?.rawValue
-    );
-
-  if (
-    validos.length === 0
-  ) {
-    return null;
-  }
-
-  const centrais =
-    validos.filter((resultado) =>
-      resultadoEstaNaAreaCentral(
-        resultado,
-        video
-      )
-    );
-
-  const candidatos =
-    centrais.length > 0
-      ? centrais
-      : validos;
-
-  return candidatos
-    .map((resultado) => {
-      const box =
-        resultado?.boundingBox;
-
-      const area =
-        Number(box?.width || 0) *
-        Number(box?.height || 0);
-
-      return {
-        resultado,
-        area,
-      };
-    })
-    .sort(
-      (a, b) =>
-        b.area - a.area
-    )[0]?.resultado;
-}
-
-function obterRegiaoCentral(
-  largura,
-  altura
-) {
-  const x =
-    Math.floor(
-      largura *
-        AREA_LEITURA.xMin
-    );
-
-  const y =
-    Math.floor(
-      altura *
-        AREA_LEITURA.yMin
-    );
-
-  const width =
-    Math.floor(
-      largura *
-        (AREA_LEITURA.xMax -
-          AREA_LEITURA.xMin)
-    );
-
-  const height =
-    Math.floor(
-      altura *
-        (AREA_LEITURA.yMax -
-          AREA_LEITURA.yMin)
-    );
-
-  return {
-    x,
-    y,
+    0,
+    0,
     width,
-    height,
-  };
+    height
+  );
+
+
+  ctx.restore();
+
+
+  return true;
 }
 
-function criarCanvasReforcado(
-  source
-) {
-  const larguraOriginal =
+
+function desenharFrameCompleto({
+  source,
+  target,
+}) {
+  const larguraFonte =
     Number(
-      source?.width ||
-        source?.videoWidth ||
-        0
+      source?.videoWidth ||
+      0
     );
 
-  const alturaOriginal =
+
+  const alturaFonte =
     Number(
-      source?.height ||
-        source?.videoHeight ||
-        0
+      source?.videoHeight ||
+      0
     );
+
 
   if (
-    larguraOriginal <= 0 ||
-    alturaOriginal <= 0
+    larguraFonte <= 0 ||
+    alturaFonte <= 0
   ) {
-    return null;
+    return false;
   }
 
-  const regiao =
-    obterRegiaoCentral(
-      larguraOriginal,
-      alturaOriginal
-    );
 
   const escala =
     Math.min(
       1,
-      MAX_LARGURA_PROCESSAMENTO /
-        regiao.width
+
+      LIMITE_FRAME /
+        Math.max(
+          larguraFonte,
+          alturaFonte
+        )
     );
+
 
   const largura =
     Math.max(
       1,
-      Math.floor(
-        regiao.width * escala
+
+      Math.round(
+        larguraFonte *
+          escala
       )
     );
+
 
   const altura =
     Math.max(
       1,
-      Math.floor(
-        regiao.height * escala
+
+      Math.round(
+        alturaFonte *
+          escala
       )
     );
 
-  const canvas =
-    document.createElement(
-      "canvas"
+
+  target.width =
+    largura;
+
+  target.height =
+    altura;
+
+
+  const ctx =
+    obterCanvasContext(
+      target
     );
 
-  canvas.width = largura;
-  canvas.height = altura;
 
-  const context =
-    canvas.getContext("2d", {
-      willReadFrequently: true,
-    });
-
-  if (!context) {
-    return null;
+  if (!ctx) {
+    return false;
   }
 
-  context.imageSmoothingEnabled =
+
+  ctx.imageSmoothingEnabled =
     false;
 
-  context.drawImage(
+  ctx.filter =
+    "none";
+
+
+  ctx.drawImage(
     source,
-    regiao.x,
-    regiao.y,
-    regiao.width,
-    regiao.height,
     0,
     0,
     largura,
     altura
   );
 
-  const imageData =
-    context.getImageData(
-      0,
-      0,
-      largura,
-      altura
-    );
 
-  const dados =
-    imageData.data;
-
-  const contraste =
-    CONTRASTE_REFORCADO;
-
-  const intercepto =
-    128 *
-    (1 - contraste);
-
-  for (
-    let index = 0;
-    index < dados.length;
-    index += 4
-  ) {
-    const r =
-      dados[index];
-
-    const g =
-      dados[index + 1];
-
-    const b =
-      dados[index + 2];
-
-    const cinza =
-      0.299 * r +
-      0.587 * g +
-      0.114 * b;
-
-    const reforcado =
-      Math.max(
-        0,
-        Math.min(
-          255,
-          cinza *
-            contraste +
-            intercepto
-        )
-      );
-
-    dados[index] =
-      reforcado;
-
-    dados[index + 1] =
-      reforcado;
-
-    dados[index + 2] =
-      reforcado;
-  }
-
-  context.putImageData(
-    imageData,
-    0,
-    0
-  );
-
-  return canvas;
+  return true;
 }
 
-function normalizarCodigo(valor) {
-  return String(valor || "")
-    .trim()
-    .replace(/\s+/g, "");
-}
 
-function obterFormatoResultado(
-  resultado
-) {
-  return (
-    resultado?.format ||
-    "unknown"
-  );
-}
+// ============================================================
+// HOOK
+// ============================================================
 
 export default function useMobileScanner({
   ativo,
   videoRef,
   onDetected,
 }) {
+  // ==========================================================
+  // STATE
+  // ==========================================================
+
   const [
     cameraAtiva,
     setCameraAtiva,
-  ] = useState(false);
+  ] =
+    useState(false);
+
 
   const [
     iniciando,
     setIniciando,
-  ] = useState(false);
+  ] =
+    useState(false);
+
 
   const [
     erroCamera,
     setErroCamera,
-  ] = useState(null);
+  ] =
+    useState(null);
 
-  const [
-    detectorDisponivel,
-    setDetectorDisponivel,
-  ] = useState(false);
-
-  const [
-    formatosSuportados,
-    setFormatosSuportados,
-  ] = useState([]);
-
-  const [
-    focoContinuoAtivo,
-    setFocoContinuoAtivo,
-  ] = useState(false);
-
-  const [
-    cameraLabel,
-    setCameraLabel,
-  ] = useState(null);
-
-  const [
-    cameraPrincipal,
-    setCameraPrincipal,
-  ] = useState(null);
 
   const [
     camerasDisponiveis,
     setCamerasDisponiveis,
-  ] = useState([]);
+  ] =
+    useState([]);
+
+
+  const [
+    cameraSelecionadaId,
+    setCameraSelecionadaId,
+  ] =
+    useState(null);
+
+
+  const [
+    enquadramento,
+    setEnquadramento,
+  ] =
+    useState(
+      MOBILE_SCANNER_ENQUADRAMENTO
+        .HORIZONTAL
+    );
+
+
+  const [
+    focoStatus,
+    setFocoStatus,
+  ] =
+    useState(
+      "AUTOMATICO"
+    );
+
 
   const [
     resolucaoAtual,
     setResolucaoAtual,
-  ] = useState({
-    width: null,
-    height: null,
-    frameRate: null,
-  });
+  ] =
+    useState(null);
+
 
   const [
-    lendo,
-    setLendo,
-  ] = useState(false);
+    processando,
+    setProcessando,
+  ] =
+    useState(false);
 
-  const [
-    leituraReforcadaAtiva,
-    setLeituraReforcadaAtiva,
-  ] = useState(false);
 
   const [
     cooldownRestanteMs,
     setCooldownRestanteMs,
-  ] = useState(0);
+  ] =
+    useState(0);
 
-  const [
-    diagnosticoCamera,
-    setDiagnosticoCamera,
-  ] = useState(null);
+
+  // ==========================================================
+  // REFS
+  // ==========================================================
 
   const streamRef =
     useRef(null);
 
+
   const trackRef =
     useRef(null);
 
-  const detectorRef =
+
+  const canvasRef =
     useRef(null);
 
-  const imageCaptureRef =
+
+  const canvasProcessadoRef =
     useRef(null);
 
-  const timerDeteccaoRef =
+
+  const timerLeituraRef =
     useRef(null);
 
-  const timerEstabilizacaoRef =
-    useRef(null);
 
   const timerCooldownRef =
     useRef(null);
 
-  const processandoFrameRef =
+
+  const processandoRef =
     useRef(false);
 
-  const reforcandoRef =
-    useRef(false);
-
-  const cameraAtivaRef =
-    useRef(false);
 
   const ativoRef =
-    useRef(Boolean(ativo));
+    useRef(
+      Boolean(ativo)
+    );
 
-  const liberadoParaDetectarRef =
-    useRef(false);
 
   const onDetectedRef =
-    useRef(onDetected);
+    useRef(
+      onDetected
+    );
 
-  const candidatoRef =
-    useRef({
-      codigo: null,
-      formato: null,
-      quantidade: 0,
-    });
-
-  /*
-   * Trava síncrona.
-   *
-   * Este ref é a autoridade para impedir
-   * vídeo + grabFrame + takePhoto de
-   * confirmarem o mesmo volume em paralelo.
-   */
-  const capturaBloqueadaRef =
-    useRef(false);
 
   const cooldownAteRef =
     useRef(0);
 
-  const ultimoCodigoAceitoRef =
+
+  const cameraSelecionadaIdRef =
     useRef(null);
 
-  const ultimoAvisoDuplicadoEmRef =
-    useRef(0);
 
-  const ultimaDeteccaoVisualRef =
-    useRef(Date.now());
+  // ==========================================================
+  // DERIVADOS
+  // ==========================================================
 
-  const ultimoRefocoEmRef =
-    useRef(0);
+  const cameraSelecionada =
+    useMemo(
+      () =>
+        camerasDisponiveis.find(
+          (camera) =>
+            camera.deviceId ===
+            cameraSelecionadaId
+        ) ||
+        null,
+      [
+        camerasDisponiveis,
+        cameraSelecionadaId,
+      ]
+    );
 
-  const ultimoSnapshotEmRef =
-    useRef(0);
 
-  const ultimaFotoEmRef =
-    useRef(0);
+  const cameraLabel =
+    cameraSelecionada
+      ? nomeCameraInterno(
+          cameraSelecionada,
+          camerasDisponiveis
+            .indexOf(
+              cameraSelecionada
+            )
+        )
+      : "Câmera traseira automática";
+
+
+  // ==========================================================
+  // REFS SINCRONIZADOS
+  // ==========================================================
 
   useEffect(() => {
     ativoRef.current =
-      Boolean(ativo);
-  }, [ativo]);
+      Boolean(
+        ativo
+      );
+  }, [
+    ativo,
+  ]);
+
 
   useEffect(() => {
     onDetectedRef.current =
       onDetected;
-  }, [onDetected]);
+  }, [
+    onDetected,
+  ]);
 
-  const limparTimerDeteccao =
+
+  useEffect(() => {
+    cameraSelecionadaIdRef.current =
+      cameraSelecionadaId;
+  }, [
+    cameraSelecionadaId,
+  ]);
+
+
+  // ==========================================================
+  // TIMERS
+  // ==========================================================
+
+  const limparTimerLeitura =
     useCallback(() => {
       if (
-        timerDeteccaoRef.current
+        timerLeituraRef.current
       ) {
         window.clearTimeout(
-          timerDeteccaoRef.current
+          timerLeituraRef.current
         );
 
-        timerDeteccaoRef.current =
+        timerLeituraRef.current =
           null;
       }
     }, []);
 
-  const limparTimerEstabilizacao =
-    useCallback(() => {
-      if (
-        timerEstabilizacaoRef.current
-      ) {
-        window.clearTimeout(
-          timerEstabilizacaoRef.current
-        );
-
-        timerEstabilizacaoRef.current =
-          null;
-      }
-    }, []);
 
   const limparTimerCooldown =
     useCallback(() => {
@@ -1351,296 +803,111 @@ export default function useMobileScanner({
       }
     }, []);
 
-  const resetarCandidato =
-    useCallback(() => {
-      candidatoRef.current = {
-        codigo: null,
-        formato: null,
-        quantidade: 0,
-      };
-
-      setLendo(false);
-    }, []);
 
   const atualizarCooldown =
     useCallback(() => {
       const restante =
         Math.max(
           0,
+
           cooldownAteRef.current -
             Date.now()
         );
+
 
       setCooldownRestanteMs(
         restante
       );
 
-      if (restante <= 0) {
-        capturaBloqueadaRef.current =
-          false;
 
+      if (
+        restante <= 0
+      ) {
         cooldownAteRef.current =
           0;
 
-        ultimoCodigoAceitoRef.current =
-          null;
-
         limparTimerCooldown();
       }
-    }, [limparTimerCooldown]);
+    }, [
+      limparTimerCooldown,
+    ]);
+
 
   const iniciarCooldown =
-    useCallback(
-      (codigo) => {
-        /*
-         * IMPORTANTE:
-         * trava ANTES do callback.
-         *
-         * Portanto qualquer detector
-         * concorrente que chegar alguns
-         * milissegundos depois já encontra
-         * capturaBloqueadaRef = true.
-         */
-        capturaBloqueadaRef.current =
-          true;
+    useCallback(() => {
+      cooldownAteRef.current =
+        Date.now() +
+        COOLDOWN_CAPTURA_CAMERA_MS;
 
-        ultimoCodigoAceitoRef.current =
-          codigo;
 
-        cooldownAteRef.current =
-          Date.now() +
-          COOLDOWN_CAPTURA_CAMERA_MS;
-
-        setCooldownRestanteMs(
-          COOLDOWN_CAPTURA_CAMERA_MS
-        );
-
-        limparTimerCooldown();
-
-        timerCooldownRef.current =
-          window.setInterval(
-            atualizarCooldown,
-            INTERVALO_ATUALIZACAO_COOLDOWN_MS
-          );
-      },
-      [
-        atualizarCooldown,
-        limparTimerCooldown,
-      ]
-    );
-
-  const avisarDuplicidade =
-    useCallback(
-      (codigo, formato) => {
-        const agora =
-          Date.now();
-
-        if (
-          agora -
-            ultimoAvisoDuplicadoEmRef.current <
-          INTERVALO_AVISO_DUPLICADO_MS
-        ) {
-          return;
-        }
-
-        ultimoAvisoDuplicadoEmRef.current =
-          agora;
-
-        onDetectedRef.current?.({
-          codigo,
-          formato,
-          origem: "CAMERA",
-          duplicado: true,
-        });
-      },
-      []
-    );
-
-  const emitirDeteccao =
-    useCallback(
-      (resultado) => {
-        const codigo =
-          normalizarCodigo(
-            resultado?.rawValue
-          );
-
-        if (!codigo) {
-          return false;
-        }
-
-        const formato =
-          obterFormatoResultado(
-            resultado
-          );
-
-        /*
-         * PRIMEIRA BARREIRA:
-         * se alguma camada já ganhou a
-         * corrida, nenhuma outra camada
-         * pode registrar.
-         */
-        if (
-          capturaBloqueadaRef.current ||
-          Date.now() <
-            cooldownAteRef.current
-        ) {
-          if (
-            codigo ===
-            ultimoCodigoAceitoRef.current
-          ) {
-            avisarDuplicidade(
-              codigo,
-              formato
-            );
-          }
-
-          return false;
-        }
-
-        /*
-         * TRAVA ATÔMICA:
-         * cooldown começa ANTES do
-         * onDetected.
-         */
-        iniciarCooldown(codigo);
-
-        resetarCandidato();
-
-        ultimaDeteccaoVisualRef.current =
-          Date.now();
-
-        try {
-          onDetectedRef.current?.({
-            codigo,
-            formato,
-            origem: "CAMERA",
-            duplicado: false,
-          });
-
-          return true;
-        } catch (error) {
-          console.error(
-            "[MobileScanner] Falha ao entregar captura:",
-            error
-          );
-
-          /*
-           * Mesmo se o callback falhar,
-           * não liberamos imediatamente
-           * para evitar dupla captura.
-           */
-          return false;
-        }
-      },
-      [
-        avisarDuplicidade,
-        iniciarCooldown,
-        resetarCandidato,
-      ]
-    );
-
-  const registrarCandidato =
-    useCallback((resultado) => {
-      const codigo =
-        normalizarCodigo(
-          resultado?.rawValue
-        );
-
-      if (!codigo) {
-        return false;
-      }
-
-      const formato =
-        obterFormatoResultado(
-          resultado
-        );
-
-      const atual =
-        candidatoRef.current;
-
-      if (
-        atual.codigo === codigo &&
-        atual.formato === formato
-      ) {
-        atual.quantidade += 1;
-      } else {
-        candidatoRef.current = {
-          codigo,
-          formato,
-          quantidade: 1,
-        };
-      }
-
-      const quantidade =
-        candidatoRef.current
-          .quantidade;
-
-      setLendo(
-        quantidade > 0 &&
-          quantidade <
-            DETECCOES_CONSECUTIVAS_NECESSARIAS
+      setCooldownRestanteMs(
+        COOLDOWN_CAPTURA_CAMERA_MS
       );
 
-      return (
-        quantidade >=
-        DETECCOES_CONSECUTIVAS_NECESSARIAS
-      );
-    }, []);
+
+      limparTimerCooldown();
+
+
+      timerCooldownRef.current =
+        window.setInterval(
+          atualizarCooldown,
+          INTERVALO_ATUALIZACAO_COOLDOWN_MS
+        );
+    }, [
+      atualizarCooldown,
+      limparTimerCooldown,
+    ]);
+
+
+  // ==========================================================
+  // PARAR CÂMERA
+  // ==========================================================
 
   const pararCamera =
     useCallback(() => {
-      limparTimerDeteccao();
-      limparTimerEstabilizacao();
+      limparTimerLeitura();
       limparTimerCooldown();
 
-      liberadoParaDetectarRef.current =
+
+      processandoRef.current =
         false;
 
-      processandoFrameRef.current =
-        false;
 
-      reforcandoRef.current =
-        false;
+      setProcessando(
+        false
+      );
 
-      capturaBloqueadaRef.current =
-        false;
 
       cooldownAteRef.current =
         0;
 
-      ultimoCodigoAceitoRef.current =
-        null;
 
-      resetarCandidato();
-
-      setLeituraReforcadaAtiva(
-        false
+      setCooldownRestanteMs(
+        0
       );
 
-      setCooldownRestanteMs(0);
 
       const stream =
         streamRef.current;
 
+
       if (stream) {
-        encerrarStream(stream);
+        encerrarStream(
+          stream
+        );
       }
 
-      streamRef.current = null;
-      trackRef.current = null;
-      detectorRef.current = null;
-      imageCaptureRef.current = null;
 
-      cameraAtivaRef.current =
-        false;
+      streamRef.current =
+        null;
 
-      setCameraAtiva(false);
-      setDetectorDisponivel(false);
-      setFormatosSuportados([]);
-      setFocoContinuoAtivo(false);
+      trackRef.current =
+        null;
+
 
       const video =
         videoRef?.current;
+
 
       if (video) {
         try {
@@ -1649,872 +916,1107 @@ export default function useMobileScanner({
           // Sem ação.
         }
 
-        video.srcObject = null;
+
+        video.srcObject =
+          null;
       }
+
+
+      setCameraAtiva(
+        false
+      );
+
+
+      setResolucaoAtual(
+        null
+      );
     }, [
       limparTimerCooldown,
-      limparTimerDeteccao,
-      limparTimerEstabilizacao,
-      resetarCandidato,
+      limparTimerLeitura,
       videoRef,
     ]);
 
-  const tentarRefocoAutomatico =
-    useCallback(async () => {
-      const track =
-        trackRef.current;
 
-      if (!track) {
-        return;
-      }
+  // ==========================================================
+  // ENUMERAR CÂMERAS
+  // ==========================================================
 
-      if (
-        capturaBloqueadaRef.current ||
-        Date.now() <
-          cooldownAteRef.current
-      ) {
-        return;
-      }
-
-      const agora =
-        Date.now();
-
-      const semLeitura =
-        agora -
-        ultimaDeteccaoVisualRef.current;
-
-      const desdeUltimoRefoco =
-        agora -
-        ultimoRefocoEmRef.current;
-
-      if (
-        semLeitura <
-          TEMPO_SEM_LEITURA_PARA_REFOCO_MS ||
-        desdeUltimoRefoco <
-          INTERVALO_MINIMO_REFOCO_MS
-      ) {
-        return;
-      }
-
-      ultimoRefocoEmRef.current =
-        agora;
-
-      const capabilities =
-        obterCapabilitiesTrack(track);
-
-      if (
-        suportaModoFoco(
-          capabilities,
-          "single-shot"
-        )
-      ) {
-        await aplicarFoco({
-          track,
-          modo: "single-shot",
-        });
-
-        await esperar(
-          TEMPO_SINGLE_SHOT_MS
-        );
-
-        if (
-          suportaModoFoco(
-            capabilities,
-            "continuous"
-          )
-        ) {
-          await aplicarFoco({
-            track,
-            modo: "continuous",
-          });
-        }
-
-        return;
-      }
-
-      if (
-        suportaModoFoco(
-          capabilities,
-          "continuous"
-        )
-      ) {
-        await aplicarFoco({
-          track,
-          modo: "continuous",
-        });
-      }
-    }, []);
-
-  const tentarLeituraReforcada =
+  const listarCameras =
     useCallback(async () => {
       if (
-        reforcandoRef.current ||
-        capturaBloqueadaRef.current ||
-        Date.now() <
-          cooldownAteRef.current
+        typeof navigator ===
+          "undefined" ||
+        !navigator
+          ?.mediaDevices
+          ?.enumerateDevices
       ) {
-        return false;
+        return [];
       }
 
-      const detector =
-        detectorRef.current;
-
-      const imageCapture =
-        imageCaptureRef.current;
-
-      if (
-        !detector ||
-        !imageCapture
-      ) {
-        return false;
-      }
-
-      reforcandoRef.current =
-        true;
-
-      let bitmap = null;
 
       try {
-        const agoraSnapshot =
-          performance.now();
+        const devices =
+          await navigator
+            .mediaDevices
+            .enumerateDevices();
 
-        const desdeUltimoSnapshot =
-          agoraSnapshot -
-          ultimoSnapshotEmRef.current;
 
-        const semLeitura =
-          Date.now() -
-          ultimaDeteccaoVisualRef.current;
+        const cameras =
+          devices.filter(
+            (device) =>
+              device.kind ===
+              "videoinput"
+          );
 
-        if (
-          semLeitura >=
-            TEMPO_SEM_LEITURA_PARA_SNAPSHOT_MS &&
-          desdeUltimoSnapshot >=
-            INTERVALO_MINIMO_SNAPSHOT_MS &&
-          typeof imageCapture.grabFrame ===
-            "function"
-        ) {
-          ultimoSnapshotEmRef.current =
-            agoraSnapshot;
 
-          try {
-            bitmap =
-              await imageCapture.grabFrame();
-
-            /*
-             * Durante o await outra
-             * camada pode ter capturado.
-             * Verificamos novamente.
-             */
-            if (
-              capturaBloqueadaRef.current ||
-              Date.now() <
-                cooldownAteRef.current
-            ) {
-              return false;
-            }
-
-            const resultadosSnapshot =
-              await detector.detect(
-                bitmap
-              );
-
-            const snapshot =
-              (
-                resultadosSnapshot ||
-                []
-              ).find(
-                (resultado) =>
-                  resultado?.rawValue
-              );
-
-            if (snapshot) {
-              return emitirDeteccao(
-                snapshot
-              );
-            }
-
-            const canvas =
-              criarCanvasReforcado(
-                bitmap
-              );
-
-            if (canvas) {
-              const resultadosReforcados =
-                await detector.detect(
-                  canvas
-                );
-
-              const reforcado =
-                (
-                  resultadosReforcados ||
-                  []
-                ).find(
-                  (resultado) =>
-                    resultado?.rawValue
-                );
-
-              if (reforcado) {
-                return emitirDeteccao(
-                  reforcado
-                );
-              }
-            }
-          } catch (error) {
-            console.warn(
-              "[MobileScanner] Snapshot rápido indisponível:",
-              error
-            );
-          }
-        }
-
-        /*
-         * Antes da fotografia high-res,
-         * verificamos novamente se outra
-         * camada já ganhou a corrida.
-         */
-        if (
-          capturaBloqueadaRef.current ||
-          Date.now() <
-            cooldownAteRef.current
-        ) {
-          return false;
-        }
-
-        const agoraFoto =
-          performance.now();
-
-        const desdeUltimaFoto =
-          agoraFoto -
-          ultimaFotoEmRef.current;
-
-        const semLeituraParaFoto =
-          Date.now() -
-          ultimaDeteccaoVisualRef.current;
-
-        if (
-          semLeituraParaFoto <
-            TEMPO_SEM_LEITURA_PARA_FOTO_MS ||
-          desdeUltimaFoto <
-            INTERVALO_MINIMO_FOTO_MS ||
-          typeof imageCapture.takePhoto !==
-            "function"
-        ) {
-          return false;
-        }
-
-        ultimaFotoEmRef.current =
-          agoraFoto;
-
-        setLeituraReforcadaAtiva(
-          true
+        setCamerasDisponiveis(
+          cameras
         );
 
-        let fotoBitmap = null;
 
-        try {
-          const blob =
-            await imageCapture.takePhoto();
-
-          if (
-            capturaBloqueadaRef.current ||
-            Date.now() <
-              cooldownAteRef.current
-          ) {
-            return false;
-          }
-
-          const resultadosFoto =
-            await detector.detect(blob);
-
-          const foto =
-            (
-              resultadosFoto ||
-              []
-            ).find(
-              (resultado) =>
-                resultado?.rawValue
-            );
-
-          if (foto) {
-            return emitirDeteccao(
-              foto
-            );
-          }
-
-          fotoBitmap =
-            await createImageBitmap(
-              blob
-            );
-
-          const canvasFoto =
-            criarCanvasReforcado(
-              fotoBitmap
-            );
-
-          if (canvasFoto) {
-            const resultadosFotoReforcada =
-              await detector.detect(
-                canvasFoto
-              );
-
-            const fotoReforcada =
-              (
-                resultadosFotoReforcada ||
-                []
-              ).find(
-                (resultado) =>
-                  resultado?.rawValue
-              );
-
-            if (fotoReforcada) {
-              return emitirDeteccao(
-                fotoReforcada
-              );
-            }
-          }
-        } finally {
-          fotoBitmap?.close?.();
-        }
-
-        return false;
+        return cameras;
       } catch (error) {
         console.warn(
-          "[MobileScanner] Leitura multicamada falhou:",
+          "[MobileScanner] Não foi possível enumerar câmeras:",
           error
         );
 
-        return false;
-      } finally {
-        bitmap?.close?.();
 
-        reforcandoRef.current =
-          false;
-
-        setLeituraReforcadaAtiva(
-          false
-        );
+        return [];
       }
-    }, [emitirDeteccao]);
+    }, []);
 
-  const detectarFrame =
-    useCallback(async () => {
-      if (
-        !ativoRef.current ||
-        !cameraAtivaRef.current ||
-        !liberadoParaDetectarRef.current ||
-        !detectorRef.current ||
-        !videoRef?.current
-      ) {
-        return;
-      }
 
-      /*
-       * Durante cooldown não executamos
-       * detector desnecessariamente.
-       */
-      if (
-        capturaBloqueadaRef.current ||
-        Date.now() <
-          cooldownAteRef.current
-      ) {
-        timerDeteccaoRef.current =
-          window.setTimeout(
-            detectarFrame,
-            INTERVALO_DETECCAO_MS
-          );
+  // ==========================================================
+  // AJUSTES ÓPTICOS
+  // ==========================================================
 
-        return;
-      }
-
-      if (
-        processandoFrameRef.current
-      ) {
-        timerDeteccaoRef.current =
-          window.setTimeout(
-            detectarFrame,
-            INTERVALO_DETECCAO_MS
-          );
-
-        return;
-      }
-
-      const video =
-        videoRef.current;
-
-      if (
-        video.readyState < 2 ||
-        video.videoWidth === 0 ||
-        video.videoHeight === 0
-      ) {
-        timerDeteccaoRef.current =
-          window.setTimeout(
-            detectarFrame,
-            INTERVALO_DETECCAO_MS
-          );
-
-        return;
-      }
-
-      processandoFrameRef.current =
-        true;
-
-      try {
-        const resultados =
-          await detectorRef.current.detect(
-            video
-          );
-
-        /*
-         * O detector pode ter ficado
-         * aguardando enquanto outra
-         * camada capturou.
-         */
-        if (
-          capturaBloqueadaRef.current ||
-          Date.now() <
-            cooldownAteRef.current
-        ) {
+  const aplicarAjustesOpticos =
+    useCallback(
+      async (
+        track
+      ) => {
+        if (!track) {
           return;
         }
 
-        const melhor =
-          escolherMelhorResultado(
-            resultados,
-            video
-          );
-
-        if (!melhor) {
-          resetarCandidato();
-
-          if (
-            Date.now() >=
-              cooldownAteRef.current &&
-            !capturaBloqueadaRef.current
-          ) {
-            void tentarRefocoAutomatico();
-
-            void tentarLeituraReforcada();
-          }
-        } else if (
-          resultadoEstaNaAreaCentral(
-            melhor,
-            video
-          )
-        ) {
-          ultimaDeteccaoVisualRef.current =
-            Date.now();
-
-          const estabilizado =
-            registrarCandidato(
-              melhor
-            );
-
-          if (estabilizado) {
-            emitirDeteccao(
-              melhor
-            );
-          }
-        } else {
-          resetarCandidato();
-        }
-      } catch (error) {
-        console.warn(
-          "[MobileScanner] Falha na detecção:",
-          error
-        );
-
-        resetarCandidato();
-      } finally {
-        processandoFrameRef.current =
-          false;
-
-        if (
-          ativoRef.current &&
-          cameraAtivaRef.current &&
-          liberadoParaDetectarRef.current
-        ) {
-          timerDeteccaoRef.current =
-            window.setTimeout(
-              detectarFrame,
-              INTERVALO_DETECCAO_MS
-            );
-        }
-      }
-    }, [
-      emitirDeteccao,
-      registrarCandidato,
-      resetarCandidato,
-      tentarLeituraReforcada,
-      tentarRefocoAutomatico,
-      videoRef,
-    ]);
-
-  const descobrirCameraPrincipal =
-    useCallback(async () => {
-      const bootstrapStream =
-        await navigator.mediaDevices.getUserMedia(
-          obterConstraintsBootstrap()
-        );
-
-      const bootstrapTrack =
-        bootstrapStream.getVideoTracks?.()[
-          0
-        ] || null;
-
-      const bootstrapSettings =
-        obterSettingsTrack(
-          bootstrapTrack
-        );
-
-      const deviceIdInicial =
-        bootstrapSettings?.deviceId ||
-        null;
-
-      const cameras =
-        await listarCamerasDisponiveis();
-
-      setCamerasDisponiveis(
-        cameras
-      );
-
-      const principal =
-        selecionarCameraPrincipal({
-          cameras,
-          deviceIdCameraInicial:
-            deviceIdInicial,
-        });
-
-      encerrarStream(
-        bootstrapStream
-      );
-
-      return {
-        principal,
-        cameras,
-        deviceIdInicial,
-        bootstrapSettings,
-      };
-    }, []);
-
-  const iniciarCamera =
-    useCallback(async () => {
-      if (
-        !possuiSuporteCamera()
-      ) {
-        setErroCamera(
-          "A câmera não está disponível neste navegador."
-        );
-
-        return false;
-      }
-
-      if (streamRef.current) {
-        return true;
-      }
-
-      setIniciando(true);
-      setErroCamera(null);
-
-      try {
-        const descoberta =
-          await descobrirCameraPrincipal();
-
-        const principal =
-          descoberta.principal;
-
-        setCameraPrincipal(
-          principal
-        );
-
-        const stream =
-          await abrirCameraSelecionada(
-            principal?.deviceId ||
-              descoberta.deviceIdInicial ||
-              null
-          );
-
-        streamRef.current =
-          stream;
-
-        const track =
-          stream.getVideoTracks?.()[0] ||
-          null;
-
-        if (!track) {
-          throw new Error(
-            "Nenhuma faixa de vídeo foi disponibilizada."
-          );
-        }
-
-        trackRef.current =
-          track;
-
-        try {
-          if (
-            "contentHint" in track
-          ) {
-            track.contentHint =
-              "text";
-          }
-        } catch {
-          // Hint opcional.
-        }
-
-        setCameraLabel(
-          track.label ||
-            principal?.label ||
-            null
-        );
-
-        const video =
-          videoRef?.current;
-
-        if (!video) {
-          throw new Error(
-            "Área de vídeo não encontrada."
-          );
-        }
-
-        video.srcObject =
-          stream;
-
-        video.setAttribute(
-          "playsinline",
-          "true"
-        );
-
-        video.muted = true;
-
-        await video.play();
-
-        await esperar(220);
-
-        await configurarMedicaoAutomatica(
-          track
-        );
-
-        const focoAtivo =
-          await prepararAutofocus(
-            track
-          );
-
-        setFocoContinuoAtivo(
-          focoAtivo
-        );
-
-        const settingsDepois =
-          obterSettingsTrack(track);
 
         const capabilities =
           obterCapabilitiesTrack(
             track
           );
 
-        const constraints =
-          obterConstraintsTrack(
+
+        const advanced =
+          {};
+
+
+        // ------------------------------------------------------
+        // FOCO
+        // ------------------------------------------------------
+
+        const focusModes =
+          Array.isArray(
+            capabilities
+              ?.focusMode
+          )
+            ? capabilities
+                .focusMode
+            : [];
+
+
+        if (
+          focusModes.includes(
+            "continuous"
+          )
+        ) {
+          advanced.focusMode =
+            "continuous";
+
+          setFocoStatus(
+            "CONTINUO"
+          );
+        } else if (
+          focusModes.includes(
+            "single-shot"
+          )
+        ) {
+          advanced.focusMode =
+            "single-shot";
+
+          setFocoStatus(
+            "UNICO"
+          );
+        } else {
+          setFocoStatus(
+            "AUTOMATICO"
+          );
+        }
+
+
+        // ------------------------------------------------------
+        // EXPOSIÇÃO
+        // ------------------------------------------------------
+
+        const exposureModes =
+          Array.isArray(
+            capabilities
+              ?.exposureMode
+          )
+            ? capabilities
+                .exposureMode
+            : [];
+
+
+        if (
+          exposureModes.includes(
+            "continuous"
+          )
+        ) {
+          advanced.exposureMode =
+            "continuous";
+        }
+
+
+        // ------------------------------------------------------
+        // WHITE BALANCE
+        // ------------------------------------------------------
+
+        const whiteBalanceModes =
+          Array.isArray(
+            capabilities
+              ?.whiteBalanceMode
+          )
+            ? capabilities
+                .whiteBalanceMode
+            : [];
+
+
+        if (
+          whiteBalanceModes.includes(
+            "continuous"
+          )
+        ) {
+          advanced.whiteBalanceMode =
+            "continuous";
+        }
+
+
+        if (
+          Object.keys(
+            advanced
+          ).length === 0
+        ) {
+          return;
+        }
+
+
+        try {
+          await track
+            .applyConstraints({
+              advanced: [
+                advanced,
+              ],
+            });
+        } catch (error) {
+          /*
+           * Não quebrar a câmera.
+           *
+           * Alguns browsers expõem capability
+           * mas recusam applyConstraints.
+           */
+          console.warn(
+            "[MobileScanner] Ajustes ópticos não suportados:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+
+  // ==========================================================
+  // DECODIFICAR CANVAS
+  // ==========================================================
+
+  const decodificarCanvas =
+    useCallback(
+      async (
+        canvas
+      ) => {
+        const resposta =
+          await decodificarCodigoImagem(
+            canvas
+          );
+
+
+        if (
+          resposta
+            ?.encontrado &&
+          resposta
+            ?.resultado
+        ) {
+          return resposta
+            .resultado;
+        }
+
+
+        return null;
+      },
+      []
+    );
+
+
+  // ==========================================================
+  // ENTREGAR RESULTADO AO WIZARD
+  // ==========================================================
+
+  const entregarCaptura =
+    useCallback(
+      async (
+        resultado
+      ) => {
+        if (
+          !resultado ||
+          !ativoRef.current
+        ) {
+          return false;
+        }
+
+
+        let resposta =
+          null;
+
+
+        try {
+          resposta =
+            await onDetectedRef
+              .current?.(
+                resultado
+              );
+        } catch (error) {
+          console.error(
+            "[MobileScanner] Falha ao entregar captura ao Wizard:",
+            error
+          );
+
+
+          return false;
+        }
+
+
+        /*
+         * O Wizard continua sendo a autoridade
+         * para aceitar/rejeitar a captura.
+         *
+         * Só iniciamos o cooldown quando não
+         * houve rejeição explícita.
+         */
+        if (
+          resposta?.ok ===
+          false
+        ) {
+          return false;
+        }
+
+
+        iniciarCooldown();
+
+
+        return true;
+      },
+      [
+        iniciarCooldown,
+      ]
+    );
+
+
+  // ==========================================================
+  // LEITURA MULTICAMADA
+  // ==========================================================
+
+  const tentarLeitura =
+    useCallback(
+      async ({
+        manual = false,
+      } = {}) => {
+        if (
+          !ativoRef.current ||
+          processandoRef.current
+        ) {
+          return false;
+        }
+
+
+        if (
+          Date.now() <
+          cooldownAteRef.current
+        ) {
+          return false;
+        }
+
+
+        const video =
+          videoRef?.current;
+
+
+        if (
+          !video ||
+          video.readyState < 2 ||
+          !video.videoWidth ||
+          !video.videoHeight
+        ) {
+          return false;
+        }
+
+
+        if (
+          !canvasRef.current
+        ) {
+          canvasRef.current =
+            document
+              .createElement(
+                "canvas"
+              );
+        }
+
+
+        if (
+          !canvasProcessadoRef
+            .current
+        ) {
+          canvasProcessadoRef.current =
+            document
+              .createElement(
+                "canvas"
+              );
+        }
+
+
+        const canvas =
+          canvasRef.current;
+
+
+        const processado =
+          canvasProcessadoRef.current;
+
+
+        processandoRef.current =
+          true;
+
+
+        setProcessando(
+          true
+        );
+
+
+        try {
+          const regiao =
+            obterRegiaoCaptura({
+              width:
+                video.videoWidth,
+
+              height:
+                video.videoHeight,
+
+              enquadramento,
+            });
+
+
+          // ====================================================
+          // CAMADA 1 — ROI NORMAL
+          // ====================================================
+
+          desenharRecorte({
+            source:
+              video,
+
+            target:
+              canvas,
+
+            regiao,
+
+            contraste:
+              false,
+          });
+
+
+          let resultado =
+            await decodificarCanvas(
+              canvas
+            );
+
+
+          if (
+            resultado &&
+            ativoRef.current
+          ) {
+            return await entregarCaptura(
+              resultado
+            );
+          }
+
+
+          // ====================================================
+          // CAMADA 2 — FRAME COMPLETO
+          // ====================================================
+
+          desenharFrameCompleto({
+            source:
+              video,
+
+            target:
+              canvas,
+          });
+
+
+          resultado =
+            await decodificarCanvas(
+              canvas
+            );
+
+
+          if (
+            resultado &&
+            ativoRef.current
+          ) {
+            return await entregarCaptura(
+              resultado
+            );
+          }
+
+
+          // ====================================================
+          // CAMADA 3 — ROI TRATADO
+          // ====================================================
+
+          desenharRecorte({
+            source:
+              video,
+
+            target:
+              processado,
+
+            regiao,
+
+            contraste:
+              true,
+          });
+
+
+          resultado =
+            await decodificarCanvas(
+              processado
+            );
+
+
+          if (
+            resultado &&
+            ativoRef.current
+          ) {
+            return await entregarCaptura(
+              resultado
+            );
+          }
+
+
+          return false;
+        } catch (error) {
+          console.warn(
+            manual
+              ? "[MobileScanner] Falha na captura manual:"
+              : "[MobileScanner] Falha na leitura automática:",
+            error
+          );
+
+
+          return false;
+        } finally {
+          processandoRef.current =
+            false;
+
+
+          setProcessando(
+            false
+          );
+        }
+      },
+      [
+        decodificarCanvas,
+        enquadramento,
+        entregarCaptura,
+        videoRef,
+      ]
+    );
+
+
+  // ==========================================================
+  // LOOP AUTOMÁTICO
+  // ==========================================================
+
+  const agendarLeitura =
+    useCallback(() => {
+      if (
+        !ativoRef.current ||
+        !streamRef.current
+      ) {
+        return;
+      }
+
+
+      limparTimerLeitura();
+
+
+      timerLeituraRef.current =
+        window.setTimeout(
+          async () => {
+            if (
+              !ativoRef.current ||
+              !streamRef.current
+            ) {
+              return;
+            }
+
+
+            await tentarLeitura();
+
+
+            if (
+              ativoRef.current &&
+              streamRef.current
+            ) {
+              agendarLeitura();
+            }
+          },
+          INTERVALO_LEITURA_MS
+        );
+    }, [
+      limparTimerLeitura,
+      tentarLeitura,
+    ]);
+
+
+  // ==========================================================
+  // ABRIR CÂMERA
+  // ==========================================================
+
+  const iniciarCamera =
+    useCallback(
+      async (
+        deviceId = null
+      ) => {
+        if (
+          !possuiSuporteCameraBrowser()
+        ) {
+          setErroCamera(
+            "A câmera não está disponível neste navegador."
+          );
+
+          return false;
+        }
+
+
+        /*
+         * Ao trocar câmera:
+         * somente uma stream permanece viva.
+         */
+        pararCamera();
+
+
+        setIniciando(
+          true
+        );
+
+
+        setErroCamera(
+          null
+        );
+
+
+        try {
+          const constraints =
+            deviceId
+              ? {
+                  audio:
+                    false,
+
+                  video: {
+                    deviceId: {
+                      exact:
+                        deviceId,
+                    },
+
+                    width: {
+                      ideal:
+                        2560,
+                    },
+
+                    height: {
+                      ideal:
+                        1440,
+                    },
+                  },
+                }
+              : {
+                  audio:
+                    false,
+
+                  video: {
+                    facingMode: {
+                      ideal:
+                        "environment",
+                    },
+
+                    width: {
+                      ideal:
+                        2560,
+                    },
+
+                    height: {
+                      ideal:
+                        1440,
+                    },
+                  },
+                };
+
+
+          let stream =
+            null;
+
+
+          try {
+            stream =
+              await navigator
+                .mediaDevices
+                .getUserMedia(
+                  constraints
+                );
+          } catch (
+            erroPreferencial
+          ) {
+            console.warn(
+              "[MobileScanner] Configuração preferencial recusada; tentando fallback:",
+              erroPreferencial
+            );
+
+
+            stream =
+              await navigator
+                .mediaDevices
+                .getUserMedia({
+                  audio:
+                    false,
+
+                  video:
+                    deviceId
+                      ? {
+                          deviceId: {
+                            exact:
+                              deviceId,
+                          },
+
+                          width: {
+                            ideal:
+                              1920,
+                          },
+
+                          height: {
+                            ideal:
+                              1080,
+                          },
+                        }
+                      : {
+                          facingMode: {
+                            ideal:
+                              "environment",
+                          },
+
+                          width: {
+                            ideal:
+                              1920,
+                          },
+
+                          height: {
+                            ideal:
+                              1080,
+                          },
+                        },
+                });
+          }
+
+
+          streamRef.current =
+            stream;
+
+
+          const video =
+            videoRef?.current;
+
+
+          if (!video) {
+            throw new Error(
+              "Não foi possível preparar a câmera."
+            );
+          }
+
+
+          video.srcObject =
+            stream;
+
+
+          video.setAttribute(
+            "playsinline",
+            "true"
+          );
+
+
+          video.muted =
+            true;
+
+
+          await video.play();
+
+
+          const track =
+            stream
+              .getVideoTracks?.()[0] ||
+            null;
+
+
+          if (!track) {
+            throw new Error(
+              "Nenhuma faixa de vídeo foi disponibilizada."
+            );
+          }
+
+
+          trackRef.current =
+            track;
+
+
+          try {
+            if (
+              "contentHint" in
+              track
+            ) {
+              track.contentHint =
+                "text";
+            }
+          } catch {
+            // Hint opcional.
+          }
+
+
+          await aplicarAjustesOpticos(
             track
           );
 
-        setResolucaoAtual({
-          width:
-            settingsDepois?.width ||
-            null,
 
-          height:
-            settingsDepois?.height ||
-            null,
-
-          frameRate:
-            settingsDepois?.frameRate ||
-            null,
-        });
-
-        if (
-          possuiImageCaptureApi()
-        ) {
-          try {
-            imageCaptureRef.current =
-              new window.ImageCapture(
-                track
-              );
-          } catch (error) {
-            console.warn(
-              "[MobileScanner] ImageCapture indisponível:",
-              error
+          const settings =
+            obterSettingsTrack(
+              track
             );
 
-            imageCaptureRef.current =
-              null;
+
+          setResolucaoAtual({
+            width:
+              settings?.width ||
+              null,
+
+            height:
+              settings?.height ||
+              null,
+
+            frameRate:
+              settings
+                ?.frameRate ||
+              null,
+          });
+
+
+          /*
+           * Depois da permissão, os labels
+           * normalmente ficam disponíveis.
+           */
+          const cameras =
+            await listarCameras();
+
+
+          const deviceIdAtual =
+            settings?.deviceId ||
+            null;
+
+
+          if (
+            deviceIdAtual
+          ) {
+            setCameraSelecionadaId(
+              deviceIdAtual
+            );
           }
-        }
 
-        const {
-          detector,
-          formatos,
-        } = await criarDetector();
 
-        detectorRef.current =
-          detector;
+          /*
+           * Na abertura automática descobrimos
+           * a melhor câmera e, se necessário,
+           * trocamos para ela.
+           */
+          if (
+            !deviceId &&
+            cameras.length > 1
+          ) {
+            const melhor =
+              escolherMelhorCamera(
+                cameras
+              );
 
-        setDetectorDisponivel(
-          Boolean(detector)
-        );
 
-        setFormatosSuportados(
-          formatos
-        );
-
-        setDiagnosticoCamera({
-          cameraSelecionada: {
-            deviceId:
-              settingsDepois?.deviceId ||
-              principal?.deviceId ||
-              null,
-
-            label:
-              track.label ||
-              principal?.label ||
-              null,
-
-            score:
-              principal?.score ??
-              null,
-          },
-
-          camerasEnumeradas:
-            descoberta.cameras,
-
-          bootstrapSettings:
-            descoberta.bootstrapSettings,
-
-          capabilities,
-
-          constraints,
-
-          settingsDepois,
-
-          autofocus: {
-            focusModeSuportados:
-              capabilities?.focusMode ||
-              [],
-
-            focusModeAtual:
-              settingsDepois?.focusMode ||
-              null,
-
-            focusDistance:
-              settingsDepois?.focusDistance ??
-              null,
-
-            focoContinuoConfirmado:
-              settingsDepois?.focusMode ===
-              "continuous",
-          },
-
-          imageCaptureDisponivel:
-            Boolean(
-              imageCaptureRef.current
-            ),
-
-          contentHint:
-            track.contentHint ||
-            null,
-        });
-
-        cameraAtivaRef.current =
-          true;
-
-        setCameraAtiva(true);
-
-        ultimaDeteccaoVisualRef.current =
-          Date.now();
-
-        ultimoRefocoEmRef.current =
-          Date.now();
-
-        ultimoSnapshotEmRef.current =
-          0;
-
-        ultimaFotoEmRef.current =
-          0;
-
-        capturaBloqueadaRef.current =
-          false;
-
-        cooldownAteRef.current =
-          0;
-
-        ultimoCodigoAceitoRef.current =
-          null;
-
-        setCooldownRestanteMs(0);
-
-        timerEstabilizacaoRef.current =
-          window.setTimeout(() => {
             if (
-              ativoRef.current &&
-              cameraAtivaRef.current
+              melhor?.deviceId &&
+              melhor.deviceId !==
+                deviceIdAtual
             ) {
-              liberadoParaDetectarRef.current =
-                true;
+              setCameraSelecionadaId(
+                melhor.deviceId
+              );
 
-              detectarFrame();
+
+              /*
+               * Esta stream precisa encerrar antes
+               * da nova abertura.
+               */
+              encerrarStream(
+                stream
+              );
+
+
+              streamRef.current =
+                null;
+
+              trackRef.current =
+                null;
+
+              video.srcObject =
+                null;
+
+
+              setIniciando(
+                false
+              );
+
+
+              return iniciarCamera(
+                melhor.deviceId
+              );
             }
-          }, TEMPO_ESTABILIZACAO_CAMERA_MS);
+          }
 
-        return true;
-      } catch (error) {
-        console.error(
-          "[MobileScanner] Não foi possível iniciar câmera:",
-          error
-        );
 
-        pararCamera();
+          setCameraAtiva(
+            true
+          );
 
-        let mensagem =
-          "Não foi possível acessar a câmera.";
 
-        if (
-          error?.name ===
-          "NotAllowedError"
-        ) {
-          mensagem =
-            "Permissão da câmera não concedida.";
-        } else if (
-          error?.name ===
-          "NotFoundError"
-        ) {
-          mensagem =
-            "Nenhuma câmera compatível foi encontrada.";
-        } else if (
-          error?.name ===
-          "NotReadableError"
-        ) {
-          mensagem =
-            "A câmera está sendo utilizada por outro aplicativo.";
-        } else if (
-          error?.name ===
-          "OverconstrainedError"
-        ) {
-          mensagem =
-            "A câmera principal não aceitou a configuração solicitada.";
+          /*
+           * Pequena estabilização antes
+           * de iniciar decoders.
+           */
+          await esperar(
+            TEMPO_ESTABILIZACAO_CAMERA_MS
+          );
+
+
+          if (
+            ativoRef.current &&
+            streamRef.current
+          ) {
+            agendarLeitura();
+          }
+
+
+          return true;
+        } catch (error) {
+          console.error(
+            "[MobileScanner] Não foi possível iniciar câmera:",
+            error
+          );
+
+
+          let mensagem =
+            "Não foi possível acessar a câmera.";
+
+
+          if (
+            error?.name ===
+            "NotAllowedError"
+          ) {
+            mensagem =
+              "Permissão da câmera não concedida.";
+          } else if (
+            error?.name ===
+            "NotFoundError"
+          ) {
+            mensagem =
+              "Nenhuma câmera compatível foi encontrada.";
+          } else if (
+            error?.name ===
+            "NotReadableError"
+          ) {
+            mensagem =
+              "A câmera está sendo utilizada por outro aplicativo.";
+          } else if (
+            error?.name ===
+            "OverconstrainedError"
+          ) {
+            mensagem =
+              "A câmera não aceitou a configuração solicitada.";
+          }
+
+
+          pararCamera();
+
+
+          setErroCamera(
+            mensagem
+          );
+
+
+          return false;
+        } finally {
+          setIniciando(
+            false
+          );
+        }
+      },
+      [
+        agendarLeitura,
+        aplicarAjustesOpticos,
+        listarCameras,
+        pararCamera,
+        videoRef,
+      ]
+    );
+
+
+  // ==========================================================
+  // TROCAR CÂMERA
+  // ==========================================================
+
+  const trocarCamera =
+    useCallback(
+      async (
+        deviceId
+      ) => {
+        if (!deviceId) {
+          return false;
         }
 
-        setErroCamera(
-          mensagem
+
+        setCameraSelecionadaId(
+          deviceId
         );
 
+
+        return iniciarCamera(
+          deviceId
+        );
+      },
+      [
+        iniciarCamera,
+      ]
+    );
+
+
+  // ==========================================================
+  // AJUSTAR FOCO
+  // ==========================================================
+
+  const ajustarFoco =
+    useCallback(async () => {
+      const track =
+        trackRef.current;
+
+
+      if (!track) {
         return false;
-      } finally {
-        setIniciando(false);
       }
+
+
+      await aplicarAjustesOpticos(
+        track
+      );
+
+
+      await esperar(
+        TEMPO_REAPLICAR_FOCO_MS
+      );
+
+
+      if (
+        ativoRef.current
+      ) {
+        await tentarLeitura({
+          manual:
+            true,
+        });
+      }
+
+
+      return true;
     }, [
-      detectarFrame,
-      descobrirCameraPrincipal,
-      pararCamera,
-      videoRef,
+      aplicarAjustesOpticos,
+      tentarLeitura,
     ]);
+
+
+  // ==========================================================
+  // CAPTURA MANUAL
+  // ==========================================================
+
+  const capturarAgora =
+    useCallback(
+      async () =>
+        tentarLeitura({
+          manual:
+            true,
+        }),
+      [
+        tentarLeitura,
+      ]
+    );
+
+
+  // ==========================================================
+  // ALTERAR ENQUADRAMENTO
+  // ==========================================================
+
+  const alterarEnquadramento =
+    useCallback(
+      (
+        proximo
+      ) => {
+        if (
+          !Object.values(
+            MOBILE_SCANNER_ENQUADRAMENTO
+          ).includes(
+            proximo
+          )
+        ) {
+          return;
+        }
+
+
+        setEnquadramento(
+          proximo
+        );
+      },
+      []
+    );
+
+
+  // ==========================================================
+  // CICLO DE VIDA
+  // ==========================================================
 
   useEffect(() => {
     if (!ativo) {
@@ -2525,12 +2027,20 @@ export default function useMobileScanner({
     pararCamera,
   ]);
 
+
   useEffect(
     () => () => {
       pararCamera();
     },
-    [pararCamera]
+    [
+      pararCamera,
+    ]
   );
+
+
+  // ==========================================================
+  // RETURN
+  // ==========================================================
 
   return {
     cameraAtiva,
@@ -2539,44 +2049,43 @@ export default function useMobileScanner({
 
     erroCamera,
 
-    detectorDisponivel,
+    camerasDisponiveis,
 
-    formatosSuportados,
+    cameraSelecionadaId,
 
-    focoContinuoAtivo,
-
-    zoomAtual: null,
+    cameraSelecionada,
 
     cameraLabel,
 
-    cameraPrincipal,
+    enquadramento,
 
-    camerasDisponiveis,
+    focoStatus,
 
     resolucaoAtual,
 
-    lendo,
+    processando,
 
-    leituraReforcadaAtiva,
+    lendo:
+      processando,
 
     cooldownRestanteMs,
 
     cooldownAtivo:
       cooldownRestanteMs > 0,
 
-    diagnosticoCamera,
-
     iniciarCamera,
 
     pararCamera,
 
+    trocarCamera,
+
+    alterarEnquadramento,
+
+    ajustarFoco,
+
+    capturarAgora,
+
     possuiSuporteCamera:
-      possuiSuporteCamera(),
-
-    possuiDetectorNativo:
-      possuiBarcodeDetector(),
-
-    possuiImageCapture:
-      possuiImageCaptureApi(),
+      possuiSuporteCameraBrowser(),
   };
 }
