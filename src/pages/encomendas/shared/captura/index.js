@@ -23,3 +23,14 @@ export {
   possuiBarcodeDetectorNativo,
   possuiSuporteCameraBrowser,
 } from "./services/capturaCodigoService";
+
+export {
+  limparTextoOCR,
+  normalizarLinhaOCR,
+  extrairNomeProvavelOCR,
+  extrairTorreBlocoOCR,
+  extrairUnidadeOCR,
+  analisarTextoEtiquetaOCR,
+  reconhecerEtiquetaOCR,
+  encerrarWorkerOCR,
+} from "./ocr";

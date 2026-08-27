@@ -1,0 +1,704 @@
+/* ============================================================
+   SISTEMA CHEGOU!
+   ENTRADA — OCR ASSISTIDO DA ETIQUETA
+   E3.2-D.5.2
+   ============================================================ */
+
+.entrada-ocr {
+  margin-top: 14px;
+  padding: 16px;
+
+  background:
+    var(--entrada-surface);
+
+  border:
+    1px solid
+    var(--entrada-border);
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 5px 18px
+    rgb(15 23 42 / 0.035);
+}
+
+.entrada-ocr__heading {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-bottom: 13px;
+}
+
+.entrada-ocr__heading > svg {
+  flex: 0 0 auto;
+
+  color:
+    var(--entrada-primary);
+}
+
+.entrada-ocr__heading span {
+  display: block;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.entrada-ocr__heading h3 {
+  margin: 1px 0 0;
+
+  color:
+    var(--entrada-text);
+
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+
+/* ============================================================
+   INICIAL
+   ============================================================ */
+
+.entrada-ocr__initial {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding: 13px;
+
+  background:
+    var(--entrada-surface-soft);
+
+  border:
+    1px solid
+    var(--entrada-border);
+
+  border-radius: 11px;
+}
+
+.entrada-ocr__initial > div {
+  min-width: 0;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+}
+
+.entrada-ocr__initial
+  > div > svg {
+  flex: 0 0 auto;
+
+  color:
+    var(--entrada-primary);
+}
+
+.entrada-ocr__initial strong {
+  display: block;
+
+  color:
+    var(--entrada-text);
+
+  font-size: 0.74rem;
+}
+
+.entrada-ocr__initial p {
+  margin: 3px 0 0;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.68rem;
+  line-height: 1.42;
+}
+
+.entrada-ocr__initial > button {
+  flex: 0 0 auto;
+
+  min-height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  padding:
+    0 12px;
+
+  color:
+    var(--entrada-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 6%,
+      var(--entrada-surface)
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 18%,
+      var(--entrada-border)
+    );
+
+  border-radius: 10px;
+
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+/* ============================================================
+   PROCESSAMENTO
+   ============================================================ */
+
+.entrada-ocr__processing {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 12px;
+
+  padding: 14px;
+
+  color:
+    var(--entrada-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 6%,
+      var(--entrada-surface)
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 17%,
+      var(--entrada-border)
+    );
+
+  border-radius: 11px;
+}
+
+.entrada-ocr__processing-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.entrada-ocr__processing-content
+  > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.entrada-ocr__processing strong {
+  font-size: 0.74rem;
+}
+
+.entrada-ocr__processing
+  span {
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.entrada-ocr__processing p {
+  margin: 6px 0 0;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.67rem;
+}
+
+.entrada-ocr__progress {
+  height: 6px;
+
+  overflow: hidden;
+
+  margin-top: 8px;
+
+  background:
+    var(--entrada-border);
+
+  border-radius: 999px;
+}
+
+.entrada-ocr__progress > span {
+  height: 100%;
+
+  display: block;
+
+  background:
+    var(--entrada-primary);
+
+  border-radius: inherit;
+
+  transition:
+    width 180ms ease;
+}
+
+
+/* ============================================================
+   RESULTADO
+   ============================================================ */
+
+.entrada-ocr__result {
+  overflow: hidden;
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      #22c55e 19%,
+      var(--entrada-border)
+    );
+
+  border-radius: 11px;
+}
+
+.entrada-ocr__result-title {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  padding: 12px;
+
+  color: #166534;
+
+  background:
+    color-mix(
+      in srgb,
+      #22c55e 8%,
+      var(--entrada-surface)
+    );
+}
+
+.entrada-ocr__result-title > svg {
+  flex: 0 0 auto;
+}
+
+.entrada-ocr__result-title > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.entrada-ocr__result-title strong {
+  display: block;
+
+  font-size: 0.75rem;
+}
+
+.entrada-ocr__result-title p {
+  margin: 2px 0 0;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.66rem;
+}
+
+.entrada-ocr__result-title
+  > span {
+  flex: 0 0 auto;
+
+  padding:
+    3px 7px;
+
+  background:
+    color-mix(
+      in srgb,
+      #22c55e 10%,
+      var(--entrada-surface)
+    );
+
+  border-radius: 999px;
+
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.entrada-ocr__fields {
+  display: grid;
+
+  grid-template-columns:
+    1.6fr 1fr 0.7fr;
+
+  gap: 1px;
+
+  background:
+    var(--entrada-border);
+}
+
+.entrada-ocr__fields > div {
+  min-width: 0;
+
+  padding: 11px;
+
+  background:
+    var(--entrada-surface);
+}
+
+.entrada-ocr__fields span {
+  display: block;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.62rem;
+}
+
+.entrada-ocr__fields strong {
+  display: block;
+
+  margin-top: 3px;
+
+  color:
+    var(--entrada-text);
+
+  font-size: 0.71rem;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* ============================================================
+   AÇÕES
+   ============================================================ */
+
+.entrada-ocr__actions {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  padding: 11px;
+
+  background:
+    var(--entrada-surface);
+}
+
+.entrada-ocr__actions button,
+.entrada-ocr__error button {
+  min-height: 36px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  padding:
+    0 11px;
+
+  border-radius: 9px;
+
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.entrada-ocr__secondary {
+  color:
+    var(--entrada-text);
+
+  background:
+    var(--entrada-surface);
+
+  border:
+    1px solid
+    var(--entrada-border);
+}
+
+.entrada-ocr__primary {
+  color: #ffffff;
+
+  background:
+    var(--entrada-primary);
+
+  border:
+    1px solid
+    var(--entrada-primary);
+}
+
+.entrada-ocr button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.52;
+}
+
+
+/* ============================================================
+   TEXTO BRUTO
+   ============================================================ */
+
+.entrada-ocr__raw {
+  border-top:
+    1px solid
+    var(--entrada-border);
+}
+
+.entrada-ocr__raw summary {
+  padding:
+    10px 12px;
+
+  color:
+    var(--entrada-text-secondary);
+
+  font-size: 0.65rem;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+.entrada-ocr__raw pre {
+  max-height: 180px;
+
+  overflow: auto;
+
+  margin: 0;
+  padding: 12px;
+
+  color:
+    var(--entrada-text-secondary);
+
+  background:
+    var(--entrada-surface-soft);
+
+  border-top:
+    1px solid
+    var(--entrada-border);
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+
+  font-size: 0.64rem;
+  line-height: 1.5;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+
+/* ============================================================
+   ERRO
+   ============================================================ */
+
+.entrada-ocr__error {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  padding: 13px;
+
+  color: #991b1b;
+
+  background:
+    color-mix(
+      in srgb,
+      #ef4444 8%,
+      var(--entrada-surface)
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      #ef4444 20%,
+      var(--entrada-border)
+    );
+
+  border-radius: 11px;
+}
+
+.entrada-ocr__error > svg {
+  flex: 0 0 auto;
+}
+
+.entrada-ocr__error strong {
+  display: block;
+
+  font-size: 0.74rem;
+}
+
+.entrada-ocr__error p {
+  margin: 3px 0 8px;
+
+  font-size: 0.67rem;
+  line-height: 1.42;
+}
+
+.entrada-ocr__error button {
+  color: currentColor;
+
+  background:
+    transparent;
+
+  border:
+    1px solid
+    currentColor;
+}
+
+
+/* ============================================================
+   SPINNER
+   ============================================================ */
+
+.entrada-ocr__spinner {
+  flex: 0 0 auto;
+
+  animation:
+    entrada-ocr-spin
+    0.8s linear infinite;
+}
+
+@keyframes entrada-ocr-spin {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 680px) {
+  .entrada-ocr__initial {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .entrada-ocr__initial
+    > button {
+    justify-content: center;
+
+    min-height: 42px;
+  }
+
+  .entrada-ocr__fields {
+    grid-template-columns:
+      1fr;
+  }
+
+  .entrada-ocr__actions {
+    display: grid;
+
+    grid-template-columns:
+      1fr;
+  }
+
+  .entrada-ocr__actions
+    button {
+    justify-content: center;
+
+    min-height: 42px;
+  }
+}
+
+
+/* ============================================================
+   DARK
+   ============================================================ */
+
+[data-theme="dark"]
+  .entrada-ocr__result-title,
+.dark
+  .entrada-ocr__result-title {
+  color: #86efac;
+}
+
+[data-theme="dark"]
+  .entrada-ocr__error,
+.dark
+  .entrada-ocr__error {
+  color: #fca5a5;
+}
+
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
+  .entrada-ocr__spinner {
+    animation-duration:
+      1.6s;
+  }
+
+  .entrada-ocr__progress
+    > span {
+    transition: none;
+  }
+}
+
+.entrada-ocr__matching-error {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 7px;
+
+  margin:
+    0 11px 11px;
+
+  padding: 10px;
+
+  color: #991b1b;
+
+  background:
+    color-mix(
+      in srgb,
+      #ef4444 7%,
+      var(--entrada-surface)
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      #ef4444 18%,
+      var(--entrada-border)
+    );
+
+  border-radius: 9px;
+
+  font-size: 0.67rem;
+  line-height: 1.4;
+}
+
+.entrada-ocr__matching-error
+  > svg {
+  flex: 0 0 auto;
+}
+
+[data-theme="dark"]
+  .entrada-ocr__matching-error,
+.dark
+  .entrada-ocr__matching-error {
+  color: #fca5a5;
+}

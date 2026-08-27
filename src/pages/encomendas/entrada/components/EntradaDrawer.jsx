@@ -41,6 +41,9 @@ import {
 import EntradaCapturaCodigo
   from "./EntradaCapturaCodigo";
 
+import EntradaEtiquetaOCR
+  from "./EntradaEtiquetaOCR";
+
 import "./EntradaDrawer.css";
 
 const TEMPO_DEBOUNCE_MS =
@@ -1797,7 +1800,64 @@ export default function EntradaDrawer({
                     setCameraCapturaAberta
                   }
                 />
-              ) : null}
+                ) : null}
+                
+                {/* =============================================
+                    OCR ASSISTIDO DA ETIQUETA
+                    ============================================= */}
+
+                {necessitaIdentificacaoManual &&
+                !candidatoSelecionado &&
+                !confirmacaoSucesso ? (
+                  <EntradaEtiquetaOCR
+                    volumeId={
+                      volumeId
+                    }
+                    disabled={
+                      operacaoEmCurso
+                    }
+                    onCandidatosEncontrados={({
+                      resultados,
+                      consultaExecutada,
+                    }) => {
+                      /*
+                      * O React NÃO calcula identidade.
+                      *
+                      * Apenas recebe os candidatos
+                      * canônicos ordenados pelo backend.
+                      */
+
+                      setErroBusca(
+                        null
+                      );
+
+                      setConsultaExecutada(
+                        consultaExecutada ===
+                        true
+                      );
+
+                      setCandidatos(
+                        Array.isArray(
+                          resultados
+                        )
+                          ? resultados
+                          : []
+                      );
+
+                      setCandidatoSelecionado(
+                        null
+                      );
+
+                      /*
+                      * Limpamos a busca textual para não
+                      * misturar resultado manual e OCR.
+                      */
+                      setTermoBusca(
+                        ""
+                      );
+                    }}
+                  />
+                ) : null}
 
               {/* =============================================
                   BUSCA MANUAL DE DESTINATÁRIO
@@ -1991,6 +2051,20 @@ export default function EntradaDrawer({
                                     .destinatarioTipo
                                 )}
                               </small>
+
+                              {candidato
+                                ?.origemIdentificacao ===
+                                "OCR_ETIQUETA" &&
+                              candidato
+                                ?.correspondenciaLabel ? (
+                                <small className="entrada-drawer__candidate-match">
+                                  {
+                                    candidato
+                                      .correspondenciaLabel
+                                  }
+                                </small>
+                              ) : null}
+
                             </div>
 
                             <span className="entrada-drawer__candidate-action">

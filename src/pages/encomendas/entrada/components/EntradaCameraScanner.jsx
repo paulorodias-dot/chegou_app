@@ -223,8 +223,15 @@ export default function EntradaCameraScanner({
   open,
   onClose,
   onDetected,
+  onCapturedImage,
   onOpenChange,
+
+  modo = "CODIGO",
 }) {
+  const modoEtiqueta =
+    modo ===
+    "ETIQUETA";
+
   const videoRef =
     useRef(null);
 
@@ -1234,7 +1241,17 @@ export default function EntradaCameraScanner({
           ativoRef.current =
             true;
 
-          agendarLeitura();
+          /*
+          * Código:
+          * leitura automática.
+          *
+          * Etiqueta:
+          * fotografia somente quando
+          * o operador solicitar.
+          */
+          if (!modoEtiqueta) {
+            agendarLeitura();
+          }
         } catch (
           error
         ) {
@@ -1350,6 +1367,149 @@ export default function EntradaCameraScanner({
   }
 
   // ==========================================================
+  // CAPTURA DA ETIQUETA PARA OCR
+  // ==========================================================
+
+  async function fotografarEtiqueta() {
+    if (
+      !modoEtiqueta ||
+      procurando
+    ) {
+      return;
+    }
+
+    const video =
+      videoRef.current;
+
+    const canvas =
+      canvasRef.current;
+
+    if (
+      !video ||
+      !canvas ||
+      video.readyState < 2 ||
+      !video.videoWidth ||
+      !video.videoHeight
+    ) {
+      return;
+    }
+
+    setProcurando(true);
+
+    try {
+      const regiao =
+        obterRegiaoCaptura({
+          width:
+            video.videoWidth,
+
+          height:
+            video.videoHeight,
+        });
+
+      /*
+       * No OCR usamos o enquadramento selecionado
+       * como região real da fotografia.
+       *
+       * Horizontal → etiqueta larga.
+       * Vertical → etiqueta alta.
+       */
+      const ok =
+        desenharRecorte({
+          source:
+            video,
+
+          target:
+            canvas,
+
+          regiao,
+
+          contraste:
+            false,
+        });
+
+      if (!ok) {
+        throw new Error(
+          "Não foi possível fotografar a etiqueta."
+        );
+      }
+
+      /*
+       * Criamos uma cópia própria.
+       *
+       * Assim o modal pode fechar e o OCR
+       * continua com uma imagem estável.
+       */
+      const snapshot =
+        document.createElement(
+          "canvas"
+        );
+
+      snapshot.width =
+        canvas.width;
+
+      snapshot.height =
+        canvas.height;
+
+      const ctx =
+        snapshot.getContext(
+          "2d",
+          {
+            alpha: false,
+          }
+        );
+
+      if (!ctx) {
+        throw new Error(
+          "Não foi possível preparar a fotografia."
+        );
+      }
+
+      ctx.drawImage(
+        canvas,
+        0,
+        0
+      );
+
+      pararCamera();
+
+      onCapturedImage?.(
+        snapshot,
+        {
+          enquadramento,
+
+          cameraDeviceId:
+            cameraSelecionadaId,
+
+          cameraLabel:
+            cameraSelecionada
+              ? nomeCamera(
+                  cameraSelecionada,
+                  cameras.indexOf(
+                    cameraSelecionada
+                  )
+                )
+              : null,
+
+          resolucao:
+            resolucaoAtiva,
+        }
+      );
+    } catch (error) {
+      console.error(
+        "[EntradaCameraScanner] Falha ao fotografar etiqueta:",
+        error
+      );
+
+      setErro(
+        error?.message ||
+          "Não foi possível fotografar a etiqueta."
+      );
+    } finally {
+      setProcurando(false);
+    }
+  }
+
+  // ==========================================================
   // ESC
   // ==========================================================
 
@@ -1423,7 +1583,9 @@ export default function EntradaCameraScanner({
             </span>
 
             <h3>
-              Ler código pela câmera
+              {modoEtiqueta
+                ? "Fotografar etiqueta"
+                : "Ler código pela câmera"}
             </h3>
           </div>
 
@@ -1674,21 +1836,27 @@ export default function EntradaCameraScanner({
             </div>
           ) : (
             <div className="entrada-camera__instructions">
-              <ScanBarcode
-                size={19}
-              />
+              {modoEtiqueta ? (
+                <Camera
+                  size={19}
+                />
+              ) : (
+                <ScanBarcode
+                  size={19}
+                />
+              )}
 
               <div>
                 <strong>
-                  Posicione somente o código
-                  dentro da área
+                  {modoEtiqueta
+                    ? "Enquadre as informações da etiqueta"
+                    : "Posicione somente o código dentro da área"}
                 </strong>
 
                 <p>
-                  Evite inclinação e reflexo.
-                  Para códigos longos, prefira
-                  Horizontal. Para etiquetas
-                  altas, experimente Vertical.
+                  {modoEtiqueta
+                    ? "Inclua principalmente o nome do destinatário, a Torre/Bloco e a Unidade. Use Horizontal ou Vertical conforme o formato da etiqueta."
+                    : "Evite inclinação e reflexo. Para códigos longos, prefira Horizontal. Para etiquetas altas, experimente Vertical."}
                 </p>
               </div>
             </div>
@@ -1733,10 +1901,13 @@ export default function EntradaCameraScanner({
           <button
             type="button"
             className="entrada-camera__primary"
-            onClick={() =>
-              tentarLeitura({
-                manual: true,
-              })
+            onClick={
+              modoEtiqueta
+                ? fotografarEtiqueta
+                : () =>
+                    tentarLeitura({
+                      manual: true,
+                    })
             }
             disabled={
               iniciando ||
@@ -1751,7 +1922,17 @@ export default function EntradaCameraScanner({
                   className="entrada-camera__spinner"
                 />
 
-                Lendo...
+                {modoEtiqueta
+                  ? "Fotografando..."
+                  : "Lendo..."}
+              </>
+            ) : modoEtiqueta ? (
+              <>
+                <Camera
+                  size={17}
+                />
+
+                Fotografar etiqueta
               </>
             ) : (
               <>

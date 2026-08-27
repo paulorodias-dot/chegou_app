@@ -1939,3 +1939,42 @@
   .entrada-drawer__confirm-state--error {
   color: #fca5a5;
 }
+
+.entrada-drawer__candidate-match {
+  display: inline-flex;
+
+  width: fit-content;
+
+  margin-top: 4px;
+  padding:
+    3px 7px;
+
+  color: #166534;
+
+  background:
+    color-mix(
+      in srgb,
+      #22c55e 8%,
+      var(--entrada-surface)
+    );
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      #22c55e 18%,
+      var(--entrada-border)
+    );
+
+  border-radius: 999px;
+
+  font-size: 0.61rem;
+  font-weight: 700;
+}
+
+[data-theme="dark"]
+  .entrada-drawer__candidate-match,
+.dark
+  .entrada-drawer__candidate-match {
+  color: #86efac;
+}
