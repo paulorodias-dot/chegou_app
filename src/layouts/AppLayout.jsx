@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { contarNotificacoesNaoLidasAdministrativo } from "../services/notificacoesService";
+
 import {
   Bell,
   Camera,
@@ -24,7 +24,7 @@ import logoFooterClaro from "../assets/logo_azulroyal.png";
 import logoFooterEscuro from "../assets/logo_branco.png";
 import { menusByRole } from "../config/menusByRole";
 
-import NotificationCenter from "../components/NotificationCenter";
+import { NotificationBell } from "../components/notifications";
 import SystemVersion from "../components/SystemVersion";
 import { obterVersaoPublicada } from "../services/versionManagerService";
 import "./AppLayout.css";
@@ -266,7 +266,7 @@ export default function AppLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
-  const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
+  const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [sobreSistemaOpen, setSobreSistemaOpen] = useState(false);
 
@@ -285,10 +285,6 @@ export default function AppLayout({
     useState(false);
   const [mostrarInstalacaoPWA, setMostrarInstalacaoPWA] = useState(false);
   const [mostrarConfirmacaoSaida, setMostrarConfirmacaoSaida] = useState(false);
-
-  const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(
-    Number(perfil?.notificacoes_nao_lidas || 0)
-  );
 
   const menus = menusByRole[role] || menusByRole.master;
   const menusVisiveis = menus.filter((menu) => menu.visible !== false);
@@ -345,7 +341,7 @@ export default function AppLayout({
   const ocultarRodapeMobile =
     forceHideMobileFooter ||
     mobileOpen ||
-    notificationCenterOpen ||
+    notificationPopoverOpen ||
     profileMenuOpen ||
     modalOuDrawerAberto ||
     mostrarInstalacaoPWA ||
@@ -482,48 +478,6 @@ export default function AppLayout({
     setMostrarInstalacaoPWA(false);
   }, []);
 
-  useEffect(() => {
-    let ativo = true;
-
-    async function carregarNotificacoes() {
-      if (role !== "admin_logistica") {
-        if (ativo) {
-          setNotificacoesNaoLidas(
-            Number(perfil?.notificacoes_nao_lidas || 0)
-          );
-        }
-
-        return;
-      }
-
-      try {
-        const total = await contarNotificacoesNaoLidasAdministrativo({
-          perfil,
-        });
-
-        if (ativo) {
-          setNotificacoesNaoLidas(total);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar notificações:", error);
-      }
-    }
-
-    carregarNotificacoes();
-
-    const intervalo = window.setInterval(carregarNotificacoes, 60000);
-
-    return () => {
-      ativo = false;
-      window.clearInterval(intervalo);
-    };
-  }, [
-    role,
-    perfil?.id,
-    perfil?.usuario_id,
-    perfil?.condominio_id,
-    perfil?.notificacoes_nao_lidas,
-  ]);
 
   useEffect(() => {
     window.scrollTo({
@@ -763,32 +717,12 @@ export default function AppLayout({
     salvarMenusNovosVistos(ids);
   }
 
-  async function atualizarContadorNotificacoes() {
-    if (role !== "admin_logistica") {
-      setNotificacoesNaoLidas(
-        Number(perfil?.notificacoes_nao_lidas || 0)
-      );
-
-      return;
-    }
-
-    try {
-      const total = await contarNotificacoesNaoLidasAdministrativo({
-        perfil,
-      });
-
-      setNotificacoesNaoLidas(total);
-    } catch (error) {
-      console.error("Erro ao atualizar contador de notificações:", error);
-    }
-  }
-
   function navegar(destino) {
     if (!destino) {
       return;
     }
 
-    setNotificationCenterOpen(false);
+    setNotificationPopoverOpen(false);
     setProfileMenuOpen(false);
     setMobileOpen(false);
 
@@ -1272,14 +1206,14 @@ export default function AppLayout({
           <button
             type="button"
             className={
-              activePage === "entrada-encomenda"
+              activePage === "entrega-encomenda"
                 ? "mobile-nav-item active"
                 : "mobile-nav-item"
             }
-            onClick={() => navegar("entrada-encomenda")}
+            onClick={() => navegar("entrega-encomenda")}
           >
             <Package size={20} />
-            <span>Entrada</span>
+            <span>Entrega</span>
           </button>
 
           <button
@@ -1769,19 +1703,10 @@ export default function AppLayout({
 
         <div className="topbar-actions">          
 
-          <button
-            type="button"
+          <NotificationBell
             className="notification"
-            onClick={() => setNotificationCenterOpen(true)}
-            aria-label="Abrir notificações"
-            title="Notificações"
-          >
-            <Bell size={20} />
-
-            {Number(notificacoesNaoLidas || 0) > 0 ? (
-              <b>{notificacoesNaoLidas}</b>
-            ) : null}
-          </button>
+            onOpenChange={setNotificationPopoverOpen}
+          />
 
           <button
             type="button"
@@ -1966,15 +1891,6 @@ export default function AppLayout({
       {renderizarCardInstalacaoPWA()}
       {renderizarConfirmacaoSaida()}
       {renderizarSobreSistema()}
-
-      <NotificationCenter
-        aberto={notificationCenterOpen}
-        perfil={perfil}
-        role={role}
-        onClose={() => setNotificationCenterOpen(false)}
-        onAtualizarContador={atualizarContadorNotificacoes}
-        onNavigate={navegar}
-      />
     </div>
   );
 }

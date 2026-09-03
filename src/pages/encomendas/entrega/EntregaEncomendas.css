@@ -1,0 +1,1363 @@
+/* ============================================================
+   SISTEMA CHEGOU!
+   CENTRAL DE ENCOMENDAS — ENTREGA
+
+   Linguagem visual baseada na Tela de Recebimento.
+
+   A estrutura da Entrega permanece própria:
+   conteúdo operacional + painel direito de 360px.
+
+   Design System Premium
+   Enterprise / Cortesia
+============================================================ */
+
+
+/* ============================================================
+   1. PÁGINA
+============================================================ */
+
+.entrega-page {
+  width: 100%;
+  max-width: 1600px;
+
+  margin: 0 auto;
+
+  padding:
+    28px
+    24px
+    calc(
+      40px +
+      env(safe-area-inset-bottom)
+    );
+
+  font-family: "Inter", sans-serif;
+
+  color: #0f172a;
+}
+
+
+.entrega-page *,
+.entrega-page *::before,
+.entrega-page *::after {
+  box-sizing: border-box;
+}
+
+
+/* ============================================================
+   2. LAYOUT PRINCIPAL
+
+   Desktop:
+   conteúdo flexível + painel fixo de 360px.
+============================================================ */
+
+.entrega-layout {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    360px;
+
+  align-items: start;
+
+  width: 100%;
+
+  gap: 20px;
+}
+
+
+.entrega-content {
+  min-width: 0;
+}
+
+
+/* ============================================================
+   3. HEADER
+============================================================ */
+
+.entrega-header {
+  margin-bottom: 20px;
+}
+
+
+.entrega-header__breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 6px;
+
+  margin-bottom: 10px;
+
+  color: #64748b;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+
+.entrega-header__separator {
+  color: #cbd5e1;
+}
+
+
+.entrega-header__current {
+  color: #475569;
+
+  font-weight: 600;
+}
+
+
+.entrega-header__eyebrow {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #f97316;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+
+.entrega-header__title {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 22px;
+  font-weight: 700;
+
+  line-height: 1.3;
+}
+
+
+.entrega-header__description {
+  max-width: 760px;
+
+  margin: 6px 0 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+
+/* ============================================================
+   4. OPERAÇÃO
+============================================================ */
+
+.entrega-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  margin-bottom: 18px;
+}
+
+
+.entrega-toolbar__content {
+  min-width: 0;
+}
+
+
+.entrega-toolbar__title {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+
+.entrega-toolbar__description {
+  margin: 4px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+
+  line-height: 1.45;
+}
+
+
+/* ============================================================
+   5. RESUMO
+============================================================ */
+
+.entrega-summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 12px;
+
+  margin-bottom: 20px;
+}
+
+
+.entrega-summary-card {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+  min-height: 102px;
+
+  gap: 12px;
+
+  padding: 15px;
+
+  border:
+    1px solid transparent;
+
+  border-radius: 13px;
+}
+
+
+.entrega-summary-card--blue {
+  background: #eff6ff;
+
+  border-color: #dbeafe;
+}
+
+
+.entrega-summary-card--green {
+  background: #f0fdf4;
+
+  border-color: #dcfce7;
+}
+
+
+.entrega-summary-card--orange {
+  background: #fff7ed;
+
+  border-color: #ffedd5;
+}
+
+
+.entrega-summary-card--red {
+  background: #fef2f2;
+
+  border-color: #fee2e2;
+}
+
+
+.entrega-summary-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  flex: 0 0 36px;
+
+  border-radius: 10px;
+
+  background:
+    rgba(255, 255, 255, 0.68);
+
+  color: #475569;
+}
+
+
+.entrega-summary-card__content {
+  display: grid;
+
+  flex: 1 1 auto;
+
+  min-width: 0;
+}
+
+
+.entrega-summary-card__value {
+  color: #0f172a;
+
+  font-size: 20px;
+  font-weight: 800;
+
+  line-height: 1.05;
+}
+
+
+.entrega-summary-card__label {
+  margin-top: 5px;
+
+  color: #334155;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  line-height: 1.3;
+}
+
+
+.entrega-summary-card__helper {
+  margin-top: 2px;
+
+  color: #64748b;
+
+  font-size: 11px;
+
+  line-height: 1.35;
+}
+
+
+/* ============================================================
+   6. ÁREA DE ENCOMENDAS
+============================================================ */
+
+.entrega-workspace {
+  min-width: 0;
+
+  min-height:
+    calc(100dvh - 295px);
+
+  overflow: hidden;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 4px 16px
+    rgba(15, 23, 42, 0.04);
+}
+
+
+.entrega-workspace__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  padding: 20px 22px;
+
+  border-bottom:
+    1px solid #e2e8f0;
+}
+
+
+.entrega-workspace__title {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  line-height: 1.35;
+}
+
+
+.entrega-workspace__description {
+  margin: 4px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+
+  line-height: 1.45;
+}
+
+
+.entrega-workspace__body {
+  min-height: 350px;
+}
+
+
+/* ============================================================
+   7. ESTADO INICIAL
+============================================================ */
+
+.entrega-empty-state {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  min-height: 350px;
+
+  padding: 42px 24px;
+
+  text-align: center;
+}
+
+
+.entrega-empty-state__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 54px;
+  height: 54px;
+
+  margin-bottom: 14px;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius: 13px;
+
+  color: #475569;
+
+  background: #f8fafc;
+}
+
+
+.entrega-empty-state h3 {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  line-height: 1.4;
+}
+
+
+.entrega-empty-state p {
+  max-width: 500px;
+
+  margin: 6px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   8. PAINEL OPERACIONAL
+
+   Regra:
+   - 360px no desktop;
+   - inicia junto ao topo da página;
+   - acompanha a rolagem;
+   - ocupa a altura útil da tela.
+============================================================ */
+
+.entrega-operational-panel {
+  position: relative;
+
+  width: 360px;
+  min-width: 360px;
+  max-width: 360px;
+}
+
+
+.entrega-operational-panel__surface {
+  position: sticky;
+
+  top: 20px;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 360px;
+
+  min-height:
+    calc(
+      100dvh -
+      40px -
+      env(safe-area-inset-bottom)
+    );
+
+  padding: 20px;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 4px 16px
+    rgba(15, 23, 42, 0.04);
+}
+
+
+/* ============================================================
+   9. CABEÇALHO DO PAINEL
+============================================================ */
+
+.entrega-operational-panel__header {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+}
+
+
+.entrega-operational-panel__header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  flex: 0 0 36px;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius: 10px;
+
+  color: #475569;
+
+  background: #f8fafc;
+}
+
+
+.entrega-operational-panel__eyebrow {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #f97316;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.05em;
+
+  text-transform: uppercase;
+}
+
+
+.entrega-operational-panel__header h2 {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  line-height: 1.35;
+}
+
+
+.entrega-operational-panel__description {
+  margin: 13px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   10. SEÇÕES
+============================================================ */
+
+.entrega-operational-section {
+  margin-top: 18px;
+
+  padding-top: 17px;
+
+  border-top:
+    1px solid #e2e8f0;
+}
+
+
+.entrega-operational-section > h3,
+.entrega-operational-section__heading h3 {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  line-height: 1.4;
+}
+
+
+.entrega-operational-section__heading {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: #475569;
+}
+
+
+/* ============================================================
+   11. PASSO A PASSO
+============================================================ */
+
+.entrega-operational-steps {
+  display: grid;
+
+  gap: 8px;
+
+  margin-top: 11px;
+}
+
+
+.entrega-operational-step {
+  display: flex;
+  align-items: center;
+
+  min-height: 42px;
+
+  padding: 8px 10px;
+
+  border:
+    1px solid #f1f5f9;
+
+  border-radius: 10px;
+
+  gap: 10px;
+
+  background: #f8fafc;
+}
+
+
+.entrega-operational-step > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 25px;
+  height: 25px;
+
+  flex: 0 0 25px;
+
+  border-radius: 50%;
+
+  color: #0f3f8f;
+
+  background: #eff6ff;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+
+.entrega-operational-step p {
+  margin: 0;
+
+  color: #475569;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  line-height: 1.4;
+}
+
+
+/* ============================================================
+   12. CARDS DO PAINEL
+============================================================ */
+
+.entrega-operational-card {
+  margin-top: 10px;
+
+  padding: 12px;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius: 10px;
+
+  background: #f8fafc;
+}
+
+
+.entrega-operational-card strong {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #334155;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+.entrega-operational-card p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+.entrega-operational-card--empty {
+  border-style: dashed;
+}
+
+
+/* ============================================================
+   13. RODAPÉ DO PAINEL
+============================================================ */
+
+.entrega-operational-panel__spacer {
+  flex: 1 1 auto;
+
+  min-height: 28px;
+}
+
+
+.entrega-operational-panel__footer {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding-top: 14px;
+
+  border-top:
+    1px solid #e2e8f0;
+
+  color: #94a3b8;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  line-height: 1.4;
+}
+
+
+/* ============================================================
+   14. CONTROLES FUTUROS
+============================================================ */
+
+.entrega-page button,
+.entrega-page input,
+.entrega-page select,
+.entrega-page textarea {
+  font-family: "Inter", sans-serif;
+}
+
+
+.entrega-page button {
+  touch-action: manipulation;
+}
+
+
+.entrega-page input,
+.entrega-page select,
+.entrega-page textarea {
+  min-width: 0;
+}
+
+
+/* ============================================================
+   15. TABLET HORIZONTAL
+
+   Mantemos os 360px enquanto houver espaço adequado.
+============================================================ */
+
+@media (max-width: 1180px) {
+
+  .entrega-layout {
+    grid-template-columns: 1fr;
+  }
+
+
+  .entrega-operational-panel {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+
+  .entrega-operational-panel__surface {
+    position: static;
+
+    width: 100%;
+
+    min-height: auto;
+  }
+}
+
+
+/* ============================================================
+   16. TABLET / MOBILE
+============================================================ */
+
+@media (max-width: 900px) {
+
+  .entrega-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* ============================================================
+   17. MOBILE
+============================================================ */
+
+@media (max-width: 680px) {
+
+  .entrega-page {
+    padding:
+      18px
+      12px
+      calc(
+        96px +
+        env(safe-area-inset-bottom)
+      );
+  }
+
+
+  .entrega-header__title {
+    font-size: 20px;
+  }
+
+
+  .entrega-toolbar {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 12px;
+  }
+
+
+  /* ========================================================
+     KPIs:
+     sempre 2 colunas x 2 linhas.
+  ======================================================== */
+
+  .entrega-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 8px;
+  }
+
+
+  .entrega-summary-card {
+    min-height: 112px;
+
+    padding: 11px;
+
+    gap: 8px;
+  }
+
+
+  .entrega-summary-card__icon {
+    width: 32px;
+    height: 32px;
+
+    flex-basis: 32px;
+
+    border-radius: 9px;
+  }
+
+
+  .entrega-summary-card__value {
+    font-size: 18px;
+  }
+
+
+  .entrega-summary-card__label {
+    font-size: 11px;
+  }
+
+
+  .entrega-summary-card__helper {
+    font-size: 10px;
+  }
+
+
+  .entrega-workspace {
+    min-height: 360px;
+
+    border-radius: 13px;
+  }
+
+
+  .entrega-workspace__header {
+    padding: 16px;
+  }
+
+
+  .entrega-workspace__body {
+    min-height: 290px;
+  }
+
+
+  .entrega-empty-state {
+    min-height: 290px;
+
+    padding: 30px 16px;
+  }
+
+
+  .entrega-operational-panel__surface {
+    padding: 16px;
+
+    border-radius: 13px;
+  }
+
+
+  /* ========================================================
+     IPHONE / SAFARI
+     Evita zoom automático ao focar campos.
+  ======================================================== */
+
+  .entrega-page input,
+  .entrega-page select,
+  .entrega-page textarea {
+    font-size: 16px;
+  }
+}
+
+
+/* ============================================================
+   18. MOBILE PEQUENO
+
+   Continua 2 x 2.
+============================================================ */
+
+@media (max-width: 430px) {
+
+  .entrega-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 7px;
+  }
+
+
+  .entrega-summary-card {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    min-height: 125px;
+
+    padding: 10px;
+  }
+
+
+  .entrega-summary-card__content {
+    width: 100%;
+  }
+
+
+  .entrega-summary-card__helper {
+    white-space: normal;
+  }
+}
+
+
+/* ============================================================
+   19. TEMA — VARIÁVEIS CLARAS
+============================================================ */
+
+.entrega-page {
+  --ent-page-bg: transparent;
+
+  --ent-surface: #ffffff;
+  --ent-surface-soft: #f8fafc;
+  --ent-surface-hover: #f8fafc;
+
+  --ent-border: #e2e8f0;
+  --ent-border-strong: #cbd5e1;
+  --ent-border-soft: #f1f5f9;
+
+  --ent-text: #0f172a;
+  --ent-text-secondary: #334155;
+
+  --ent-muted: #64748b;
+  --ent-muted-soft: #94a3b8;
+
+  --ent-primary: #0f3f8f;
+  --ent-primary-hover: #0b3478;
+
+  --ent-orange: #f97316;
+
+  --ent-summary-blue-bg: #eff6ff;
+  --ent-summary-blue-border: #dbeafe;
+
+  --ent-summary-green-bg: #f0fdf4;
+  --ent-summary-green-border: #dcfce7;
+
+  --ent-summary-orange-bg: #fff7ed;
+  --ent-summary-orange-border: #ffedd5;
+
+  --ent-summary-red-bg: #fef2f2;
+  --ent-summary-red-border: #fee2e2;
+
+  --ent-icon-bg:
+    rgba(255, 255, 255, 0.68);
+
+  --ent-shadow-soft:
+    0 4px 16px rgba(15, 23, 42, 0.04);
+
+  color: var(--ent-text);
+}
+
+
+/* ============================================================
+   20. TEMA ESCURO — MANUAL
+============================================================ */
+
+html[data-chegou-theme="dark"] .entrega-page,
+html[data-theme="dark"] .entrega-page,
+body[data-theme="dark"] .entrega-page,
+body.dark .entrega-page {
+
+  --ent-page-bg: transparent;
+
+  --ent-surface: #0f172a;
+  --ent-surface-soft: #111827;
+  --ent-surface-hover: #172033;
+
+  --ent-border: #1e293b;
+  --ent-border-strong: #334155;
+  --ent-border-soft: #172033;
+
+  --ent-text: #f8fafc;
+  --ent-text-secondary: #e2e8f0;
+
+  --ent-muted: #94a3b8;
+  --ent-muted-soft: #64748b;
+
+  --ent-primary: #2563eb;
+  --ent-primary-hover: #3b82f6;
+
+  --ent-orange: #fb923c;
+
+  --ent-summary-blue-bg:
+    rgba(37, 99, 235, 0.12);
+
+  --ent-summary-blue-border:
+    rgba(96, 165, 250, 0.22);
+
+  --ent-summary-green-bg:
+    rgba(22, 163, 74, 0.12);
+
+  --ent-summary-green-border:
+    rgba(74, 222, 128, 0.20);
+
+  --ent-summary-orange-bg:
+    rgba(249, 115, 22, 0.12);
+
+  --ent-summary-orange-border:
+    rgba(251, 146, 60, 0.20);
+
+  --ent-summary-red-bg:
+    rgba(220, 38, 38, 0.12);
+
+  --ent-summary-red-border:
+    rgba(248, 113, 113, 0.20);
+
+  --ent-icon-bg:
+    rgba(15, 23, 42, 0.4);
+
+  --ent-shadow-soft:
+    0 5px 18px rgba(0, 0, 0, 0.18);
+}
+
+
+/* ============================================================
+   21. TEMA ESCURO — MODO SISTEMA
+============================================================ */
+
+@media (prefers-color-scheme: dark) {
+
+  html:not([data-chegou-theme="light"]):not([data-theme="light"])
+    .entrega-page {
+
+    --ent-page-bg: transparent;
+
+    --ent-surface: #0f172a;
+    --ent-surface-soft: #111827;
+    --ent-surface-hover: #172033;
+
+    --ent-border: #1e293b;
+    --ent-border-strong: #334155;
+    --ent-border-soft: #172033;
+
+    --ent-text: #f8fafc;
+    --ent-text-secondary: #e2e8f0;
+
+    --ent-muted: #94a3b8;
+    --ent-muted-soft: #64748b;
+
+    --ent-primary: #2563eb;
+    --ent-primary-hover: #3b82f6;
+
+    --ent-orange: #fb923c;
+
+    --ent-summary-blue-bg:
+      rgba(37, 99, 235, 0.12);
+
+    --ent-summary-blue-border:
+      rgba(96, 165, 250, 0.22);
+
+    --ent-summary-green-bg:
+      rgba(22, 163, 74, 0.12);
+
+    --ent-summary-green-border:
+      rgba(74, 222, 128, 0.20);
+
+    --ent-summary-orange-bg:
+      rgba(249, 115, 22, 0.12);
+
+    --ent-summary-orange-border:
+      rgba(251, 146, 60, 0.20);
+
+    --ent-summary-red-bg:
+      rgba(220, 38, 38, 0.12);
+
+    --ent-summary-red-border:
+      rgba(248, 113, 113, 0.20);
+
+    --ent-icon-bg:
+      rgba(15, 23, 42, 0.4);
+
+    --ent-shadow-soft:
+      0 5px 18px rgba(0, 0, 0, 0.18);
+  }
+}
+
+
+/* ============================================================
+   22. APLICAÇÃO DAS VARIÁVEIS
+============================================================ */
+
+.entrega-page {
+  background:
+    var(--ent-page-bg);
+
+  color:
+    var(--ent-text);
+}
+
+
+.entrega-header__title,
+.entrega-toolbar__title,
+.entrega-workspace__title,
+.entrega-empty-state h3,
+.entrega-operational-panel__header h2,
+.entrega-operational-section > h3,
+.entrega-operational-section__heading h3,
+.entrega-summary-card__value {
+  color:
+    var(--ent-text);
+}
+
+
+.entrega-header__description,
+.entrega-toolbar__description,
+.entrega-workspace__description,
+.entrega-empty-state p,
+.entrega-operational-panel__description {
+  color:
+    var(--ent-muted);
+}
+
+
+.entrega-header__breadcrumb {
+  color:
+    var(--ent-muted);
+}
+
+
+.entrega-header__current {
+  color:
+    var(--ent-text-secondary);
+}
+
+
+.entrega-header__separator {
+  color:
+    var(--ent-border-strong);
+}
+
+
+.entrega-header__eyebrow,
+.entrega-operational-panel__eyebrow {
+  color:
+    var(--ent-orange);
+}
+
+
+.entrega-summary-card--blue {
+  background:
+    var(--ent-summary-blue-bg);
+
+  border-color:
+    var(--ent-summary-blue-border);
+}
+
+
+.entrega-summary-card--green {
+  background:
+    var(--ent-summary-green-bg);
+
+  border-color:
+    var(--ent-summary-green-border);
+}
+
+
+.entrega-summary-card--orange {
+  background:
+    var(--ent-summary-orange-bg);
+
+  border-color:
+    var(--ent-summary-orange-border);
+}
+
+
+.entrega-summary-card--red {
+  background:
+    var(--ent-summary-red-bg);
+
+  border-color:
+    var(--ent-summary-red-border);
+}
+
+
+.entrega-summary-card__icon {
+  background:
+    var(--ent-icon-bg);
+
+  color:
+    var(--ent-text-secondary);
+}
+
+
+.entrega-summary-card__label {
+  color:
+    var(--ent-text-secondary);
+}
+
+
+.entrega-summary-card__helper {
+  color:
+    var(--ent-muted);
+}
+
+
+.entrega-workspace,
+.entrega-operational-panel__surface {
+  background:
+    var(--ent-surface);
+
+  border-color:
+    var(--ent-border);
+
+  box-shadow:
+    var(--ent-shadow-soft);
+}
+
+
+.entrega-workspace__header,
+.entrega-operational-section,
+.entrega-operational-panel__footer {
+  border-color:
+    var(--ent-border);
+}
+
+
+.entrega-empty-state__icon,
+.entrega-operational-panel__header-icon,
+.entrega-operational-step,
+.entrega-operational-card {
+  background:
+    var(--ent-surface-soft);
+
+  border-color:
+    var(--ent-border);
+}
+
+
+.entrega-empty-state__icon,
+.entrega-operational-panel__header-icon,
+.entrega-operational-section__heading {
+  color:
+    var(--ent-text-secondary);
+}
+
+
+.entrega-operational-step > span {
+  color:
+    var(--ent-primary);
+
+  background:
+    var(--ent-summary-blue-bg);
+}
+
+
+.entrega-operational-step p,
+.entrega-operational-card strong {
+  color:
+    var(--ent-text-secondary);
+}
+
+
+.entrega-operational-card p {
+  color:
+    var(--ent-muted);
+}
+
+
+.entrega-operational-panel__footer {
+  color:
+    var(--ent-muted-soft);
+}
+
+
+/* ============================================================
+   23. TEMA CLARO EXPLÍCITO
+============================================================ */
+
+html[data-chegou-theme="light"],
+html[data-theme="light"],
+body[data-theme="light"] {
+  color-scheme: light;
+}
+
+
+/* ============================================================
+   24. ACESSIBILIDADE
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .entrega-page *,
+  .entrega-page *::before,
+  .entrega-page *::after {
+    scroll-behavior:
+      auto !important;
+
+    transition-duration:
+      0.01ms !important;
+
+    animation-duration:
+      0.01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+  }
+}

@@ -906,10 +906,7 @@ function MasterLayout({
 
   return (
     <AppLayout
-      perfil={{
-        ...perfil,
-        notificacoes_nao_lidas: notificacoesNaoLidas,
-      }}
+      perfil={perfil}
       role="master"
       activePage={activePage}
       onNavigate={navegar}

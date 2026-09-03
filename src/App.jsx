@@ -55,6 +55,7 @@ import MoradorNotifications from "./pages/morador/notifications";
 import DashboardPortaria from "./pages/portaria/dashboard/DashboardPortaria";
 import RecebimentoEncomendas from "./pages/encomendas/recebimento";
 import EntradaEncomendas from "./pages/encomendas/entrada";
+import EntregaEncomendas from "./pages/encomendas/entrega/EntregaEncomendas";
 
 import PaginaPreparando from "./pages/PaginaPreparando";
 import WizardCondominio from "./pages/wizardCondominio";
@@ -62,7 +63,10 @@ import WizardMorador from "./pages/WizardMorador";
 
 import EmailPreview from "./pages/dev/EmailPreview";
 
+
+
 import "./App.css";
+
 
 function isStandalonePWA() {
   if (typeof window === "undefined") {
@@ -750,7 +754,6 @@ function App() {
     );
   }
 
-
   // ==========================================================
   // ENCOMENDAS — ENTRADA
   // ==========================================================
@@ -764,6 +767,20 @@ function App() {
         perfil={perfil}
         onNavigate={navegarPara}
       />
+    );
+  }
+
+
+  // ==========================================================
+  // ENCOMENDAS — ENTREGA
+  // ==========================================================
+
+  if (
+    paginaAtual ===
+    "entrega-encomenda"
+  ) {
+    return (
+      <EntregaEncomendas />
     );
   }
 

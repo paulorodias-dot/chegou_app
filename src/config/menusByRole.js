@@ -323,6 +323,13 @@ export const menusByRole = {
           visible: true,
           novo: true,
         },
+        {
+          id: "entrega-encomenda",
+          label: "Entrega",
+          icon: PackageCheck,
+          visible: true,
+          novo: true,
+        },
       ],
     },
   ],
