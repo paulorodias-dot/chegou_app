@@ -1,24 +1,27 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.08.26.001",
-  "appVersion": "1.2.7",
+  "releaseId": "2026.09.02.001",
+  "appVersion": "1.2.8",
   "scope": "GLOBAL",
   "modules": [
     "Portaria",
     "Central de Encomendas"
   ],
   "mandatory": false,
-  "publishedAt": "2026-08-26T14:02:00-03:00",
-  "title": "Nova etapa de Entrada de Encomendas",
-  "message": "A Central de Encomendas ganhou uma nova etapa de Entrada, com mais organização, conferência e segurança para o trabalho da Portaria.",
+  "publishedAt": "2026-09-02T23:06:00-03:00",
+  "title": "Entrada contínua de Encomendas",
+  "message": "A Central de Encomendas evoluiu o fluxo de Entrada da Portaria, permitindo processar cada encomenda de forma contínua, do recebimento até a disponibilização para retirada.",
   "highlights": [
-    "Nova fila para acompanhar os volumes que aguardam Entrada.",
-    "Organização dos lotes do mais antigo para o mais recente.",
-    "Filtros e indicadores para facilitar o acompanhamento da operação.",
-    "Identificação do destinatário por rastreio já aguardado ou pesquisa autorizada.",
-    "Visualização dos volumes de cada lote e acompanhamento do progresso da Entrada.",
-    "Conferência do código do volume antes da confirmação.",
-    "Confirmação da Entrada com proteção contra registros duplicados.",
-    "Melhorias de segurança, rastreabilidade e isolamento das informações de cada condomínio."
+    "Nova Entrada Individual para iniciar o processamento diretamente pelo código da encomenda.",
+    "Continuidade do fluxo entre identificação, Entrada, armazenamento e disponibilização.",
+    "Retomada automática da etapa correta quando uma encomenda já possui processamento anterior.",
+    "Pesquisa autorizada de destinatários por torre/bloco e unidade.",
+    "Armazenamento integrado ao fluxo operacional da Entrada.",
+    "Disponibilização individual da encomenda para retirada.",
+    "Notificação In-App automática após a disponibilização.",
+    "Abertura assistida do WhatsApp da Portaria com mensagem preenchida para o Morador.",
+    "Confirmação operacional de WhatsApp enviado com rastreabilidade.",
+    "Encerramento automático do pacote processado e retorno para uma nova Entrada.",
+    "Melhorias de segurança, idempotência, rastreabilidade e isolamento por condomínio."
   ]
 }
