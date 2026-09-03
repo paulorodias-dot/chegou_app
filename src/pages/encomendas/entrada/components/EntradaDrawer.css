@@ -1380,6 +1380,17 @@
 }
 
 .entrada-drawer__primary {
+  min-height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding:
+    0 16px;
+
   color: #ffffff;
 
   background:
@@ -1389,7 +1400,36 @@
     1px solid
     var(--entrada-primary);
 
+  border-radius: 11px;
+
+  font: inherit;
+  font-size: 0.79rem;
+  font-weight: 700;
+
   cursor: pointer;
+}
+
+.entrada-drawer__primary:hover:not(:disabled) {
+  box-shadow:
+    0 5px 14px
+    rgb(15 23 42 / 0.08);
+}
+
+.entrada-drawer__primary:focus-visible {
+  outline:
+    3px solid
+    color-mix(
+      in srgb,
+      var(--entrada-primary) 22%,
+      transparent
+    );
+
+  outline-offset: 2px;
+}
+
+.entrada-drawer__primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
 }
 
 .entrada-drawer__footer button:disabled {

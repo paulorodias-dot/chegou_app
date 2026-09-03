@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  Plus,
   RefreshCw,
 } from "lucide-react";
 
@@ -7,6 +8,7 @@ import "./EntradaHeader.css";
 
 export default function EntradaHeader({
   onRefresh,
+  onNewEntry,
   refreshing = false,
 }) {
   return (
@@ -38,6 +40,22 @@ export default function EntradaHeader({
       <div className="entrada-header__actions">
         <button
           type="button"
+          className="entrada-header__new-entry"
+          onClick={onNewEntry}
+          disabled={!onNewEntry}
+        >
+          <Plus
+            size={18}
+            aria-hidden="true"
+          />
+
+          <span>
+            Nova Entrada
+          </span>
+        </button>
+
+        <button
+          type="button"
           className="entrada-header__refresh"
           onClick={onRefresh}
           disabled={refreshing}
@@ -57,7 +75,9 @@ export default function EntradaHeader({
           />
 
           <span>
-            {refreshing ? "Atualizando..." : "Atualizar"}
+            {refreshing
+              ? "Atualizando..."
+              : "Atualizar"}
           </span>
         </button>
       </div>

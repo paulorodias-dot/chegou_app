@@ -28,6 +28,9 @@ const RPC = Object.freeze({
   TRANSPORTADORAS_FILTRO:
     "rpc_encomenda_recebimento_transportadoras_filtro_v1",
 
+  LOCALIZAR_VOLUME_POR_CODIGO:
+    "rpc_encomenda_volume_localizar_entrada_por_codigo_v1",
+
   OBTER_CONTEXTO_VOLUME:
     "rpc_encomenda_volume_contexto_entrada_v1",
 
@@ -696,6 +699,178 @@ function normalizarResumo(
 }
 
 // ============================================================
+// LOCALIZAÇÃO DO VOLUME — RESPOSTA NORMALIZADA
+//
+// O backend é a fonte autoritativa para:
+// - normalização do código;
+// - escopo do condomínio;
+// - cardinalidade;
+// - integridade da cadeia Volume → Entrada → Encomenda;
+// - estado persistido;
+// - próxima etapa permitida.
+//
+// O frontend apenas consome o resultado.
+// ============================================================
+
+function normalizarLocalizacaoVolumeEntrada(
+  resultado
+) {
+  return {
+    ok:
+      resultado?.ok !== false,
+
+    resultado:
+      textoOuNull(
+        resultado?.resultado
+      ),
+
+    localizado:
+      resultado?.localizado === true,
+
+    podeRetomar:
+      resultado?.pode_retomar === true,
+
+    motivo:
+      textoOuNull(
+        resultado?.motivo
+      ),
+
+    codigoNormalizado:
+      textoOuNull(
+        resultado?.codigo_normalizado
+      ),
+
+    quantidadeCandidatos:
+      resultado?.quantidade_candidatos ===
+        null ||
+      resultado?.quantidade_candidatos ===
+        undefined
+        ? null
+        : normalizarNumero(
+            resultado.quantidade_candidatos,
+            0
+          ),
+
+    quantidadeEntradas:
+      resultado?.quantidade_entradas ===
+        null ||
+      resultado?.quantidade_entradas ===
+        undefined
+        ? null
+        : normalizarNumero(
+            resultado.quantidade_entradas,
+            0
+          ),
+
+    businessId:
+      resultado?.business_id ||
+      null,
+
+    condominioId:
+      resultado?.condominio_id ||
+      null,
+
+    volumeId:
+      resultado?.volume_id ||
+      null,
+
+    preRecebimentoId:
+      resultado?.pre_recebimento_id ||
+      null,
+
+    referenciaLote:
+      textoOuNull(
+        resultado?.referencia_lote
+      ),
+
+    statusLote:
+      textoOuNull(
+        resultado?.status_lote
+      ),
+
+    statusVolume:
+      textoOuNull(
+        resultado?.status_volume
+      ),
+
+    encomendaId:
+      resultado?.encomenda_id ||
+      null,
+
+    numeroEncomenda:
+      resultado?.numero_encomenda ??
+      null,
+
+    statusEncomenda:
+      textoOuNull(
+        resultado?.status_encomenda
+      ),
+
+    tipoEntrega:
+      textoOuNull(
+        resultado?.tipo_entrega
+      ),
+
+    entradaId:
+      resultado?.entrada_id ||
+      null,
+
+    etapaAtual:
+      textoOuNull(
+        resultado?.etapa_atual
+      ),
+
+    proximaEtapa:
+      textoOuNull(
+        resultado?.proxima_etapa
+      ),
+
+    timezoneIana:
+      textoOuNull(
+        resultado?.timezone_iana
+      ),
+
+    entradaConfirmadaEm:
+      resultado?.entrada_confirmada_em ||
+      null,
+
+    entradaConfirmadaEmLocal:
+      resultado
+        ?.entrada_confirmada_em_local ||
+      null,
+
+    armazenadoEm:
+      resultado?.armazenado_em ||
+      null,
+
+    armazenadoEmLocal:
+      resultado?.armazenado_em_local ||
+      null,
+
+    localizacaoAtualId:
+      resultado?.localizacao_atual_id ||
+      null,
+
+    disponibilizadoEm:
+      resultado?.disponibilizado_em ||
+      null,
+
+    disponibilizadoEmLocal:
+      resultado
+        ?.disponibilizado_em_local ||
+      null,
+
+    retiradoEm:
+      resultado?.retirado_em ||
+      null,
+
+    finalizadoEm:
+      resultado?.finalizado_em ||
+      null,
+  };
+}
+
+// ============================================================
 // FILA
 // ============================================================
 
@@ -887,6 +1062,81 @@ export async function obterResumoEntrada({
 }
 
 // ============================================================
+// LOCALIZADOR AUTORITATIVO DO VOLUME POR CÓDIGO
+//
+// Entrada:
+// - condominioId: contexto operacional atual solicitado pela UI;
+// - codigo: valor bruto capturado pelo leitor/câmera/teclado.
+//
+// Segurança:
+// - o condominioId NÃO é autoridade;
+// - o backend revalida auth.uid() + vínculo + condomínio +
+//   business + permissão;
+// - a normalização oficial do código ocorre somente no backend.
+//
+// Esta função é somente leitura.
+// ============================================================
+
+export async function localizarVolumeEntradaPorCodigo({
+  condominioId,
+  codigo,
+} = {}) {
+  if (!condominioId) {
+    throw criarErroEntrada({
+      message:
+        "Não foi possível identificar o condomínio atual.",
+    });
+  }
+
+  const codigoInformado =
+    textoOuNull(codigo);
+
+  if (!codigoInformado) {
+    throw criarErroEntrada({
+      message:
+        "Informe ou leia o código da encomenda.",
+    });
+  }
+
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      RPC.LOCALIZAR_VOLUME_POR_CODIGO,
+      {
+        p_condominio_id:
+          condominioId,
+
+        /*
+         * Enviamos o valor capturado sem tentar reproduzir
+         * a normalização oficial no navegador.
+         * O backend usa fn_encomendas_normalizar_rastreio_v1.
+         */
+        p_codigo:
+          codigoInformado,
+      }
+    );
+
+  if (error) {
+    throw normalizarErroSupabase(
+      error,
+      "Não foi possível localizar esta encomenda."
+    );
+  }
+
+  const resultado =
+    validarRespostaBackend(
+      data,
+      "Não foi possível localizar esta encomenda."
+    );
+
+  return normalizarLocalizacaoVolumeEntrada(
+    resultado
+  );
+}
+
+// ============================================================
 // CONTEXTO AUTORITATIVO DO VOLUME
 //
 // Será usado no Workspace em E3.2.
@@ -978,7 +1228,23 @@ export async function confirmarEntrada({
     });
   }
 
-  if (!destinatarioPessoaId) {
+  const destinatarioIdentificado =
+    destinatarioTipo === "DEPENDENTE"
+      ? Boolean(
+          destinatarioDependenteId
+        )
+      : destinatarioTipo === "MORADOR"
+        ? Boolean(
+            destinatarioMoradorVinculoId ||
+            destinatarioPessoaId ||
+            destinatarioUsuarioId
+          )
+        : Boolean(
+            destinatarioPessoaId ||
+            destinatarioUsuarioId
+          );
+
+  if (!destinatarioIdentificado) {
     throw criarErroEntrada({
       message:
         "Não foi possível identificar o destinatário.",
@@ -1209,6 +1475,7 @@ export const entradaService =
     listarFilaEntrada,
     obterResumoEntrada,
     listarTransportadorasFiltroEntrada,
+    localizarVolumeEntradaPorCodigo,
     obterContextoVolumeEntrada,
     confirmarEntrada,
   });

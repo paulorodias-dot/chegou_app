@@ -1,0 +1,420 @@
+.entrada-availability-pending {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--entrada-border);
+  border-radius: 16px;
+  background: var(--entrada-surface);
+  box-shadow: var(
+    --entrada-shadow,
+    0 10px 30px rgba(15, 23, 42, 0.06)
+  );
+}
+
+.entrada-availability-pending__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+  border-bottom: 1px solid var(--entrada-border);
+}
+
+.entrada-availability-pending__eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--entrada-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.entrada-availability-pending__title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.entrada-availability-pending h2 {
+  margin: 0;
+  color: var(--entrada-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.entrada-availability-pending__heading p,
+.entrada-availability-pending__state p,
+.entrada-availability-pending__empty p {
+  margin: 5px 0 0;
+  color: var(--entrada-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.entrada-availability-pending__count {
+  min-width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: color-mix(
+    in srgb,
+    var(--entrada-primary) 12%,
+    transparent
+  );
+  color: var(--entrada-primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.entrada-availability-pending__refresh {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid var(--entrada-border);
+  border-radius: 10px;
+  background: var(--entrada-surface);
+  color: var(--entrada-text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.entrada-availability-pending__refresh:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.entrada-availability-pending__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.entrada-availability-pending__item {
+  width: 100%;
+  min-height: 84px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--entrada-border);
+  background: transparent;
+  color: inherit;
+}
+
+.entrada-availability-pending__item:last-child {
+  border-bottom: 0;
+}
+
+.entrada-availability-pending__item--blocked {
+  background: color-mix(
+    in srgb,
+    var(--entrada-danger, #b42318) 3%,
+    transparent
+  );
+}
+
+.entrada-availability-pending__order {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: var(--entrada-surface-soft);
+  color: var(--entrada-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.entrada-availability-pending__item-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.entrada-availability-pending__item-title {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.entrada-availability-pending__item-title strong {
+  color: var(--entrada-text-primary);
+  font-size: 0.88rem;
+}
+
+.entrada-availability-pending__item-title span {
+  overflow: hidden;
+  color: var(--entrada-text-primary);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entrada-availability-pending__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--entrada-text-secondary);
+  font-size: 0.73rem;
+}
+
+.entrada-availability-pending__meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.entrada-availability-pending__blocked {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--entrada-danger, #b42318);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.entrada-availability-pending__blocked svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.entrada-availability-pending__status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.entrada-availability-pending__status--ready {
+  background: color-mix(
+    in srgb,
+    var(--entrada-primary) 11%,
+    transparent
+  );
+  color: var(--entrada-primary);
+}
+
+.entrada-availability-pending__status--blocked {
+  background: color-mix(
+    in srgb,
+    var(--entrada-danger, #b42318) 10%,
+    transparent
+  );
+  color: var(--entrada-danger, #b42318);
+}
+
+.entrada-availability-pending__state,
+.entrada-availability-pending__empty {
+  min-height: 112px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px;
+  color: var(--entrada-text-secondary);
+}
+
+.entrada-availability-pending__state strong,
+.entrada-availability-pending__empty strong {
+  color: var(--entrada-text-primary);
+}
+
+.entrada-availability-pending__state--error {
+  color: var(--entrada-danger, #b42318);
+}
+
+.entrada-availability-pending__state--error button {
+  margin-left: auto;
+  min-height: 36px;
+  border: 1px solid var(--entrada-border);
+  border-radius: 9px;
+  background: var(--entrada-surface);
+  color: var(--entrada-text-primary);
+  cursor: pointer;
+}
+
+.entrada-availability-pending__spin {
+  animation: entrada-availability-spin 0.9s linear infinite;
+}
+
+@keyframes entrada-availability-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 680px) {
+  .entrada-availability-pending__heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .entrada-availability-pending__refresh {
+    justify-content: center;
+  }
+
+  .entrada-availability-pending__item {
+    grid-template-columns: 30px minmax(0, 1fr);
+    padding: 14px;
+  }
+
+  .entrada-availability-pending__status {
+    grid-column: 2;
+    justify-self: flex-start;
+  }
+
+  .entrada-availability-pending__item-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .entrada-availability-pending__item-title span {
+    width: 100%;
+  }
+
+  .entrada-availability-pending__state--error {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .entrada-availability-pending__state--error button {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+.entrada-availability-pending__actions {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.entrada-availability-pending__action {
+  min-height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  padding: 0 12px;
+
+  border: 1px solid var(--entrada-primary);
+  border-radius: 10px;
+
+  background: var(--entrada-primary);
+  color: #ffffff;
+
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  touch-action: manipulation;
+
+  white-space: nowrap;
+}
+
+.entrada-availability-pending__action:hover:not(:disabled) {
+  filter: brightness(1.04);
+}
+
+.entrada-availability-pending__action:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.entrada-availability-pending__feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  margin: 14px 18px 0;
+  padding: 12px 14px;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--entrada-success, #15803d) 24%,
+      transparent
+    );
+
+  border-radius: 12px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--entrada-success, #15803d) 7%,
+      transparent
+    );
+
+  color: var(--entrada-success, #15803d);
+}
+
+.entrada-availability-pending__feedback svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.entrada-availability-pending__feedback strong {
+  display: block;
+
+  color: var(--entrada-text-primary);
+
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.entrada-availability-pending__feedback p {
+  margin: 3px 0 0;
+
+  color: var(--entrada-text-secondary);
+
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 680px) {
+  .entrada-availability-pending__actions {
+    grid-column: 2;
+
+    width: 100%;
+
+    align-items: stretch;
+  }
+
+  .entrada-availability-pending__status {
+    align-self: flex-start;
+  }
+
+  .entrada-availability-pending__action {
+    width: 100%;
+
+    white-space: normal;
+  }
+
+  .entrada-availability-pending__feedback {
+    margin:
+      12px
+      12px
+      0;
+  }
+}

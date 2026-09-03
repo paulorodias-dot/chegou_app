@@ -20,14 +20,23 @@ import {
   EntradaSummary,
 } from "./components";
 
+
+
 import EntradaSidebar
   from "./components/EntradaSidebar";
+
+import EntradaArmazenamentoPendentes
+  from "./components/EntradaArmazenamentoPendentes";
+
+import EntradaDisponibilizacaoPendentes
+  from "../disponibilizacao/components/EntradaDisponibilizacaoPendentes";
 
 import {
   useEntradaEncomendas,
 } from "./hooks/useEntradaEncomendas";
 
 import "./EntradaEncomendas.css";
+
 
 function criarPeriodo(
   periodo
@@ -116,7 +125,7 @@ export default function EntradaEncomendas({
 
   const condominioId =
     perfil?.condominio_id ||
-    null;
+    null;    
 
   const condominioNome =
     perfil?.condominio_nome ||
@@ -144,6 +153,18 @@ export default function EntradaEncomendas({
     setDrawerOpen,
   ] =
     useState(false);
+
+  const [
+    armazenamentoRefreshKey,
+    setArmazenamentoRefreshKey,
+  ] =
+    useState(0);
+
+  const [
+    disponibilizacaoRefreshKey,
+    setDisponibilizacaoRefreshKey,
+  ] =
+    useState(0);
 
   /*
    * Primeiro carregamento sem
@@ -296,11 +317,49 @@ export default function EntradaEncomendas({
       []
     );
 
+  const handleOpenNewEntry =
+  useCallback(() => {
+    setSelectedContext({
+      contextType:
+        "NEW_ENTRY",
+
+      mode:
+        "NEW_ENTRY",
+
+      condominioId:
+        condominioId,
+    });
+
+    setDrawerOpen(true);
+  }, [condominioId]);
+
   const handleCloseDrawer =
     useCallback(() => {
       setDrawerOpen(false);
       setSelectedContext(null);
     }, []);
+
+  const handleRefreshTudo =
+    useCallback(async () => {
+      await refresh();
+
+      setArmazenamentoRefreshKey(
+        (atual) => atual + 1
+      );
+
+      setDisponibilizacaoRefreshKey(
+        (atual) => atual + 1
+      );
+    }, [refresh]);
+
+  const handleArmazenamentoRecuperado =
+    useCallback(async () => {
+      await refresh();
+
+      setDisponibilizacaoRefreshKey(
+        (atual) => atual + 1
+      );
+    }, [refresh]);
 
   return (
     <main
@@ -310,7 +369,8 @@ export default function EntradaEncomendas({
       <div className="entrada-page__layout">
         <div className="entrada-page__main">
           <EntradaHeader
-            onRefresh={refresh}
+            onRefresh={handleRefreshTudo}
+            onNewEntry={handleOpenNewEntry}
             refreshing={refreshing}
           />
 
@@ -393,6 +453,17 @@ export default function EntradaEncomendas({
               />
             )}
           </section>
+
+          <EntradaArmazenamentoPendentes
+            condominioId={condominioId}
+            refreshKey={armazenamentoRefreshKey}
+            onArmazenado={handleArmazenamentoRecuperado}
+          />
+
+          <EntradaDisponibilizacaoPendentes
+            condominioId={condominioId}
+            refreshKey={disponibilizacaoRefreshKey}
+          />
 
           <section
             className="entrada-page__principles"
