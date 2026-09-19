@@ -7,6 +7,9 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import splashIcon from "./assets/icon-512-v2.png";
+import splashLogo from "./assets/logo_branco.png";
+
 import Landing from "./pages/Landing";
 import LandingPremium from "./pages/landing/LandingPremium";
 import Login from "./pages/Login";
@@ -79,6 +82,66 @@ function isStandalonePWA() {
   );
 }
 
+function SplashPremium({ progresso = 0 }) {
+  const progressoSeguro = Math.max(
+    0,
+    Math.min(100, Number(progresso) || 0)
+  );
+
+  return (
+    <div
+      className="chegou-splash"
+      role="status"
+      aria-live="polite"
+      aria-label="Inicializando Sistema Chegou!"
+    >
+      <div
+        className="chegou-splash-corner chegou-splash-corner-top"
+        aria-hidden="true"
+      />
+
+      <div
+        className="chegou-splash-corner chegou-splash-corner-bottom"
+        aria-hidden="true"
+      />
+
+      <div className="chegou-splash-content">
+        <img
+          src={splashIcon}
+          alt=""
+          className="chegou-splash-icon"
+          draggable="false"
+        />
+
+        <img
+          src={splashLogo}
+          alt="Sistema Chegou! — Gestão Inteligente da Sua Encomenda"
+          className="chegou-splash-logo"
+          draggable="false"
+        />
+
+        <div className="chegou-splash-progress-area">
+          <div
+            className="chegou-splash-progress-track"
+            aria-hidden="true"
+          >
+            <div
+              className="chegou-splash-progress-fill"
+              style={{
+                width: `${progressoSeguro}%`,
+              }}
+            />
+          </div>
+
+          <span className="chegou-splash-status">
+            INICIALIZANDO...
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -105,6 +168,9 @@ function App() {
 
   const [carregandoSessao, setCarregandoSessao] =
     useState(true);
+
+  const [progressoBoot, setProgressoBoot] =
+    useState(12);
 
   useEffect(() => {
     document.documentElement.classList.add(
@@ -181,10 +247,15 @@ function App() {
 
   async function restaurarSessao() {
     try {
+      setProgressoBoot(28);
+
       const sessao =
         await recuperarSessaoAtual();
 
+      setProgressoBoot(72);
+
       if (sessao?.perfil) {
+        setProgressoBoot(88);
         setPerfil(sessao.perfil);
 
         const role = getRole(sessao.perfil);
@@ -225,7 +296,11 @@ function App() {
         error
       );
     } finally {
-      setCarregandoSessao(false);
+      setProgressoBoot(100);
+
+      window.setTimeout(() => {
+        setCarregandoSessao(false);
+      }, 180);
     }
   }
 
@@ -780,7 +855,15 @@ function App() {
     "entrega-encomenda"
   ) {
     return (
-      <EntregaEncomendas />
+      <EntregaEncomendas
+        perfil={
+          perfil
+        }
+
+        onNavigate={
+          navegarPara
+        }
+      />
     );
   }
 
@@ -932,6 +1015,23 @@ function App() {
     Boolean(perfil) &&
     Boolean(moduloVersionManager);
 
+  const rotaParticipaDoBoot =
+    location.pathname === "/" ||
+    location.pathname === "/login" ||
+    location.pathname === "/sistema" ||
+    location.pathname.startsWith("/sistema/");
+
+  if (
+    carregandoSessao &&
+    rotaParticipaDoBoot
+  ) {
+    return (
+      <SplashPremium
+        progresso={progressoBoot}
+      />
+    );
+  }
+
   return (
     <>
       {versionManagerHabilitado ? (
@@ -946,7 +1046,11 @@ function App() {
           path="/"
           element={
             isStandalonePWA() ? (
-              <Navigate to="/login" replace />
+              perfil && deveManterConectado() ? (
+                <Navigate to="/sistema" replace />
+              ) : (
+                <Navigate to="/login" replace />
+              )
             ) : (
               <Landing />
             )
@@ -966,7 +1070,11 @@ function App() {
         <Route
           path="/login"
           element={
-            <Login onLogin={handleLogin} />
+            perfil && deveManterConectado() ? (
+              <Navigate to="/sistema" replace />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
           }
         />
 
