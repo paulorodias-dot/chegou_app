@@ -246,6 +246,11 @@ function App() {
   }, [perfil]);
 
   async function restaurarSessao() {
+    const inicioBoot = Date.now();
+
+    const usarSplashPremium =
+      deveManterConectado();
+
     try {
       setProgressoBoot(28);
 
@@ -296,11 +301,25 @@ function App() {
         error
       );
     } finally {
-      setProgressoBoot(100);
+      const duracaoMinimaBoot =
+        usarSplashPremium ? 4000 : 0;
+
+      const tempoDecorrido =
+        Date.now() - inicioBoot;
+
+      const tempoRestante =
+        Math.max(
+          0,
+          duracaoMinimaBoot - tempoDecorrido
+        );
 
       window.setTimeout(() => {
-        setCarregandoSessao(false);
-      }, 180);
+        setProgressoBoot(100);
+
+        window.setTimeout(() => {
+          setCarregandoSessao(false);
+        }, usarSplashPremium ? 220 : 0);
+      }, tempoRestante);
     }
   }
 
@@ -1015,16 +1034,34 @@ function App() {
     Boolean(perfil) &&
     Boolean(moduloVersionManager);
 
-  const rotaParticipaDoBoot =
-    location.pathname === "/" ||
-    location.pathname === "/login" ||
-    location.pathname === "/sistema" ||
-    location.pathname.startsWith("/sistema/");
+  const lembrarMeAtivo =
+    deveManterConectado();
 
-  if (
+  const deveExibirBootNoLogin =
+    location.pathname === "/login" &&
+    lembrarMeAtivo;
+
+  const deveExibirBootNoSistema =
+    (
+      location.pathname === "/sistema" ||
+      location.pathname.startsWith("/sistema/")
+    ) &&
+    lembrarMeAtivo;
+
+  const deveExibirBootNaRaizPwa =
+    location.pathname === "/" &&
+    isStandalonePWA() &&
+    lembrarMeAtivo;
+
+  const deveExibirSplashBoot =
     carregandoSessao &&
-    rotaParticipaDoBoot
-  ) {
+    (
+      deveExibirBootNoLogin ||
+      deveExibirBootNoSistema ||
+      deveExibirBootNaRaizPwa
+    );
+
+  if (deveExibirSplashBoot) {
     return (
       <SplashPremium
         progresso={progressoBoot}
