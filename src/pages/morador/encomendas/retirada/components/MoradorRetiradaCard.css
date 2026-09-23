@@ -1,0 +1,264 @@
+.morador-retirada-card {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--mr-border);
+  border-radius: 16px;
+  background: var(--mr-card);
+  box-shadow: var(--mr-shadow-card);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.morador-retirada-card:hover {
+  border-color: var(--mr-border-hover);
+  box-shadow: var(--mr-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.morador-retirada-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 16px 11px;
+}
+
+.morador-retirada-card__package {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--mr-orange);
+  background: var(--mr-orange-soft);
+}
+
+.morador-retirada-card__identity {
+  min-width: 0;
+  flex: 1;
+}
+
+.morador-retirada-card__identity span,
+.morador-retirada-card__identity strong {
+  display: block;
+}
+
+.morador-retirada-card__identity span {
+  color: var(--mr-muted);
+  font-size: 10px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.morador-retirada-card__identity strong {
+  margin-top: 2px;
+  color: var(--mr-text);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.morador-retirada-card__status {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.morador-retirada-card__status.is-warning {
+  color: var(--mr-warning);
+  background: var(--mr-warning-soft);
+}
+
+.morador-retirada-card__status.is-success,
+.morador-retirada-card__status.is-available {
+  color: var(--mr-success);
+  background: var(--mr-success-soft);
+}
+
+.morador-retirada-card__status.is-progress,
+.morador-retirada-card__status.is-scheduled {
+  color: var(--mr-blue);
+  background: var(--mr-blue-soft);
+}
+
+.morador-retirada-card__content {
+  min-width: 0;
+  flex: 1;
+  padding: 0 16px 14px;
+}
+
+.morador-retirada-card__content h2 {
+  margin: 0 0 12px;
+  overflow: hidden;
+  color: var(--mr-text);
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.morador-retirada-card__recipient {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid var(--mr-border-soft);
+  border-radius: 11px;
+  color: var(--mr-blue);
+  background: var(--mr-soft-bg);
+}
+
+.morador-retirada-card__recipient > div {
+  min-width: 0;
+}
+
+.morador-retirada-card__recipient span,
+.morador-retirada-card__recipient strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.morador-retirada-card__recipient span {
+  color: var(--mr-muted);
+  font-size: 10px;
+}
+
+.morador-retirada-card__recipient strong {
+  margin-top: 2px;
+  color: var(--mr-text);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.morador-retirada-card__meta {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.morador-retirada-card__meta span,
+.morador-retirada-card__details span,
+.morador-retirada-card__schedule {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--mr-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.morador-retirada-card__meta svg,
+.morador-retirada-card__details svg,
+.morador-retirada-card__schedule svg {
+  flex: 0 0 auto;
+}
+
+.morador-retirada-card__schedule {
+  margin-top: 11px;
+  padding: 9px;
+  border-radius: 10px;
+  color: var(--mr-blue);
+  background: var(--mr-blue-soft);
+}
+
+.morador-retirada-card__details {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--mr-border-soft);
+}
+
+.morador-retirada-card__details strong {
+  margin-left: auto;
+  overflow: hidden;
+  color: var(--mr-text);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.morador-retirada-card__footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--mr-border-soft);
+}
+
+.morador-retirada-card__footer button {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  color: var(--mr-blue);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.morador-retirada-card__footer svg {
+  transition: transform 160ms ease;
+}
+
+.morador-retirada-card.is-open .morador-retirada-card__footer svg {
+  transform: rotate(180deg);
+}
+
+.morador-retirada-card.is-list {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.65fr) minmax(270px, 1.35fr) 135px;
+  align-items: stretch;
+}
+
+.morador-retirada-card.is-list .morador-retirada-card__header {
+  padding: 15px;
+}
+
+.morador-retirada-card.is-list .morador-retirada-card__content {
+  padding: 15px;
+  border-left: 1px solid var(--mr-border-soft);
+  border-right: 1px solid var(--mr-border-soft);
+}
+
+.morador-retirada-card.is-list .morador-retirada-card__content h2 {
+  margin-bottom: 8px;
+}
+
+.morador-retirada-card.is-list .morador-retirada-card__recipient {
+  padding: 8px;
+}
+
+.morador-retirada-card.is-list .morador-retirada-card__footer {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-top: 0;
+}
+
+@media (max-width: 820px) {
+  .morador-retirada-card.is-list {
+    display: flex;
+  }
+
+  .morador-retirada-card.is-list .morador-retirada-card__content {
+    padding: 0 16px 14px;
+    border: 0;
+  }
+
+  .morador-retirada-card.is-list .morador-retirada-card__footer {
+    display: block;
+    padding: 10px 16px;
+    border-top: 1px solid var(--mr-border-soft);
+  }
+}

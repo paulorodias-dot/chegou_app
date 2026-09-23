@@ -27,6 +27,15 @@ function numeroSeguro(valor) {
     : 0;
 }
 
+function inteiroNaoNegativo(valor) {
+  return Math.max(
+    0,
+    Math.trunc(
+      numeroSeguro(valor)
+    )
+  );
+}
+
 function montarTorreExibicao({
   nome,
   identificador,
@@ -220,6 +229,78 @@ function criarIndicadoresVazios() {
   };
 }
 
+export function criarResumoEncomendasDashboardVazio() {
+  return {
+    total: 0,
+
+    totalDisponiveis: 0,
+
+    totalEmRetirada: 0,
+
+    limite: 6,
+
+    possuiMais: false,
+
+    ordenacao: null,
+
+    timezoneIana: null,
+
+    itens: [],
+  };
+}
+
+function mapearEncomendaDashboard(item) {
+  return {
+    id:
+      item?.id || null,
+
+    numeroEncomenda:
+      item?.numero_encomenda ??
+      null,
+
+    status:
+      normalizarValor(
+        item?.status
+      ),
+
+    destinatarioTipo:
+      normalizarValor(
+        item?.destinatario_tipo
+      ),
+
+    destinatarioNome:
+      normalizarValor(
+        item?.destinatario_nome
+      ),
+
+    escopoDestino:
+      normalizarValor(
+        item?.escopo_destino
+      ),
+
+    transportadoraNome:
+      normalizarValor(
+        item?.transportadora_nome
+      ),
+
+    totalVolumes:
+      inteiroNaoNegativo(
+        item?.total_volumes
+      ),
+
+    disponibilizadoEm:
+      normalizarValor(
+        item?.disponibilizado_em
+      ),
+
+    tempoAguardandoSegundos:
+      inteiroNaoNegativo(
+        item
+          ?.tempo_aguardando_segundos
+      ),
+  };
+}
+
 /* =========================================================
    RESUMO OPERACIONAL DO MORADOR
    ========================================================= */
@@ -384,6 +465,114 @@ export async function carregarResumoOperacionalMorador() {
 }
 
 /* =========================================================
+   ENCOMENDAS DO DASHBOARD
+   ========================================================= */
+
+export async function carregarEncomendasDashboardMorador() {
+  const resumoVazio =
+    criarResumoEncomendasDashboardVazio();
+
+  const {
+    data,
+    error,
+  } = await supabase.rpc(
+    "rpc_morador_dashboard_encomendas_v1"
+  );
+
+  if (error) {
+    console.error(
+      "[Dashboard Morador] Erro ao carregar encomendas:",
+      error
+    );
+
+    throw error;
+  }
+
+  const resposta =
+    data &&
+    typeof data === "object" &&
+    !Array.isArray(data)
+      ? data
+      : null;
+
+  if (
+    !resposta ||
+    resposta.ok !== true
+  ) {
+    throw new Error(
+      "RESPOSTA_ENCOMENDAS_DASHBOARD_INVALIDA"
+    );
+  }
+
+  const itens =
+    normalizarArray(
+      resposta.itens
+    )
+      .map(
+        mapearEncomendaDashboard
+      )
+      .filter(
+        (item) =>
+          Boolean(item.id)
+      )
+      .slice(0, 6);
+
+  const total =
+    inteiroNaoNegativo(
+      resposta.total
+    );
+
+  const limite =
+    Math.min(
+      6,
+      Math.max(
+        1,
+        inteiroNaoNegativo(
+          resposta.limite
+        ) || 6
+      )
+    );
+
+  return {
+    ...resumoVazio,
+
+    total:
+      Math.max(
+        total,
+        itens.length
+      ),
+
+    totalDisponiveis:
+      inteiroNaoNegativo(
+        resposta.total_disponiveis
+      ),
+
+    totalEmRetirada:
+      inteiroNaoNegativo(
+        resposta.total_em_retirada
+      ),
+
+    limite,
+
+    possuiMais:
+      resposta.possui_mais ===
+        true,
+
+    ordenacao:
+      normalizarValor(
+        resposta.ordenacao
+      ),
+
+    timezoneIana:
+      normalizarValor(
+        resposta.timezone_iana
+      ),
+
+    itens,
+  };
+}
+
+/* =========================================================
    INDICADORES DO DASHBOARD
    ========================================================= */
 
@@ -446,16 +635,9 @@ export async function carregarIndicadoresDashboardMorador({
   return {
     ...indicadores,
 
-    /*
-     * Valor principal do card.
-     */
     rastreiosAtivos:
       total,
 
-    /*
-     * Contrato detalhado preparado
-     * para apresentação Enterprise.
-     */
     rastreioResumo: {
       total,
 

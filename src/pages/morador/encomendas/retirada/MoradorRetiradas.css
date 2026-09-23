@@ -1,0 +1,219 @@
+.morador-retiradas-page {
+  --mr-bg: #f8fafc;
+  --mr-card: #ffffff;
+  --mr-text: #0f172a;
+  --mr-muted: #64748b;
+  --mr-border: #e2e8f0;
+  --mr-border-soft: #edf2f7;
+  --mr-border-hover: #cbd5e1;
+  --mr-soft-bg: #f8fafc;
+  --mr-blue: #0f3f8f;
+  --mr-blue-soft: #eff6ff;
+  --mr-orange: #f97316;
+  --mr-orange-soft: #fff7ed;
+  --mr-success: #15803d;
+  --mr-success-soft: #f0fdf4;
+  --mr-warning: #b45309;
+  --mr-warning-soft: #fffbeb;
+  --mr-danger: #dc2626;
+  --mr-shadow-card: 0 8px 24px rgba(15, 23, 42, 0.055);
+  --mr-shadow-hover: 0 12px 30px rgba(15, 23, 42, 0.08);
+
+  width: 100%;
+  min-width: 0;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 28px 24px 40px;
+  box-sizing: border-box;
+  color: var(--mr-text);
+  background: var(--mr-bg);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.morador-retiradas-page *,
+.morador-retiradas-page *::before,
+.morador-retiradas-page *::after {
+  box-sizing: border-box;
+}
+
+.morador-retiradas-layout {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 20px;
+  align-items: start;
+}
+
+.morador-retiradas-main {
+  width: 100%;
+  min-width: 0;
+}
+
+.morador-retiradas-sidebar {
+  width: 360px;
+  min-width: 0;
+  position: sticky;
+  top: 20px;
+  align-self: start;
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.morador-retiradas-items {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.morador-retiradas-items.is-cards {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.morador-retiradas-items.is-list {
+  grid-template-columns: 1fr;
+}
+
+.morador-retiradas-load-more {
+  min-width: 170px;
+  min-height: 42px;
+  display: block;
+  margin: 18px auto 0;
+  padding: 0 18px;
+  border: 1px solid var(--mr-border);
+  border-radius: 12px;
+  color: var(--mr-blue);
+  background: var(--mr-card);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.morador-retiradas-load-more:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.morador-retiradas-page .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.dark .morador-retiradas-page,
+body.dark .morador-retiradas-page,
+body.modo-escuro .morador-retiradas-page,
+[data-theme="dark"] .morador-retiradas-page {
+  --mr-bg: #07111f;
+  --mr-card: #0f1b2d;
+  --mr-text: #e5e7eb;
+  --mr-muted: #94a3b8;
+  --mr-border: rgba(148, 163, 184, 0.2);
+  --mr-border-soft: rgba(148, 163, 184, 0.12);
+  --mr-border-hover: rgba(148, 163, 184, 0.34);
+  --mr-soft-bg: #111f33;
+  --mr-blue: #93c5fd;
+  --mr-blue-soft: rgba(59, 130, 246, 0.13);
+  --mr-orange: #fb923c;
+  --mr-orange-soft: rgba(249, 115, 22, 0.13);
+  --mr-success: #86efac;
+  --mr-success-soft: rgba(34, 197, 94, 0.13);
+  --mr-warning: #fcd34d;
+  --mr-warning-soft: rgba(245, 158, 11, 0.14);
+  --mr-danger: #fca5a5;
+  --mr-shadow-card: 0 12px 30px rgba(0, 0, 0, 0.2);
+  --mr-shadow-hover: 0 16px 38px rgba(0, 0, 0, 0.27);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] .morador-retiradas-page {
+    --mr-bg: #07111f;
+    --mr-card: #0f1b2d;
+    --mr-text: #e5e7eb;
+    --mr-muted: #94a3b8;
+    --mr-border: rgba(148, 163, 184, 0.2);
+    --mr-border-soft: rgba(148, 163, 184, 0.12);
+    --mr-border-hover: rgba(148, 163, 184, 0.34);
+    --mr-soft-bg: #111f33;
+    --mr-blue: #93c5fd;
+    --mr-blue-soft: rgba(59, 130, 246, 0.13);
+    --mr-orange: #fb923c;
+    --mr-orange-soft: rgba(249, 115, 22, 0.13);
+    --mr-success: #86efac;
+    --mr-success-soft: rgba(34, 197, 94, 0.13);
+    --mr-warning: #fcd34d;
+    --mr-warning-soft: rgba(245, 158, 11, 0.14);
+    --mr-danger: #fca5a5;
+    --mr-shadow-card: 0 12px 30px rgba(0, 0, 0, 0.2);
+    --mr-shadow-hover: 0 16px 38px rgba(0, 0, 0, 0.27);
+    color-scheme: dark;
+  }
+}
+
+@media (max-width: 1360px) {
+  .morador-retiradas-layout {
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 18px;
+  }
+
+  .morador-retiradas-sidebar {
+    width: 330px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .morador-retiradas-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .morador-retiradas-sidebar {
+    position: static;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 900px) {
+  .morador-retiradas-page {
+    padding: 24px 20px 104px;
+  }
+}
+
+@media (max-width: 760px) {
+  .morador-retiradas-items.is-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .morador-retiradas-page {
+    padding: 20px 14px calc(104px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .morador-retiradas-layout {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 430px) {
+  .morador-retiradas-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}

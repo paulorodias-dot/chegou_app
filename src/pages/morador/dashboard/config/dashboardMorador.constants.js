@@ -1,5 +1,6 @@
 export const DASHBOARD_MORADOR_VIEW = {
   DASHBOARD: "dashboard",
+
   CALENDAR: "calendar",
 };
 
@@ -16,7 +17,7 @@ export const DASHBOARD_MORADOR_ROUTES = {
     "morador-dashboard",
 
   encomendas:
-    "morador-encomendas-recebidas",
+    "morador-encomendas-retiradas",
 
   rastreio:
     "morador-encomendas-rastreio",

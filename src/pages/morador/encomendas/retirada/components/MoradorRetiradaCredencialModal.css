@@ -1,0 +1,812 @@
+.morador-retirada-credencial-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(8, 24, 48, 0.56);
+  backdrop-filter: blur(4px);
+}
+
+.morador-retirada-credencial-modal {
+  width: min(100%, 520px);
+  max-height: calc(100dvh - 40px);
+
+  overflow-y: auto;
+
+  border: 1px solid rgba(15, 63, 143, 0.14);
+  border-radius: 24px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 24px 70px rgba(8, 24, 48, 0.24);
+}
+
+.morador-retirada-credencial-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  padding: 20px 22px 17px;
+
+  border-bottom: 1px solid #e9eef5;
+}
+
+.morador-retirada-credencial-modal__heading {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+
+  gap: 13px;
+}
+
+.morador-retirada-credencial-modal__heading > div {
+  min-width: 0;
+}
+
+.morador-retirada-credencial-modal__heading span {
+  display: block;
+
+  margin-bottom: 2px;
+
+  color: #667085;
+
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+
+  text-transform: uppercase;
+}
+
+.morador-retirada-credencial-modal__heading h2 {
+  margin: 0;
+
+  color: #102a4c;
+
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.morador-retirada-credencial-modal__icon {
+  display: grid !important;
+
+  flex: 0 0 auto;
+
+  width: 42px;
+  height: 42px;
+
+  place-items: center;
+
+  margin: 0 !important;
+
+  border-radius: 13px;
+
+  color: #ffffff !important;
+  background: #0f3f8f;
+}
+
+.morador-retirada-credencial-modal__close {
+  display: grid;
+
+  flex: 0 0 auto;
+
+  width: 38px;
+  height: 38px;
+
+  padding: 0;
+
+  place-items: center;
+
+  border: 0;
+  border-radius: 12px;
+
+  color: #667085;
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.morador-retirada-credencial-modal__close:hover:not(:disabled) {
+  color: #102a4c;
+  background: #f2f5f9;
+}
+
+.morador-retirada-credencial-modal__close:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.morador-retirada-credencial-modal__body {
+  display: grid;
+
+  gap: 16px;
+
+  padding: 20px 22px;
+}
+
+.morador-retirada-credencial-modal__body.is-generated {
+  gap: 14px;
+}
+
+.morador-retirada-credencial-modal__intro {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 14px;
+}
+
+.morador-retirada-credencial-modal__credential-icons {
+  display: flex;
+
+  flex: 0 0 auto;
+
+  gap: 6px;
+}
+
+.morador-retirada-credencial-modal__credential-icons span {
+  display: grid;
+
+  width: 38px;
+  height: 38px;
+
+  place-items: center;
+
+  border-radius: 11px;
+
+  color: #0f3f8f;
+  background: #edf4ff;
+}
+
+.morador-retirada-credencial-modal__intro h3,
+.morador-retirada-credencial-modal__existing h3,
+.morador-retirada-credencial-modal__error h3 {
+  margin: 0 0 5px;
+
+  color: #102a4c;
+
+  font-size: 0.98rem;
+}
+
+.morador-retirada-credencial-modal__intro p,
+.morador-retirada-credencial-modal__security p,
+.morador-retirada-credencial-modal__existing p,
+.morador-retirada-credencial-modal__warning p,
+.morador-retirada-credencial-modal__error p {
+  margin: 0;
+
+  color: #667085;
+
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+/* =========================================================
+   DADOS DA ENCOMENDA
+   ========================================================= */
+
+.morador-retirada-credencial-modal__package {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 12px 18px;
+
+  padding: 14px 16px;
+
+  border: 1px solid #e4eaf2;
+  border-radius: 15px;
+
+  background: #f8fafc;
+}
+
+.morador-retirada-credencial-modal__package > div {
+  min-width: 0;
+}
+
+.morador-retirada-credencial-modal__package span {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #7b8798;
+
+  font-size: 0.75rem;
+}
+
+.morador-retirada-credencial-modal__package strong {
+  display: block;
+
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+
+  color: #263b57;
+
+  font-size: 0.86rem;
+}
+
+.morador-retirada-credencial-modal__package.is-compact {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* =========================================================
+   AVISOS
+   ========================================================= */
+
+.morador-retirada-credencial-modal__security,
+.morador-retirada-credencial-modal__validity {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 12px 13px;
+
+  border-radius: 13px;
+
+  color: #0f3f8f;
+  background: #f0f6ff;
+}
+
+.morador-retirada-credencial-modal__security svg,
+.morador-retirada-credencial-modal__validity svg {
+  flex: 0 0 auto;
+}
+
+.morador-retirada-credencial-modal__validity span {
+  color: #52657f;
+
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+/* =========================================================
+   SUCESSO
+   ========================================================= */
+
+.morador-retirada-credencial-modal__success {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  color: #176b43;
+}
+
+.morador-retirada-credencial-modal__success svg {
+  flex: 0 0 auto;
+}
+
+.morador-retirada-credencial-modal__success strong,
+.morador-retirada-credencial-modal__success span {
+  display: block;
+}
+
+.morador-retirada-credencial-modal__success strong {
+  margin-bottom: 2px;
+
+  font-size: 0.92rem;
+}
+
+.morador-retirada-credencial-modal__success span {
+  color: #667085;
+
+  font-size: 0.8rem;
+}
+
+/* =========================================================
+   TOKEN + QR
+   ========================================================= */
+
+.morador-retirada-credencial-modal__credential {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 18px;
+
+  padding: 16px;
+
+  border: 1px solid #dce6f2;
+  border-radius: 17px;
+
+  background: #ffffff;
+}
+
+.morador-retirada-credencial-modal__token {
+  min-width: 0;
+
+  text-align: center;
+}
+
+.morador-retirada-credencial-modal__token > span,
+.morador-retirada-credencial-modal__qr > span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #667085;
+
+  font-size: 0.76rem;
+  font-weight: 700;
+
+  text-transform: uppercase;
+}
+
+.morador-retirada-credencial-modal__token strong {
+  display: block;
+
+  color: #0f3f8f;
+
+  font-size: clamp(1.65rem, 5vw, 2.15rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+
+  white-space: nowrap;
+}
+
+.morador-retirada-credencial-modal__token small {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #8a96a8;
+
+  font-size: 0.72rem;
+}
+
+.morador-retirada-credencial-modal__qr {
+  text-align: center;
+}
+
+.morador-retirada-credencial-modal__qr-box {
+  display: grid;
+
+  padding: 7px;
+
+  place-items: center;
+
+  border: 1px solid #e3e9f1;
+  border-radius: 12px;
+
+  background: #ffffff;
+}
+
+.morador-retirada-credencial-modal__qr-box svg {
+  display: block;
+
+  width: 154px;
+  height: 154px;
+}
+
+/* =========================================================
+   CREDENCIAL EXISTENTE / ERRO
+   ========================================================= */
+
+.morador-retirada-credencial-modal__existing,
+.morador-retirada-credencial-modal__error {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 11px;
+
+  padding: 14px;
+
+  border-radius: 14px;
+}
+
+.morador-retirada-credencial-modal__existing {
+  color: #0f3f8f;
+  background: #f0f6ff;
+}
+
+.morador-retirada-credencial-modal__error {
+  color: #a33a32;
+  background: #fff3f2;
+}
+
+.morador-retirada-credencial-modal__existing svg,
+.morador-retirada-credencial-modal__error svg {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+}
+
+.morador-retirada-credencial-modal__warning {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  padding: 12px 13px;
+
+  border-radius: 13px;
+
+  color: #8a5a13;
+  background: #fff8e8;
+}
+
+.morador-retirada-credencial-modal__warning svg {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+}
+
+/* =========================================================
+   PROCESSAMENTO
+   ========================================================= */
+
+.morador-retirada-credencial-modal__processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 22px 16px;
+
+  text-align: center;
+
+  color: #0f3f8f;
+}
+
+.morador-retirada-credencial-modal__processing strong {
+  color: #263b57;
+
+  font-size: 0.95rem;
+}
+
+.morador-retirada-credencial-modal__processing span {
+  color: #7b8798;
+
+  font-size: 0.82rem;
+}
+
+.morador-retirada-credencial-modal__spinner {
+  animation:
+    morador-retirada-credencial-spin
+    0.85s linear infinite;
+}
+
+@keyframes morador-retirada-credencial-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.morador-retirada-credencial-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  padding: 16px 22px 20px;
+
+  border-top: 1px solid #e9eef5;
+}
+
+.morador-retirada-credencial-modal__footer button {
+  min-height: 44px;
+
+  padding: 0 17px;
+
+  border-radius: 13px;
+
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.morador-retirada-credencial-modal__secondary {
+  border: 1px solid #d7dee8;
+
+  color: #42526a;
+  background: #ffffff;
+}
+
+.morador-retirada-credencial-modal__secondary:hover {
+  background: #f8fafc;
+}
+
+.morador-retirada-credencial-modal__primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border: 1px solid #0f3f8f;
+
+  color: #ffffff;
+  background: #0f3f8f;
+}
+
+.morador-retirada-credencial-modal__primary:hover {
+  background: #0b3479;
+}
+
+.morador-retirada-credencial-modal__primary.is-full {
+  min-width: 140px;
+}
+
+.morador-retirada-credencial-modal__close:focus-visible,
+.morador-retirada-credencial-modal__footer button:focus-visible {
+  outline: 3px solid rgba(15, 63, 143, 0.24);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   RETIRADA CONCLUÍDA
+   ========================================================= */
+
+/*
+ * Resumo final:
+ * reforça a separação entre os dados da encomenda
+ * e os dados de quem realizou a retirada.
+ */
+.morador-retirada-credencial-modal__body
+  > .morador-retirada-credencial-modal__package
+  + .morador-retirada-credencial-modal__package {
+  background: #ffffff;
+}
+
+/*
+ * Histórico:
+ * mantém leitura simples e organizada sem transformar
+ * o modal em uma tela de auditoria técnica.
+ */
+.morador-retirada-credencial-modal__existing
+  + .morador-retirada-credencial-modal__package {
+  position: relative;
+
+  grid-template-columns: 1fr;
+
+  gap: 0;
+
+  padding: 4px 16px;
+
+  background: #ffffff;
+}
+
+.morador-retirada-credencial-modal__existing
+  + .morador-retirada-credencial-modal__package
+  > div {
+  position: relative;
+
+  padding:
+    13px
+    8px
+    13px
+    28px;
+}
+
+.morador-retirada-credencial-modal__existing
+  + .morador-retirada-credencial-modal__package
+  > div:not(:last-child) {
+  border-bottom: 1px solid #edf0f4;
+}
+
+/*
+ * Marcador de cada etapa.
+ */
+.morador-retirada-credencial-modal__existing
+  + .morador-retirada-credencial-modal__package
+  > div::before {
+  content: "";
+
+  position: absolute;
+
+  top: 18px;
+  left: 6px;
+
+  width: 9px;
+  height: 9px;
+
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+
+  background: #0f3f8f;
+
+  box-shadow:
+    0 0 0 2px rgba(15, 63, 143, 0.14);
+}
+
+/*
+ * Linha que conecta visualmente as etapas.
+ */
+.morador-retirada-credencial-modal__existing
+  + .morador-retirada-credencial-modal__package
+  > div:not(:last-child)::after {
+  content: "";
+
+  position: absolute;
+
+  top: 29px;
+  bottom: -6px;
+  left: 10px;
+
+  width: 1px;
+
+  background: #dbe5f3;
+}
+
+.morador-retirada-credencial-modal__existing
+  + .morador-retirada-credencial-modal__package
+  span {
+  margin-bottom: 4px;
+
+  color: #52657f;
+
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.morador-retirada-credencial-modal__existing
+  + .morador-retirada-credencial-modal__package
+  strong {
+  color: #263b57;
+
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .morador-retirada-credencial-backdrop {
+    align-items: flex-end;
+
+    padding: 8px;
+  }
+
+  .morador-retirada-credencial-modal {
+    max-height: calc(100dvh - 16px);
+
+    border-radius: 20px;
+  }
+
+  .morador-retirada-credencial-modal__header {
+    padding:
+      15px
+      16px
+      13px;
+  }
+
+  .morador-retirada-credencial-modal__icon {
+    width: 38px;
+    height: 38px;
+
+    border-radius: 11px;
+  }
+
+  .morador-retirada-credencial-modal__heading {
+    gap: 10px;
+  }
+
+  .morador-retirada-credencial-modal__heading span {
+    font-size: 0.68rem;
+  }
+
+  .morador-retirada-credencial-modal__heading h2 {
+    font-size: 1.05rem;
+  }
+
+  .morador-retirada-credencial-modal__body {
+    gap: 12px;
+
+    padding: 15px 16px;
+  }
+
+  .morador-retirada-credencial-modal__intro {
+    gap: 10px;
+  }
+
+  .morador-retirada-credencial-modal__credential-icons span {
+    width: 34px;
+    height: 34px;
+  }
+
+  .morador-retirada-credencial-modal__package {
+    gap: 9px 12px;
+
+    padding: 11px 12px;
+  }
+
+  .morador-retirada-credencial-modal__package span {
+    font-size: 0.69rem;
+  }
+
+  .morador-retirada-credencial-modal__package strong {
+    font-size: 0.79rem;
+  }
+
+  /*
+   * No estado gerado, Token + QR permanecem
+   * lado a lado sempre que houver largura suficiente.
+   */
+  .morador-retirada-credencial-modal__credential {
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+
+    gap: 10px;
+
+    padding: 11px;
+  }
+
+  .morador-retirada-credencial-modal__token strong {
+    font-size: 1.55rem;
+  }
+
+  .morador-retirada-credencial-modal__qr-box {
+    padding: 5px;
+  }
+
+  .morador-retirada-credencial-modal__qr-box svg {
+    width: 118px;
+    height: 118px;
+  }
+
+  .morador-retirada-credencial-modal__footer {
+    padding:
+      12px
+      16px
+      15px;
+  }
+
+  .morador-retirada-credencial-modal__footer button {
+    min-height: 42px;
+  }
+}
+
+/*
+ * Smartphones realmente estreitos:
+ * reduzimos mais o QR antes de empilhar.
+ */
+@media (max-width: 380px) {
+  .morador-retirada-credencial-modal__credential {
+    gap: 7px;
+
+    padding: 9px;
+  }
+
+  .morador-retirada-credencial-modal__token strong {
+    font-size: 1.35rem;
+  }
+
+  .morador-retirada-credencial-modal__qr-box svg {
+    width: 102px;
+    height: 102px;
+  }
+
+  .morador-retirada-credencial-modal__footer {
+    flex-direction: column-reverse;
+  }
+
+  .morador-retirada-credencial-modal__footer button {
+    width: 100%;
+  }
+}

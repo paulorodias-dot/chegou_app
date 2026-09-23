@@ -8,8 +8,10 @@ import {
 
 import {
   carregarAgendaDashboardMorador,
+  carregarEncomendasDashboardMorador,
   carregarIndicadoresDashboardMorador,
   carregarResumoOperacionalMorador,
+  criarResumoEncomendasDashboardVazio,
 } from "../services/dashboardMorador.service";
 
 const INDICADORES_INICIAIS = {
@@ -28,6 +30,17 @@ const INDICADORES_INICIAIS = {
 
   servicosAgendados: null,
 };
+
+function criarIndicadoresIniciais() {
+  return {
+    ...INDICADORES_INICIAIS,
+
+    rastreioResumo: {
+      ...INDICADORES_INICIAIS
+        .rastreioResumo,
+    },
+  };
+}
 
 function resolverPrimeiroNome(nome) {
   const partes = String(nome || "")
@@ -73,7 +86,14 @@ export default function useDashboardMorador({
     indicadores,
     setIndicadores,
   ] = useState(
-    INDICADORES_INICIAIS
+    criarIndicadoresIniciais
+  );
+
+  const [
+    encomendasResumo,
+    setEncomendasResumo,
+  ] = useState(
+    criarResumoEncomendasDashboardVazio
   );
 
   const [
@@ -84,6 +104,11 @@ export default function useDashboardMorador({
   const [
     carregando,
     setCarregando,
+  ] = useState(true);
+
+  const [
+    carregandoEncomendas,
+    setCarregandoEncomendas,
   ] = useState(true);
 
   const [
@@ -99,6 +124,11 @@ export default function useDashboardMorador({
   const [
     erroIndicadores,
     setErroIndicadores,
+  ] = useState(null);
+
+  const [
+    erroEncomendas,
+    setErroEncomendas,
   ] = useState(null);
 
   const [
@@ -170,7 +200,11 @@ export default function useDashboardMorador({
           setResumo(null);
 
           setIndicadores(
-            INDICADORES_INICIAIS
+            criarIndicadoresIniciais()
+          );
+
+          setEncomendasResumo(
+            criarResumoEncomendasDashboardVazio()
           );
 
           setEventos([]);
@@ -179,9 +213,15 @@ export default function useDashboardMorador({
 
           setErroIndicadores(null);
 
+          setErroEncomendas(null);
+
           setErroAgenda(null);
 
           setCarregando(false);
+
+          setCarregandoEncomendas(
+            false
+          );
 
           setRecarregando(false);
         }
@@ -195,6 +235,10 @@ export default function useDashboardMorador({
         setCarregando(true);
       }
 
+      setCarregandoEncomendas(
+        true
+      );
+
       const resultados =
         await Promise.allSettled([
           carregarResumoOperacionalMorador(),
@@ -204,6 +248,8 @@ export default function useDashboardMorador({
           }),
 
           carregarAgendaDashboardMorador(),
+
+          carregarEncomendasDashboardMorador(),
         ]);
 
       if (
@@ -216,6 +262,7 @@ export default function useDashboardMorador({
         resultadoResumo,
         resultadoIndicadores,
         resultadoAgenda,
+        resultadoEncomendas,
       ] = resultados;
 
       /* RESUMO */
@@ -243,6 +290,39 @@ export default function useDashboardMorador({
         );
       }
 
+      /* ENCOMENDAS */
+
+      let proximoResumoEncomendas =
+        criarResumoEncomendasDashboardVazio();
+
+      let proximoErroEncomendas =
+        null;
+
+      if (
+        resultadoEncomendas.status ===
+        "fulfilled"
+      ) {
+        proximoResumoEncomendas =
+          resultadoEncomendas.value ||
+          criarResumoEncomendasDashboardVazio();
+      } else {
+        console.error(
+          "[Dashboard Morador] Erro ao carregar encomendas:",
+          resultadoEncomendas.reason
+        );
+
+        proximoErroEncomendas =
+          resultadoEncomendas.reason;
+      }
+
+      setEncomendasResumo(
+        proximoResumoEncomendas
+      );
+
+      setErroEncomendas(
+        proximoErroEncomendas
+      );
+
       /* INDICADORES */
 
       if (
@@ -250,10 +330,16 @@ export default function useDashboardMorador({
         "fulfilled"
       ) {
         setIndicadores({
-          ...INDICADORES_INICIAIS,
+          ...criarIndicadoresIniciais(),
 
           ...(resultadoIndicadores.value ||
             {}),
+
+          encomendasAguardando:
+            proximoErroEncomendas
+              ? null
+              : proximoResumoEncomendas
+                  .total,
         });
 
         setErroIndicadores(null);
@@ -263,9 +349,15 @@ export default function useDashboardMorador({
           resultadoIndicadores.reason
         );
 
-        setIndicadores(
-          INDICADORES_INICIAIS
-        );
+        setIndicadores({
+          ...criarIndicadoresIniciais(),
+
+          encomendasAguardando:
+            proximoErroEncomendas
+              ? null
+              : proximoResumoEncomendas
+                  .total,
+        });
 
         setErroIndicadores(
           resultadoIndicadores.reason
@@ -302,6 +394,10 @@ export default function useDashboardMorador({
 
       setCarregando(false);
 
+      setCarregandoEncomendas(
+        false
+      );
+
       setRecarregando(false);
     },
     [
@@ -317,6 +413,67 @@ export default function useDashboardMorador({
           modoRecarga: true,
         }),
       [carregar]
+    );
+
+  const recarregarEncomendas =
+    useCallback(
+      async () => {
+        if (!usuarioId) {
+          return;
+        }
+
+        setCarregandoEncomendas(
+          true
+        );
+
+        try {
+          const resultado =
+            await carregarEncomendasDashboardMorador();
+
+          if (
+            !montadoRef.current
+          ) {
+            return;
+          }
+
+          setEncomendasResumo(
+            resultado
+          );
+
+          setIndicadores(
+            (indicadoresAtuais) => ({
+              ...indicadoresAtuais,
+
+              encomendasAguardando:
+                resultado.total,
+            })
+          );
+
+          setErroEncomendas(null);
+        } catch (error) {
+          console.error(
+            "[Dashboard Morador] Erro ao recarregar encomendas:",
+            error
+          );
+
+          if (
+            montadoRef.current
+          ) {
+            setErroEncomendas(
+              error
+            );
+          }
+        } finally {
+          if (
+            montadoRef.current
+          ) {
+            setCarregandoEncomendas(
+              false
+            );
+          }
+        }
+      },
+      [usuarioId]
     );
 
   useEffect(() => {
@@ -342,9 +499,13 @@ export default function useDashboardMorador({
 
     indicadores,
 
+    encomendasResumo,
+
     eventos,
 
     carregando,
+
+    carregandoEncomendas,
 
     recarregando,
 
@@ -352,15 +513,20 @@ export default function useDashboardMorador({
 
     erroIndicadores,
 
+    erroEncomendas,
+
     erroAgenda,
 
     temErroParcial:
       Boolean(
         erroResumo ||
         erroIndicadores ||
+        erroEncomendas ||
         erroAgenda
       ),
 
     recarregar,
+
+    recarregarEncomendas,
   };
 }

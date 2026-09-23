@@ -21,9 +21,9 @@
  * revisar estes identificadores antes de cada publicação que alterar o
  * Service Worker.
  */
-const SERVICE_WORKER_VERSION = "chegou-sw-2026.09.02.001";
-const RELEASE_ID = "2026.09.02.001";
-const APP_VERSION = "1.2.8";
+const SERVICE_WORKER_VERSION = "chegou-sw-2026.09.23.001";
+const RELEASE_ID = "2026.09.23.001";
+const APP_VERSION = "1.3.0";
 const SERVICE_WORKER_SCHEMA_VERSION = 1;
 const CACHE_PREFIX = "chegou-";
 

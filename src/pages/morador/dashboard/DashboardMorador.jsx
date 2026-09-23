@@ -54,13 +54,21 @@ export default function DashboardMorador({
 
     indicadores,
 
+    encomendasResumo,
+
     eventos,
 
     carregando,
 
+    carregandoEncomendas,
+
     erroResumo,
 
+    erroEncomendas,
+
     erroAgenda,
+
+    recarregarEncomendas,
   } = useDashboardMorador({
     usuario: usuarioAtual,
   });
@@ -100,6 +108,18 @@ export default function DashboardMorador({
                 }
                 carregando={
                   carregando
+                }
+                encomendasResumo={
+                  encomendasResumo
+                }
+                carregandoEncomendas={
+                  carregandoEncomendas
+                }
+                erroEncomendas={
+                  erroEncomendas
+                }
+                onRetryEncomendas={
+                  recarregarEncomendas
                 }
                 onNavigate={
                   onNavigate

@@ -1,0 +1,137 @@
+.morador-retiradas-toolbar {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 10px;
+  border: 1px solid var(--mr-border);
+  border-radius: 14px;
+  background: var(--mr-card);
+  box-shadow: var(--mr-shadow-card);
+}
+
+.morador-retiradas-toolbar__tabs,
+.morador-retiradas-toolbar__controls,
+.morador-retiradas-toolbar__view {
+  display: flex;
+  align-items: center;
+}
+
+.morador-retiradas-toolbar__tabs {
+  min-width: 0;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.morador-retiradas-toolbar__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.morador-retiradas-toolbar__tabs button {
+  min-height: 36px;
+  flex: 0 0 auto;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--mr-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.morador-retiradas-toolbar__tabs button.is-active {
+  color: var(--mr-blue);
+  background: var(--mr-blue-soft);
+}
+
+.morador-retiradas-toolbar__controls {
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
+.morador-retiradas-toolbar__total {
+  color: var(--mr-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.morador-retiradas-toolbar__order select {
+  min-height: 36px;
+  max-width: 190px;
+  padding: 0 32px 0 10px;
+  border: 1px solid var(--mr-border);
+  border-radius: 10px;
+  color: var(--mr-text);
+  background: var(--mr-card);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.morador-retiradas-toolbar__view {
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--mr-border);
+  border-radius: 10px;
+  background: var(--mr-soft-bg);
+}
+
+.morador-retiradas-toolbar__view button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  color: var(--mr-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.morador-retiradas-toolbar__view button.is-active {
+  color: var(--mr-blue);
+  background: var(--mr-card);
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 760px) {
+  .morador-retiradas-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .morador-retiradas-toolbar__tabs {
+    width: 100%;
+  }
+
+  .morador-retiradas-toolbar__tabs button {
+    flex: 1 0 auto;
+  }
+
+  .morador-retiradas-toolbar__controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 560px) {
+  .morador-retiradas-toolbar__total {
+    display: none;
+  }
+
+  .morador-retiradas-toolbar__order {
+    flex: 1;
+  }
+
+  .morador-retiradas-toolbar__order select {
+    width: 100%;
+    max-width: none;
+    font-size: 16px;
+  }
+}

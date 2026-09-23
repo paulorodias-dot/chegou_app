@@ -1,0 +1,841 @@
+/* ============================================================
+   SISTEMA CHEGOU!
+   CENTRAL DE ENCOMENDAS — ENTREGA
+   BUSCA OPERACIONAL — ENTERPRISE
+============================================================ */
+
+
+/* ============================================================
+   1. CONTAINER
+============================================================ */
+
+.entrega-busca {
+  padding: 20px 22px;
+
+  border-bottom:
+    1px solid var(--ent-border);
+
+  background:
+    var(--ent-surface);
+}
+
+
+/* ============================================================
+   2. CABEÇALHO
+============================================================ */
+
+.entrega-busca__heading {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 11px;
+
+  margin-bottom: 17px;
+}
+
+
+.entrega-busca__heading-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 38px;
+
+  border:
+    1px solid var(--ent-border);
+
+  border-radius: 11px;
+
+  background:
+    var(--ent-surface-soft);
+
+  color:
+    var(--ent-primary);
+}
+
+
+.entrega-busca__heading h3 {
+  margin: 0;
+
+  color:
+    var(--ent-text);
+
+  font-size: 14px;
+  font-weight: 750;
+
+  line-height: 1.35;
+}
+
+
+.entrega-busca__heading p {
+  max-width: 670px;
+
+  margin:
+    4px 0 0;
+
+  color:
+    var(--ent-muted);
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   3. MODOS
+============================================================ */
+
+.entrega-busca__modes {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 8px;
+
+  margin-bottom: 16px;
+}
+
+
+.entrega-busca-mode {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+  min-height: 58px;
+
+  gap: 9px;
+
+  padding:
+    10px 11px;
+
+  border:
+    1px solid var(--ent-border);
+
+  border-radius: 11px;
+
+  background:
+    var(--ent-surface-soft);
+
+  color:
+    var(--ent-text-secondary);
+
+  cursor: pointer;
+
+  text-align: left;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+
+.entrega-busca-mode:hover:not(:disabled) {
+  border-color:
+    var(--ent-border-strong);
+
+  background:
+    var(--ent-surface-hover);
+
+  transform:
+    translateY(-1px);
+}
+
+
+.entrega-busca-mode:focus-visible {
+  outline:
+    3px solid
+    color-mix(
+      in srgb,
+      var(--ent-primary) 22%,
+      transparent
+    );
+
+  outline-offset:
+    2px;
+}
+
+
+.entrega-busca-mode--active {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--ent-primary) 46%,
+      var(--ent-border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--ent-primary) 7%,
+      var(--ent-surface)
+    );
+
+  box-shadow:
+    inset 0 0 0 1px
+    color-mix(
+      in srgb,
+      var(--ent-primary) 8%,
+      transparent
+    );
+}
+
+
+.entrega-busca-mode--active::after {
+  position: absolute;
+
+  right: 10px;
+  top: 9px;
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background:
+    var(--ent-primary);
+
+  content: "";
+}
+
+
+.entrega-busca-mode:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.65;
+}
+
+
+.entrega-busca-mode__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 31px;
+  height: 31px;
+
+  flex: 0 0 31px;
+
+  border-radius: 9px;
+
+  background:
+    var(--ent-surface);
+
+  color:
+    var(--ent-muted);
+}
+
+
+.entrega-busca-mode--active
+.entrega-busca-mode__icon {
+  color:
+    var(--ent-primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--ent-primary) 9%,
+      var(--ent-surface)
+    );
+}
+
+
+.entrega-busca-mode__text {
+  display: grid;
+
+  min-width: 0;
+}
+
+
+.entrega-busca-mode__text strong {
+  overflow: hidden;
+
+  color:
+    var(--ent-text-secondary);
+
+  font-size: 11px;
+  font-weight: 750;
+
+  line-height: 1.3;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+.entrega-busca-mode--active
+.entrega-busca-mode__text strong {
+  color:
+    var(--ent-text);
+}
+
+
+.entrega-busca-mode__text small {
+  overflow: hidden;
+
+  margin-top: 2px;
+
+  color:
+    var(--ent-muted);
+
+  font-size: 10px;
+  font-weight: 500;
+
+  line-height: 1.3;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* ============================================================
+   4. FORM
+============================================================ */
+
+.entrega-busca__form {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+
+  align-items: end;
+
+  gap: 10px;
+}
+
+
+.entrega-busca__field {
+  display: grid;
+
+  min-width: 0;
+
+  gap: 6px;
+}
+
+
+.entrega-busca__label {
+  color:
+    var(--ent-text-secondary);
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+
+.entrega-busca__input-shell {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+  min-height: 46px;
+
+  border:
+    1px solid
+    var(--ent-border-strong);
+
+  border-radius: 11px;
+
+  background:
+    var(--ent-surface);
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+
+.entrega-busca__input-shell:focus-within {
+  border-color:
+    var(--ent-primary);
+
+  box-shadow:
+    0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--ent-primary) 12%,
+      transparent
+    );
+}
+
+
+.entrega-busca__input-shell--error {
+  border-color:
+    #dc2626;
+}
+
+
+.entrega-busca__input-icon {
+  flex: 0 0 auto;
+
+  margin-left: 13px;
+
+  color:
+    var(--ent-muted);
+}
+
+
+.entrega-busca__input-shell input {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+
+  padding:
+    0 13px 0 10px;
+
+  border: 0;
+  outline: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--ent-text);
+
+  font-size: 14px;
+  font-weight: 550;
+
+  line-height: 1;
+}
+
+
+.entrega-busca__input-shell input::placeholder {
+  color:
+    var(--ent-muted-soft);
+
+  opacity: 1;
+}
+
+
+.entrega-busca__input-shell
+input:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.65;
+}
+
+
+/* ============================================================
+   5. BOTÃO IR
+============================================================ */
+
+.entrega-busca__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 92px;
+  height: 46px;
+
+  gap: 7px;
+
+  padding:
+    0 17px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background:
+    var(--ent-primary);
+
+  color:
+    #ffffff;
+
+  cursor: pointer;
+
+  font-size: 13px;
+  font-weight: 750;
+
+  box-shadow:
+    0 5px 14px
+    color-mix(
+      in srgb,
+      var(--ent-primary) 20%,
+      transparent
+    );
+
+  transition:
+    background 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.entrega-busca__submit:hover:not(:disabled) {
+  background:
+    var(--ent-primary-hover);
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 7px 18px
+    color-mix(
+      in srgb,
+      var(--ent-primary) 24%,
+      transparent
+    );
+}
+
+
+.entrega-busca__submit:active:not(:disabled) {
+  transform:
+    translateY(0);
+}
+
+
+.entrega-busca__submit:focus-visible {
+  outline:
+    3px solid
+    color-mix(
+      in srgb,
+      var(--ent-primary) 24%,
+      transparent
+    );
+
+  outline-offset:
+    2px;
+}
+
+
+.entrega-busca__submit:disabled {
+  cursor: not-allowed;
+
+  box-shadow: none;
+
+  opacity: 0.5;
+}
+
+
+/* ============================================================
+   6. HELPER / ERRO
+============================================================ */
+
+.entrega-busca__helper {
+  margin:
+    7px 0 0;
+
+  color:
+    var(--ent-muted-soft);
+
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+
+.entrega-busca__helper strong {
+  color:
+    var(--ent-muted);
+
+  font-weight: 700;
+}
+
+
+.entrega-busca__error {
+  margin-top: 8px;
+
+  padding:
+    9px 11px;
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      #dc2626 26%,
+      var(--ent-border)
+    );
+
+  border-radius: 9px;
+
+  background:
+    color-mix(
+      in srgb,
+      #dc2626 6%,
+      var(--ent-surface)
+    );
+
+  color:
+    #b91c1c;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  line-height: 1.45;
+}
+
+
+/* ============================================================
+   7. LOADING
+============================================================ */
+
+.entrega-busca__spinner {
+  animation:
+    entrega-busca-spin
+    850ms
+    linear
+    infinite;
+}
+
+
+@keyframes entrega-busca-spin {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+
+/* ============================================================
+   8. TABLET
+============================================================ */
+
+@media (max-width: 900px) {
+
+  .entrega-busca__modes {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* ============================================================
+   9. MOBILE
+============================================================ */
+
+@media (max-width: 680px) {
+
+  .entrega-busca {
+    padding:
+      16px;
+  }
+
+
+  .entrega-busca__heading {
+    margin-bottom:
+      14px;
+  }
+
+
+  .entrega-busca__modes {
+    gap:
+      7px;
+
+    margin-bottom:
+      14px;
+  }
+
+
+  .entrega-busca-mode {
+    min-height:
+      54px;
+
+    padding:
+      9px;
+  }
+
+
+  .entrega-busca-mode__text small {
+    display:
+      none;
+  }
+
+
+  .entrega-busca__form {
+    grid-template-columns:
+      minmax(0, 1fr)
+      72px;
+
+    gap:
+      8px;
+  }
+
+
+  /*
+   * Safari iPhone:
+   * 16px impede o zoom automático ao focar o input.
+   */
+
+  .entrega-busca__input-shell input {
+    font-size:
+      16px;
+  }
+
+
+  .entrega-busca__submit {
+    min-width:
+      72px;
+
+    padding:
+      0 12px;
+
+    font-size:
+      13px;
+  }
+}
+
+
+/* ============================================================
+   10. MOBILE PEQUENO
+============================================================ */
+
+@media (max-width: 430px) {
+
+  .entrega-busca-mode__icon {
+    width:
+      28px;
+
+    height:
+      28px;
+
+    flex-basis:
+      28px;
+  }
+
+
+  .entrega-busca-mode {
+    gap:
+      7px;
+  }
+
+
+  .entrega-busca-mode__text strong {
+    font-size:
+      10px;
+  }
+}
+
+
+/* ============================================================
+   11. TEMA ESCURO
+============================================================ */
+
+html[data-chegou-theme="dark"]
+.entrega-busca__error,
+html[data-theme="dark"]
+.entrega-busca__error,
+body[data-theme="dark"]
+.entrega-busca__error,
+body.dark
+.entrega-busca__error {
+  color:
+    #fca5a5;
+}
+
+
+@media (prefers-color-scheme: dark) {
+
+  html:not([data-chegou-theme="light"]):not([data-theme="light"])
+  .entrega-busca__error {
+    color:
+      #fca5a5;
+  }
+}
+
+
+/* ============================================================
+   12. ACESSIBILIDADE
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .entrega-busca-mode,
+  .entrega-busca__input-shell,
+  .entrega-busca__submit {
+    transition:
+      none;
+  }
+
+
+  .entrega-busca__spinner {
+    animation-duration:
+      1.8s;
+  }
+}
+
+/* ============================================================
+   RET-01K.17H.4 — AÇÃO LIMPAR
+   Acrescentar ao final de EntregaBusca.css
+   ============================================================ */
+
+.entrega-busca__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.entrega-busca__heading-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.entrega-busca__clear {
+  min-height: 40px;
+  padding: 0 12px;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--ent-border);
+  border-radius: 10px;
+  background: var(--ent-surface-soft);
+  color: var(--ent-text-secondary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.entrega-busca__clear:hover:not(:disabled) {
+  border-color: var(--ent-border-strong);
+  background: var(--ent-surface);
+  color: var(--ent-text);
+}
+
+.entrega-busca__clear:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.entrega-busca__clear:focus-visible {
+  outline: 2px solid var(--ent-primary);
+  outline-offset: 2px;
+}
+
+.entrega-busca__clear:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 680px) {
+  .entrega-busca__heading {
+    flex-wrap: wrap;
+  }
+
+  .entrega-busca__heading-content {
+    flex-basis: calc(100% - 58px);
+  }
+
+  .entrega-busca__clear {
+    min-height: 44px;
+    padding-inline: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entrega-busca__clear {
+    transition: none;
+  }
+}

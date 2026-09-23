@@ -52,7 +52,8 @@
 
   color: var(--dm-orange);
 
-  background: #fff7ed;
+  background:
+    var(--dm-orange-soft);
 }
 
 .dashboard-morador-summary-card__header
@@ -152,7 +153,6 @@
   text-align: right;
 
   text-overflow: ellipsis;
-
   white-space: nowrap;
 }
 
@@ -195,6 +195,15 @@
   font-family: inherit;
 
   cursor: pointer;
+
+  touch-action: manipulation;
+}
+
+.dashboard-morador-summary-accordion__trigger:focus-visible {
+  outline: 3px solid
+    var(--dm-focus-ring);
+
+  outline-offset: -3px;
 }
 
 .dashboard-morador-summary-accordion__trigger
@@ -312,7 +321,7 @@
   border-radius: 999px;
 
   background:
-    rgba(249, 115, 22, 0.09);
+    var(--dm-orange-soft);
 
   color: var(--dm-orange);
 
@@ -390,7 +399,8 @@
 
   color: var(--dm-blue);
 
-  background: #eff6ff;
+  background:
+    var(--dm-blue-soft);
 }
 
 .dashboard-morador-dependent-item
@@ -471,38 +481,6 @@
 
   font-size: 12px;
   line-height: 1.45;
-}
-
-/* =========================================================
-   DARK MODE
-   ========================================================= */
-
-.dark
-  .dashboard-morador-summary-card__icon,
-[data-theme="dark"]
-  .dashboard-morador-summary-card__icon {
-  background:
-    rgba(249, 115, 22, 0.13);
-}
-
-.dark
-  .dashboard-morador-dependent-item__avatar,
-[data-theme="dark"]
-  .dashboard-morador-dependent-item__avatar {
-  background:
-    rgba(59, 130, 246, 0.13);
-}
-
-.dark
-  .dashboard-morador-garage-item
-  header
-  > span,
-[data-theme="dark"]
-  .dashboard-morador-garage-item
-  header
-  > span {
-  background:
-    rgba(249, 115, 22, 0.13);
 }
 
 /* =========================================================

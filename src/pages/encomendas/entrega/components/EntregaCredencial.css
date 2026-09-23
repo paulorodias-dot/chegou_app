@@ -1,0 +1,759 @@
+/* ============================================================
+   SISTEMA CHEGOU!
+   CENTRAL DE ENCOMENDAS — ENTREGA
+   CREDENCIAL DE RETIRADA
+============================================================ */
+
+
+.entrega-credencial {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  margin-top: 18px;
+  padding: 20px;
+
+  border: 1px solid #dbe4f0;
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 10px 30px rgba(15, 63, 143, 0.06);
+}
+
+
+/* ============================================================
+   CABEÇALHO
+============================================================ */
+
+.entrega-credencial__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+
+.entrega-credencial__header-icon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 38px;
+
+  border-radius: 12px;
+
+  color: #0f3f8f;
+  background: #edf4ff;
+}
+
+
+.entrega-credencial__header-content {
+  min-width: 0;
+}
+
+
+.entrega-credencial__eyebrow {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+
+.entrega-credencial__header h4 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+
+.entrega-credencial__header p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   PESSOA SELECIONADA
+============================================================ */
+
+.entrega-credencial__person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 14px;
+
+  border: 1px solid #dce9df;
+  border-radius: 13px;
+
+  background: #f6fbf7;
+}
+
+
+.entrega-credencial__person-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #16803d;
+}
+
+
+.entrega-credencial__person > div {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+
+.entrega-credencial__person span {
+  color: #64748b;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+
+.entrega-credencial__person strong {
+  overflow: hidden;
+
+  color: #172033;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   MÉTODO
+============================================================ */
+
+.entrega-credencial__method {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+
+.entrega-credencial__label {
+  color: #475569;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+.entrega-credencial__method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+
+.entrega-credencial-method {
+  width: 100%;
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px;
+
+  border: 1px solid #dbe4f0;
+  border-radius: 13px;
+
+  background: #ffffff;
+  color: #172033;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+
+.entrega-credencial-method:hover:not(:disabled) {
+  border-color: #9bb7df;
+
+  background: #f8fbff;
+
+  transform: translateY(-1px);
+}
+
+
+.entrega-credencial-method--selected {
+  border-color: #0f3f8f;
+
+  background: #f3f7fd;
+
+  box-shadow:
+    0 0 0 2px rgba(15, 63, 143, 0.08);
+}
+
+
+.entrega-credencial-method:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+
+.entrega-credencial-method__icon {
+  width: 35px;
+  height: 35px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 35px;
+
+  border-radius: 10px;
+
+  color: #0f3f8f;
+  background: #edf4ff;
+}
+
+
+.entrega-credencial-method__content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+
+.entrega-credencial-method__content strong {
+  color: #172033;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+
+.entrega-credencial-method__content small {
+  color: #64748b;
+
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+
+/* ============================================================
+   CONTEÚDO
+============================================================ */
+
+.entrega-credencial__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  padding: 16px;
+
+  border: 1px solid #e4eaf2;
+  border-radius: 14px;
+
+  background: #fafcff;
+}
+
+
+.entrega-credencial__instruction {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+
+  color: #0f3f8f;
+}
+
+
+.entrega-credencial__instruction > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+
+.entrega-credencial__instruction strong {
+  color: #172033;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+
+.entrega-credencial__instruction span {
+  color: #64748b;
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+
+/* ============================================================
+   CÓDIGO
+============================================================ */
+
+.entrega-credencial__code {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+
+.entrega-credencial__code input {
+  width: 100%;
+  min-height: 52px;
+
+  box-sizing: border-box;
+
+  padding: 10px 14px;
+
+  border: 1px solid #cfd9e6;
+  border-radius: 12px;
+
+  outline: none;
+
+  background: #ffffff;
+  color: #172033;
+
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+
+  letter-spacing: 0.22em;
+  text-align: center;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.entrega-credencial__code input:focus {
+  border-color: #0f3f8f;
+
+  box-shadow:
+    0 0 0 3px rgba(15, 63, 143, 0.1);
+}
+
+
+.entrega-credencial__code input:disabled {
+  background: #f1f5f9;
+
+  cursor: not-allowed;
+}
+
+
+.entrega-credencial__code input::placeholder {
+  color: #a8b3c2;
+}
+
+
+.entrega-credencial__code-helper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  color: #7b8798;
+
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+
+.entrega-credencial__code-helper span:first-child {
+  flex: 0 0 auto;
+
+  font-weight: 800;
+}
+
+
+/* ============================================================
+   QR
+============================================================ */
+
+.entrega-credencial__qr {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 14px;
+
+  border: 1px dashed #b8c8dd;
+  border-radius: 13px;
+
+  background: #ffffff;
+}
+
+
+.entrega-credencial__qr-icon {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 52px;
+
+  border-radius: 13px;
+
+  color: #0f3f8f;
+  background: #edf4ff;
+}
+
+
+.entrega-credencial__qr-content {
+  min-width: 0;
+}
+
+
+.entrega-credencial__qr-content strong {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #172033;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+
+.entrega-credencial__qr-content p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+
+/* ============================================================
+   BOTÃO PRINCIPAL
+============================================================ */
+
+.entrega-credencial__primary {
+  min-height: 43px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 10px 16px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background: #0f3f8f;
+  color: #ffffff;
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.entrega-credencial__primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 18px rgba(15, 63, 143, 0.2);
+}
+
+
+.entrega-credencial__primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+
+/* ============================================================
+   ESTADO INICIAL
+============================================================ */
+
+.entrega-credencial__empty {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 12px 14px;
+
+  border-radius: 12px;
+
+  background: #f8fafc;
+  color: #64748b;
+}
+
+
+.entrega-credencial__empty svg {
+  flex: 0 0 auto;
+
+  color: #0f3f8f;
+}
+
+
+.entrega-credencial__empty p {
+  margin: 0;
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+
+/* ============================================================
+   OUTRAS OPÇÕES
+============================================================ */
+
+.entrega-credencial__alternative {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  padding-top: 15px;
+
+  border-top: 1px solid #edf0f4;
+}
+
+
+.entrega-credencial__alternative-text {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+
+.entrega-credencial__alternative-text span {
+  color: #334155;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+.entrega-credencial__alternative-text small {
+  color: #7b8798;
+
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+
+.entrega-credencial__alternative button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  flex: 0 0 auto;
+
+  padding: 8px 10px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+  color: #0f3f8f;
+
+  cursor: pointer;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+.entrega-credencial__alternative button:hover:not(:disabled) {
+  background: #edf4ff;
+}
+
+
+.entrega-credencial__alternative button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+
+/* ============================================================
+   AVISO
+============================================================ */
+
+.entrega-credencial__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  padding: 11px 12px;
+
+  border: 1px solid #f1dfb8;
+  border-radius: 11px;
+
+  background: #fffaf0;
+  color: #765516;
+}
+
+
+.entrega-credencial__notice svg {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+}
+
+
+.entrega-credencial__notice p {
+  margin: 0;
+
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 680px) {
+
+  .entrega-credencial {
+    gap: 15px;
+
+    margin-top: 14px;
+    padding: 15px;
+
+    border-radius: 15px;
+  }
+
+
+  .entrega-credencial__method-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .entrega-credencial-method {
+    padding: 11px;
+  }
+
+
+  .entrega-credencial__body {
+    padding: 13px;
+  }
+
+
+  .entrega-credencial__code input {
+    min-height: 50px;
+
+    /*
+     * 16px ou mais evita zoom automático
+     * em navegadores mobile.
+     */
+    font-size: 20px;
+  }
+
+
+  .entrega-credencial__code-helper {
+    align-items: flex-start;
+  }
+
+
+  .entrega-credencial__qr {
+    align-items: flex-start;
+  }
+
+
+  .entrega-credencial__alternative {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+
+  .entrega-credencial__alternative button {
+    align-self: flex-start;
+  }
+
+
+  .entrega-credencial__primary {
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   CONFIRMAÇÃO DA PESSOA
+============================================================ */
+
+.entrega-credencial__identity-confirmation {
+  margin-top: 14px;
+}
+
+.entrega-credencial__identity-confirmation label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.entrega-credencial__identity-confirmation input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.entrega-credencial__identity-confirmation span {
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.entrega-credencial__identity-confirmation input:disabled {
+  cursor: not-allowed;
+}
+
+.entrega-credencial__identity-confirmation label:has(
+  input:disabled
+) {
+  cursor: not-allowed;
+  opacity: 0.65;
+}

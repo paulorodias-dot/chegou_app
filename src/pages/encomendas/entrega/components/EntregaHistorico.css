@@ -1,0 +1,494 @@
+/* ============================================================
+   SISTEMA CHEGOU!
+   ENTREGA — HISTÓRICO OPERACIONAL
+============================================================ */
+
+
+.entrega-historico {
+  margin-top: 18px;
+}
+
+
+.entrega-historico__details {
+  overflow: hidden;
+
+  border:
+    1px solid var(--ent-border);
+
+  border-radius:
+    14px;
+
+  background:
+    var(--ent-surface);
+}
+
+
+.entrega-historico__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 60px;
+
+  gap: 16px;
+
+  padding:
+    12px 14px;
+
+  cursor: pointer;
+
+  list-style: none;
+
+  user-select: none;
+}
+
+
+.entrega-historico__summary::-webkit-details-marker {
+  display: none;
+}
+
+
+.entrega-historico__summary:focus-visible {
+  outline:
+    3px solid
+    color-mix(
+      in srgb,
+      var(--ent-primary) 20%,
+      transparent
+    );
+
+  outline-offset:
+    -3px;
+}
+
+
+.entrega-historico__summary-main {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+
+  gap: 10px;
+}
+
+
+.entrega-historico__summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  border-radius: 10px;
+
+  background:
+    var(--ent-surface-soft);
+
+  color:
+    var(--ent-muted);
+}
+
+
+.entrega-historico__summary-main > div {
+  display: grid;
+
+  min-width: 0;
+}
+
+
+.entrega-historico__summary strong {
+  color:
+    var(--ent-text);
+
+  font-size: 12px;
+  font-weight: 760;
+}
+
+
+.entrega-historico__summary span {
+  margin-top: 2px;
+
+  color:
+    var(--ent-muted);
+
+  font-size: 10px;
+  font-weight: 520;
+}
+
+
+.entrega-historico__chevron {
+  flex: 0 0 auto;
+
+  color:
+    var(--ent-muted);
+
+  transition:
+    transform 180ms ease;
+}
+
+
+.entrega-historico__details[open]
+.entrega-historico__chevron {
+  transform:
+    rotate(180deg);
+}
+
+
+/* ============================================================
+   CONTEÚDO
+============================================================ */
+
+.entrega-historico__content {
+  padding:
+    0 14px 14px;
+
+  border-top:
+    1px solid var(--ent-border);
+}
+
+
+.entrega-historico__timezone-note {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top:
+    12px;
+
+  padding:
+    9px 10px;
+
+  border-radius:
+    9px;
+
+  background:
+    var(--ent-surface-soft);
+
+  color:
+    var(--ent-muted);
+
+  font-size:
+    10px;
+
+  line-height:
+    1.4;
+}
+
+
+.entrega-historico__list {
+  display: grid;
+
+  gap: 8px;
+
+  margin-top:
+    10px;
+}
+
+
+/* ============================================================
+   ITEM
+============================================================ */
+
+.entrega-historico-item {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  padding:
+    11px;
+
+  border:
+    1px solid var(--ent-border);
+
+  border-radius:
+    11px;
+
+  background:
+    var(--ent-surface-soft);
+}
+
+
+.entrega-historico-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+
+  flex:
+    0 0 30px;
+
+  border-radius:
+    9px;
+
+  background:
+    var(--ent-surface);
+
+  color:
+    var(--ent-muted);
+}
+
+
+.entrega-historico-item__body {
+  display: grid;
+
+  min-width: 0;
+
+  flex: 1;
+}
+
+
+.entrega-historico-item__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-width: 0;
+
+  gap: 10px;
+}
+
+
+.entrega-historico-item__heading strong {
+  overflow: hidden;
+
+  min-width: 0;
+
+  color:
+    var(--ent-text-secondary);
+
+  font-size:
+    11px;
+
+  font-weight:
+    720;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+.entrega-historico-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap:
+    6px 13px;
+
+  margin-top:
+    5px;
+}
+
+
+.entrega-historico-item__meta span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color:
+    var(--ent-muted);
+
+  font-size:
+    10px;
+
+  font-weight:
+    520;
+}
+
+
+/* ============================================================
+   STATUS
+============================================================ */
+
+.entrega-historico-status {
+  display: inline-flex;
+  align-items: center;
+
+  flex: 0 0 auto;
+
+  padding:
+    4px 7px;
+
+  border:
+    1px solid var(--ent-border);
+
+  border-radius:
+    999px;
+
+  background:
+    var(--ent-surface);
+
+  color:
+    var(--ent-muted);
+
+  font-size:
+    9px;
+
+  font-weight:
+    760;
+}
+
+
+.entrega-historico-status--success {
+  border-color:
+    color-mix(
+      in srgb,
+      #16a34a 24%,
+      var(--ent-border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      #16a34a 7%,
+      var(--ent-surface)
+    );
+
+  color:
+    #15803d;
+}
+
+
+.entrega-historico-status--cancelled {
+  color:
+    var(--ent-muted);
+}
+
+
+.entrega-historico-status--denied {
+  border-color:
+    color-mix(
+      in srgb,
+      #dc2626 24%,
+      var(--ent-border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      #dc2626 6%,
+      var(--ent-surface)
+    );
+
+  color:
+    #b91c1c;
+}
+
+
+.entrega-historico-status--progress {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--ent-primary) 25%,
+      var(--ent-border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--ent-primary) 7%,
+      var(--ent-surface)
+    );
+
+  color:
+    var(--ent-primary);
+}
+
+
+/* ============================================================
+   DARK MANUAL
+============================================================ */
+
+html[data-chegou-theme="dark"]
+.entrega-historico-status--success,
+html[data-theme="dark"]
+.entrega-historico-status--success,
+body[data-theme="dark"]
+.entrega-historico-status--success,
+body.dark
+.entrega-historico-status--success {
+  color:
+    #86efac;
+}
+
+
+html[data-chegou-theme="dark"]
+.entrega-historico-status--denied,
+html[data-theme="dark"]
+.entrega-historico-status--denied,
+body[data-theme="dark"]
+.entrega-historico-status--denied,
+body.dark
+.entrega-historico-status--denied {
+  color:
+    #fca5a5;
+}
+
+
+/* ============================================================
+   SISTEMA ESCURO
+============================================================ */
+
+@media (prefers-color-scheme: dark) {
+
+  html:not([data-chegou-theme="light"]):not([data-theme="light"])
+  .entrega-historico-status--success {
+    color:
+      #86efac;
+  }
+
+
+  html:not([data-chegou-theme="light"]):not([data-theme="light"])
+  .entrega-historico-status--denied {
+    color:
+      #fca5a5;
+  }
+
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 680px) {
+
+  .entrega-historico-item__heading {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+
+  .entrega-historico-item__heading strong {
+    white-space:
+      normal;
+  }
+
+}
+
+
+/* ============================================================
+   ACESSIBILIDADE
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .entrega-historico__chevron {
+    transition:
+      none;
+  }
+
+}

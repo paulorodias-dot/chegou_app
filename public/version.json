@@ -1,27 +1,28 @@
 {
   "schemaVersion": 1,
-  "releaseId": "2026.09.02.001",
-  "appVersion": "1.2.8",
+  "releaseId": "2026.09.23.001",
+  "appVersion": "1.3.0",
   "scope": "GLOBAL",
   "modules": [
     "Portaria",
+    "Morador",
     "Central de Encomendas"
   ],
   "mandatory": false,
-  "publishedAt": "2026-09-02T23:06:00-03:00",
-  "title": "Entrada contínua de Encomendas",
-  "message": "A Central de Encomendas evoluiu o fluxo de Entrada da Portaria, permitindo processar cada encomenda de forma contínua, do recebimento até a disponibilização para retirada.",
+  "publishedAt": "2026-09-23T00:00:00-03:00",
+  "title": "Retirada de Encomendas",
+  "message": "A Central de Encomendas evoluiu o processo de retirada, conectando Morador e Portaria desde a geração da credencial até a confirmação da entrega.",
   "highlights": [
-    "Nova Entrada Individual para iniciar o processamento diretamente pelo código da encomenda.",
-    "Continuidade do fluxo entre identificação, Entrada, armazenamento e disponibilização.",
-    "Retomada automática da etapa correta quando uma encomenda já possui processamento anterior.",
-    "Pesquisa autorizada de destinatários por torre/bloco e unidade.",
-    "Armazenamento integrado ao fluxo operacional da Entrada.",
-    "Disponibilização individual da encomenda para retirada.",
-    "Notificação In-App automática após a disponibilização.",
-    "Abertura assistida do WhatsApp da Portaria com mensagem preenchida para o Morador.",
-    "Confirmação operacional de WhatsApp enviado com rastreabilidade.",
-    "Encerramento automático do pacote processado e retorno para uma nova Entrada.",
-    "Melhorias de segurança, idempotência, rastreabilidade e isolamento por condomínio."
+    "Geração de Código de retirada pelo Morador para uso na Portaria.",
+    "Acompanhamento automático do andamento da retirada pelo Morador.",
+    "Identificação do Morador ou Dependente autorizado responsável pela retirada.",
+    "Conferência da credencial antes da entrega física da encomenda.",
+    "Confirmação da entrega pela Portaria com registro da retirada.",
+    "Atualização automática do Morador quando o Código é confirmado e quando a entrega é concluída.",
+    "Resumo da retirada concluída com identificação de quem retirou e de quem realizou a entrega.",
+    "Histórico da retirada preservado para consulta.",
+    "Tela da Portaria passa automaticamente para consulta após a conclusão da entrega.",
+    "Nova entrega inicia um fluxo limpo, sem reaproveitar dados da operação anterior.",
+    "Melhorias de segurança, rastreabilidade e isolamento por condomínio."
   ]
 }

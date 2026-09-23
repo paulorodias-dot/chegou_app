@@ -12,6 +12,8 @@ import {
   DASHBOARD_MORADOR_ROUTES,
 } from "../config/dashboardMorador.constants";
 
+import DashboardMoradorEncomendasCard from "./DashboardMoradorEncomendasCard";
+
 import "./DashboardMoradorMainContent.css";
 
 function exibirIndicador(valor) {
@@ -89,7 +91,17 @@ function DashboardPrimaryCard({
 
 export default function DashboardMoradorMainContent({
   indicadores,
+
   carregando,
+
+  encomendasResumo,
+
+  carregandoEncomendas,
+
+  erroEncomendas,
+
+  onRetryEncomendas,
+
   onNavigate,
 }) {
   function navegar(destino) {
@@ -106,6 +118,7 @@ export default function DashboardMoradorMainContent({
       <section
         className="dashboard-morador-primary-grid"
         aria-label="Principais serviços"
+        aria-busy={carregando}
       >
         <DashboardPrimaryCard
           icon={Package}
@@ -238,71 +251,20 @@ export default function DashboardMoradorMainContent({
         />
       </section>
 
-      <section className="dashboard-morador-section-card">
-        <header className="dashboard-morador-section-card__header">
-          <div>
-            <span>
-              Encomendas
-            </span>
-
-            <h2>
-              Acompanhe suas encomendas
-            </h2>
-
-            <p>
-              Recebimentos e retiradas da sua
-              unidade serão apresentados aqui.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() =>
-              navegar(
-                DASHBOARD_MORADOR_ROUTES
-                  .encomendas
-              )
-            }
-          >
-            Ver encomendas
-
-            <ArrowRight
-              size={16}
-              aria-hidden="true"
-            />
-          </button>
-        </header>
-
-        {carregando ? (
-          <div
-            className="dashboard-morador-skeleton"
-            aria-label="Carregando informações"
-          >
-            <span />
-            <span />
-            <span />
-          </div>
-        ) : (
-          <div className="dashboard-morador-empty-state">
-            <div>
-              <Package
-                size={22}
-                aria-hidden="true"
-              />
-            </div>
-
-            <strong>
-              Nenhuma informação disponível
-            </strong>
-
-            <p>
-              Quando houver encomendas
-              autorizadas para sua unidade,
-              elas aparecerão neste espaço.
-            </p>
-          </div>
-        )}
-      </section>
+      <DashboardMoradorEncomendasCard
+        resumo={encomendasResumo}
+        carregando={
+          carregandoEncomendas
+        }
+        erro={erroEncomendas}
+        onRetry={onRetryEncomendas}
+        onOpenAll={() =>
+          navegar(
+            DASHBOARD_MORADOR_ROUTES
+              .encomendas
+          )
+        }
+      />
 
       <section className="dashboard-morador-quick-access">
         <header>

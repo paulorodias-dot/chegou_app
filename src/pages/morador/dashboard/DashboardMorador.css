@@ -1,23 +1,27 @@
 .dashboard-morador-page {
   --dm-bg: #f8fafc;
-
   --dm-card: #ffffff;
-
   --dm-text: #0f172a;
-
   --dm-muted: #64748b;
-
   --dm-border: #e2e8f0;
-
   --dm-border-soft: #edf2f7;
-
   --dm-border-hover: #cbd5e1;
-
   --dm-soft-bg: #f8fafc;
 
   --dm-blue: #0f3f8f;
+  --dm-blue-soft: #eff6ff;
 
   --dm-orange: #f97316;
+  --dm-orange-soft: #fff7ed;
+
+  --dm-purple: #7c3aed;
+  --dm-purple-soft: #f5f3ff;
+  --dm-purple-strong: #5b21b6;
+
+  --dm-green: #15803d;
+  --dm-green-soft: #ecfdf5;
+
+  --dm-focus-ring: rgba(15, 63, 143, 0.18);
 
   --dm-shadow-card:
     0 8px 24px
@@ -28,20 +32,21 @@
     rgba(15, 23, 42, 0.08);
 
   width: 100%;
-
   min-width: 0;
-
   max-width: 1600px;
 
   margin: 0 auto;
-
   padding: 28px 24px 40px;
 
   box-sizing: border-box;
 
   color: var(--dm-text);
-
   background: var(--dm-bg);
+
+  color-scheme: light;
+
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 
   font-family:
     Inter,
@@ -58,9 +63,14 @@
   box-sizing: border-box;
 }
 
+.dashboard-morador-page button,
+.dashboard-morador-page a,
+.dashboard-morador-page [role="button"] {
+  touch-action: manipulation;
+}
+
 .dashboard-morador-grid {
   width: 100%;
-
   min-width: 0;
 
   display: grid;
@@ -69,49 +79,59 @@
     minmax(0, 1fr) 360px;
 
   gap: 20px;
-
   align-items: start;
 }
 
 .dashboard-morador-main {
   width: 100%;
-
   min-width: 0;
 }
 
 .dashboard-morador-sidebar {
   width: 360px;
-
   min-width: 0;
 
   position: sticky;
-
-  top: 20px;
+  top: 92px;
 
   align-self: start;
 
   max-height:
-    calc(100vh - 40px);
+    calc(100vh - 112px);
+
+  max-height:
+    calc(100dvh - 112px);
 
   overflow-y: auto;
-
   overflow-x: hidden;
 
+  overscroll-behavior: contain;
   scrollbar-width: thin;
+  scrollbar-color:
+    var(--dm-border-hover)
+    transparent;
 }
 
-/* DARK */
+.dashboard-morador-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dashboard-morador-sidebar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--dm-border-hover);
+}
+
+/* =========================================================
+   TEMA ESCURO EXPLÍCITO
+   ========================================================= */
 
 .dark .dashboard-morador-page,
 body.dark .dashboard-morador-page,
-[data-theme="dark"]
-  .dashboard-morador-page {
+body.modo-escuro .dashboard-morador-page,
+[data-theme="dark"] .dashboard-morador-page {
   --dm-bg: #07111f;
-
   --dm-card: #0f1b2d;
-
   --dm-text: #e5e7eb;
-
   --dm-muted: #94a3b8;
 
   --dm-border:
@@ -125,6 +145,26 @@ body.dark .dashboard-morador-page,
 
   --dm-soft-bg: #111f33;
 
+  --dm-blue: #93c5fd;
+  --dm-blue-soft:
+    rgba(59, 130, 246, 0.13);
+
+  --dm-orange: #fb923c;
+  --dm-orange-soft:
+    rgba(249, 115, 22, 0.13);
+
+  --dm-purple: #c4b5fd;
+  --dm-purple-soft:
+    rgba(124, 58, 237, 0.14);
+  --dm-purple-strong: #ddd6fe;
+
+  --dm-green: #86efac;
+  --dm-green-soft:
+    rgba(34, 197, 94, 0.13);
+
+  --dm-focus-ring:
+    rgba(147, 197, 253, 0.3);
+
   --dm-shadow-card:
     0 12px 30px
     rgba(0, 0, 0, 0.2);
@@ -132,9 +172,85 @@ body.dark .dashboard-morador-page,
   --dm-shadow-hover:
     0 16px 38px
     rgba(0, 0, 0, 0.27);
+
+  color-scheme: dark;
 }
 
-/* 1360 */
+/* =========================================================
+   TEMA DO SISTEMA
+   A base clara atende prefers-color-scheme: light.
+   ========================================================= */
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"]
+    .dashboard-morador-page {
+    --dm-bg: #07111f;
+    --dm-card: #0f1b2d;
+    --dm-text: #e5e7eb;
+    --dm-muted: #94a3b8;
+
+    --dm-border:
+      rgba(148, 163, 184, 0.2);
+
+    --dm-border-soft:
+      rgba(148, 163, 184, 0.12);
+
+    --dm-border-hover:
+      rgba(148, 163, 184, 0.34);
+
+    --dm-soft-bg: #111f33;
+
+    --dm-blue: #93c5fd;
+    --dm-blue-soft:
+      rgba(59, 130, 246, 0.13);
+
+    --dm-orange: #fb923c;
+    --dm-orange-soft:
+      rgba(249, 115, 22, 0.13);
+
+    --dm-purple: #c4b5fd;
+    --dm-purple-soft:
+      rgba(124, 58, 237, 0.14);
+    --dm-purple-strong: #ddd6fe;
+
+    --dm-green: #86efac;
+    --dm-green-soft:
+      rgba(34, 197, 94, 0.13);
+
+    --dm-focus-ring:
+      rgba(147, 197, 253, 0.3);
+
+    --dm-shadow-card:
+      0 12px 30px
+      rgba(0, 0, 0, 0.2);
+
+    --dm-shadow-hover:
+      0 16px 38px
+      rgba(0, 0, 0, 0.27);
+
+    color-scheme: dark;
+  }
+}
+
+/* =========================================================
+   IPHONE / IOS
+   Evita somente o zoom automático no foco.
+   O zoom manual continua permitido pelo viewport.
+   ========================================================= */
+
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 900px) {
+    .dashboard-morador-page input,
+    .dashboard-morador-page select,
+    .dashboard-morador-page textarea {
+      font-size: 16px !important;
+    }
+  }
+}
+
+/* =========================================================
+   RESPONSIVO
+   ========================================================= */
 
 @media (max-width: 1360px) {
   .dashboard-morador-grid {
@@ -149,12 +265,9 @@ body.dark .dashboard-morador-page,
   }
 }
 
-/* 1120 */
-
 @media (max-width: 1120px) {
   .dashboard-morador-grid {
     grid-template-columns: 1fr;
-
     gap: 24px;
   }
 
@@ -162,14 +275,11 @@ body.dark .dashboard-morador-page,
     position: static;
 
     width: 100%;
-
     max-height: none;
 
     overflow: visible;
   }
 }
-
-/* 900 */
 
 @media (max-width: 900px) {
   .dashboard-morador-page {
@@ -180,19 +290,21 @@ body.dark .dashboard-morador-page,
   }
 }
 
-/* 680 */
-
 @media (max-width: 680px) {
   .dashboard-morador-page {
     padding:
       20px
-      14px
+      max(
+        14px,
+        env(safe-area-inset-right, 0px)
+      )
       calc(
         104px +
-        env(
-          safe-area-inset-bottom,
-          0px
-        )
+        env(safe-area-inset-bottom, 0px)
+      )
+      max(
+        14px,
+        env(safe-area-inset-left, 0px)
       );
   }
 
@@ -201,12 +313,29 @@ body.dark .dashboard-morador-page,
   }
 }
 
-/* 430 */
-
 @media (max-width: 430px) {
   .dashboard-morador-page {
-    padding-left: 12px;
+    padding-right:
+      max(
+        12px,
+        env(safe-area-inset-right, 0px)
+      );
 
-    padding-right: 12px;
+    padding-left:
+      max(
+        12px,
+        env(safe-area-inset-left, 0px)
+      );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-morador-page *,
+  .dashboard-morador-page *::before,
+  .dashboard-morador-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

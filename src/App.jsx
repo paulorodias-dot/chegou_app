@@ -52,6 +52,7 @@ import AdminCargosFuncoes from "./pages/admin/AdminCargosFuncoes";
 import CadastroFornecedores from "./pages/admin/CadastroFornecedores";
 
 import DashboardMorador from "./pages/morador/dashboard/DashboardMorador";
+import MoradorRetiradas from "./pages/morador/encomendas/retirada";
 import MoradorRastreio from "./pages/morador/encomendas/rastreio";
 import MoradorNotifications from "./pages/morador/notifications";
 
@@ -687,7 +688,7 @@ function App() {
       "morador-encomendas-retiradas"
     ) {
       return (
-        <PaginaPreparando titulo="Retiradas de Encomendas" />
+        <MoradorRetiradas />
       );
     }
 
