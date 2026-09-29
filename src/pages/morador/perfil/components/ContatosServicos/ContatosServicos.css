@@ -1,0 +1,542 @@
+/* =========================================================
+   SISTEMA CHEGOU!
+   PERFIL DO MORADOR — CONTATOS E SERVIÇOS
+
+   PERFIL.09
+   ========================================================= */
+
+
+/* =========================================================
+   01. COMPOSIÇÃO
+   ========================================================= */
+
+.contatos-servicos {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  align-items: stretch;
+
+  gap: 16px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+
+/* =========================================================
+   02. CARDS
+   ========================================================= */
+
+.contatos-servicos__card {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  padding: 18px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 16px;
+
+  background:
+    var(--mp-bg-card);
+
+  box-shadow:
+    var(--mp-shadow-card);
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.contatos-servicos__card:hover {
+  border-color:
+    var(--mp-border-strong);
+
+  box-shadow:
+    0 10px 28px
+    rgba(15, 23, 42, 0.065);
+}
+
+
+/* =========================================================
+   03. HEADER
+   ========================================================= */
+
+.contatos-servicos__header {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+
+.contatos-servicos__heading-icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 10px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-blue-soft);
+}
+
+
+.contatos-servicos__heading-icon--conecta {
+  color:
+    var(--mp-orange);
+
+  background:
+    var(--mp-bg-orange-soft);
+}
+
+
+.contatos-servicos__header > div {
+  min-width: 0;
+}
+
+
+.contatos-servicos__header h2 {
+  margin: 0;
+
+  color:
+    var(--mp-text);
+
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+
+.contatos-servicos__header p {
+  margin:
+    3px
+    0
+    0;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   04. CHEGOU! CONECTA
+   ========================================================= */
+
+.contatos-servicos__conecta-title {
+  display: flex;
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 7px;
+}
+
+
+.contatos-servicos__conecta-title span {
+  padding:
+    3px
+    7px;
+
+  border-radius: 999px;
+
+  color:
+    var(--mp-orange-dark);
+
+  background:
+    var(--mp-bg-orange-soft);
+
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+
+/* =========================================================
+   05. ITENS
+   ========================================================= */
+
+.contatos-servicos__items {
+  display: grid;
+
+  gap: 7px;
+
+  min-width: 0;
+
+  margin-top: 16px;
+}
+
+
+.contatos-servicos__item {
+  display: grid;
+
+  grid-template-columns:
+    32px
+    minmax(0, 1fr)
+    16px;
+
+  align-items: center;
+
+  gap: 9px;
+
+  min-width: 0;
+
+  padding:
+    9px
+    10px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 10px;
+
+  background:
+    var(--mp-bg-soft);
+}
+
+
+.contatos-servicos__item-icon {
+  display: grid;
+  place-items: center;
+
+  width: 32px;
+  height: 32px;
+
+  border-radius: 8px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-card);
+}
+
+
+.contatos-servicos__card--conecta
+  .contatos-servicos__item-icon {
+  color:
+    var(--mp-orange);
+}
+
+
+.contatos-servicos__item-content {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+
+.contatos-servicos__item-content strong {
+  overflow: hidden;
+
+  color:
+    var(--mp-text);
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.35;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.contatos-servicos__item-content span {
+  overflow: hidden;
+
+  margin-top: 2px;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 8px;
+  line-height: 1.35;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.contatos-servicos__item-chevron {
+  color:
+    var(--mp-text-muted);
+}
+
+
+/* =========================================================
+   06. FOOTER
+   ========================================================= */
+
+.contatos-servicos__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  min-width: 0;
+
+  margin-top: auto;
+  padding-top: 13px;
+}
+
+
+.contatos-servicos__helper {
+  min-width: 0;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+
+.contatos-servicos__action {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 3px;
+
+  flex: 0 0 auto;
+
+  padding: 0;
+
+  border: 0;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    transparent;
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 700;
+
+  cursor: default;
+
+  opacity: 0.62;
+}
+
+
+.contatos-servicos__card--conecta
+  .contatos-servicos__action {
+  color:
+    var(--mp-orange-dark);
+}
+
+
+.contatos-servicos__action:disabled {
+  opacity: 0.62;
+}
+
+
+/* =========================================================
+   07. SKELETON
+   ========================================================= */
+
+.contatos-servicos__skeleton-card {
+  min-height: 250px;
+
+  padding: 18px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 16px;
+
+  background:
+    var(--mp-bg-card);
+}
+
+
+.contatos-servicos__skeleton {
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--mp-bg-soft) 25%,
+      var(--mp-border) 50%,
+      var(--mp-bg-soft) 75%
+    );
+
+  background-size:
+    200%
+    100%;
+
+  animation:
+    contatos-servicos-skeleton
+    1.4s
+    ease-in-out
+    infinite;
+}
+
+
+.contatos-servicos__skeleton--title {
+  width: 180px;
+  height: 19px;
+
+  border-radius: 6px;
+}
+
+
+.contatos-servicos__skeleton--line {
+  width: 70%;
+  height: 9px;
+
+  margin-top: 8px;
+
+  border-radius: 4px;
+}
+
+
+.contatos-servicos__skeleton--item {
+  width: 100%;
+  height: 50px;
+
+  margin-top: 8px;
+
+  border-radius: 10px;
+}
+
+
+@keyframes contatos-servicos-skeleton {
+  0% {
+    background-position:
+      200%
+      0;
+  }
+
+  100% {
+    background-position:
+      -200%
+      0;
+  }
+}
+
+
+/* =========================================================
+   08. DARK MODE
+   ========================================================= */
+
+html.modo-escuro
+  .contatos-servicos__card:hover,
+body.modo-escuro
+  .contatos-servicos__card:hover {
+  box-shadow:
+    0 10px 28px
+    rgba(0, 0, 0, 0.22);
+}
+
+
+@media (prefers-color-scheme: dark) {
+  html:not(.modo-claro):not(.modo-escuro)
+    .contatos-servicos__card:hover,
+  body:not(.modo-claro):not(.modo-escuro)
+    .contatos-servicos__card:hover {
+    box-shadow:
+      0 10px 28px
+      rgba(0, 0, 0, 0.22);
+  }
+}
+
+
+/* =========================================================
+   09. TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .contatos-servicos {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap: 14px;
+  }
+}
+
+
+/* =========================================================
+   10. MOBILE
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .contatos-servicos__card,
+  .contatos-servicos__skeleton-card {
+    padding: 16px;
+
+    border-radius: 14px;
+  }
+
+
+  .contatos-servicos__footer {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+}
+
+
+@media (max-width: 430px) {
+  .contatos-servicos__header {
+    align-items: flex-start;
+  }
+
+
+  .contatos-servicos__item {
+    grid-template-columns:
+      30px
+      minmax(0, 1fr)
+      15px;
+
+    padding:
+      8px
+      9px;
+  }
+
+
+  .contatos-servicos__item-icon {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+
+/* =========================================================
+   11. REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .contatos-servicos__card,
+  .contatos-servicos__skeleton {
+    transition: none;
+    animation: none;
+  }
+}

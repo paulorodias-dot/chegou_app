@@ -55,6 +55,7 @@ import DashboardMorador from "./pages/morador/dashboard/DashboardMorador";
 import MoradorRetiradas from "./pages/morador/encomendas/retirada";
 import MoradorRastreio from "./pages/morador/encomendas/rastreio";
 import MoradorNotifications from "./pages/morador/notifications";
+import PerfilMorador from "./pages/morador/perfil/PerfilMorador";
 
 import DashboardPortaria from "./pages/portaria/dashboard/DashboardPortaria";
 import RecebimentoEncomendas from "./pages/encomendas/recebimento";
@@ -760,9 +761,7 @@ function App() {
     }
 
     if (paginaAtual === "morador-perfil") {
-      return (
-        <PaginaPreparando titulo="Perfil do Morador" />
-      );
+      return <PerfilMorador />;
     }
 
     if (

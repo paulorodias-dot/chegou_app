@@ -1,0 +1,452 @@
+/* =========================================================
+   SISTEMA CHEGOU!
+   PERFIL DO MORADOR — CONTATO
+
+   PERFIL.03-CARD-03
+   ========================================================= */
+
+
+/* =========================================================
+   01. CARD
+   ========================================================= */
+
+.contato-perfil {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 100%;
+
+  padding: 18px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 16px;
+
+  background:
+    var(--mp-bg-card);
+
+  box-shadow:
+    var(--mp-shadow-card);
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.contato-perfil:hover {
+  border-color:
+    var(--mp-border-strong);
+
+  box-shadow:
+    0 10px 28px
+    rgba(15, 23, 42, 0.065);
+}
+
+
+/* =========================================================
+   02. CABEÇALHO
+   ========================================================= */
+
+.contato-perfil__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  margin-bottom: 18px;
+}
+
+
+.contato-perfil__title {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+
+.contato-perfil__title-icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 10px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-blue-soft);
+}
+
+
+.contato-perfil__title h2 {
+  margin: 0;
+
+  color:
+    var(--mp-text);
+
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+
+.contato-perfil__title p {
+  margin:
+    2px
+    0
+    0;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+
+/* =========================================================
+   03. BOTÃO EDITAR
+   ========================================================= */
+
+.contato-perfil__edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  flex: 0 0 auto;
+
+  min-height: 32px;
+
+  padding:
+    0
+    10px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 8px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-card);
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+
+.contato-perfil__edit:hover:not(:disabled) {
+  border-color:
+    rgba(37, 99, 235, 0.35);
+
+  color:
+    var(--mp-blue-dark);
+
+  background:
+    var(--mp-bg-blue-soft);
+
+  box-shadow:
+    var(--mp-shadow-soft);
+}
+
+
+.contato-perfil__edit:focus-visible {
+  outline:
+    2px solid
+    var(--mp-blue);
+
+  outline-offset: 2px;
+}
+
+
+.contato-perfil__edit:disabled {
+  color:
+    var(--mp-text-muted);
+
+  background:
+    var(--mp-bg-soft);
+
+  cursor: default;
+
+  opacity: 0.72;
+}
+
+
+/* =========================================================
+   04. CAMPOS
+   ========================================================= */
+
+.contato-perfil__fields {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr);
+
+  gap: 17px;
+
+  min-width: 0;
+}
+
+
+.contato-perfil__field {
+  min-width: 0;
+}
+
+
+.contato-perfil__field-label {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  min-width: 0;
+
+  margin-bottom: 4px;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+
+.contato-perfil__field-label svg {
+  flex: 0 0 auto;
+
+  color:
+    var(--mp-blue);
+}
+
+
+.contato-perfil__field strong {
+  display: block;
+
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+
+  color:
+    var(--mp-text);
+
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+
+/* =========================================================
+   05. SKELETON
+   ========================================================= */
+
+.contato-perfil__skeleton {
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--mp-bg-soft) 25%,
+      var(--mp-border) 50%,
+      var(--mp-bg-soft) 75%
+    );
+
+  background-size:
+    200%
+    100%;
+
+  animation:
+    contato-perfil-skeleton
+    1.4s
+    ease-in-out
+    infinite;
+}
+
+
+.contato-perfil__skeleton--title {
+  width: 120px;
+  height: 20px;
+
+  border-radius: 7px;
+}
+
+
+.contato-perfil__skeleton--button {
+  width: 62px;
+  height: 32px;
+
+  border-radius: 8px;
+}
+
+
+.contato-perfil__skeleton-field {
+  min-width: 0;
+}
+
+
+.contato-perfil__skeleton--label {
+  width: 90px;
+  height: 9px;
+
+  border-radius: 4px;
+}
+
+
+.contato-perfil__skeleton--value {
+  width:
+    min(
+      210px,
+      88%
+    );
+
+  height: 13px;
+
+  margin-top: 7px;
+
+  border-radius: 5px;
+}
+
+
+@keyframes contato-perfil-skeleton {
+  0% {
+    background-position:
+      200%
+      0;
+  }
+
+  100% {
+    background-position:
+      -200%
+      0;
+  }
+}
+
+
+/* =========================================================
+   06. DARK MODE
+   ========================================================= */
+
+html.modo-escuro
+  .contato-perfil:hover,
+body.modo-escuro
+  .contato-perfil:hover {
+  box-shadow:
+    0 10px 28px
+    rgba(0, 0, 0, 0.22);
+}
+
+
+@media (prefers-color-scheme: dark) {
+  html:not(.modo-claro):not(.modo-escuro)
+    .contato-perfil:hover,
+  body:not(.modo-claro):not(.modo-escuro)
+    .contato-perfil:hover {
+    box-shadow:
+      0 10px 28px
+      rgba(0, 0, 0, 0.22);
+  }
+}
+
+
+/* =========================================================
+   07. RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .contato-perfil {
+    padding: 17px;
+  }
+}
+
+
+@media (max-width: 680px) {
+  .contato-perfil {
+    padding: 16px;
+
+    border-radius: 14px;
+  }
+
+  .contato-perfil__header {
+    margin-bottom: 17px;
+  }
+
+  .contato-perfil__fields {
+    gap: 15px;
+  }
+
+  .contato-perfil__edit {
+    min-width: 44px;
+    min-height: 36px;
+  }
+}
+
+
+@media (max-width: 430px) {
+  .contato-perfil__edit span {
+    display: none;
+  }
+
+  .contato-perfil__edit {
+    width: 36px;
+    min-width: 36px;
+
+    padding: 0;
+  }
+}
+
+
+/* =========================================================
+   08. REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .contato-perfil,
+  .contato-perfil__edit,
+  .contato-perfil__skeleton {
+    transition: none;
+    animation: none;
+  }
+}
+
+.contato-perfil__whatsapp-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  flex: 0 0 14px;
+  object-fit: contain;
+}
+
+/* ============================================================
+ * ALINHAMENTO — LABEL / VALOR
+ * ============================================================ */
+
+.contato-perfil__field > strong {
+  padding-left: 22px;
+}

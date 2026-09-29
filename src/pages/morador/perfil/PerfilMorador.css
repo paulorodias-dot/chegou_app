@@ -1,0 +1,418 @@
+/* =========================================================
+   SISTEMA CHEGOU!
+   MÓDULO MORADOR — PERFIL
+
+   Design System Premium
+   Escopo: PERFIL.01-CARD-01
+   ========================================================= */
+
+
+/* =========================================================
+   01. TOKENS
+   ========================================================= */
+
+.morador-perfil {
+  --mp-bg-page: #f8fafc;
+  --mp-bg-card: #ffffff;
+  --mp-bg-soft: #f1f5f9;
+
+  --mp-bg-blue-soft: #eff6ff;
+  --mp-bg-orange-soft: #fff7ed;
+  --mp-bg-green-soft: #f0fdf4;
+
+  --mp-text: #0f172a;
+  --mp-text-secondary: #64748b;
+  --mp-text-muted: #94a3b8;
+
+  --mp-border: #e2e8f0;
+  --mp-border-strong: #cbd5e1;
+
+  --mp-blue: #2563eb;
+  --mp-blue-dark: #1d4ed8;
+
+  --mp-royal: #0f3f8f;
+  --mp-royal-dark: #0b3275;
+
+  --mp-orange: #f97316;
+  --mp-orange-dark: #ea580c;
+
+  --mp-green: #16a34a;
+  --mp-green-dark: #15803d;
+
+  --mp-shadow-card:
+    0 8px 24px rgba(15, 23, 42, 0.05);
+
+  --mp-shadow-soft:
+    0 4px 16px rgba(15, 23, 42, 0.04);
+
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+
+  padding:
+    22px
+    22px
+    32px;
+
+  color: var(--mp-text);
+
+  background: var(--mp-bg-page);
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+
+/* =========================================================
+   02. BOX SIZING
+   ========================================================= */
+
+.morador-perfil *,
+.morador-perfil *::before,
+.morador-perfil *::after {
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   03. CABEÇALHO DA PÁGINA
+   ========================================================= */
+
+.morador-perfil__page-header {
+  margin-bottom: 18px;
+}
+
+.morador-perfil__eyebrow {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-bottom: 6px;
+
+  color: var(--mp-orange);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.morador-perfil__eyebrow svg {
+  flex: 0 0 auto;
+}
+
+.morador-perfil__page-header h1 {
+  margin: 0;
+
+  color: var(--mp-text);
+
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.morador-perfil__page-header p {
+  max-width: 760px;
+
+  margin: 7px 0 0;
+
+  color: var(--mp-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   04. CONTEÚDO
+   ========================================================= */
+
+.morador-perfil__content {
+  display: grid;
+
+  gap: 16px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+/* =========================================================
+   04A. GRADE PRINCIPAL DO PERFIL
+
+   Preparada para:
+   02 — Dados Pessoais
+   03 — Contato
+   04 — Minha Unidade
+   ========================================================= */
+
+.morador-perfil__primary-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  align-items: stretch;
+
+  gap: 16px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+
+/* Enquanto somente o Card 02 existe,
+   ele ocupa uma coluna da grade.
+   Os próximos cards completarão a faixa. */
+
+.morador-perfil__primary-grid
+  > * {
+  min-width: 0;
+}
+
+
+/* Notebook / tablet horizontal */
+
+@media (max-width: 1180px) {
+  .morador-perfil__primary-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+
+/* Tablet / mobile */
+
+@media (max-width: 760px) {
+  .morador-perfil__primary-grid {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap: 14px;
+  }
+}
+
+/* =========================================================
+   04B. MOBILIDADE — VEÍCULOS + VAGAS
+
+   PERFIL.07 + PERFIL.08
+   ========================================================= */
+
+.morador-perfil__mobility-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  align-items: stretch;
+
+  gap: 16px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+
+.morador-perfil__mobility-grid
+  > * {
+  min-width: 0;
+}
+
+
+@media (max-width: 900px) {
+  .morador-perfil__mobility-grid {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap: 14px;
+  }
+}
+
+
+/* =========================================================
+   05. MODO ESCURO MANUAL
+   ========================================================= */
+
+html.modo-escuro .morador-perfil,
+body.modo-escuro .morador-perfil {
+  --mp-bg-page: #0f172a;
+  --mp-bg-card: #111c2e;
+  --mp-bg-soft: #18243a;
+
+  --mp-bg-blue-soft:
+    rgba(37, 99, 235, 0.15);
+
+  --mp-bg-orange-soft:
+    rgba(154, 52, 18, 0.18);
+
+  --mp-bg-green-soft:
+    rgba(22, 163, 74, 0.13);
+
+  --mp-text: #f8fafc;
+  --mp-text-secondary: #cbd5e1;
+  --mp-text-muted: #94a3b8;
+
+  --mp-border: #263449;
+  --mp-border-strong: #3b4b61;
+
+  --mp-shadow-card:
+    0 10px 26px rgba(0, 0, 0, 0.22);
+
+  --mp-shadow-soft:
+    0 6px 20px rgba(0, 0, 0, 0.18);
+
+  color-scheme: dark;
+}
+
+
+/* =========================================================
+   06. MODO CLARO EXPLÍCITO
+   ========================================================= */
+
+html.modo-claro .morador-perfil,
+body.modo-claro .morador-perfil {
+  color-scheme: light;
+}
+
+
+/* =========================================================
+   07. MODO SISTEMA
+   ========================================================= */
+
+@media (prefers-color-scheme: dark) {
+  html:not(.modo-claro):not(.modo-escuro)
+    .morador-perfil,
+  body:not(.modo-claro):not(.modo-escuro)
+    .morador-perfil {
+    --mp-bg-page: #0f172a;
+    --mp-bg-card: #111c2e;
+    --mp-bg-soft: #18243a;
+
+    --mp-bg-blue-soft:
+      rgba(37, 99, 235, 0.15);
+
+    --mp-bg-orange-soft:
+      rgba(154, 52, 18, 0.18);
+
+    --mp-bg-green-soft:
+      rgba(22, 163, 74, 0.13);
+
+    --mp-text: #f8fafc;
+    --mp-text-secondary: #cbd5e1;
+    --mp-text-muted: #94a3b8;
+
+    --mp-border: #263449;
+    --mp-border-strong: #3b4b61;
+
+    --mp-shadow-card:
+      0 10px 26px rgba(0, 0, 0, 0.22);
+
+    --mp-shadow-soft:
+      0 6px 20px rgba(0, 0, 0, 0.18);
+
+    color-scheme: dark;
+  }
+}
+
+
+/* =========================================================
+   08. RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 1360px) {
+  .morador-perfil {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .morador-perfil {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  .morador-perfil {
+    padding:
+      18px
+      14px
+      calc(
+        92px +
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .morador-perfil__page-header {
+    margin-bottom: 14px;
+  }
+}
+
+@media (max-width: 680px) {
+  .morador-perfil__page-header h1 {
+    font-size: 20px;
+  }
+
+  .morador-perfil__page-header p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 430px) {
+  .morador-perfil {
+    padding-top:
+      calc(
+        16px +
+        env(safe-area-inset-top)
+      );
+
+    padding-right:
+      max(
+        12px,
+        env(safe-area-inset-right)
+      );
+
+    padding-left:
+      max(
+        12px,
+        env(safe-area-inset-left)
+      );
+  }
+
+  .morador-perfil__eyebrow {
+    font-size: 10px;
+  }
+}
+
+
+/* =========================================================
+   09. REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .morador-perfil *,
+  .morador-perfil *::before,
+  .morador-perfil *::after {
+    scroll-behavior: auto !important;
+
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

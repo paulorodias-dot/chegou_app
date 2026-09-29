@@ -1,0 +1,495 @@
+/* =========================================================
+   SISTEMA CHEGOU!
+   PERFIL DO MORADOR — DADOS PESSOAIS
+
+   PERFIL.02-CARD-02
+   ========================================================= */
+
+
+/* =========================================================
+   01. CARD
+   ========================================================= */
+
+.dados-pessoais {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 100%;
+
+  padding: 18px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 16px;
+
+  background:
+    var(--mp-bg-card);
+
+  box-shadow:
+    var(--mp-shadow-card);
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.dados-pessoais:hover {
+  border-color:
+    var(--mp-border-strong);
+
+  box-shadow:
+    0 10px 28px
+    rgba(15, 23, 42, 0.065);
+}
+
+
+/* =========================================================
+   02. CABEÇALHO
+   ========================================================= */
+
+.dados-pessoais__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  margin-bottom: 18px;
+}
+
+
+.dados-pessoais__title {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+
+.dados-pessoais__title-icon {
+  display: grid;
+  place-items: center;
+
+  flex:
+    0
+    0
+    auto;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 10px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-blue-soft);
+}
+
+
+.dados-pessoais__title h2 {
+  margin: 0;
+
+  color:
+    var(--mp-text);
+
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+
+.dados-pessoais__title p {
+  margin:
+    2px
+    0
+    0;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+
+/* =========================================================
+   03. BOTÃO EDITAR
+   ========================================================= */
+
+.dados-pessoais__edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  flex:
+    0
+    0
+    auto;
+
+  min-height: 32px;
+
+  padding:
+    0
+    10px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 8px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-card);
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+
+.dados-pessoais__edit:hover:not(:disabled) {
+  border-color:
+    rgba(37, 99, 235, 0.35);
+
+  color:
+    var(--mp-blue-dark);
+
+  background:
+    var(--mp-bg-blue-soft);
+
+  box-shadow:
+    var(--mp-shadow-soft);
+}
+
+
+.dados-pessoais__edit:focus-visible {
+  outline:
+    2px solid
+    var(--mp-blue);
+
+  outline-offset: 2px;
+}
+
+
+.dados-pessoais__edit:disabled {
+  color:
+    var(--mp-text-muted);
+
+  background:
+    var(--mp-bg-soft);
+
+  cursor: default;
+
+  opacity: 0.72;
+}
+
+
+/* =========================================================
+   04. CAMPOS
+   ========================================================= */
+
+.dados-pessoais__fields {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  column-gap: 24px;
+  row-gap: 17px;
+
+  min-width: 0;
+}
+
+
+.dados-pessoais__field {
+  min-width: 0;
+}
+
+
+.dados-pessoais__field-label {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  min-width: 0;
+
+  margin-bottom: 4px;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+
+.dados-pessoais__field-label svg {
+  flex:
+    0
+    0
+    auto;
+
+  color:
+    var(--mp-blue);
+}
+
+
+.dados-pessoais__field strong {
+  display: block;
+
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+
+  color:
+    var(--mp-text);
+
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+
+/* Nome completo ocupa a largura disponível. */
+
+.dados-pessoais__field:first-child {
+  grid-column:
+    1 / -1;
+}
+
+
+/* =========================================================
+   05. SKELETON
+   ========================================================= */
+
+.dados-pessoais__skeleton {
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--mp-bg-soft) 25%,
+      var(--mp-border) 50%,
+      var(--mp-bg-soft) 75%
+    );
+
+  background-size:
+    200%
+    100%;
+
+  animation:
+    dados-pessoais-skeleton
+    1.4s
+    ease-in-out
+    infinite;
+}
+
+
+.dados-pessoais__skeleton--title {
+  width: 135px;
+  height: 20px;
+
+  border-radius: 7px;
+}
+
+
+.dados-pessoais__skeleton--button {
+  width: 62px;
+  height: 32px;
+
+  border-radius: 8px;
+}
+
+
+.dados-pessoais__skeleton-field {
+  min-width: 0;
+}
+
+
+.dados-pessoais__skeleton--label {
+  width: 82px;
+  height: 9px;
+
+  border-radius: 4px;
+}
+
+
+.dados-pessoais__skeleton--value {
+  width:
+    min(
+      170px,
+      85%
+    );
+
+  height: 13px;
+
+  margin-top: 7px;
+
+  border-radius: 5px;
+}
+
+
+.dados-pessoais__skeleton-field:first-child {
+  grid-column:
+    1 / -1;
+}
+
+
+@keyframes dados-pessoais-skeleton {
+  0% {
+    background-position:
+      200%
+      0;
+  }
+
+  100% {
+    background-position:
+      -200%
+      0;
+  }
+}
+
+
+/* =========================================================
+   06. DARK MODE
+   ========================================================= */
+
+html.modo-escuro
+  .dados-pessoais:hover,
+body.modo-escuro
+  .dados-pessoais:hover {
+  box-shadow:
+    0 10px 28px
+    rgba(0, 0, 0, 0.22);
+}
+
+
+@media (prefers-color-scheme: dark) {
+  html:not(.modo-claro):not(.modo-escuro)
+    .dados-pessoais:hover,
+  body:not(.modo-claro):not(.modo-escuro)
+    .dados-pessoais:hover {
+    box-shadow:
+      0 10px 28px
+      rgba(0, 0, 0, 0.22);
+  }
+}
+
+
+/* =========================================================
+   07. RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .dados-pessoais {
+    padding: 17px;
+  }
+
+  .dados-pessoais__fields {
+    column-gap: 18px;
+  }
+}
+
+
+@media (max-width: 680px) {
+  .dados-pessoais {
+    padding: 16px;
+
+    border-radius: 14px;
+  }
+
+  .dados-pessoais__header {
+    margin-bottom: 17px;
+  }
+
+  .dados-pessoais__fields {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap: 15px;
+  }
+
+  .dados-pessoais__field:first-child,
+  .dados-pessoais__skeleton-field:first-child {
+    grid-column: auto;
+  }
+
+  .dados-pessoais__edit {
+    min-width: 44px;
+    min-height: 36px;
+  }
+}
+
+
+@media (max-width: 430px) {
+  .dados-pessoais__edit span {
+    display: none;
+  }
+
+  .dados-pessoais__edit {
+    width: 36px;
+    min-width: 36px;
+
+    padding: 0;
+  }
+}
+
+
+/* =========================================================
+   08. REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .dados-pessoais,
+  .dados-pessoais__edit,
+  .dados-pessoais__skeleton {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ============================================================
+ * ALINHAMENTO — LABEL / VALOR
+ * ============================================================
+ *
+ * Regra:
+ * - campo sem ícone: valor alinhado ao início do label;
+ * - campo com ícone: valor alinhado ao texto do label,
+ *   desconsiderando a coluna reservada ao ícone.
+ */
+
+.dados-pessoais__field > strong {
+  padding-left: 0;
+}
+
+.dados-pessoais__field:has(
+  .dados-pessoais__field-label svg
+) > strong {
+  padding-left: 22px;
+}

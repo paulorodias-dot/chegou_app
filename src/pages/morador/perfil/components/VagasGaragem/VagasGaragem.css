@@ -1,0 +1,629 @@
+/* =========================================================
+   SISTEMA CHEGOU!
+   PERFIL DO MORADOR — VAGA(S) DE GARAGEM
+
+   PERFIL.08
+   ========================================================= */
+
+
+/* =========================================================
+   01. CARD
+   ========================================================= */
+
+.vagas-garagem {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 190px;
+
+  padding: 18px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 16px;
+
+  background:
+    var(--mp-bg-card);
+
+  box-shadow:
+    var(--mp-shadow-card);
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.vagas-garagem:hover {
+  border-color:
+    var(--mp-border-strong);
+
+  box-shadow:
+    0 10px 28px
+    rgba(15, 23, 42, 0.065);
+}
+
+
+/* =========================================================
+   02. HEADER
+   ========================================================= */
+
+.vagas-garagem__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  min-width: 0;
+}
+
+
+.vagas-garagem__heading {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+
+.vagas-garagem__heading-icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 10px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-blue-soft);
+}
+
+
+.vagas-garagem__heading h2 {
+  margin: 0;
+
+  color:
+    var(--mp-text);
+
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+
+.vagas-garagem__heading p {
+  margin:
+    3px
+    0
+    0;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+
+.vagas-garagem__count {
+  flex: 0 0 auto;
+
+  padding:
+    5px
+    8px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 999px;
+
+  color:
+    var(--mp-text-secondary);
+
+  background:
+    var(--mp-bg-soft);
+
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+
+/* =========================================================
+   03. BODY
+   ========================================================= */
+
+.vagas-garagem__body {
+  display: flex;
+  align-items: center;
+
+  flex: 1;
+
+  min-width: 0;
+
+  margin-top: 16px;
+}
+
+
+/* =========================================================
+   04. VAGA EM DESTAQUE
+   ========================================================= */
+
+.vagas-garagem__spot {
+  width: 100%;
+  min-width: 0;
+
+  padding: 13px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 12px;
+
+  background:
+    var(--mp-bg-soft);
+}
+
+
+.vagas-garagem__spot-top {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+
+.vagas-garagem__spot-icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 10px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-blue-soft);
+}
+
+
+.vagas-garagem__spot-heading {
+  display: flex;
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 7px;
+
+  min-width: 0;
+}
+
+
+.vagas-garagem__spot-heading strong {
+  color:
+    var(--mp-text);
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+
+/* =========================================================
+   05. STATUS
+   ========================================================= */
+
+.vagas-garagem__status {
+  padding:
+    3px
+    7px;
+
+  border-radius: 999px;
+
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+
+.vagas-garagem__status--disponivel {
+  color:
+    var(--mp-green-dark);
+
+  background:
+    var(--mp-bg-green-soft);
+}
+
+
+.vagas-garagem__status--ocupada {
+  color:
+    var(--mp-blue-dark);
+
+  background:
+    var(--mp-bg-blue-soft);
+}
+
+
+.vagas-garagem__status--atencao {
+  color:
+    var(--mp-orange-dark);
+
+  background:
+    var(--mp-bg-orange-soft);
+}
+
+
+.vagas-garagem__status--neutro {
+  color:
+    var(--mp-text-secondary);
+
+  background:
+    var(--mp-bg-card);
+}
+
+
+/* =========================================================
+   06. DETALHES
+   ========================================================= */
+
+.vagas-garagem__spot-details {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap:
+    7px
+    14px;
+
+  min-width: 0;
+
+  margin-top: 12px;
+}
+
+
+.vagas-garagem__detail {
+  display: grid;
+
+  grid-template-columns:
+    14px
+    auto
+    minmax(0, 1fr);
+
+  align-items: center;
+
+  gap: 5px;
+
+  min-width: 0;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+
+.vagas-garagem__detail svg {
+  color:
+    var(--mp-blue);
+}
+
+
+.vagas-garagem__detail strong {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color:
+    var(--mp-text);
+
+  font-size: 9px;
+  font-weight: 650;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   07. EMPTY STATE
+   ========================================================= */
+
+.vagas-garagem__empty {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  width: 100%;
+  min-width: 0;
+
+  padding: 13px;
+
+  border:
+    1px dashed
+    var(--mp-border-strong);
+
+  border-radius: 12px;
+
+  background:
+    var(--mp-bg-soft);
+}
+
+
+.vagas-garagem__empty-icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 10px;
+
+  color:
+    var(--mp-text-muted);
+
+  background:
+    var(--mp-bg-card);
+}
+
+
+.vagas-garagem__empty > div {
+  min-width: 0;
+}
+
+
+.vagas-garagem__empty strong {
+  display: block;
+
+  color:
+    var(--mp-text);
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+
+.vagas-garagem__empty p {
+  margin:
+    3px
+    0
+    0;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   08. FOOTER
+   ========================================================= */
+
+.vagas-garagem__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  min-width: 0;
+
+  margin-top: 13px;
+}
+
+
+.vagas-garagem__additional {
+  min-width: 0;
+
+  color:
+    var(--mp-text-secondary);
+
+  font-size: 8px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+
+.vagas-garagem__action {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 3px;
+
+  flex: 0 0 auto;
+
+  padding: 0;
+
+  border: 0;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    transparent;
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 700;
+
+  cursor: default;
+
+  opacity: 0.62;
+}
+
+
+.vagas-garagem__action:disabled {
+  color:
+    var(--mp-blue);
+
+  opacity: 0.62;
+}
+
+
+/* =========================================================
+   09. SKELETON
+   ========================================================= */
+
+.vagas-garagem__skeleton {
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--mp-bg-soft) 25%,
+      var(--mp-border) 50%,
+      var(--mp-bg-soft) 75%
+    );
+
+  background-size:
+    200%
+    100%;
+
+  animation:
+    vagas-garagem-skeleton
+    1.4s
+    ease-in-out
+    infinite;
+}
+
+
+.vagas-garagem__skeleton--title {
+  width: 170px;
+  height: 20px;
+
+  border-radius: 6px;
+}
+
+
+.vagas-garagem__skeleton--spot {
+  width: 100%;
+  height: 82px;
+
+  margin-top: 20px;
+
+  border-radius: 12px;
+}
+
+
+@keyframes vagas-garagem-skeleton {
+  0% {
+    background-position:
+      200%
+      0;
+  }
+
+  100% {
+    background-position:
+      -200%
+      0;
+  }
+}
+
+
+/* =========================================================
+   10. DARK MODE
+   ========================================================= */
+
+html.modo-escuro
+  .vagas-garagem:hover,
+body.modo-escuro
+  .vagas-garagem:hover {
+  box-shadow:
+    0 10px 28px
+    rgba(0, 0, 0, 0.22);
+}
+
+
+@media (prefers-color-scheme: dark) {
+  html:not(.modo-claro):not(.modo-escuro)
+    .vagas-garagem:hover,
+  body:not(.modo-claro):not(.modo-escuro)
+    .vagas-garagem:hover {
+    box-shadow:
+      0 10px 28px
+      rgba(0, 0, 0, 0.22);
+  }
+}
+
+
+/* =========================================================
+   11. RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .vagas-garagem {
+    min-height: 0;
+
+    padding: 16px;
+
+    border-radius: 14px;
+  }
+
+
+  .vagas-garagem__spot-details {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+}
+
+
+@media (max-width: 430px) {
+  .vagas-garagem__header {
+    flex-direction: column;
+  }
+
+
+  .vagas-garagem__count {
+    margin-left: 46px;
+  }
+}
+
+
+/* =========================================================
+   12. REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .vagas-garagem,
+  .vagas-garagem__skeleton {
+    transition: none;
+    animation: none;
+  }
+}
+
+.vagas-garagem__list {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}

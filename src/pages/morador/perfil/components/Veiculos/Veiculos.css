@@ -1,0 +1,595 @@
+/* =========================================================
+   SISTEMA CHEGOU!
+   PERFIL DO MORADOR — VEÍCULOS
+
+   PERFIL.07
+   ========================================================= */
+
+
+/* =========================================================
+   01. CARD
+   ========================================================= */
+
+.veiculos-perfil {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 190px;
+
+  padding: 18px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 16px;
+
+  background:
+    var(--mp-bg-card);
+
+  box-shadow:
+    var(--mp-shadow-card);
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.veiculos-perfil:hover {
+  border-color:
+    var(--mp-border-strong);
+
+  box-shadow:
+    0 10px 28px
+    rgba(15, 23, 42, 0.065);
+}
+
+
+/* =========================================================
+   02. HEADER
+   ========================================================= */
+
+.veiculos-perfil__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  min-width: 0;
+}
+
+
+.veiculos-perfil__heading {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+
+.veiculos-perfil__heading-icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 10px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-blue-soft);
+}
+
+
+.veiculos-perfil__heading h2 {
+  margin: 0;
+
+  color:
+    var(--mp-text);
+
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+
+.veiculos-perfil__heading p {
+  margin:
+    3px
+    0
+    0;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+
+.veiculos-perfil__count {
+  flex: 0 0 auto;
+
+  padding:
+    5px
+    8px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 999px;
+
+  color:
+    var(--mp-text-secondary);
+
+  background:
+    var(--mp-bg-soft);
+
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+
+/* =========================================================
+   03. BODY
+   ========================================================= */
+
+.veiculos-perfil__body {
+  display: flex;
+  align-items: center;
+
+  flex: 1;
+
+  min-width: 0;
+
+  margin-top: 16px;
+}
+
+
+/* =========================================================
+   04. VEÍCULO EM DESTAQUE
+   ========================================================= */
+
+.veiculos-perfil__vehicle {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  width: 100%;
+  min-width: 0;
+
+  padding: 13px;
+
+  border:
+    1px solid
+    var(--mp-border);
+
+  border-radius: 12px;
+
+  background:
+    var(--mp-bg-soft);
+}
+
+
+.veiculos-perfil__vehicle-icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 10px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-blue-soft);
+}
+
+
+.veiculos-perfil__vehicle-content {
+  min-width: 0;
+
+  flex: 1;
+}
+
+
+.veiculos-perfil__vehicle-heading {
+  display: flex;
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 6px;
+
+  min-width: 0;
+}
+
+
+.veiculos-perfil__vehicle-heading strong {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color:
+    var(--mp-text);
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.veiculos-perfil__badge {
+  flex: 0 0 auto;
+
+  padding:
+    3px
+    6px;
+
+  border-radius: 999px;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    var(--mp-bg-blue-soft);
+
+  font-size: 8px;
+  font-weight: 700;
+}
+
+
+.veiculos-perfil__vehicle-details {
+  display: flex;
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 6px;
+
+  margin-top: 5px;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 9px;
+  font-weight: 500;
+}
+
+
+.veiculos-perfil__parking {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 4px;
+}
+
+
+.veiculos-perfil__parking svg {
+  color:
+    var(--mp-blue);
+}
+
+
+.veiculos-perfil__separator {
+  color:
+    var(--mp-text-muted);
+}
+
+
+/* =========================================================
+   05. EMPTY STATE
+   ========================================================= */
+
+.veiculos-perfil__empty {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  width: 100%;
+  min-width: 0;
+
+  padding: 13px;
+
+  border:
+    1px dashed
+    var(--mp-border-strong);
+
+  border-radius: 12px;
+
+  background:
+    var(--mp-bg-soft);
+}
+
+
+.veiculos-perfil__empty-icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 10px;
+
+  color:
+    var(--mp-text-muted);
+
+  background:
+    var(--mp-bg-card);
+}
+
+
+.veiculos-perfil__empty > div {
+  min-width: 0;
+}
+
+
+.veiculos-perfil__empty strong {
+  display: block;
+
+  color:
+    var(--mp-text);
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+
+.veiculos-perfil__empty p {
+  margin:
+    3px
+    0
+    0;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   06. FOOTER
+   ========================================================= */
+
+.veiculos-perfil__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  min-width: 0;
+
+  margin-top: 13px;
+}
+
+
+.veiculos-perfil__association-hint {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  min-width: 0;
+
+  color:
+    var(--mp-text-muted);
+
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+
+.veiculos-perfil__association-hint svg {
+  flex: 0 0 auto;
+
+  color:
+    var(--mp-blue);
+}
+
+
+.veiculos-perfil__action {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 3px;
+
+  flex: 0 0 auto;
+
+  padding: 0;
+
+  border: 0;
+
+  color:
+    var(--mp-blue);
+
+  background:
+    transparent;
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 700;
+
+  cursor: default;
+
+  opacity: 0.62;
+}
+
+
+.veiculos-perfil__action:disabled {
+  color:
+    var(--mp-blue);
+
+  opacity: 0.62;
+}
+
+
+/* =========================================================
+   07. SKELETON
+   ========================================================= */
+
+.veiculos-perfil__skeleton {
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--mp-bg-soft) 25%,
+      var(--mp-border) 50%,
+      var(--mp-bg-soft) 75%
+    );
+
+  background-size:
+    200%
+    100%;
+
+  animation:
+    veiculos-perfil-skeleton
+    1.4s
+    ease-in-out
+    infinite;
+}
+
+
+.veiculos-perfil__skeleton--title {
+  width: 160px;
+  height: 20px;
+
+  border-radius: 6px;
+}
+
+
+.veiculos-perfil__skeleton--vehicle {
+  width: 100%;
+  height: 66px;
+
+  margin-top: 20px;
+
+  border-radius: 12px;
+}
+
+
+@keyframes veiculos-perfil-skeleton {
+  0% {
+    background-position:
+      200%
+      0;
+  }
+
+  100% {
+    background-position:
+      -200%
+      0;
+  }
+}
+
+
+/* =========================================================
+   08. DARK MODE
+   ========================================================= */
+
+html.modo-escuro
+  .veiculos-perfil:hover,
+body.modo-escuro
+  .veiculos-perfil:hover {
+  box-shadow:
+    0 10px 28px
+    rgba(0, 0, 0, 0.22);
+}
+
+
+@media (prefers-color-scheme: dark) {
+  html:not(.modo-claro):not(.modo-escuro)
+    .veiculos-perfil:hover,
+  body:not(.modo-claro):not(.modo-escuro)
+    .veiculos-perfil:hover {
+    box-shadow:
+      0 10px 28px
+      rgba(0, 0, 0, 0.22);
+  }
+}
+
+
+/* =========================================================
+   09. MOBILE
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .veiculos-perfil {
+    min-height: 0;
+
+    padding: 16px;
+
+    border-radius: 14px;
+  }
+
+
+  .veiculos-perfil__header {
+    gap: 10px;
+  }
+
+
+  .veiculos-perfil__count {
+    white-space: nowrap;
+  }
+
+
+  .veiculos-perfil__footer {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+}
+
+
+@media (max-width: 430px) {
+  .veiculos-perfil__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+
+  .veiculos-perfil__count {
+    margin-left: 46px;
+  }
+}
+
+
+/* =========================================================
+   10. REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .veiculos-perfil,
+  .veiculos-perfil__skeleton {
+    transition: none;
+    animation: none;
+  }
+}
