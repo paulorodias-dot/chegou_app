@@ -8,14 +8,30 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { useNavigate } from "react-router-dom";
+
+import {
+  useLandingNavigation,
+} from "../navigation/LandingNavigationContext";
+
 import "./LandingCommercial.css";
 
 export default function LandingCommercial() {
-  function rolarPara(id) {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
+  const navigate = useNavigate();
+
+  const { navegarParaSecao } = useLandingNavigation();
+
+  function conhecerPlanoBasico() {
+    navigate("/plano-basico", {
+      state: {
+        origem: "landing",
+        destino: "inicio",
+      },
     });
+  }
+
+  function solicitarOrcamento() {
+    navigate("/orcamento");
   }
 
   return (
@@ -27,7 +43,13 @@ export default function LandingCommercial() {
       <div className="landing-commercial__container">
         <header className="landing-commercial__heading">
           <span className="landing-commercial__eyebrow">
-            ASSINATURAS CHEGOU!
+            ASSINATURAS{" "}
+            <strong className="landing-commercial__brand">
+              CHEGOU
+              <span className="landing-commercial__brand-exclamation">
+                !
+              </span>
+            </strong>
           </span>
 
           <h2 id="landing-commercial-title">
@@ -85,9 +107,9 @@ export default function LandingCommercial() {
             <button
               type="button"
               className="landing-commercial__link"
-              onClick={() => rolarPara("orcamento")}
+              onClick={conhecerPlanoBasico}
             >
-              Conhecer as opções
+              Conhecer o Plano Básico
               <ArrowRight size={17} aria-hidden="true" />
             </button>
           </article>
@@ -131,7 +153,7 @@ export default function LandingCommercial() {
             <button
               type="button"
               className="landing-commercial__link"
-              onClick={() => rolarPara("contato")}
+              onClick={solicitarOrcamento}
             >
               Solicitar orçamento
               <ArrowRight size={17} aria-hidden="true" />
@@ -177,7 +199,7 @@ export default function LandingCommercial() {
             <button
               type="button"
               className="landing-commercial__link"
-              onClick={() => rolarPara("recursos")}
+              onClick={() => navegarParaSecao("recursos")}
             >
               Ver recursos da plataforma
               <ArrowRight size={17} aria-hidden="true" />

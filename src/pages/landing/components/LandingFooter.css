@@ -296,6 +296,19 @@
   line-height: 1.4;
 }
 
+/* ==========================================================
+   BRAND — SISTEMA CHEGOU!
+   Variante para superfície escura
+========================================================== */
+
+.landing-footer__brand-signature {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.landing-footer__brand-exclamation {
+  color: #f06f1a;
+}
 
 /* ==========================================================
    DESKTOP INTERMEDIÁRIO

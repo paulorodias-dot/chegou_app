@@ -105,6 +105,22 @@
   line-height: 1.55;
 }
 
+/* ==========================================================
+   BRAND — SISTEMA CHEGOU!
+========================================================== */
+
+.landing-security__brand {
+  color: #0f3f8f;
+  font-weight: 700;
+}
+
+.landing-security__brand-exclamation {
+  color: #f06f1a;
+}
+
+.landing-security__brand--dark {
+  color: #ffffff;
+}
 
 /* ==========================================================
    COMPROMISSO

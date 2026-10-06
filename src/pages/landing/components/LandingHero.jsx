@@ -7,21 +7,14 @@ import {
 
 import mascoteHero from "../../../assets/landing/hero/landing-hero-mascote.png";
 
+import {
+  useLandingNavigation,
+} from "../navigation/LandingNavigationContext";
+
 import "./LandingHero.css";
 
 export default function LandingHero() {
-  function navegarParaSecao(id) {
-    const elemento = document.getElementById(id);
-
-    if (!elemento) {
-      return;
-    }
-
-    elemento.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
+  const { navegarParaSecao } = useLandingNavigation();
 
   return (
     <section
@@ -29,7 +22,10 @@ export default function LandingHero() {
       id="inicio"
       aria-labelledby="landing-hero-title"
     >
-      <div className="landing-hero__background" aria-hidden="true" />
+      <div
+        className="landing-hero__background"
+        aria-hidden="true"
+      />
 
       <div className="landing-hero__container">
         <div className="landing-hero__content">
@@ -41,14 +37,22 @@ export default function LandingHero() {
             id="landing-hero-title"
             className="landing-hero__title"
           >
-            Gestão inteligente de encomendas para condomínios que querem{" "}
+            Gestão inteligente de encomendas para condomínios
+            que querem{" "}
             <span>mais organização e segurança.</span>
           </h1>
 
           <p className="landing-hero__description">
-            O Sistema Chegou! conecta administração, portaria e
-            moradores em uma experiência simples, organizada e
-            segura para o dia a dia do condomínio na gestão da sua encomenda.
+            O{" "}
+            <strong className="landing-hero__brand">
+              Sistema Chegou
+              <span className="landing-hero__brand-exclamation">
+                !
+              </span>
+            </strong>{" "}
+            conecta administração, portaria e moradores em uma
+            experiência simples, organizada e segura para o dia a
+            dia do condomínio na gestão da sua encomenda.
           </p>
 
           <div className="landing-hero__actions">
@@ -81,27 +85,14 @@ export default function LandingHero() {
             </button>
           </div>
 
-          <div className="landing-hero__partners">
-            <span>
-              Conheça também o programa para empresas e prestadores de serviços:
-            </span>
+          {/*
+            PROGRAMA DE PARCEIROS
 
-            <button
-              type="button"
-              className="landing-hero__partners-link"
-              onClick={() => {
-                document
-                  .getElementById("parceiros")
-                  ?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                  });
-              }}
-            >
-              Seja um Parceiro Chegou!
-              <span aria-hidden="true">→</span>
-            </button>
-          </div>
+            Chamada temporariamente oculta.
+
+            Reativar somente quando o programa estiver
+            operacional e a seção Parceiros for publicada.
+          */}
 
           <div
             className="landing-hero__trust"
@@ -125,21 +116,21 @@ export default function LandingHero() {
           </div>
         </div>
 
-            <div className="landing-hero__visual">
-                <div
-                    className="landing-hero__image-shape"
-                    aria-hidden="true"
-                >
-                    <img
-                    src={mascoteHero}
-                    alt=""
-                    className="landing-hero__mascot"
-                    width="900"
-                    height="620"
-                    fetchPriority="high"
-                    />
-                </div>
-            </div>
+        <div className="landing-hero__visual">
+          <div
+            className="landing-hero__image-shape"
+            aria-hidden="true"
+          >
+            <img
+              src={mascoteHero}
+              alt=""
+              className="landing-hero__mascot"
+              width="900"
+              height="620"
+              fetchPriority="high"
+            />
+          </div>
+        </div>
       </div>
     </section>
   );

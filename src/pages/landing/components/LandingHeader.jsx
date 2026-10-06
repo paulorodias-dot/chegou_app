@@ -1,42 +1,66 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { ChevronDown, Menu, X } from "lucide-react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  ChevronDown,
+  Menu,
+  X,
+} from "lucide-react";
 
 import logoAzulRoyal from "../../../assets/logo_azulroyal.png";
+
+import {
+  useLandingNavigation,
+} from "../navigation/LandingNavigationContext";
 
 import "./LandingHeader.css";
 
 export default function LandingHeader() {
-  const [menuMobileAberto, setMenuMobileAberto] = useState(false);
-  const [submenuAssinaturasAberto, setSubmenuAssinaturasAberto] =
-    useState(false);
+  const [
+    menuMobileAberto,
+    setMenuMobileAberto,
+  ] = useState(false);
+
+  const [
+    submenuAssinaturasAberto,
+    setSubmenuAssinaturasAberto,
+  ] = useState(false);
 
   const menuMobileId = useId();
   const submenuId = useId();
 
   const headerRef = useRef(null);
 
-  function irParaLogin() {
-    window.location.href = "/login";
-  }
+  const {
+    navegarParaSecao,
+    navegarParaLanding,
+  } = useLandingNavigation();
 
   function fecharMenus() {
     setMenuMobileAberto(false);
     setSubmenuAssinaturasAberto(false);
   }
 
-  function navegarParaSecao(id) {
-    const elemento = document.getElementById(id);
+  function navegar(id) {
+    const destinoEncontrado =
+      navegarParaSecao(id);
 
-    if (!elemento) {
-      return;
+    if (destinoEncontrado) {
+      fecharMenus();
     }
+  }
 
-    elemento.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
+  function navegarParaInicio() {
+    const destinoEncontrado =
+      navegarParaLanding("inicio");
 
-    fecharMenus();
+    if (destinoEncontrado) {
+      fecharMenus();
+    }
   }
 
   useEffect(() => {
@@ -46,10 +70,16 @@ export default function LandingHeader() {
       }
     }
 
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
     };
   }, []);
 
@@ -58,11 +88,15 @@ export default function LandingHeader() {
       return undefined;
     }
 
-    const overflowOriginal = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const overflowOriginal =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
 
     return () => {
-      document.body.style.overflow = overflowOriginal;
+      document.body.style.overflow =
+        overflowOriginal;
     };
   }, [menuMobileAberto]);
 
@@ -70,13 +104,20 @@ export default function LandingHeader() {
     function handleClickFora(event) {
       if (
         headerRef.current &&
-        !headerRef.current.contains(event.target)
+        !headerRef.current.contains(
+          event.target
+        )
       ) {
-        setSubmenuAssinaturasAberto(false);
+        setSubmenuAssinaturasAberto(
+          false
+        );
       }
     }
 
-    document.addEventListener("pointerdown", handleClickFora);
+    document.addEventListener(
+      "pointerdown",
+      handleClickFora
+    );
 
     return () => {
       document.removeEventListener(
@@ -92,10 +133,16 @@ export default function LandingHeader() {
       ref={headerRef}
     >
       <div className="landing-header__inner">
+        {/* MARCA */}
+
         <a
           href="/"
           className="landing-header__brand"
           aria-label="Sistema Chegou! - Página inicial"
+          onClick={(event) => {
+            event.preventDefault();
+            navegarParaInicio();
+          }}
         >
           <img
             src={logoAzulRoyal}
@@ -104,6 +151,8 @@ export default function LandingHeader() {
           />
         </a>
 
+        {/* NAVEGAÇÃO DESKTOP */}
+
         <nav
           className="landing-header__nav landing-header__nav--desktop"
           aria-label="Navegação principal"
@@ -111,7 +160,9 @@ export default function LandingHeader() {
           <button
             type="button"
             className="landing-header__link"
-            onClick={() => navegarParaSecao("recursos")}
+            onClick={() =>
+              navegar("recursos")
+            }
           >
             Recursos
           </button>
@@ -119,24 +170,29 @@ export default function LandingHeader() {
           <button
             type="button"
             className="landing-header__link"
-            onClick={() => navegarParaSecao("condominios")}
+            onClick={() =>
+              navegar("recursos")
+            }
           >
             Para Condomínios
           </button>
 
-          <button
-            type="button"
-            className="landing-header__link"
-            onClick={() => navegarParaSecao("parceiros")}
-          >
-            Parceiros
-          </button>
+          {/*
+            PARCEIROS
+
+            Temporariamente oculto.
+
+            Reativar quando o Programa de Parceiros
+            estiver operacional e publicado.
+          */}
 
           <div className="landing-header__submenu">
             <button
               type="button"
               className="landing-header__link landing-header__link--submenu"
-              aria-expanded={submenuAssinaturasAberto}
+              aria-expanded={
+                submenuAssinaturasAberto
+              }
               aria-controls={submenuId}
               onClick={() =>
                 setSubmenuAssinaturasAberto(
@@ -145,6 +201,7 @@ export default function LandingHeader() {
               }
             >
               Assinaturas
+
               <ChevronDown
                 size={16}
                 aria-hidden="true"
@@ -164,7 +221,7 @@ export default function LandingHeader() {
                 <button
                   type="button"
                   onClick={() =>
-                    navegarParaSecao("assinaturas")
+                    navegar("assinaturas")
                   }
                 >
                   Planos
@@ -173,7 +230,7 @@ export default function LandingHeader() {
                 <button
                   type="button"
                   onClick={() =>
-                    navegarParaSecao("orcamento")
+                    navegar("orcamento")
                   }
                 >
                   Orçamento
@@ -182,7 +239,7 @@ export default function LandingHeader() {
                 <button
                   type="button"
                   onClick={() =>
-                    navegarParaSecao("modulos")
+                    navegar("modulos")
                   }
                 >
                   Módulos
@@ -191,28 +248,27 @@ export default function LandingHeader() {
             )}
           </div>
 
-          <button
-            type="button"
-            className="landing-header__link"
-            onClick={() => navegarParaSecao("sobre")}
-          >
-            Sobre nós
-          </button>
+          {/*
+            SOBRE NÓS / DÚVIDAS
 
-          <button
-            type="button"
-            className="landing-header__link"
-            onClick={() => navegarParaSecao("duvidas")}
-          >
-            Dúvidas
-          </button>
+            Temporariamente ocultos porque as
+            seções #sobre e #duvidas não estão
+            disponíveis na composição atual.
+
+            Preservar os nomes para futura
+            publicação dos respectivos destinos.
+          */}
         </nav>
+
+        {/* AÇÕES */}
 
         <div className="landing-header__actions">
           <button
             type="button"
             className="landing-header__restricted"
-            onClick={irParaLogin}
+            disabled
+            title="Acesso Restrito disponível após a conclusão da Landing"
+            aria-label="Acesso Restrito — em preparação"
           >
             Acesso Restrito
           </button>
@@ -234,13 +290,21 @@ export default function LandingHeader() {
             }
           >
             {menuMobileAberto ? (
-              <X size={22} aria-hidden="true" />
+              <X
+                size={22}
+                aria-hidden="true"
+              />
             ) : (
-              <Menu size={22} aria-hidden="true" />
+              <Menu
+                size={22}
+                aria-hidden="true"
+              />
             )}
           </button>
         </div>
       </div>
+
+      {/* BACKDROP MOBILE */}
 
       {menuMobileAberto && (
         <div
@@ -249,6 +313,8 @@ export default function LandingHeader() {
           onClick={fecharMenus}
         />
       )}
+
+      {/* MENU MOBILE */}
 
       <div
         id={menuMobileId}
@@ -265,7 +331,9 @@ export default function LandingHeader() {
         >
           <button
             type="button"
-            onClick={() => navegarParaSecao("recursos")}
+            onClick={() =>
+              navegar("recursos")
+            }
           >
             Recursos
           </button>
@@ -273,26 +341,26 @@ export default function LandingHeader() {
           <button
             type="button"
             onClick={() =>
-              navegarParaSecao("condominios")
+              navegar("recursos")
             }
           >
             Para Condomínios
           </button>
 
-          <button
-            type="button"
-            onClick={() =>
-              navegarParaSecao("parceiros")
-            }
-          >
-            Parceiros
-          </button>
+          {/*
+            PARCEIROS MOBILE
+
+            Temporariamente oculto.
+          */}
 
           <div className="landing-header__mobile-submenu">
             <button
               type="button"
               className="landing-header__mobile-submenu-trigger"
-              aria-expanded={submenuAssinaturasAberto}
+              aria-expanded={
+                submenuAssinaturasAberto
+              }
+              aria-controls={`${submenuId}-mobile`}
               onClick={() =>
                 setSubmenuAssinaturasAberto(
                   (aberto) => !aberto
@@ -313,11 +381,14 @@ export default function LandingHeader() {
             </button>
 
             {submenuAssinaturasAberto && (
-              <div className="landing-header__mobile-submenu-panel">
+              <div
+                id={`${submenuId}-mobile`}
+                className="landing-header__mobile-submenu-panel"
+              >
                 <button
                   type="button"
                   onClick={() =>
-                    navegarParaSecao("assinaturas")
+                    navegar("assinaturas")
                   }
                 >
                   Planos
@@ -326,7 +397,7 @@ export default function LandingHeader() {
                 <button
                   type="button"
                   onClick={() =>
-                    navegarParaSecao("orcamento")
+                    navegar("orcamento")
                   }
                 >
                   Orçamento
@@ -335,7 +406,7 @@ export default function LandingHeader() {
                 <button
                   type="button"
                   onClick={() =>
-                    navegarParaSecao("modulos")
+                    navegar("modulos")
                   }
                 >
                   Módulos
@@ -344,24 +415,19 @@ export default function LandingHeader() {
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => navegarParaSecao("sobre")}
-          >
-            Sobre nós
-          </button>
+          {/*
+            SOBRE NÓS / DÚVIDAS MOBILE
 
-          <button
-            type="button"
-            onClick={() => navegarParaSecao("duvidas")}
-          >
-            Dúvidas
-          </button>
+            Temporariamente ocultos até
+            existirem destinos publicados.
+          */}
 
           <button
             type="button"
             className="landing-header__mobile-restricted"
-            onClick={irParaLogin}
+            disabled
+            title="Acesso Restrito disponível após a conclusão da Landing"
+            aria-label="Acesso Restrito — em preparação"
           >
             Acesso Restrito
           </button>

@@ -1,0 +1,85 @@
+/* ==========================================================
+   SISTEMA CHEGOU!
+   LANDING PAGE — BOTÃO FLUTUANTE DE RETORNO
+========================================================== */
+
+.landing-back-to-top {
+  position: fixed;
+
+  right: max(22px, env(safe-area-inset-right));
+  bottom: max(22px, env(safe-area-inset-bottom));
+
+  z-index: 80;
+
+  width: 48px;
+  height: 48px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+
+  background: var(--lp-primary);
+  color: #ffffff;
+
+  box-shadow:
+    0 8px 24px rgba(37, 99, 235, 0.24);
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.landing-back-to-top:hover {
+  background: var(--lp-primary-dark);
+
+  box-shadow:
+    0 12px 28px rgba(37, 99, 235, 0.3);
+
+  transform: translateY(-2px);
+}
+
+.landing-back-to-top:active {
+  transform: translateY(0);
+}
+
+.landing-back-to-top:focus-visible {
+  outline: 3px solid var(--lp-accent);
+  outline-offset: 4px;
+}
+
+.landing-back-to-top svg {
+  display: block;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 680px) {
+  .landing-back-to-top {
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(18px, env(safe-area-inset-bottom));
+
+    width: 46px;
+    height: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-back-to-top {
+    transition: none;
+  }
+
+  .landing-back-to-top:hover,
+  .landing-back-to-top:active {
+    transform: none;
+  }
+}

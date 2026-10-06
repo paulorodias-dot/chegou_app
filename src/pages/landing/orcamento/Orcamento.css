@@ -1,0 +1,171 @@
+.orcamento-construcao {
+  --brand-royal: #0f3f8f;
+  --brand-orange: #f06f1a;
+
+  min-height: 100dvh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    max(32px, env(safe-area-inset-top))
+    max(20px, env(safe-area-inset-right))
+    max(32px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+
+  background:
+    radial-gradient(
+      circle at 50% 25%,
+      rgba(15, 63, 143, 0.08),
+      transparent 38%
+    ),
+    #f8fafc;
+
+  color: #0f172a;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  box-sizing: border-box;
+}
+
+.orcamento-construcao *,
+.orcamento-construcao *::before,
+.orcamento-construcao *::after {
+  box-sizing: border-box;
+}
+
+.orcamento-construcao__card {
+  width: min(100%, 620px);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 48px 40px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.08);
+
+  text-align: center;
+}
+
+.orcamento-construcao__logo {
+  display: block;
+
+  width: auto;
+  height: 46px;
+  max-width: 180px;
+
+  margin-bottom: 32px;
+
+  object-fit: contain;
+}
+
+.orcamento-construcao__icon {
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 18px;
+
+  border-radius: 18px;
+
+  background: rgba(15, 63, 143, 0.08);
+  color: var(--brand-royal);
+}
+
+.orcamento-construcao__eyebrow {
+  margin-bottom: 10px;
+
+  color: var(--brand-royal);
+
+  font-size: 12px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+}
+
+.orcamento-construcao h1 {
+  max-width: 520px;
+
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: clamp(30px, 5vw, 44px);
+  font-weight: 800;
+
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+
+.orcamento-construcao p {
+  max-width: 470px;
+
+  margin: 20px 0 0;
+
+  color: #64748b;
+
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.orcamento-construcao__brand {
+  color: var(--brand-royal);
+  font-weight: 800;
+}
+
+.orcamento-construcao__brand span {
+  color: var(--brand-orange);
+}
+
+@media (max-width: 600px) {
+  .orcamento-construcao {
+    padding:
+      max(20px, env(safe-area-inset-top))
+      max(14px, env(safe-area-inset-right))
+      max(20px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .orcamento-construcao__card {
+    padding: 36px 22px;
+
+    border-radius: 20px;
+  }
+
+  .orcamento-construcao__logo {
+    height: 40px;
+
+    margin-bottom: 28px;
+  }
+
+  .orcamento-construcao h1 {
+    font-size: clamp(28px, 9vw, 36px);
+  }
+
+  .orcamento-construcao p {
+    font-size: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orcamento-construcao {
+    scroll-behavior: auto;
+  }
+}

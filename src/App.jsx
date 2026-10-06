@@ -10,8 +10,9 @@ import {
 import splashIcon from "./assets/icon-512-v2.png";
 import splashLogo from "./assets/logo_branco.png";
 
-import Landing from "./pages/Landing";
 import LandingPremium from "./pages/landing/LandingPremium";
+import PlanoBasico from "./pages/landing/plans/PlanoBasico";
+import Orcamento from "./pages/landing/orcamento/Orcamento";
 import Login from "./pages/Login";
 
 import ParceirosEntrada from "./pages/parceiros/entrada";
@@ -1089,14 +1090,19 @@ function App() {
                 <Navigate to="/login" replace />
               )
             ) : (
-              <Landing />
+              <LandingPremium />
             )
           }
         />
 
         <Route
-          path="/preview/landing"
-          element={<LandingPremium />}
+          path="/plano-basico"
+          element={<PlanoBasico />}
+        />
+
+        <Route
+          path="/orcamento"
+          element={<Orcamento />}
         />
 
         <Route

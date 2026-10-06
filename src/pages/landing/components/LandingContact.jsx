@@ -1,26 +1,28 @@
 import {
   ArrowRight,
   Mail,
-  MessageCircle,
   ShieldCheck,
 } from "lucide-react";
 
 import "./LandingContact.css";
 
+const WHATSAPP_NUMERO = "5511922106522";
+
+const WHATSAPP_MENSAGEM =
+  "Olá! Conheci o Sistema Chegou! pelo site e gostaria de receber informações sobre o Plano Básico para o meu condomínio.";
+
+const WHATSAPP_URL =
+  `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(
+    WHATSAPP_MENSAGEM
+  )}`;
+
+const WHATSAPP_ICONE =
+  `${import.meta.env.BASE_URL}shared/brands/whatsapp.png`;
+
+const EMAIL_COMERCIAL =
+  "comercial@sistemachegou.com.br";
+
 export default function LandingContact() {
-  function abrirWhatsapp() {
-    window.open(
-      "https://wa.me/SEUNUMERO",
-      "_blank",
-      "noopener,noreferrer"
-    );
-  }
-
-  function abrirEmail() {
-    window.location.href =
-      "mailto:SEUEMAIL@DOMINIO.COM";
-  }
-
   return (
     <section
       id="contato"
@@ -45,15 +47,25 @@ export default function LandingContact() {
           </p>
 
           <div className="landing-contact__actions">
-            <button
-              type="button"
+            <a
               className="landing-contact__primary-action"
-              onClick={abrirWhatsapp}
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Falar com a equipe do Sistema Chegou! pelo WhatsApp"
             >
-              <MessageCircle
-                size={19}
-                strokeWidth={2}
+              <img
+                src={WHATSAPP_ICONE}
+                alt=""
+                width="19"
+                height="19"
                 aria-hidden="true"
+                style={{
+                  width: 19,
+                  height: 19,
+                  objectFit: "contain",
+                  flexShrink: 0,
+                }}
               />
 
               Falar pelo WhatsApp
@@ -62,12 +74,12 @@ export default function LandingContact() {
                 size={17}
                 aria-hidden="true"
               />
-            </button>
+            </a>
 
-            <button
-              type="button"
+            <a
               className="landing-contact__secondary-action"
-              onClick={abrirEmail}
+              href={`mailto:${EMAIL_COMERCIAL}`}
+              aria-label={`Enviar um e-mail para ${EMAIL_COMERCIAL}`}
             >
               <Mail
                 size={18}
@@ -76,7 +88,7 @@ export default function LandingContact() {
               />
 
               Enviar um e-mail
-            </button>
+            </a>
           </div>
 
           <div className="landing-contact__note">
@@ -122,13 +134,12 @@ export default function LandingContact() {
               </p>
             </article>
 
-            <article>
-              <strong>Programa de Parceiros</strong>
-              <p>
-                Empresas e prestadores também poderão conhecer as
-                oportunidades do ecossistema Chegou!.
-              </p>
-            </article>
+            {/*
+              PROGRAMA DE PARCEIROS
+
+              Conteúdo temporariamente oculto.
+              Reativar após a publicação oficial do programa.
+            */}
           </div>
         </aside>
       </div>

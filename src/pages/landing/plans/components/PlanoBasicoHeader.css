@@ -1,0 +1,392 @@
+/* ==========================================================
+   SISTEMA CHEGOU!
+   PLANO BÁSICO — HEADER
+========================================================== */
+
+
+/* ==========================================================
+   HEADER BASE
+========================================================== */
+
+.plano-basico-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  width: 100%;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+
+/* ==========================================================
+   CONTAINER
+   Mesma geometria horizontal do LandingHeader
+========================================================== */
+
+.plano-basico-header__inner {
+  width: 100%;
+  max-width: 1440px;
+  min-height: var(--lp-header-height);
+
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  padding:
+    max(10px, env(safe-area-inset-top))
+    max(28px, env(safe-area-inset-right))
+    10px
+    max(28px, env(safe-area-inset-left));
+
+  box-sizing: border-box;
+}
+
+
+/* ==========================================================
+   LOGO
+========================================================== */
+
+.plano-basico-header__brand {
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+
+  text-decoration: none;
+}
+
+.plano-basico-header__logo {
+  display: block;
+
+  width: auto;
+  height: 42px;
+  max-width: 164px;
+
+  object-fit: contain;
+}
+
+
+/* ==========================================================
+   NAVEGAÇÃO DESKTOP
+========================================================== */
+
+.plano-basico-header__nav {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 4px;
+}
+
+.plano-basico-header__nav button,
+.plano-basico-header__mobile-menu button {
+  border: 0;
+
+  background: transparent;
+
+  color: var(--lp-text);
+
+  font: inherit;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.plano-basico-header__nav button {
+  min-height: 40px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 10px;
+
+  border-radius: 10px;
+
+  font-size: 14px;
+
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.plano-basico-header__nav button:hover {
+  background: var(--lp-surface-soft);
+  color: var(--lp-primary);
+}
+
+
+/* ==========================================================
+   FOCO / ACESSIBILIDADE
+========================================================== */
+
+.plano-basico-header__brand:focus-visible,
+.plano-basico-header__nav button:focus-visible,
+.plano-basico-header__mobile-toggle:focus-visible,
+.plano-basico-header__mobile-menu button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.28);
+  outline-offset: 2px;
+}
+
+
+/* ==========================================================
+   BOTÃO MOBILE
+========================================================== */
+
+.plano-basico-header__mobile-toggle {
+  display: none;
+
+  width: 42px;
+  height: 42px;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid var(--lp-border);
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: var(--lp-text);
+
+  cursor: pointer;
+}
+
+
+/* ==========================================================
+   MOBILE — ESTADO INICIAL
+========================================================== */
+
+.plano-basico-header__backdrop,
+.plano-basico-header__mobile-menu {
+  display: none;
+}
+
+
+/* ==========================================================
+   DESKTOP INTERMEDIÁRIO
+   Mesmo recuo do LandingHeader
+========================================================== */
+
+@media (max-width: 1360px) {
+  .plano-basico-header__inner {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+
+/* ==========================================================
+   NOTEBOOK
+   Mesmo recuo do LandingHeader
+========================================================== */
+
+@media (max-width: 1120px) {
+  .plano-basico-header__inner {
+    gap: 16px;
+
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .plano-basico-header__nav {
+    gap: 0;
+  }
+
+  .plano-basico-header__nav button {
+    padding: 0 7px;
+
+    font-size: 13px;
+  }
+}
+
+
+/* ==========================================================
+   TABLET / MENU MOBILE
+========================================================== */
+
+@media (max-width: 900px) {
+  .plano-basico-header__inner {
+    min-height: var(--lp-header-height);
+
+    padding:
+      max(8px, env(safe-area-inset-top))
+      max(16px, env(safe-area-inset-right))
+      8px
+      max(16px, env(safe-area-inset-left));
+  }
+
+  .plano-basico-header__logo {
+    height: 38px;
+  }
+
+  .plano-basico-header__nav {
+    display: none;
+  }
+
+  .plano-basico-header__mobile-toggle {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+
+  /* BACKDROP */
+
+  .plano-basico-header__backdrop {
+    position: fixed;
+    inset: 0;
+
+    z-index: 998;
+
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    padding: 0;
+
+    border: 0;
+
+    background: rgba(15, 23, 42, 0.36);
+
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+
+    cursor: default;
+  }
+
+
+  /* MENU */
+
+  .plano-basico-header__mobile-menu {
+    position: fixed;
+
+    top: var(--lp-header-height);
+    right: 0;
+
+    z-index: 999;
+
+    width: min(420px, 100%);
+    height: calc(100dvh - var(--lp-header-height));
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+
+    padding:
+      20px
+      max(16px, env(safe-area-inset-right))
+      max(24px, env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
+
+    background: #ffffff;
+
+    box-shadow:
+      -18px 0 48px rgba(15, 23, 42, 0.12);
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    transform: translateX(100%);
+
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+      transform 220ms ease,
+      visibility 220ms ease;
+  }
+
+  .plano-basico-header__mobile-menu--open {
+    transform: translateX(0);
+
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .plano-basico-header__mobile-menu button {
+    width: 100%;
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 14px;
+
+    border: 0;
+    border-radius: 10px;
+
+    background: transparent;
+    color: var(--lp-text);
+
+    font-size: 16px;
+    font-weight: 600;
+
+    text-align: left;
+
+    cursor: pointer;
+  }
+
+  .plano-basico-header__mobile-menu button:hover {
+    background: var(--lp-surface-soft);
+    color: var(--lp-primary);
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 680px) {
+  .plano-basico-header__inner {
+    padding-left:
+      max(14px, env(safe-area-inset-left));
+
+    padding-right:
+      max(14px, env(safe-area-inset-right));
+  }
+
+  .plano-basico-header__logo {
+    height: 34px;
+    max-width: 142px;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE COMPACTO
+========================================================== */
+
+@media (max-width: 430px) {
+  .plano-basico-header__logo {
+    height: 32px;
+    max-width: 132px;
+  }
+}
+
+
+/* ==========================================================
+   REDUÇÃO DE MOVIMENTO
+========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .plano-basico-header__nav button,
+  .plano-basico-header__mobile-menu {
+    transition: none;
+  }
+}

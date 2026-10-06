@@ -59,10 +59,16 @@ export default function LandingSecurity() {
           </h2>
 
           <p>
-            O Sistema Chegou! combina organização da operação,
-            controle de acesso, rastreabilidade e proteção das
-            informações para apoiar uma experiência mais segura
-            no condomínio.
+            O{" "}
+            <strong className="landing-security__brand">
+              Sistema Chegou
+              <span className="landing-security__brand-exclamation">
+                !
+              </span>
+            </strong>{" "}
+            combina organização da operação, controle de acesso,
+            rastreabilidade e proteção das informações para apoiar
+            uma experiência mais segura no condomínio.
           </p>
 
           <div className="landing-security__commitment">
@@ -142,9 +148,16 @@ export default function LandingSecurity() {
           </div>
 
           <p className="landing-security__panel-note">
-            O Sistema Chegou! adota princípios de privacidade,
-            rastreabilidade e controle de acesso compatíveis com
-            uma plataforma condominial profissional.
+            O{" "}
+            <strong className="landing-security__brand landing-security__brand--dark">
+              Sistema Chegou
+              <span className="landing-security__brand-exclamation">
+                !
+              </span>
+            </strong>{" "}
+            adota princípios de privacidade, rastreabilidade e
+            controle de acesso compatíveis com uma plataforma
+            condominial profissional.
           </p>
         </div>
 
@@ -185,8 +198,14 @@ export default function LandingSecurity() {
 
           <p>
             Privacidade e proteção de dados são consideradas na
-            evolução do Sistema Chegou!, observando os princípios
-            aplicáveis da LGPD.
+            evolução do{" "}
+            <strong className="landing-security__brand">
+              Sistema Chegou
+              <span className="landing-security__brand-exclamation">
+                !
+              </span>
+            </strong>
+            , observando os princípios aplicáveis da LGPD.
           </p>
         </div>
       </div>

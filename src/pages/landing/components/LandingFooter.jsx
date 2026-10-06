@@ -2,17 +2,14 @@ import { ShieldCheck } from "lucide-react";
 
 import logoBranco from "../../../assets/logo_branco.png";
 
+import {
+  useLandingNavigation,
+} from "../navigation/LandingNavigationContext";
+
 import "./LandingFooter.css";
 
 export default function LandingFooter() {
-  function rolarPara(id) {
-    document
-      .getElementById(id)
-      ?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-  }
+  const { navegarParaSecao } = useLandingNavigation();
 
   return (
     <footer className="landing-footer">
@@ -27,8 +24,8 @@ export default function LandingFooter() {
             />
 
             <p>
-              A plataforma completa para gestão de condomínio.
-              Mais segurança, organização e eficiência para todos.
+              Tecnologia para organizar o recebimento, a comunicação
+              e a retirada de encomendas em condomínios.
             </p>
 
             <div
@@ -38,7 +35,7 @@ export default function LandingFooter() {
               <a
                 href="https://instagram.com/sistemachegou"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 aria-label="Instagram do Sistema Chegou!"
               >
                 <svg
@@ -88,52 +85,51 @@ export default function LandingFooter() {
 
             <button
               type="button"
-              onClick={() => rolarPara("recursos")}
+              onClick={() => navegarParaSecao("recursos")}
             >
               Recursos
             </button>
 
             <button
               type="button"
-              onClick={() => rolarPara("recursos")}
+              onClick={() => navegarParaSecao("recursos")}
             >
               Para Condomínios
             </button>
 
-            <button
-              type="button"
-              onClick={() => rolarPara("parceiros")}
-            >
-              Parceiros
-            </button>
+            {/*
+              PARCEIROS
+
+              Temporariamente oculto.
+            */}
 
             <button
               type="button"
-              onClick={() => rolarPara("orcamento")}
+              onClick={() => navegarParaSecao("orcamento")}
             >
               Orçamentos
             </button>
 
             <button
               type="button"
-              onClick={() => rolarPara("assinaturas")}
+              onClick={() => navegarParaSecao("assinaturas")}
             >
               Assinaturas
             </button>
 
             <button
               type="button"
-              onClick={() => rolarPara("modulos")}
+              onClick={() => navegarParaSecao("modulos")}
             >
               Módulos
             </button>
 
-            <button
-              type="button"
-              onClick={() => rolarPara("sobre")}
-            >
-              Sobre nós
-            </button>
+            {/*
+              SOBRE NÓS
+
+              Temporariamente oculto:
+              destino #sobre ainda não publicado.
+            */}
           </nav>
 
           {/* RECURSOS */}
@@ -142,35 +138,35 @@ export default function LandingFooter() {
 
             <button
               type="button"
-              onClick={() => rolarPara("recursos")}
+              onClick={() => navegarParaSecao("recursos")}
             >
               Central de Encomendas
             </button>
 
             <button
               type="button"
-              onClick={() => rolarPara("recursos")}
+              onClick={() => navegarParaSecao("recursos")}
             >
               Comunicação
             </button>
 
             <button
               type="button"
-              onClick={() => rolarPara("recursos")}
+              onClick={() => navegarParaSecao("recursos")}
             >
               Gestão de Moradores
             </button>
 
-            <button
-              type="button"
-              onClick={() => rolarPara("recursos")}
-            >
-              Relatórios
-            </button>
+            {/*
+              RELATÓRIOS
+
+              Temporariamente oculto até confirmação
+              da disponibilidade comercial.
+            */}
 
             <button
               type="button"
-              onClick={() => rolarPara("seguranca")}
+              onClick={() => navegarParaSecao("seguranca")}
             >
               Segurança
             </button>
@@ -180,24 +176,25 @@ export default function LandingFooter() {
           <div className="landing-footer__column">
             <h2>Institucional</h2>
 
+            {/*
+              QUEM SOMOS
+
+              Temporariamente oculto:
+              destino #sobre ainda não publicado.
+
+              POLÍTICA DE PRIVACIDADE E TERMOS DE USO
+
+              Links temporariamente ocultos até
+              confirmação das rotas e publicação
+              dos documentos correspondentes.
+
+              A publicação desses documentos deve
+              ser resolvida antes do lançamento oficial.
+            */}
+
             <button
               type="button"
-              onClick={() => rolarPara("sobre")}
-            >
-              Quem somos
-            </button>
-
-            <a href="/politica-de-privacidade">
-              Política de Privacidade
-            </a>
-
-            <a href="/termos-de-uso">
-              Termos de Uso
-            </a>
-
-            <button
-              type="button"
-              onClick={() => rolarPara("seguranca")}
+              onClick={() => navegarParaSecao("seguranca")}
             >
               LGPD
             </button>
@@ -241,7 +238,14 @@ export default function LandingFooter() {
         </div>
 
         <div className="landing-footer__bottom">
-          © 2026 Sistema Chegou! Todos os direitos reservados.
+          © 2026{" "}
+          <strong className="landing-footer__brand-signature">
+            Sistema Chegou
+            <span className="landing-footer__brand-exclamation">
+              !
+            </span>
+          </strong>{" "}
+          Todos os direitos reservados.
         </div>
       </div>
     </footer>
